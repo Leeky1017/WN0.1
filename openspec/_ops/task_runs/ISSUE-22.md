@@ -59,3 +59,7 @@
 - Command: `gh pr create --title "chore(openspec): finalize ISSUE-22 run log (#22)" ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/24`
 - Evidence: `gh pr view 24`
+
+- Command: `gh pr edit 24 --body "Closes #22 ..."`
+- Key output: `openspec-log-guard requires PR body 'Closes #<issue-number>'`
+- Evidence: `gh pr view 24 --json body`
