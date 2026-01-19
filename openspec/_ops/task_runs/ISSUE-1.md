@@ -23,3 +23,8 @@
 - Command: `gh pr create --repo Leeky1017/WN0.1 --base main --head task/1-sprint-2-ai ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/2`
 - Evidence: PR #2
+
+### 2026-01-19 Rulebook task archived
+- Command: `rulebook task archive issue-1-sprint-2-ai`
+- Key output: `rulebook/tasks/archive/2026-01-19-issue-1-sprint-2-ai/`
+- Evidence: `rulebook/tasks/archive/2026-01-19-issue-1-sprint-2-ai/`
