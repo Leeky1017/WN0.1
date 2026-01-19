@@ -110,3 +110,150 @@ AI 生成结果 MUST 默认以 Diff 形式展示（绿新增/红删除），且�
 - 核心规范：`openspec/specs/writenow-spec/spec.md` 第 615-643 行（AI 服务配置：provider/baseUrl/apiKey/model）
 - 核心规范：`openspec/specs/writenow-spec/spec.md` 第 814-827 行（skills 表：Prompt 模板与上下文规则）
 
+---
+## 补充模块：元语言约束系统（Judge Layer）
+### Purpose
+在 SKILL 生成完成后，对输出内容进行约束检查（Judge），确保 AI 生成的文本符合用户定义的写作规范。Judge 层采用分层架构：L1 代码检查器（必须实现）+ L2 本地小模型检查器（必须实现）。检查结果附加到 Diff 元信息，供用户知情决策。
+本模块是元语言约束系统的第一阶段实现，为后续的 Writing Contract（写作合约）产品化奠定基础。
+---
+### Requirement: Judge 层 MUST 采用可插拔架构，支持多种检查器实现
+Judge 层 MUST 定义统一的 `IJudge` 接口，支持多种检查器实现（代码检查器、本地 LLM 检查器等）；检查器可通过配置切换，无需改动上层调用代码。
+#### Scenario: 接口抽象
+- **WHEN** 开发者需要新增一种检查器（如切换到 Qwen3-0.6B）
+- **THEN** 只需实现 `IJudge` 接口，无需修改 Judge 层调用逻辑或 Diff 展示代码
+---
+### Requirement: L1 代码检查器 MUST 覆盖基础硬约束
+L1 代码检查器 MUST 使用纯 JavaScript/TypeScript 实现，不依赖任何 AI 模型，覆盖以下硬约束检查：
+#### Scenario: 禁用词检查
+- **WHEN** SKILL 生成内容包含禁用词（用户配置或系统默认）
+- **THEN** 返回违规项，包含：违规词、位置（起止索引）、严重级别（error/warning）
+#### Scenario: 字数约束检查
+- **WHEN** 用户设置了输出字数范围（如"精简到 200 字以内"）
+- **THEN** 检查输出字数是否在范围内，超标则返回违规项
+#### Scenario: 格式约束检查
+- **WHEN** SKILL 要求特定格式输出（如"只输出列表"、"只输出段落"）
+- **THEN** 检查输出格式是否符合要求（正则或结构解析）
+#### Scenario: 术语一致性检查
+- **WHEN** 用户配置了术语表（标准术语 + 别名）
+- **THEN** 检查输出是否使用了别名而非标准术语，如有则提示规范化
+---
+### Requirement: L2 本地小模型检查器 MUST 集成 SmolLM2-360M，支持语义级判定
+L2 检查器 MUST 集成本地小模型（默认 SmolLM2-360M），通过 Zero-Shot Prompt 实现语义级约束判定；模型文件由应用首次启动时自动下载，存放于 `models/` 目录。
+#### Scenario: 模型自动下载
+- **WHEN** 应用首次启动且 `models/smollm2-360m.gguf` 不存在
+- **THEN** 自动从 HuggingFace 下载 SmolLM2-360M-Instruct 的 GGUF 量化版本（约 150-200MB）
+- **THEN** 下载过程显示进度，支持断点续传
+- **THEN** 下载失败时降级为仅使用 L1 代码检查器，并提示用户
+#### Scenario: 模型可切换
+- **WHEN** 用户在设置中指定了其他模型路径（如 `models/qwen3-0.6b.gguf`）
+- **THEN** Judge 层应加载用户指定的模型
+- **THEN** 模型切换无需重启应用（热切换或提示重启）
+#### Scenario: 语气判定
+- **WHEN** 用户配置了语气约束（如"学术正式"、"禁止口语化"）
+- **THEN** L2 检查器通过以下 Prompt 模板判定：
+System: 你是一个写作质量检查器。判断文本语气是否符合要求。 只回答 JSON 格式：{"pass": true/false, "reason": "原因"}
+
+要求语气：{用户配置的语气} 文本：{待检查文本}
+
+- **THEN** 解析模型输出，转换为标准 `ConstraintViolation` 格式
+#### Scenario: 覆盖率检测
+- **WHEN** SKILL 任务包含多个子问题/要点（如"回答以下三个问题"）
+- **THEN** L2 检查器判定输出是否覆盖了所有子问题
+- **THEN** 未覆盖的子问题作为违规项返回
+#### Scenario: 推理性能约束
+- **WHEN** L2 检查器执行推理
+- **THEN** 单次推理耗时应 < 3 秒（在普通笔记本 CPU 上）
+- **THEN** 如超时，应中止并降级为 L1 结果
+---
+### Requirement: 违规项 MUST 在 Diff 视图中可见
+检查结果 MUST 集成到 Diff 视图，用户可直观看到哪些部分违反了约束。
+#### Scenario: 违规标注展示
+- **WHEN** Judge 层返回违规项
+- **THEN** Diff 视图中对应位置高亮显示（如红色下划线）
+- **THEN** 鼠标悬停或点击时展示违规详情（类型、原因、建议）
+#### Scenario: 违规汇总
+- **WHEN** 存在多个违规项
+- **THEN** Diff 视图顶部或底部展示违规汇总（如"3 个警告，1 个错误"）
+- **THEN** 用户可一键忽略所有警告，或逐条处理
+#### Scenario: 通过时无干扰
+- **WHEN** 所有约束检查通过
+- **THEN** Diff 视图正常展示，不显示额外的"全部通过"提示（低打扰原则）
+---
+### Requirement: 约束规则 MUST 可配置并持久化
+用户 MUST 能够配置约束规则，配置应持久化到本地数据库，支持全局和项目级两种作用域。
+#### Scenario: 约束配置 UI
+- **WHEN** 用户打开"写作设置"或"约束配置"
+- **THEN** 可配置：
+- 禁用词列表（支持批量导入/导出）
+- 术语表（标准术语 + 别名映射）
+- 语气偏好（选择或自定义）
+- 字数范围（最小/最大）
+- L2 检查器开关（默认开启）
+#### Scenario: 配置作用域
+- **WHEN** 用户在全局设置中配置约束
+- **THEN** 约束对所有文档生效
+- **WHEN** 用户在项目设置中配置约束
+- **THEN** 项目约束覆盖全局约束（优先级更高）
+---
+## 新增类型定义
+创建文件 `src/types/constraints.ts`：
+```typescript
+/** 约束类型 */
+export type ConstraintType = 
+| 'forbidden_words'    // 禁用词
+| 'word_count'         // 字数限制
+| 'format'             // 格式要求
+| 'terminology'        // 术语一致性
+| 'tone'               // 语气（L2）
+| 'coverage';          // 覆盖率（L2）
+/** 单条约束规则 */
+export interface ConstraintRule {
+id: string;
+type: ConstraintType;
+enabled: boolean;
+config: Record<string, unknown>;
+level: 'error' | 'warning' | 'info';
+scope: 'global' | 'project';
+projectId?: string;
+}
+/** 约束检查结果 - 单条违规 */
+export interface ConstraintViolation {
+ruleId: string;
+type: ConstraintType;
+level: 'error' | 'warning' | 'info';
+message: string;
+position?: { start: number; end: number };
+suggestion?: string;
+}
+/** Judge 层完整输出 */
+export interface JudgeResult {
+passed: boolean;
+violations: ConstraintViolation[];
+l1Passed: boolean;
+l2Passed: boolean;
+checkedAt: string;
+durationMs: number;
+}
+/** Judge 实现接口（可插拔） */
+export interface IJudge {
+check(text: string, rules: ConstraintRule[]): Promise<JudgeResult>;
+}
+```
+新增文件清单
+文件	类型	说明
+src/types/constraints.ts	类型定义	约束规则与结果类型
+src/lib/judge/index.ts	入口	Judge 层统一入口，工厂函数
+src/lib/judge/types.ts	接口	IJudge 接口定义
+src/lib/judge/code-judge.ts	L1 实现	纯代码检查器
+src/lib/judge/llm-judge.ts	L2 实现	本地 LLM 检查器
+src/lib/judge/rules/forbidden-words.ts	L1 规则	禁用词检查
+src/lib/judge/rules/word-count.ts	L1 规则	字数检查
+src/lib/judge/rules/format.ts	L1 规则	格式检查
+src/lib/judge/rules/terminology.ts	L1 规则	术语一致性
+src/lib/judge/prompts/tone.ts	L2 Prompt	语气判定 Prompt
+src/lib/judge/prompts/coverage.ts	L2 Prompt	覆盖率检测 Prompt
+electron/lib/model-downloader.cjs	下载器	模型文件下载管理
+electron/lib/llm-runtime.cjs	运行时	本地 LLM 推理封装
+src/stores/constraintsStore.ts	状态	约束配置 Zustand store
+src/components/Diff/ViolationMarker.tsx	UI	违规标注组件
+src/components/Settings/ConstraintsPanel.tsx	UI	约束配置面板
