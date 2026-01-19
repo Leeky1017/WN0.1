@@ -1,7 +1,7 @@
 # ISSUE-4
 - Issue: #4
 - Branch: task/4-sprint-3-rag
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/8
 
 ## Plan
 - Add Sprint 3 RAG spec + task cards
@@ -28,3 +28,13 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 4 passed, 0 failed (4 items)`
 - Evidence: `openspec/specs/sprint-3-rag/spec.md`
+
+### 2026-01-19 Push branch
+- Command: `git push -u origin HEAD`
+- Key output: `* [new branch]      HEAD -> task/4-sprint-3-rag`
+- Evidence: `origin/task/4-sprint-3-rag`
+
+### 2026-01-19 PR created
+- Command: `gh pr create --repo Leeky1017/WN0.1 --base main --head task/4-sprint-3-rag ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/8`
+- Evidence: PR #8
