@@ -1,231 +1,239 @@
-# Codex 阶段 0 任务: 基础设施与规范建立
+# Codex Sprint 1 任务: 可用的编辑器
 
 ---
 
-## 宪法级约束 (Constitutional Constraints)
+## 任务背景
 
-以下约束具有最高优先级,任何任务执行都必须遵守:
+Sprint 1 是 WriteNow 的第一个功能实现阶段,目标是交付一个可日常使用的本地编辑器。这是所有后续功能 (AI、RAG、云服务) 的基础,必须高质量完成。
 
-### 1. 代码质量约束
+阶段 0 已完成以下基础设施:
+- IPC 契约规范 (所有通道的请求/响应类型已定义)
+- 代码规范文档
+- 测试规范文档
+- 核心类型定义 (src/types/)
 
-代码必须同时满足"正确"和"好"两个标准:
-
-正确的代码: 功能符合需求,边界处理完备,无运行时错误
-好的代码: 可读性强,可维护,可测试,风格一致
-
-具体要求:
-- 变量命名清晰,函数职责单一
-- 注释解释 why 而非 what
-- 模块边界清晰,依赖方向一致
-- 纯函数优先,副作用隔离
-- TypeScript 类型覆盖关键路径,禁止 any
-- 错误处理规范统一
-
-### 2. 一致性约束
-
-全项目必须始终保持统一:
-- 命名风格统一 (文件、变量、函数、组件)
-- 目录结构统一
-- 错误处理方式统一
-- 状态管理模式统一
-- IPC 通道格式统一
-
-### 3. 测试约束 (绝对要求)
-
-所有功能必须配套完备的 E2E 测试:
-
-要求:
-- 用户路径优先: 测试必须模拟真实用户行为
-- 100% 覆盖: 所有功能路径必须有测试覆盖
-- 极限/边界测试: 每个测试节点必须做足够的边界条件测试
-- 宁可多测,不要省事
-
-禁止:
-- 禁止使用假数据测试 (fake/mock data 仅用于隔离依赖,不用于替代真实逻辑)
-- 禁止"假装"测试 (随便写点东西让测试通过)
-- 禁止跳过边界条件
-
-测试必须包括:
-- 正常路径
-- 错误路径
-- 边界条件 (空值、超大值、特殊字符等)
-- 并发/竞态场景 (如适用)
+本任务基于这些规范进行实现。
 
 ---
 
-## 任务 1: 更新 AGENTS.md
+## 必读文档 (执行前必须阅读)
 
-将以上宪法级约束写入 AGENTS.md,作为所有 Codex 任务的最高准则。
+### 规范文档
+- `openspec/specs/sprint-1-editor/spec.md` - Sprint 1 详细规范 (Purpose/Requirements/Scenario)
+- `openspec/specs/api-contract/spec.md` - IPC 契约规范 (通道定义、Envelope、错误码)
+- `docs/code-standards.md` - 代码规范
+- `docs/testing-standards.md` - 测试规范
+- `AGENTS.md` - 宪法级约束
 
-修改文件: /home/leeky/work/WriteNow/AGENTS.md
+### 类型定义
+- `src/types/ipc.ts` - IPC 类型
+- `src/types/editor.ts` - 编辑器类型
+- `src/types/models.ts` - 数据模型类型
 
-新增内容:
-
-```markdown
-## 宪法级约束
-
-### 代码质量
-- 代码必须同时"正确"和"好"
-- 正确: 功能符合需求,边界处理完备
-- 好: 可读性强,可维护,可测试,风格一致
-- 禁止 any 类型,类型必须完备
-- 注释解释 why 而非 what
-
-### 一致性
-- 全项目必须始终保持统一
-- 命名、结构、错误处理、状态管理一致
-- 遵循已定义的契约规范
-
-### 测试
-- 所有功能必须有 E2E 测试
-- 用户路径优先,100% 覆盖
-- 每个节点做极限/边界测试
-- 禁止使用假数据测试
-- 禁止"假装"测试
-- 宁可多测,不要省事
-```
+### 核心规范参考
+- `openspec/specs/writenow-spec/spec.md` 第 405-434 行 (TipTap + 双模式)
+- `openspec/specs/writenow-spec/spec.md` 第 496-513 行 (自动保存)
+- `openspec/specs/writenow-spec/spec.md` 第 630-713 行 (目录结构 + IPC)
 
 ---
 
-## 任务 2: 创建 IPC 契约规范
+## 宪法级约束 (必须遵守)
 
-创建文件: openspec/specs/api-contract/spec.md
-
-内容要求:
-
-1. 定义所有 IPC 通道的请求/响应格式
-2. 每个通道必须包含:
-   - 通道名称 (domain:action 格式)
-   - 请求参数类型 (TypeScript 接口)
-   - 响应数据类型 (TypeScript 接口)
-   - 错误码定义
-   - 错误响应格式
-
-3. 必须覆盖以下通道:
-   - file:list, file:read, file:write, file:create, file:delete
-   - ai:skill:run, ai:skill:cancel
-   - search:fulltext, search:semantic
-   - embedding:encode, embedding:index
-   - version:list, version:create, version:restore, version:diff
-   - update:check, update:download, update:install
-
-4. 定义通用响应格式:
-   - 成功响应结构
-   - 错误响应结构
-   - 分页响应结构 (如适用)
-
-参考: 核心规范 openspec/specs/writenow-spec/spec.md 第 700-736 行
+1. 代码必须同时"正确"和"好" (可读、可维护、可测试、风格一致)
+2. 禁止 any 类型
+3. 全项目命名/结构/错误处理统一
+4. 所有功能必须有 E2E 测试
+5. 用户路径优先, 100% 功能覆盖
+6. 每个节点做极限/边界测试
+7. 禁止使用假数据测试
+8. 禁止"假装"测试
 
 ---
 
-## 任务 3: 创建代码规范文档
+## 任务分解
 
-创建文件: docs/code-standards.md
+### 任务 1: 实现文件操作 IPC (主进程)
 
-内容要求:
+**目标**: 实现 file:list/read/write/create/delete 五个 IPC 通道
 
-### 3.1 目录结构规范
-- 明确每个目录的职责
-- 文件放置规则
-- 新增文件的命名规范
+**创建/修改文件**:
+- `electron/ipc/files.cjs` (新建)
 
-### 3.2 命名规范
-- 文件命名: kebab-case (组件用 PascalCase)
-- 变量命名: camelCase
-- 常量命名: UPPER_SNAKE_CASE
-- 类型命名: PascalCase
-- 接口命名: I 前缀或无前缀 (保持一致即可)
+**实现要求**:
+- 请求/响应必须符合 api-contract 定义的 Envelope 格式
+- 错误必须映射为标准错误码 (INVALID_ARGUMENT, NOT_FOUND, IO_ERROR 等)
+- 路径必须限制在文档目录内, 禁止路径穿越
+- 文件名必须清洗 Windows 不合法字符
 
-### 3.3 组件设计规范
-- 组件文件结构
-- Props 接口定义
-- 状态管理接入方式
-- 样式编写规范
+**参考 api-contract 通道定义**:
+- FileListRequest/Response (第 178-193 行)
+- FileReadRequest/Response (第 203-217 行)
+- FileWriteRequest/Response (第 223-238 行)
+- FileCreateRequest/Response (第 244-259 行)
+- FileDeleteRequest/Response (第 265-278 行)
 
-### 3.4 错误处理规范
-- 错误类型定义
-- 错误抛出规范
-- 错误日志规范
-- 用户反馈规范
-
-### 3.5 状态管理规范
-- Zustand store 结构
-- Selector 设计
-- Action 设计
-- 异步操作处理
-
-### 3.6 IPC 调用规范
-- 调用方式
-- 错误处理
-- Loading 状态管理
-- 类型安全保证
+**测试要求**:
+- 正常路径: 创建/读取/写入/删除成功
+- 边界条件: 空文件名、超长文件名、特殊字符、emoji
+- 错误路径: 文件不存在、路径穿越尝试、磁盘权限不足
 
 ---
 
-## 任务 4: 创建核心类型定义
+### 任务 2: 实现 Zustand 状态管理
 
-创建/更新以下类型定义文件:
+**目标**: 创建 filesStore 和 editorStore
 
-src/types/ipc.ts
-- IPC 请求/响应通用类型
-- 各通道的具体类型
-- 错误类型
+**创建/修改文件**:
+- `src/stores/filesStore.ts` (新建)
+- `src/stores/editorStore.ts` (新建)
 
-src/types/editor.ts
-- 编辑器状态类型
-- 文档类型
-- 编辑模式类型
+**filesStore 职责**:
+- 文件列表加载状态 (isLoading, error, hasLoaded)
+- 文件列表数据 (items: DocumentFileListItem[])
+- Actions: loadFiles, createFile, deleteFile, refreshFiles
 
-src/types/ai.ts
-- SKILL 类型
-- AI 配置类型
-- 流式响应类型
+**editorStore 职责**:
+- 当前打开文档 (currentFile: { path, content, name })
+- 编辑状态 (isDirty, isSaving, lastSavedAt)
+- 编辑模式 (mode: 'markdown' | 'richtext')
+- Actions: openFile, saveFile, updateContent, switchMode
 
-src/types/models.ts
-- Article 类型
-- Project 类型
-- Character 类型
-- 其他数据模型
+**参考类型定义**:
+- `src/types/ipc.ts` - DocumentFileListItem, FileReadResponse
+- `src/types/editor.ts` - EditorState, EditorMode
 
-要求:
-- 类型必须与 IPC 契约规范一致
-- 类型必须与数据库 Schema 一致
-- 禁止使用 any
+**测试要求**:
+- Store actions 正确调用 IPC
+- 状态在成功/失败时正确更新
+- 并发操作处理 (快速切换文件)
 
 ---
 
-## 任务 5: 创建测试规范文档
+### 任务 3: 集成 TipTap 编辑器
 
-创建文件: docs/testing-standards.md
+**目标**: 用 TipTap 替换当前占位编辑器
 
-内容要求:
+**创建/修改文件**:
+- `src/components/Editor/index.tsx` (新建/重写)
+- `src/components/Editor/extensions/` (新建目录)
+- `src/components/Editor/Toolbar.tsx` (新建)
 
-### 5.1 测试原则
-- 用户路径优先
-- 100% 功能覆盖
-- 边界条件必测
+**实现要求**:
+- 安装 TipTap 依赖: @tiptap/react, @tiptap/pm, @tiptap/starter-kit
+- 支持基础富文本: 标题(1-3级)、加粗、斜体、无序/有序列表
+- 编辑器内容与 editorStore.currentFile.content 双向同步
+- 内容变化时设置 isDirty = true
 
-### 5.2 测试分类
-- 单元测试: 纯函数,工具函数
-- 集成测试: IPC 通道,状态管理
-- E2E 测试: 完整用户流程
+**参考规范**:
+- Sprint 1 spec 第 11-22 行 (TipTap 要求)
+- 代码规范 3.3 节 (组件设计规范)
 
-### 5.3 测试命名规范
-- describe: 被测试的模块/功能
-- it/test: should + 预期行为
+**测试要求**:
+- 编辑器加载并可输入
+- 富文本功能正常 (加粗、标题等)
+- 内容变化触发状态更新
 
-### 5.4 边界测试清单
-- 空值/undefined/null
-- 空字符串/空数组/空对象
-- 超长字符串
-- 特殊字符
-- 并发操作
-- 网络异常
+---
 
-### 5.5 禁止事项
-- 禁止 skip 测试
-- 禁止假数据替代真实逻辑
-- 禁止只测试 happy path
+### 任务 4: 实现双模式编辑
+
+**目标**: 支持 Markdown 与富文本模式切换
+
+**创建/修改文件**:
+- `src/components/Editor/index.tsx` (扩展)
+- `src/lib/markdown-converter.ts` (新建, 如需要)
+
+**实现要求**:
+- 切换按钮在工具栏
+- 切换时内容保持一致 (同一底层数据)
+- 默认模式可配置 (代码层支持, 本 Sprint 可硬编码默认值)
+
+**参考规范**:
+- Sprint 1 spec 第 25-36 行 (双模式要求)
+
+**测试要求**:
+- 模式切换功能可用
+- 切换后内容不丢失
+- 边界: 复杂格式切换
+
+---
+
+### 任务 5: 实现自动保存 + 崩溃恢复
+
+**目标**: 2秒防抖自动保存, 快捷键手动保存, 崩溃恢复
+
+**创建/修改文件**:
+- `src/hooks/useAutoSave.ts` (新建)
+- `src/stores/editorStore.ts` (扩展)
+- `electron/ipc/recovery.cjs` (新建, 如需要)
+
+**自动保存要求**:
+- 用户停止输入 >= 2秒后触发保存
+- 保存状态实时展示: "已保存"(绿点), "保存中..."(转圈), "未保存"(黄点)
+- Ctrl/Cmd+S 立即保存 (忽略防抖)
+
+**崩溃恢复要求**:
+- 定时快照 (每 5 分钟)
+- 启动时检测"未正常关闭"标志
+- 提示用户恢复最近快照
+
+**参考规范**:
+- Sprint 1 spec 第 63-80 行 (自动保存 + 崩溃恢复)
+- 核心规范第 497-512 行
+
+**测试要求**:
+- 2秒防抖正常触发
+- 快捷键立即保存
+- 保存成功/失败状态正确
+- 崩溃恢复流程完整
+
+---
+
+### 任务 6: 更新 preload 暴露 IPC 接口
+
+**目标**: 更新 preload.cjs 暴露 window.writenow.invoke
+
+**创建/修改文件**:
+- `electron/preload.cjs` (更新)
+
+**实现要求**:
+- 暴露 invoke 方法: `window.writenow.invoke(channel, payload)`
+- 类型安全 (渲染进程通过 src/lib/ipc.ts 调用)
+
+---
+
+### 任务 7: 创建 IPC 客户端封装
+
+**目标**: 提供类型安全的 IPC 调用封装
+
+**创建/修改文件**:
+- `src/lib/ipc.ts` (新建)
+
+**实现要求**:
+- 封装 window.writenow.invoke
+- 返回类型与 IpcInvokeResponseMap 对齐
+- 统一处理 Envelope (ok 分支与 error 分支)
+
+---
+
+## E2E 测试要求
+
+### 必须覆盖的用户路径
+
+1. 创建新文档 -> 输入内容 -> 自动保存 -> 关闭 -> 重新打开 -> 内容保留
+2. 打开已有文档 -> 编辑 -> 手动保存 (Ctrl+S) -> 内容更新
+3. 删除文档 -> 文件列表刷新 -> 文档不存在
+4. Markdown 模式 -> 切换到富文本 -> 内容一致 -> 切换回 Markdown
+5. 编辑中强制关闭 -> 重启 -> 崩溃恢复提示 -> 恢复内容
+
+### 边界测试
+
+- 空文件名创建
+- 超长文件名 (255字符)
+- 文件名含特殊字符: `<>:"/\|?*`
+- 超大文件内容 (1MB+)
+- 快速连续保存 (测试防抖)
+- 网络断开时保存 (本地操作应正常)
 
 ---
 
@@ -234,23 +242,45 @@ src/types/models.ts
 完成后应存在以下文件:
 
 ```
-AGENTS.md                              (更新)
-openspec/specs/api-contract/spec.md    (新建)
-docs/code-standards.md                 (新建)
-docs/testing-standards.md              (新建)
-src/types/ipc.ts                       (新建/更新)
-src/types/editor.ts                    (新建/更新)
-src/types/ai.ts                        (新建/更新)
-src/types/models.ts                    (新建/更新)
+electron/ipc/files.cjs              (新建)
+electron/preload.cjs                (更新)
+src/stores/filesStore.ts            (新建)
+src/stores/editorStore.ts           (新建)
+src/components/Editor/index.tsx     (新建/重写)
+src/components/Editor/Toolbar.tsx   (新建)
+src/components/Editor/extensions/   (新建目录)
+src/hooks/useAutoSave.ts            (新建)
+src/lib/ipc.ts                      (新建)
+tests/e2e/editor.spec.ts            (新建, E2E 测试)
+tests/e2e/file-operations.spec.ts   (新建, E2E 测试)
 ```
 
 ---
 
 ## 验收标准
 
-- [ ] AGENTS.md 包含宪法级约束
-- [ ] IPC 契约规范覆盖所有通道
-- [ ] 代码规范文档完整可执行
-- [ ] 测试规范文档明确边界要求
-- [ ] 类型定义与契约规范一致
-- [ ] 所有文档无矛盾,风格统一
+- [ ] file:list/read/write/create/delete IPC 通道实现且符合契约
+- [ ] Envelope 格式正确 (ok/data 或 ok/error)
+- [ ] 错误码映射正确
+- [ ] filesStore 和 editorStore 功能完整
+- [ ] TipTap 编辑器可用且支持基础富文本
+- [ ] 双模式切换可用且内容一致
+- [ ] 自动保存 (2秒防抖) 功能正常
+- [ ] 手动保存 (Ctrl/Cmd+S) 功能正常
+- [ ] 保存状态展示正确
+- [ ] 崩溃恢复流程完整
+- [ ] 所有 E2E 测试通过
+- [ ] 边界测试覆盖完整
+- [ ] 无 any 类型
+- [ ] 代码风格符合规范
+
+---
+
+## 执行顺序建议
+
+1. 先完成任务 6, 7 (preload + IPC 客户端) - 基础通信
+2. 再完成任务 1 (文件操作 IPC) - 后端能力
+3. 然后任务 2 (Zustand stores) - 前端状态
+4. 接着任务 3, 4 (TipTap + 双模式) - UI 交互
+5. 最后任务 5 (自动保存 + 崩溃恢复) - 增强功能
+6. 全程编写对应测试, 最后补齐 E2E 测试
