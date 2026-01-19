@@ -38,3 +38,13 @@
 - Command: `gh pr create --repo Leeky1017/WN0.1 --base main --head task/4-sprint-3-rag ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/8`
 - Evidence: PR #8
+
+### 2026-01-19 Rulebook task archived
+- Command: `rulebook task archive issue-4-sprint-3-rag`
+- Key output: `✅ Task issue-4-sprint-3-rag archived successfully`
+- Evidence: `rulebook/tasks/archive/2026-01-19-issue-4-sprint-3-rag/`
+
+### 2026-01-19 OpenSpec validate (strict, archive PR)
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 4 passed, 0 failed (4 items)`
+- Evidence: `rulebook/tasks/archive/2026-01-19-issue-4-sprint-3-rag/`
