@@ -1,7 +1,7 @@
 # ISSUE-15
 - Issue: #15
 - Branch: task/15-sprint-7-cloud
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/16
 
 ## Plan
 - Draft Sprint 7 spec + task cards
@@ -23,3 +23,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 8 passed, 0 failed (8 items)`
 - Evidence: `openspec/specs/sprint-7-cloud/spec.md`
+
+### 2026-01-19 PR created
+- Command: `gh pr create --repo Leeky1017/WN0.1 --base main --head task/15-sprint-7-cloud ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/16`
+- Evidence: PR #16
