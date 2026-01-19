@@ -1,7 +1,7 @@
 # ISSUE-22
 - Issue: #22
 - Branch: task/22-sprint-2-judge-layer
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/23
 
 ## Plan
 - Append Judge Layer addendum spec
