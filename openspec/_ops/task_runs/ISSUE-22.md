@@ -32,3 +32,25 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 9 passed, 0 failed (9 items)`
 - Evidence: `openspec/specs/sprint-2-ai/spec.md`
+
+### 2026-01-19 00:00 commit + PR
+- Command: `git commit -m "spec(sprint-2-ai): add Judge Layer addendum (#22)"`
+- Key output: `[task/22-sprint-2-judge-layer c286d76] spec(sprint-2-ai): add Judge Layer addendum (#22)`
+- Evidence: `git log -1`
+
+- Command: `git push -u origin HEAD`
+- Key output: `new branch -> task/22-sprint-2-judge-layer`
+- Evidence: `origin/task/22-sprint-2-judge-layer`
+
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/23`
+- Evidence: `gh pr view 23`
+
+### 2026-01-19 00:00 checks + merge
+- Command: `gh pr checks 23 --watch`
+- Key output: `ci/openspec-log-guard/merge-serial all pass`
+- Evidence: `gh pr checks 23`
+
+- Command: `gh pr merge 23 --auto --squash`
+- Key output: `mergedAt=2026-01-19T15:38:17Z`
+- Evidence: `gh pr view 23 --json mergedAt,state`
