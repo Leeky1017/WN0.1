@@ -1,7 +1,7 @@
 # ISSUE-7
 - Issue: #7
 - Branch: task/7-sprint-5-project
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/9
 
 ## Plan
 - Add Sprint 5 spec + task cards
@@ -23,3 +23,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 4 passed, 0 failed (4 items)`
 - Evidence: `openspec/specs/sprint-5-project/spec.md`
+
+### 2026-01-19 PR created
+- Command: `gh pr create --repo Leeky1017/WN0.1 --base main --head task/7-sprint-5-project ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/9`
+- Evidence: PR #9
