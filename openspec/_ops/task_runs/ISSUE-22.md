@@ -54,3 +54,8 @@
 - Command: `gh pr merge 23 --auto --squash`
 - Key output: `mergedAt=2026-01-19T15:38:17Z`
 - Evidence: `gh pr view 23 --json mergedAt,state`
+
+### 2026-01-19 00:00 run log follow-up
+- Command: `gh pr create --title "chore(openspec): finalize ISSUE-22 run log (#22)" ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/24`
+- Evidence: `gh pr view 24`
