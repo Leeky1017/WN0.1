@@ -43,3 +43,13 @@
 - Command: `gh pr create --base main --head task/6-sprint-6-experience ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/12`
 - Evidence: PR #12
+
+### 2026-01-19 Rulebook task archived
+- Command: `git mv rulebook/tasks/issue-6-sprint-6-experience rulebook/tasks/archive/2026-01-19-issue-6-sprint-6-experience`
+- Key output: `moved (git mv)`
+- Evidence: `rulebook/tasks/archive/2026-01-19-issue-6-sprint-6-experience/`
+
+### 2026-01-19 PR created (rulebook archive)
+- Command: `gh pr create --base main --head task/6-archive-rulebook ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/14`
+- Evidence: PR #14
