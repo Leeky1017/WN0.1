@@ -1,7 +1,7 @@
 # ISSUE-6
 - Issue: #6
 - Branch: task/6-sprint-6-experience
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/12
 
 ## Plan
 - Add Sprint 6 experience spec + task cards
@@ -38,3 +38,8 @@
 - Command: `npm run build`
 - Key output: `✓ built`
 - Evidence: `dist/`
+
+### 2026-01-19 PR created
+- Command: `gh pr create --base main --head task/6-sprint-6-experience ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/12`
+- Evidence: PR #12
