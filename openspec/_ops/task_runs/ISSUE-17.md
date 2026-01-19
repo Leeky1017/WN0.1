@@ -1,7 +1,7 @@
 # ISSUE-17
 - Issue: #17
 - Branch: task/17-phase-0-specs
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/18
 
 ## Plan
 - Add foundational specs and docs
