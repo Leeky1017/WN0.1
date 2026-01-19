@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "projectId": "6b17d653-6a44-46ae-bcfb-ddd304ed0579",
+  "mode": "full",
+  "features": {
+    "agent": true,
+    "logging": true,
+    "watcher": true,
+    "telemetry": false,
+    "notifications": false
+  },
+  "mcp": {
+    "enabled": true,
+    "tasksDir": "rulebook/tasks",
+    "archiveDir": "rulebook/tasks/archive"
+  },
+  "tasksDir": "rulebook/tasks"
+}
