@@ -36,3 +36,13 @@
 - Command: `gh pr create --base main --head task/5-sprint-4-release ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/10`
 - Evidence: PR #10
+
+### 2026-01-19 Rulebook task archived
+- Command: `rulebook task archive issue-5-sprint-4-release`
+- Key output: `✅ Task issue-5-sprint-4-release archived successfully`
+- Evidence: `rulebook/tasks/archive/2026-01-19-issue-5-sprint-4-release/`
+
+### 2026-01-19 PR created (rulebook archive)
+- Command: `gh pr create --base main --head task/5-archive-rulebook ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/13`
+- Evidence: PR #13
