@@ -15,6 +15,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'search:semantic',
   'embedding:encode',
   'embedding:index',
+  'rag:retrieve',
   'version:list',
   'version:create',
   'version:restore',

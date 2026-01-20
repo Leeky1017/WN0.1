@@ -15,6 +15,7 @@ export type IpcChannel =
   | 'search:semantic'
   | 'embedding:encode'
   | 'embedding:index'
+  | 'rag:retrieve'
   | 'version:list'
   | 'version:create'
   | 'version:restore'
@@ -257,6 +258,59 @@ export type EmbeddingIndexResponse = {
   dimension: number;
 };
 
+export type RagBudget = {
+  maxChars?: number;
+  maxChunks?: number;
+  maxCharacters?: number;
+  maxSettings?: number;
+  cursor?: string;
+  threshold?: number;
+};
+
+export type RagEntityCard = {
+  id: string;
+  type: 'character' | 'setting';
+  name: string;
+  aliases: string[];
+  content: string;
+  sourceArticleId?: string;
+  updatedAt?: string;
+  score: number;
+};
+
+export type RagPassage = {
+  id: string;
+  articleId: string;
+  title: string;
+  idx: number;
+  content: string;
+  score: number;
+  source: {
+    articleId: string;
+    chunkId: string;
+    idx: number;
+  };
+};
+
+export type RagRetrieveRequest = {
+  queryText: string;
+  budget?: RagBudget;
+};
+
+export type RagRetrieveResponse = {
+  query: string;
+  characters: RagEntityCard[];
+  settings: RagEntityCard[];
+  passages: RagPassage[];
+  budget: {
+    maxChars: number;
+    usedChars: number;
+    maxChunks: number;
+    cursor: string;
+    nextCursor?: string;
+  };
+};
+
 export type VersionListRequest = {
   articleId: string;
   limit?: number;
@@ -432,6 +486,7 @@ export type IpcInvokePayloadMap = {
   'search:semantic': SearchSemanticRequest;
   'embedding:encode': EmbeddingEncodeRequest;
   'embedding:index': EmbeddingIndexRequest;
+  'rag:retrieve': RagRetrieveRequest;
   'version:list': VersionListRequest;
   'version:create': VersionCreateRequest;
   'version:restore': VersionRestoreRequest;
@@ -464,6 +519,7 @@ export type IpcInvokeDataMap = {
   'search:semantic': SearchSemanticResponse;
   'embedding:encode': EmbeddingEncodeResponse;
   'embedding:index': EmbeddingIndexResponse;
+  'rag:retrieve': RagRetrieveResponse;
   'version:list': VersionListResponse;
   'version:create': VersionCreateResponse;
   'version:restore': VersionRestoreResponse;

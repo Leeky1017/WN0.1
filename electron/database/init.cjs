@@ -3,7 +3,7 @@ const path = require('path')
 
 const Database = require('better-sqlite3')
 
-const SCHEMA_VERSION = 2
+const SCHEMA_VERSION = 4
 
 function resolveUserDataPath(userDataPath) {
   if (typeof userDataPath === 'string' && userDataPath.trim()) return userDataPath
@@ -21,23 +21,85 @@ function readSchemaSql() {
   return fs.readFileSync(schemaPath, 'utf8')
 }
 
-function ensureSchemaVersion(db) {
+function getStoredSchemaVersion(db) {
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('schema_version')
-  if (!row) {
-    db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('schema_version', JSON.stringify(SCHEMA_VERSION))
-    return
-  }
+  if (!row || typeof row.value !== 'string') return 0
 
-  const raw = typeof row.value === 'string' ? row.value : ''
-  const parsed = Number.parseInt(raw, 10)
-  if (Number.isNaN(parsed)) {
-    db.prepare('UPDATE settings SET value = ? WHERE key = ?').run(JSON.stringify(SCHEMA_VERSION), 'schema_version')
-    return
-  }
+  const parsed = Number.parseInt(row.value, 10)
+  if (Number.isNaN(parsed)) return 0
+  return parsed
+}
 
-  if (parsed !== SCHEMA_VERSION) {
-    db.prepare('UPDATE settings SET value = ? WHERE key = ?').run(JSON.stringify(SCHEMA_VERSION), 'schema_version')
-  }
+function setStoredSchemaVersion(db, version) {
+  db.prepare(
+    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+  ).run('schema_version', JSON.stringify(version))
+}
+
+function hasColumn(db, table, column) {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all()
+  return Array.isArray(rows) && rows.some((r) => r && r.name === column)
+}
+
+function migrateToV3(db) {
+  const tx = db.transaction(() => {
+    if (!hasColumn(db, 'articles', 'characters')) {
+      db.exec("ALTER TABLE articles ADD COLUMN characters TEXT NOT NULL DEFAULT ''")
+    }
+    if (!hasColumn(db, 'articles', 'tags')) {
+      db.exec("ALTER TABLE articles ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
+    }
+
+    db.exec('DROP TRIGGER IF EXISTS articles_ai')
+    db.exec('DROP TRIGGER IF EXISTS articles_ad')
+    db.exec('DROP TRIGGER IF EXISTS articles_au')
+
+    db.exec('DROP TABLE IF EXISTS articles_fts')
+
+    db.exec(`CREATE VIRTUAL TABLE articles_fts USING fts5(
+      title,
+      content,
+      characters,
+      tags,
+      content='articles',
+      content_rowid='rowid',
+      tokenize='unicode61'
+    )`)
+
+    db.exec(`CREATE TRIGGER articles_ai AFTER INSERT ON articles BEGIN
+      INSERT INTO articles_fts(rowid, title, content, characters, tags)
+      VALUES (new.rowid, new.title, new.content, new.characters, new.tags);
+    END`)
+
+    db.exec(`CREATE TRIGGER articles_ad AFTER DELETE ON articles BEGIN
+      INSERT INTO articles_fts(articles_fts, rowid, title, content, characters, tags)
+      VALUES('delete', old.rowid, old.title, old.content, old.characters, old.tags);
+    END`)
+
+    db.exec(`CREATE TRIGGER articles_au AFTER UPDATE ON articles BEGIN
+      INSERT INTO articles_fts(articles_fts, rowid, title, content, characters, tags)
+      VALUES('delete', old.rowid, old.title, old.content, old.characters, old.tags);
+      INSERT INTO articles_fts(rowid, title, content, characters, tags)
+      VALUES (new.rowid, new.title, new.content, new.characters, new.tags);
+    END`)
+
+    db.exec("INSERT INTO articles_fts(articles_fts) VALUES('rebuild')")
+  })
+
+  tx()
+}
+
+function migrateToV4(_db) {
+  // V4 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
+}
+
+function runMigrations(db) {
+  const current = getStoredSchemaVersion(db)
+  if (current >= SCHEMA_VERSION) return
+
+  if (current < 3) migrateToV3(db)
+  if (current < 4) migrateToV4(db)
+  setStoredSchemaVersion(db, SCHEMA_VERSION)
 }
 
 function initDatabase(options = {}) {
@@ -54,8 +116,7 @@ function initDatabase(options = {}) {
 
   const schemaSql = readSchemaSql()
   db.exec(schemaSql)
-
-  ensureSchemaVersion(db)
+  runMigrations(db)
 
   return db
 }

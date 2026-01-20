@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS articles (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
+  characters TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '',
   format TEXT DEFAULT 'markdown',    -- 'markdown' | 'richtext'
   workflow_stage TEXT DEFAULT 'draft',
   word_count INTEGER DEFAULT 0,
@@ -15,7 +17,13 @@ CREATE TABLE IF NOT EXISTS articles (
 
 -- 文章全文索引
 CREATE VIRTUAL TABLE IF NOT EXISTS articles_fts USING fts5(
-  title, content, tokenize='unicode61'
+  title,
+  content,
+  characters,
+  tags,
+  content='articles',
+  content_rowid='rowid',
+  tokenize='unicode61'
 );
 
 -- 版本快照
@@ -29,6 +37,32 @@ CREATE TABLE IF NOT EXISTS article_snapshots (
   created_at TEXT NOT NULL,
   FOREIGN KEY (article_id) REFERENCES articles(id)
 );
+
+-- 段落分块（RAG 检索粒度）
+CREATE TABLE IF NOT EXISTS article_chunks (
+  id TEXT PRIMARY KEY,               -- 稳定 chunk id（由内容/位置派生）
+  article_id TEXT NOT NULL,
+  idx INTEGER NOT NULL,              -- 段落序号（从 0 开始）
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_article_chunks_article_id ON article_chunks(article_id);
+
+-- 人物/设定卡片（最小可用：从 markdown 卡片文件同步）
+CREATE TABLE IF NOT EXISTS entity_cards (
+  id TEXT PRIMARY KEY,               -- `${type}:${name}`
+  type TEXT NOT NULL,                -- 'character' | 'setting'
+  name TEXT NOT NULL,
+  aliases TEXT NOT NULL DEFAULT '[]',-- JSON string[]
+  content TEXT NOT NULL,             -- 卡片全文（用于 embedding/检索）
+  source_article_id TEXT,            -- 来源文件（documents/*.md）
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_entity_cards_type ON entity_cards(type);
+CREATE INDEX IF NOT EXISTS idx_entity_cards_name ON entity_cards(name);
 
 -- 项目表
 CREATE TABLE IF NOT EXISTS projects (
