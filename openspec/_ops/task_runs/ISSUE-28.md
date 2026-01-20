@@ -1,18 +1,19 @@
 # ISSUE-28
 - Issue: #28
-- Branch: task/28-sprint-1-editor
+- Branch: task/28-sprint-1-editor (deliverable), task/28-sprint-1-editor-closeout (closeout)
 - PR: https://github.com/Leeky1017/WN0.1/pull/31
 
 ## Goal
 - Deliver Sprint 1 editor per `openspec/specs/sprint-1-editor/spec.md` (TipTap + dual mode + file ops + autosave + crash recovery) with Playwright E2E coverage.
 
 ## Status
-- CURRENT: PR open; branch rebased on latest `origin/main`; E2E suite green. Need force-push + merge.
+- CURRENT: PR #31 merged (merge commit `b2eef05`); Rulebook task archived locally and ready to ship via closeout PR.
 
 ## Next Actions
-- [ ] Force-push rebased `task/28-sprint-1-editor` to update PR #31
-- [ ] Enable auto-merge + wait required checks (`ci`/`openspec-log-guard`/`merge-serial`)
-- [ ] Confirm PR merged (`mergedAt != null`) then sync controlplane + cleanup worktree
+- [x] Force-push rebased `task/28-sprint-1-editor` to update PR #31
+- [x] Enable auto-merge + wait required checks (`ci`/`openspec-log-guard`/`merge-serial`)
+- [x] Confirm PR merged (`mergedAt != null`) then sync controlplane + cleanup worktree
+- [ ] Ship closeout PR: commit Rulebook archive + update this run log
 
 ## Decisions Made
 - 2026-01-20: Dual mode strategy → Markdown is SSOT; richtext derives via TipTap Markdown extension (Sprint 1 scope).
@@ -102,3 +103,18 @@
 - Command: `git commit -m "fix(i18n): localize editor placeholder (#28)"`
 - Key output: `fix(i18n): localize editor placeholder (#28)`
 - Evidence: `git log -1`
+
+### 2026-01-20 confirm merged
+- Command: `gh pr view 31 --json mergedAt,state,url,mergeCommit --jq '{state, mergedAt, url, mergeCommit}'`
+- Key output: `state=MERGED`, `mergedAt=2026-01-20T05:18:49Z`, `mergeCommit=b2eef05d0b44d9dbd2b25d56f63840f1e111e223`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/31`
+
+### 2026-01-20 archive rulebook task
+- Command: `rulebook task validate issue-28-sprint-1-editor && rulebook task archive issue-28-sprint-1-editor`
+- Key output: `✅ Task issue-28-sprint-1-editor archived successfully`
+- Evidence: `rulebook/tasks/archive/2026-01-20-issue-28-sprint-1-editor/`
+
+### 2026-01-20 openspec validate (closeout)
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 9 passed, 0 failed (9 items)`
+- Evidence: `openspec/specs/`
