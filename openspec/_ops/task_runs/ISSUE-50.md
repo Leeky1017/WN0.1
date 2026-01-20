@@ -9,4 +9,14 @@
 - Ship via PR with required checks green
 
 ## Runs
+### 2026-01-20 00:00 bootstrap
+- Command: `gh issue create -t "Sprint 5: Project management (projects/characters/outline/knowledge graph)" -b "..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/issues/50`
 
+### 2026-01-20 00:00 worktree
+- Command: `git worktree add .worktrees/issue-50-sprint-5-project-management -b task/50-sprint-5-project-management`
+- Key output: `Preparing worktree (new branch 'task/50-sprint-5-project-management')`
+
+### 2026-01-20 00:00 spec-first
+- Command: `git commit -m "chore: sprint 5 task scaffolding (#50)"`
+- Key output: `8f9e91b chore: sprint 5 task scaffolding (#50)`
