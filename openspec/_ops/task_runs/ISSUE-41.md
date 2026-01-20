@@ -1,7 +1,7 @@
 # ISSUE-41
 - Issue: #41
 - Branch: task/41-specs-alignment
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/43
 
 ## Plan
 - Align roadmap status in writenow-spec
@@ -23,3 +23,8 @@
 - Command: `cd .worktrees/issue-41-specs-alignment && npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
 - Evidence: `openspec/specs/writenow-spec/spec.md`
+
+### 2026-01-20 18:10 push + pr
+- Command: `git push -u origin HEAD && gh pr create --title "chore(openspec): align roadmap + Sprint 2 Judge tasks (#41)" --body "Closes #41 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/43`
+- Evidence: `openspec/_ops/task_runs/ISSUE-41.md`
