@@ -74,6 +74,17 @@ export const outlineOps = {
   save: (payload: IpcInvokePayloadMap['outline:save']) => invoke('outline:save', payload),
 };
 
+export const knowledgeGraphOps = {
+  getGraph: (payload: IpcInvokePayloadMap['kg:graph:get']) => invoke('kg:graph:get', payload),
+  listEntities: (payload: IpcInvokePayloadMap['kg:entity:list']) => invoke('kg:entity:list', payload),
+  createEntity: (payload: IpcInvokePayloadMap['kg:entity:create']) => invoke('kg:entity:create', payload),
+  updateEntity: (payload: IpcInvokePayloadMap['kg:entity:update']) => invoke('kg:entity:update', payload),
+  deleteEntity: (payload: IpcInvokePayloadMap['kg:entity:delete']) => invoke('kg:entity:delete', payload),
+  listRelations: (payload: IpcInvokePayloadMap['kg:relation:list']) => invoke('kg:relation:list', payload),
+  createRelation: (payload: IpcInvokePayloadMap['kg:relation:create']) => invoke('kg:relation:create', payload),
+  deleteRelation: (payload: IpcInvokePayloadMap['kg:relation:delete']) => invoke('kg:relation:delete', payload),
+};
+
 export const updateOps = {
   getState: () => invoke('update:getState', {}),
   check: (payload: IpcInvokePayloadMap['update:check']) => invoke('update:check', payload),

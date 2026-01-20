@@ -225,6 +225,9 @@ function registerProjectsIpcHandlers(ipcMain, options = {}) {
 
     const tx = db.transaction(() => {
       db.prepare('DELETE FROM characters WHERE project_id = ?').run(id)
+      db.prepare('DELETE FROM outlines WHERE project_id = ?').run(id)
+      db.prepare('DELETE FROM kg_relations WHERE project_id = ?').run(id)
+      db.prepare('DELETE FROM kg_entities WHERE project_id = ?').run(id)
       db.prepare('DELETE FROM writing_constraints WHERE project_id = ?').run(id)
       db.prepare('DELETE FROM terminology WHERE project_id = ?').run(id)
       db.prepare('DELETE FROM forbidden_words WHERE project_id = ?').run(id)
@@ -244,4 +247,3 @@ function registerProjectsIpcHandlers(ipcMain, options = {}) {
 }
 
 module.exports = { registerProjectsIpcHandlers }
-

@@ -3,7 +3,7 @@ const path = require('path')
 
 const Database = require('better-sqlite3')
 
-const SCHEMA_VERSION = 5
+const SCHEMA_VERSION = 6
 
 function resolveUserDataPath(userDataPath) {
   if (typeof userDataPath === 'string' && userDataPath.trim()) return userDataPath
@@ -97,6 +97,10 @@ function migrateToV5(_db) {
   // V5 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
 }
 
+function migrateToV6(_db) {
+  // V6 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
+}
+
 function runMigrations(db) {
   const current = getStoredSchemaVersion(db)
   if (current >= SCHEMA_VERSION) return
@@ -104,6 +108,7 @@ function runMigrations(db) {
   if (current < 3) migrateToV3(db)
   if (current < 4) migrateToV4(db)
   if (current < 5) migrateToV5(db)
+  if (current < 6) migrateToV6(db)
   setStoredSchemaVersion(db, SCHEMA_VERSION)
 }
 

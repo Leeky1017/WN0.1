@@ -100,6 +100,39 @@ CREATE TABLE IF NOT EXISTS outlines (
 CREATE INDEX IF NOT EXISTS idx_outlines_project_id ON outlines(project_id);
 CREATE INDEX IF NOT EXISTS idx_outlines_article_id ON outlines(article_id);
 
+-- 知识图谱：实体与关系（项目级）
+CREATE TABLE IF NOT EXISTS kg_entities (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  type TEXT NOT NULL,               -- 'Character' | 'Location' | 'Event' | 'TimePoint' | 'Item' | ...
+  name TEXT NOT NULL,
+  description TEXT,
+  metadata_json TEXT,               -- JSON: 扩展字段
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+CREATE INDEX IF NOT EXISTS idx_kg_entities_project_id ON kg_entities(project_id);
+CREATE INDEX IF NOT EXISTS idx_kg_entities_type ON kg_entities(type);
+CREATE INDEX IF NOT EXISTS idx_kg_entities_name ON kg_entities(name);
+
+CREATE TABLE IF NOT EXISTS kg_relations (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  from_entity_id TEXT NOT NULL,
+  to_entity_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  metadata_json TEXT,               -- JSON: 扩展字段
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (from_entity_id) REFERENCES kg_entities(id) ON DELETE CASCADE,
+  FOREIGN KEY (to_entity_id) REFERENCES kg_entities(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_kg_relations_project_id ON kg_relations(project_id);
+CREATE INDEX IF NOT EXISTS idx_kg_relations_from_entity_id ON kg_relations(from_entity_id);
+CREATE INDEX IF NOT EXISTS idx_kg_relations_to_entity_id ON kg_relations(to_entity_id);
+
 -- SKILL 定义
 CREATE TABLE IF NOT EXISTS skills (
   id TEXT PRIMARY KEY,

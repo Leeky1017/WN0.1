@@ -20,6 +20,7 @@ const { registerSearchIpcHandlers } = require('./ipc/search.cjs')
 const { registerProjectsIpcHandlers } = require('./ipc/projects.cjs')
 const { registerCharactersIpcHandlers } = require('./ipc/characters.cjs')
 const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
+const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
 
 let logger = null
 let db = null
@@ -230,6 +231,12 @@ function setupIpc() {
   })
 
   registerOutlineIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+  })
+
+  registerKnowledgeGraphIpcHandlers(ipcMain, {
     handleInvoke,
     db,
     logger,

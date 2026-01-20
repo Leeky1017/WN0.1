@@ -1,4 +1,4 @@
-import type { ArticleSnapshot, Character, JsonValue, Project } from './models';
+import type { ArticleSnapshot, Character, JsonValue, KnowledgeGraphEntity, KnowledgeGraphRelation, Project } from './models';
 
 export type IpcChannel =
   | 'file:list'
@@ -29,6 +29,14 @@ export type IpcChannel =
   | 'character:delete'
   | 'outline:get'
   | 'outline:save'
+  | 'kg:graph:get'
+  | 'kg:entity:list'
+  | 'kg:entity:create'
+  | 'kg:entity:update'
+  | 'kg:entity:delete'
+  | 'kg:relation:list'
+  | 'kg:relation:create'
+  | 'kg:relation:delete'
   | 'version:list'
   | 'version:create'
   | 'version:restore'
@@ -618,6 +626,87 @@ export type OutlineSaveResponse = {
   updatedAt: string;
 };
 
+export type KnowledgeGraphGraphGetRequest = {
+  projectId: string;
+};
+
+export type KnowledgeGraphGraphGetResponse = {
+  entities: KnowledgeGraphEntity[];
+  relations: KnowledgeGraphRelation[];
+};
+
+export type KnowledgeGraphEntityListRequest = {
+  projectId: string;
+};
+
+export type KnowledgeGraphEntityListResponse = {
+  entities: KnowledgeGraphEntity[];
+};
+
+export type KnowledgeGraphEntityCreateRequest = {
+  projectId: string;
+  type: string;
+  name: string;
+  description?: string;
+  metadata?: JsonValue;
+};
+
+export type KnowledgeGraphEntityCreateResponse = {
+  entity: KnowledgeGraphEntity;
+};
+
+export type KnowledgeGraphEntityUpdateRequest = {
+  projectId: string;
+  id: string;
+  type?: string;
+  name?: string;
+  description?: string;
+  metadata?: JsonValue;
+};
+
+export type KnowledgeGraphEntityUpdateResponse = {
+  entity: KnowledgeGraphEntity;
+};
+
+export type KnowledgeGraphEntityDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type KnowledgeGraphEntityDeleteResponse = {
+  deleted: true;
+};
+
+export type KnowledgeGraphRelationListRequest = {
+  projectId: string;
+  entityId?: string;
+};
+
+export type KnowledgeGraphRelationListResponse = {
+  relations: KnowledgeGraphRelation[];
+};
+
+export type KnowledgeGraphRelationCreateRequest = {
+  projectId: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: string;
+  metadata?: JsonValue;
+};
+
+export type KnowledgeGraphRelationCreateResponse = {
+  relation: KnowledgeGraphRelation;
+};
+
+export type KnowledgeGraphRelationDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type KnowledgeGraphRelationDeleteResponse = {
+  deleted: true;
+};
+
 export type IpcInvokePayloadMap = {
   'file:list': FileListRequest;
   'file:read': FileReadRequest;
@@ -647,6 +736,14 @@ export type IpcInvokePayloadMap = {
   'character:delete': CharacterDeleteRequest;
   'outline:get': OutlineGetRequest;
   'outline:save': OutlineSaveRequest;
+  'kg:graph:get': KnowledgeGraphGraphGetRequest;
+  'kg:entity:list': KnowledgeGraphEntityListRequest;
+  'kg:entity:create': KnowledgeGraphEntityCreateRequest;
+  'kg:entity:update': KnowledgeGraphEntityUpdateRequest;
+  'kg:entity:delete': KnowledgeGraphEntityDeleteRequest;
+  'kg:relation:list': KnowledgeGraphRelationListRequest;
+  'kg:relation:create': KnowledgeGraphRelationCreateRequest;
+  'kg:relation:delete': KnowledgeGraphRelationDeleteRequest;
   'version:list': VersionListRequest;
   'version:create': VersionCreateRequest;
   'version:restore': VersionRestoreRequest;
@@ -693,6 +790,14 @@ export type IpcInvokeDataMap = {
   'character:delete': CharacterDeleteResponse;
   'outline:get': OutlineGetResponse;
   'outline:save': OutlineSaveResponse;
+  'kg:graph:get': KnowledgeGraphGraphGetResponse;
+  'kg:entity:list': KnowledgeGraphEntityListResponse;
+  'kg:entity:create': KnowledgeGraphEntityCreateResponse;
+  'kg:entity:update': KnowledgeGraphEntityUpdateResponse;
+  'kg:entity:delete': KnowledgeGraphEntityDeleteResponse;
+  'kg:relation:list': KnowledgeGraphRelationListResponse;
+  'kg:relation:create': KnowledgeGraphRelationCreateResponse;
+  'kg:relation:delete': KnowledgeGraphRelationDeleteResponse;
   'version:list': VersionListResponse;
   'version:create': VersionCreateResponse;
   'version:restore': VersionRestoreResponse;
