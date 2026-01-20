@@ -1,7 +1,7 @@
 # ISSUE-21
 - Issue: #21
 - Branch: task/21-phase-0-5-infra
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/25
 
 ## Plan
 - Implement Phase 0.5 infra per `CODEX_TASK_P05.md`
