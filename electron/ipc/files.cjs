@@ -4,6 +4,7 @@ const { app } = require('electron')
 
 const { getSessionStatus } = require('../lib/session.cjs')
 const { writeSnapshot, readLatestSnapshot } = require('../lib/snapshots.cjs')
+const { deleteArticle, upsertArticle } = require('../lib/articles.cjs')
 
 function getDocumentsDir() {
   return path.join(app.getPath('userData'), 'documents')
@@ -93,6 +94,10 @@ WriteNow 是一款本地优先的写作工具：文件保存在本机，可审�
 
 function registerFileIpcHandlers(ipcMain, options = {}) {
   const log = typeof options.log === 'function' ? options.log : null
+  const db = options.db ?? null
+  const onDocumentCreated = typeof options.onDocumentCreated === 'function' ? options.onDocumentCreated : null
+  const onDocumentSaved = typeof options.onDocumentSaved === 'function' ? options.onDocumentSaved : null
+  const onDocumentDeleted = typeof options.onDocumentDeleted === 'function' ? options.onDocumentDeleted : null
   const handleInvoke =
     typeof options.handleInvoke === 'function' ? options.handleInvoke : (channel, handler) => ipcMain.handle(channel, handler)
 
@@ -160,6 +165,24 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
       throw e
     }
     await fs.writeFile(fullPath, content, 'utf8')
+
+    if (db) {
+      try {
+        upsertArticle(db, { id: payload.path, fileName: payload.path, content })
+      } catch (e) {
+        log?.('[file:write] db index failed:', payload.path, e?.message)
+        throw createIpcError('DB_ERROR', 'Saved to disk but failed to update search index', { path: payload.path, message: e?.message })
+      }
+    }
+
+    if (onDocumentSaved) {
+      try {
+        Promise.resolve(onDocumentSaved(payload.path)).catch(() => undefined)
+      } catch {
+        // ignore
+      }
+    }
+
     return { written: true }
   })
 
@@ -175,6 +198,29 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     const defaultContent = template === 'blank' ? '' : getDefaultMarkdownContent(fileName)
 
     await fs.writeFile(fullPath, defaultContent, { encoding: 'utf8', flag: 'wx' })
+
+    if (db) {
+      try {
+        upsertArticle(db, { id: fileName, fileName, content: defaultContent })
+      } catch (e) {
+        log?.('[file:create] db index failed:', fileName, e?.message)
+        try {
+          await fs.unlink(fullPath)
+        } catch {
+          // ignore
+        }
+        throw createIpcError('DB_ERROR', 'Failed to initialize search index for new file', { name: fileName, message: e?.message })
+      }
+    }
+
+    if (onDocumentCreated) {
+      try {
+        Promise.resolve(onDocumentCreated(fileName)).catch(() => undefined)
+      } catch {
+        // ignore
+      }
+    }
+
     log?.('[file:create] created:', fileName)
     return { name: fileName, path: fileName }
   })
@@ -190,7 +236,37 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     } catch {
       throw createIpcError('INVALID_ARGUMENT', 'Invalid path', { path: payload?.path })
     }
-    await fs.unlink(fullPath)
+    const existingContent = db ? await fs.readFile(fullPath, 'utf8').catch(() => null) : null
+    if (db) {
+      try {
+        deleteArticle(db, name)
+      } catch (e) {
+        log?.('[file:delete] db index failed:', name, e?.message)
+        throw createIpcError('DB_ERROR', 'Failed to update search index for deleted file', { name, message: e?.message })
+      }
+    }
+
+    try {
+      await fs.unlink(fullPath)
+    } catch (e) {
+      if (db && typeof existingContent === 'string') {
+        try {
+          upsertArticle(db, { id: name, fileName: name, content: existingContent })
+        } catch {
+          // ignore
+        }
+      }
+      throw e
+    }
+
+    if (onDocumentDeleted) {
+      try {
+        Promise.resolve(onDocumentDeleted(name)).catch(() => undefined)
+      } catch {
+        // ignore
+      }
+    }
+
     log?.('[file:delete] deleted:', name)
     return { deleted: true }
   })

@@ -5,14 +5,24 @@ const fs = require('fs')
 const { initDatabase } = require('./database/init.cjs')
 const { createLogger } = require('./lib/logger.cjs')
 const config = require('./lib/config.cjs')
+const { syncDocumentsToDatabase } = require('./lib/documents-indexer.cjs')
+const { EmbeddingService } = require('./lib/embedding-service.cjs')
+const { VectorStore } = require('./lib/vector-store.cjs')
+const { RagIndexer } = require('./lib/rag/indexer.cjs')
 const { registerFileIpcHandlers } = require('./ipc/files.cjs')
 const { registerUpdateIpcHandlers } = require('./ipc/update.cjs')
 const { registerExportIpcHandlers } = require('./ipc/export.cjs')
 const { registerClipboardIpcHandlers } = require('./ipc/clipboard.cjs')
 const { initSessionLock, clearSessionLock } = require('./lib/session.cjs')
+const { registerEmbeddingIpcHandlers } = require('./ipc/embedding.cjs')
+const { registerRagIpcHandlers } = require('./ipc/rag.cjs')
+const { registerSearchIpcHandlers } = require('./ipc/search.cjs')
 
 let logger = null
 let db = null
+let embeddingService = null
+let vectorStore = null
+let ragIndexer = null
 let shuttingDown = false
 let updateService = null
 
@@ -189,7 +199,34 @@ function setupIpc() {
   const handleInvoke = createInvokeHandler()
   registerFileIpcHandlers(ipcMain, {
     handleInvoke,
+    db,
     log: (...args) => logger?.info?.('file', args.map((a) => String(a)).join(' ')),
+    onDocumentCreated: (articleId) => ragIndexer?.enqueueArticle?.(articleId),
+    onDocumentSaved: (articleId) => ragIndexer?.enqueueArticle?.(articleId),
+    onDocumentDeleted: (articleId) => ragIndexer?.handleDeletedArticle?.(articleId),
+  })
+
+  registerSearchIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+    embeddingService,
+    vectorStore,
+  })
+
+  registerEmbeddingIpcHandlers(ipcMain, {
+    handleInvoke,
+    embeddingService,
+    vectorStore,
+  })
+
+  registerRagIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+    embeddingService,
+    vectorStore,
+    ragIndexer,
   })
 
   updateService = registerUpdateIpcHandlers(ipcMain, {
@@ -313,6 +350,12 @@ app.whenReady().then(async () => {
     await initSessionLock({ log: (message, details) => logger?.info?.('session', message, details) })
     db = initDatabase({ userDataPath: app.getPath('userData') })
     config.initConfig({ db, logger, safeStorage })
+    embeddingService = new EmbeddingService({ userDataDir: app.getPath('userData'), logger })
+    vectorStore = new VectorStore({ db, logger })
+    ragIndexer = new RagIndexer({ db, logger, embeddingService, vectorStore })
+    await syncDocumentsToDatabase(db, path.join(app.getPath('userData'), 'documents'), logger).catch((e) =>
+      logger?.warn?.('indexer', 'startup sync failed', { message: e?.message })
+    )
     setupIpc()
     logger?.info?.('main', 'app ready', { userData: app.getPath('userData') })
     await createMainWindow()
@@ -327,6 +370,12 @@ app.whenReady().then(async () => {
 async function gracefulShutdown(exitCode) {
   if (shuttingDown) return
   shuttingDown = true
+
+  try {
+    await embeddingService?.close?.()
+  } catch {
+    // ignore
+  }
 
   try {
     await clearSessionLock({ log: (message, details) => logger?.info?.('session', message, details) })
