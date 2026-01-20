@@ -121,3 +121,66 @@
 - 通道名必须使用 string union（而不是裸字符串散落各处）
 - IPC payload/response 必须使用共享类型，禁止手写重复接口造成漂移
 
+## 3.7 路径与存储规范
+
+### 应用数据根目录
+
+应用数据根目录 MUST 使用 `app.getPath('userData')`（由 Electron 提供、跨平台一致）：
+
+- Windows: `%APPDATA%/WriteNow/`
+- macOS: `~/Library/Application Support/WriteNow/`
+- Linux: `~/.config/WriteNow/`
+
+### 子目录结构
+
+在 `userData/` 下 MUST 使用如下稳定子目录（不存在时由主进程创建）：
+
+- `documents/`：用户文档（`.md` 文件）
+- `data/`：数据库文件
+- `snapshots/`：崩溃恢复快照
+- `logs/`：日志文件
+- `models/`：本地 AI 模型（如 embedding / GGUF）
+- `cache/`：临时缓存
+
+### 数据与配置
+
+- 数据库文件 MUST 为：`data/writenow.db`
+- 配置 MUST 存储于数据库 `settings` 表（禁止使用独立 JSON 配置文件，避免漂移与不可审计）
+- API Key MUST 使用 Electron `safeStorage` 加密后再入库（见 `electron/lib/config.cjs`）
+
+## 3.8 日志规范
+
+### 日志级别
+
+日志级别 MUST 为：`debug | info | warn | error`
+
+### 日志格式
+
+主进程日志格式 MUST 为：
+
+`[ISO时间戳] [级别] [模块名] 消息 {可选JSON细节}`
+
+示例：
+
+`[2024-01-20T10:30:00.000Z] [INFO] [database] 初始化完成 {"schemaVersion":1}`
+
+### 主进程日志
+
+- 文件：`logs/main.log`（位于 `userData/logs/main.log`）
+- 轮转：单文件 10MB、保留 5 个历史文件
+
+### 渲染进程日志
+
+- 开发模式：输出到 console
+- 生产模式：关键错误 MUST 通过 IPC 上报到主进程，由主进程落盘（禁止仅 console）
+
+### 日志模块接口
+
+```ts
+interface Logger {
+  debug(module: string, message: string, details?: object): void
+  info(module: string, message: string, details?: object): void
+  warn(module: string, message: string, details?: object): void
+  error(module: string, message: string, details?: object): void
+}
+```

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
-import type { DocumentFileListItem, FileCreateResult } from '../writenow';
+import type { DocumentFileListItem, FileCreateResponse } from '../types/ipc';
+import { IpcError, fileOps } from '../lib/ipc';
+import { toUserMessage } from '../lib/errors';
 
 export type DocumentFile = DocumentFileListItem;
 
@@ -15,12 +17,11 @@ type FilesState = {
 };
 
 function getFilesApi() {
-  const api = window.writenow?.files;
-  if (!api) throw new Error('WriteNow API is not available (are you running in Electron?)');
-  return api;
+  return fileOps;
 }
 
 function toErrorMessage(error: unknown) {
+  if (error instanceof IpcError) return toUserMessage(error.code, error.message);
   if (error instanceof Error) return error.message;
   try {
     return JSON.stringify(error);
@@ -29,7 +30,7 @@ function toErrorMessage(error: unknown) {
   }
 }
 
-function pickCreatedFile(files: DocumentFile[], created: FileCreateResult) {
+function pickCreatedFile(files: DocumentFile[], created: FileCreateResponse) {
   return files.find((f) => f.path === created.path) ?? null;
 }
 
@@ -42,8 +43,8 @@ export const useFilesStore = create<FilesState>((set, get) => ({
   refresh: async () => {
     set({ isLoading: true, error: null });
     try {
-      const files = await getFilesApi().list();
-      set({ files, isLoading: false, hasLoaded: true });
+      const { items } = await getFilesApi().list();
+      set({ files: items, isLoading: false, hasLoaded: true });
     } catch (error) {
       set({ isLoading: false, error: toErrorMessage(error), hasLoaded: true });
     }

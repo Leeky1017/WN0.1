@@ -18,6 +18,10 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
+# Test artifacts
+test-results/
+playwright-report/
+
 # Local data / artifacts
 data/
 release/

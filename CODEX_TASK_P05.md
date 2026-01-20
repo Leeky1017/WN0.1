@@ -140,6 +140,9 @@ interface Logger {
    - skills
    - user_memory
    - writing_stats
+   - writing_constraints
+   - terminology
+   - forbidden_words
    - settings
 
 5. 版本管理: 在 settings 表存储 schema_version
@@ -390,6 +393,23 @@ contextBridge.exposeInMainWorld('writenow', {
 
 ---
 
+### 任务 12: 本地 LLM 模型配置 (GGUF)
+
+创建文件: `electron/lib/model-config.cjs`
+
+功能要求:
+
+1. 默认模型信息:
+   - name / filename / url / size / sha256
+
+2. 模型目录:
+   - `modelDir`: 相对于 `app.getPath('userData')`
+
+3. `package.json` 新增依赖:
+   - node-llama-cpp (llama.cpp Node.js 绑定, 用于加载 GGUF 模型)
+
+---
+
 ## 输出清单
 
 完成后应存在以下文件:
@@ -401,6 +421,7 @@ electron/database/init.cjs         (新建)
 electron/database/schema.sql       (新建)
 electron/lib/logger.cjs            (新建)
 electron/lib/config.cjs            (新建)
+electron/lib/model-config.cjs      (新建)
 electron/preload.cjs               (更新)
 electron/main.cjs                  (更新)
 src/lib/ipc.ts                     (新建)
@@ -431,6 +452,7 @@ package.json                       (更新: 测试依赖和脚本)
 - [ ] Playwright 配置正确, 示例测试通过
 - [ ] Preload 正确暴露 window.writenow
 - [ ] 主进程启动时正确初始化所有模块
+- [ ] node-llama-cpp 依赖已添加, model-config 配置文件已创建
 - [ ] 无 any 类型
 - [ ] 所有新模块有对应测试
 
