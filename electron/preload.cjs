@@ -27,6 +27,8 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'character:create',
   'character:update',
   'character:delete',
+  'outline:get',
+  'outline:save',
   'version:list',
   'version:create',
   'version:restore',

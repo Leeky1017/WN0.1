@@ -87,6 +87,19 @@ CREATE TABLE IF NOT EXISTS characters (
   FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
+-- 大纲（文章级，按 project + article 存储 JSON）
+CREATE TABLE IF NOT EXISTS outlines (
+  project_id TEXT NOT NULL,
+  article_id TEXT NOT NULL,
+  outline_json TEXT NOT NULL,        -- JSON: OutlineNode[]
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (project_id, article_id),
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+CREATE INDEX IF NOT EXISTS idx_outlines_project_id ON outlines(project_id);
+CREATE INDEX IF NOT EXISTS idx_outlines_article_id ON outlines(article_id);
+
 -- SKILL 定义
 CREATE TABLE IF NOT EXISTS skills (
   id TEXT PRIMARY KEY,

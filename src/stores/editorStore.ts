@@ -16,10 +16,13 @@ type EditorState = {
   loadError: string | null;
   saveStatus: SaveStatus;
   lastSavedAt: number | null;
+  pendingJumpLine: number | null;
   openFile: (path: string) => Promise<void>;
   setContent: (content: string) => void;
   setEditorMode: (mode: EditorMode) => void;
   save: () => Promise<void>;
+  requestJumpToLine: (line: number) => void;
+  consumeJumpToLine: () => void;
   closeFile: () => void;
 };
 
@@ -49,6 +52,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   loadError: null,
   saveStatus: 'saved',
   lastSavedAt: null,
+  pendingJumpLine: null,
 
   openFile: async (path: string) => {
     const nextPath = typeof path === 'string' ? path : '';
@@ -131,6 +135,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
   },
 
+  requestJumpToLine: (line: number) => {
+    const next = Number.isFinite(line) ? Math.max(1, Math.floor(line)) : null;
+    if (!next) return;
+    set({ pendingJumpLine: next });
+  },
+
+  consumeJumpToLine: () => {
+    set({ pendingJumpLine: null });
+  },
+
   closeFile: () => {
     set({
       currentPath: null,
@@ -141,6 +155,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       loadError: null,
       saveStatus: 'saved',
       lastSavedAt: null,
+      pendingJumpLine: null,
     });
   },
 }));

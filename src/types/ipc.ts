@@ -27,6 +27,8 @@ export type IpcChannel =
   | 'character:create'
   | 'character:update'
   | 'character:delete'
+  | 'outline:get'
+  | 'outline:save'
   | 'version:list'
   | 'version:create'
   | 'version:restore'
@@ -587,6 +589,35 @@ export type CharacterDeleteResponse = {
   deleted: true;
 };
 
+export type OutlineNode = {
+  id: string;
+  title: string;
+  level: number;
+  summary?: string;
+  status?: string;
+};
+
+export type OutlineGetRequest = {
+  projectId: string;
+  articleId: string;
+};
+
+export type OutlineGetResponse = {
+  outline: OutlineNode[] | null;
+  updatedAt?: string;
+};
+
+export type OutlineSaveRequest = {
+  projectId: string;
+  articleId: string;
+  outline: OutlineNode[];
+};
+
+export type OutlineSaveResponse = {
+  saved: true;
+  updatedAt: string;
+};
+
 export type IpcInvokePayloadMap = {
   'file:list': FileListRequest;
   'file:read': FileReadRequest;
@@ -614,6 +645,8 @@ export type IpcInvokePayloadMap = {
   'character:create': CharacterCreateRequest;
   'character:update': CharacterUpdateRequest;
   'character:delete': CharacterDeleteRequest;
+  'outline:get': OutlineGetRequest;
+  'outline:save': OutlineSaveRequest;
   'version:list': VersionListRequest;
   'version:create': VersionCreateRequest;
   'version:restore': VersionRestoreRequest;
@@ -658,6 +691,8 @@ export type IpcInvokeDataMap = {
   'character:create': CharacterCreateResponse;
   'character:update': CharacterUpdateResponse;
   'character:delete': CharacterDeleteResponse;
+  'outline:get': OutlineGetResponse;
+  'outline:save': OutlineSaveResponse;
   'version:list': VersionListResponse;
   'version:create': VersionCreateResponse;
   'version:restore': VersionRestoreResponse;

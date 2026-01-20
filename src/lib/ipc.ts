@@ -69,6 +69,11 @@ export const characterOps = {
   delete: (payload: IpcInvokePayloadMap['character:delete']) => invoke('character:delete', payload),
 };
 
+export const outlineOps = {
+  get: (payload: IpcInvokePayloadMap['outline:get']) => invoke('outline:get', payload),
+  save: (payload: IpcInvokePayloadMap['outline:save']) => invoke('outline:save', payload),
+};
+
 export const updateOps = {
   getState: () => invoke('update:getState', {}),
   check: (payload: IpcInvokePayloadMap['update:check']) => invoke('update:check', payload),
