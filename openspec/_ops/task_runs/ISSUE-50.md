@@ -36,3 +36,7 @@
 ### 2026-01-20 00:00 outline
 - Command: `git commit -m "feat: outline persistence and editor jump (#50)"`
 - Key output: `48c8bc5 feat: outline persistence and editor jump (#50)`
+
+### 2026-01-20 00:00 knowledge-graph
+- Command: `git commit -m "feat: knowledge graph CRUD and visualization (#50)"`
+- Key output: `239e918 feat: knowledge graph CRUD and visualization (#50)`
