@@ -1,7 +1,7 @@
 # ISSUE-29
 - Issue: #29
 - Branch: task/29-sprint-3-rag-impl
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/38
 
 ## Goal
 - Deliver Sprint 3 “智能上下文”基础设施：FTS5 + 本地 Embedding + sqlite-vec + 最小可复用 RAG（人物/设定优先），并补齐真实 E2E 证据链。
