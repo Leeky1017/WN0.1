@@ -1,0 +1,25 @@
+# ISSUE-39
+- Issue: #39
+- Branch: task/39-sprint-2-5-context-engineering
+- PR: <fill-after-created>
+
+## Plan
+- Create Sprint 2.5 OpenSpec (spec/design/task cards)
+- Validate with `openspec validate --specs --strict`
+- Open PR and enable auto-merge
+
+## Runs
+### 2026-01-20 15:40 init
+- Command: `gh issue create -t "Sprint 2.5: Context Engineering OpenSpec" ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/issues/39`
+- Evidence: `CODEX_TASK_SPRINT2.5.md`
+
+### 2026-01-20 15:41 branch
+- Command: `git checkout -b task/39-sprint-2-5-context-engineering`
+- Key output: `Switched to a new branch 'task/39-sprint-2-5-context-engineering'`
+- Evidence: `git branch --show-current`
+
+### 2026-01-20 15:44 openspec-validate
+- Command: `openspec validate --specs --strict --no-interactive`
+- Key output: `Totals: 11 passed, 0 failed (11 items)`
+- Evidence: `openspec/specs/sprint-2.5-context-engineering/spec.md`
