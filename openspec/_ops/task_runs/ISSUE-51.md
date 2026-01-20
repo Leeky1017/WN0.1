@@ -33,3 +33,28 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed`
 - Evidence: `openspec/specs/`
+
+### 2026-01-21 00:44 rebase
+- Command: `git rebase origin/main`
+- Key output: `Successfully rebased and updated refs/heads/task/51-sprint-2b-judge-layer.`
+- Evidence: `git log --oneline -5`
+
+### 2026-01-21 00:45 ipc-contract
+- Command: `npm run contract:generate && npm run contract:check`
+- Key output: `contract:check exit 0 (no drift)`
+- Evidence: `src/types/ipc-generated.ts`, `electron/preload.cjs`, `electron/ipc/contract/ipc-contract.cjs`
+
+### 2026-01-21 00:46 tests
+- Command: `npm run lint && npm test`
+- Key output: `vitest: Test Files 5 passed`
+- Evidence: `src/lib/judge/rules/l1-rules.test.ts`, `src/contract/ipc-contract-sync.test.ts`
+
+### 2026-01-21 00:47 build + e2e
+- Command: `npm run build && npx playwright test`
+- Key output: `8 passed, 3 skipped`
+- Evidence: `dist/`, `tests/e2e/`
+
+### 2026-01-21 00:48 openspec
+- Command: `openspec validate --specs --strict --no-interactive`
+- Key output: `Totals: 11 passed, 0 failed`
+- Evidence: `openspec/specs/`

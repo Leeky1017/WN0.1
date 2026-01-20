@@ -716,6 +716,101 @@ export type ClipboardWriteHtmlRequest = {
 export type ClipboardWriteHtmlResponse = {
   written: true;
 };
+
+export type JudgeModelStatus = 'idle' | 'downloading' | 'downloaded' | 'error';
+
+export type JudgeModelProgress = {
+  percent: number;
+  transferred: number;
+  total: number;
+  bytesPerSecond: number;
+};
+
+export type JudgeModelStateError = {
+  code: IpcErrorCode;
+  message: string;
+  details?: unknown;
+  retryable?: boolean;
+};
+
+export type JudgeModelState = {
+  status: JudgeModelStatus;
+  model: {
+    name: string;
+    filename: string;
+    url: string;
+    size?: string;
+  };
+  modelPath: string;
+  progress?: JudgeModelProgress;
+  error?: JudgeModelStateError;
+};
+
+export type JudgeModelGetStateRequest = Record<string, never>;
+
+export type JudgeModelGetStateResponse = JudgeModelState;
+
+export type JudgeModelEnsureRequest = Record<string, never>;
+
+export type JudgeModelEnsureResponse = {
+  modelPath: string;
+};
+
+export type JudgeL2PromptRequest = {
+  prompt: string;
+  modelPath?: string;
+  timeoutMs?: number;
+  temperature?: number;
+  maxTokens?: number;
+};
+
+export type JudgeL2PromptResponse = {
+  output: string;
+  durationMs: number;
+  modelPath: string;
+};
+
+export type ConstraintType = 'forbidden_words' | 'word_count' | 'format' | 'terminology' | 'tone' | 'coverage';
+
+export type ConstraintLevel = 'error' | 'warning' | 'info';
+
+export type ConstraintScope = 'global' | 'project';
+
+export type ConstraintRule = {
+  id: string;
+  type: ConstraintType;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  level: ConstraintLevel;
+  scope: ConstraintScope;
+  projectId?: string;
+};
+
+export type ConstraintsScopeConfig = {
+  l2Enabled: boolean;
+  rules: ConstraintRule[];
+};
+
+export type ConstraintsConfig = {
+  version: number;
+  global: ConstraintsScopeConfig;
+  projects: Record<string, ConstraintsScopeConfig>;
+};
+
+export type ConstraintsGetRequest = Record<string, never>;
+
+export type ConstraintsGetResponse = {
+  config: ConstraintsConfig;
+};
+
+export type ConstraintsSetRequest = {
+  config: ConstraintsConfig;
+};
+
+export type ConstraintsSetResponse = {
+  saved: true;
+  config: ConstraintsConfig;
+};
 `;
 
 module.exports = {
