@@ -20,3 +20,11 @@
 ### 2026-01-20 00:00 spec-first
 - Command: `git commit -m "chore: sprint 5 task scaffolding (#50)"`
 - Key output: `8f9e91b chore: sprint 5 task scaffolding (#50)`
+
+### 2026-01-20 00:00 projects
+- Command: `git commit -m "feat: projects bootstrap and switching (#50)"`
+- Key output: `ce90852 feat: projects bootstrap and switching (#50)`
+
+### 2026-01-20 00:00 lint
+- Command: `eslint src`
+- Key output: `0 errors (react-refresh warnings in ui/*)`
