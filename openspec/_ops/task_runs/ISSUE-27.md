@@ -1,19 +1,20 @@
 # ISSUE-27
 - Issue: #27
 - Branch: task/27-sprint-4-release-impl
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/30
 
 ## Goal
 - Deliver Sprint 4 release readiness (update/export/i18n/publish) with E2E coverage.
 
 ## Status
-- CURRENT: All checks green locally; preparing PR + auto-merge.
+- CURRENT: PR opened; enabling auto-merge and watching required checks.
 
 ## Next Actions
 - [x] Create `task/27-sprint-4-release-impl` worktree
 - [x] Implement Sprint 4 tasks 001→005 with E2E
 - [x] Run required checks (ci local)
-- [ ] Open PR + enable auto-merge
+- [x] Open PR
+- [ ] Enable auto-merge
 
 ## Decisions Made
 
@@ -59,3 +60,8 @@
 - Command: `npm run test:e2e`
 - Key output: `2 passed`
 - Evidence: `tests/e2e/*.spec.ts`
+
+### 2026-01-20 pr
+- Command: `gh pr create --title "[SPRINT-4] Release implementation (update/export/i18n/publish) (#27)" --body "Closes #27 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/30`
+- Evidence: `openspec/_ops/task_runs/ISSUE-27.md`
