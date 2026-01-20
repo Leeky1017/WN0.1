@@ -902,30 +902,35 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
-### Sprint 1：可用的编辑器（1-2周）
-- [ ] TipTap 编辑器集成（替换当前占位编辑器）
-- [ ] 真实的文件保存/加载
-- [ ] 自动保存 + 崩溃恢复
-- [ ] 双模式编辑（Markdown / 富文本）
-- [ ] Zustand 状态管理接入
+### Sprint 1：可用的编辑器（1-2周）✅ 已完成
+- [x] TipTap 编辑器集成
+- [x] 真实的文件保存/加载
+- [x] 自动保存 + 崩溃恢复
+- [x] 双模式编辑
+- [x] Zustand 状态管理接入
 
-### Sprint 2：AI 能力（2-3周）
+### Sprint 2：AI 能力（2-3周）🔄 进行中
 - [ ] Claude API 集成
-- [ ] 3 个基础 SKILL（润色、扩写、精简）
+- [ ] 3 个基础 SKILL
 - [ ] Diff 展示与确认机制
 - [ ] 版本历史记录
+- [ ] Judge Layer 元语言约束系统 (新增)
 
-### Sprint 3：智能上下文（2周）
-- [ ] 本地 Embedding 模型打包 (text2vec-base-chinese)
-- [ ] SQLite FTS5 全文索引
-- [ ] 基础 RAG（人物/设定检索）
-- [ ] sqlite-vec 向量存储
+### Sprint 2.5：上下文工程 (新增)
+- [ ] Manus 上下文方法论应用
+- [ ] 智能上下文组装
 
-### Sprint 4：发布准备（1周）
-- [ ] electron-updater 自动更新
-- [ ] 多格式导出（Markdown, Word, PDF）
-- [ ] 基础 i18n（中/英）
-- [ ] 多平台发布格式适配
+### Sprint 3：智能上下文（2周）✅ 已完成
+- [x] 本地 Embedding 模型打包
+- [x] SQLite FTS5 全文索引
+- [x] 基础 RAG
+- [x] sqlite-vec 向量存储
+
+### Sprint 4：发布准备（1周）✅ 已完成
+- [x] electron-updater 自动更新
+- [x] 多格式导出
+- [x] 基础 i18n
+- [x] 多平台发布格式适配
 
 ### Sprint 5：项目管理（2周）
 - [ ] 项目/文件夹结构
