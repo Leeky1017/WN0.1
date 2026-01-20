@@ -92,6 +92,40 @@
   },
   "settings": {
     "title": "设置",
+    "constraints": {
+      "title": "写作约束",
+      "save": "保存",
+      "saved": "已保存",
+      "saveFailed": "保存失败，请重试",
+      "copyFailed": "复制失败",
+      "export": "导出",
+      "scope": {
+        "global": "全局",
+        "project": "项目"
+      },
+      "projectIdPlaceholder": "项目 ID",
+      "projectIdHint": "请输入项目 ID 以编辑项目级约束（项目级将覆盖全局）",
+      "l2Enabled": "启用 L2 语义检查（SmolLM2-360M）",
+      "model": {
+        "ensure": "准备模型",
+        "downloading": "正在下载模型…",
+        "error": "模型下载失败"
+      },
+      "forbiddenWords": "禁用词",
+      "forbiddenWordsPlaceholder": "每行一个禁用词",
+      "wordCount": "字数范围",
+      "wordCountMin": "最小",
+      "wordCountMax": "最大",
+      "terminology": "术语表",
+      "terminologyPlaceholder": "每行一个映射：标准术语=别名1,别名2",
+      "tone": "语气偏好（L2）",
+      "tonePlaceholder": "例如：学术正式 / 禁止口语化",
+      "format": {
+        "title": "格式约束",
+        "listOnly": "只输出列表",
+        "paragraphOnly": "只输出段落"
+      }
+    },
     "language": {
       "title": "语言",
       "zhCN": "简体中文",

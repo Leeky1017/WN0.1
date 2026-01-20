@@ -116,3 +116,14 @@ export const clipboardOps = {
   writeText: (text: string) => invoke('clipboard:writeText', { text }),
   writeHtml: (html: string, text?: string) => invoke('clipboard:writeHtml', typeof text === 'string' ? { html, text } : { html }),
 };
+
+export const judgeOps = {
+  getModelState: () => invoke('judge:model:getState', {}),
+  ensureModel: () => invoke('judge:model:ensure', {}),
+  promptL2: (payload: IpcInvokePayloadMap['judge:l2:prompt']) => invoke('judge:l2:prompt', payload),
+};
+
+export const constraintsOps = {
+  getConfig: () => invoke('constraints:get', {}),
+  setConfig: (payload: IpcInvokePayloadMap['constraints:set']) => invoke('constraints:set', payload),
+};

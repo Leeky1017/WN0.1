@@ -11,6 +11,7 @@ import type { DocumentSnapshot } from './types/ipc';
 import { IpcError, fileOps } from './lib/ipc';
 import { toUserMessage } from './lib/errors';
 import { useFilesStore } from './stores/filesStore';
+import { useConstraintsStore } from './stores/constraintsStore';
 import { useEditorStore } from './stores/editorStore';
 import { useProjectsStore } from './stores/projectsStore';
 
@@ -111,6 +112,10 @@ export default function App() {
     if (projectsError) return;
     refreshFiles().catch(() => undefined);
   }, [projectsError, projectsHasLoaded, projectsLoading, refreshFiles]);
+
+  useEffect(() => {
+    useConstraintsStore.getState().load().catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (bootstrappedRef.current) return;

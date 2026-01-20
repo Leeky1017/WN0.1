@@ -92,6 +92,40 @@
   },
   "settings": {
     "title": "Settings",
+    "constraints": {
+      "title": "Writing constraints",
+      "save": "Save",
+      "saved": "Saved",
+      "saveFailed": "Save failed, please retry",
+      "copyFailed": "Copy failed",
+      "export": "Export",
+      "scope": {
+        "global": "Global",
+        "project": "Project"
+      },
+      "projectIdPlaceholder": "Project ID",
+      "projectIdHint": "Enter a project ID to edit project-level constraints (project overrides global)",
+      "l2Enabled": "Enable L2 semantic checks (SmolLM2-360M)",
+      "model": {
+        "ensure": "Prepare model",
+        "downloading": "Downloading model…",
+        "error": "Model download failed"
+      },
+      "forbiddenWords": "Forbidden words",
+      "forbiddenWordsPlaceholder": "One forbidden word per line",
+      "wordCount": "Word count range",
+      "wordCountMin": "Min",
+      "wordCountMax": "Max",
+      "format": {
+        "title": "Format",
+        "listOnly": "List only",
+        "paragraphOnly": "Paragraphs only"
+      },
+      "terminology": "Terminology",
+      "terminologyPlaceholder": "One mapping per line: canonical=alias1,alias2",
+      "tone": "Tone preference (L2)",
+      "tonePlaceholder": "e.g. Academic / No slang"
+    },
     "language": {
       "title": "Language",
       "zhCN": "简体中文",
