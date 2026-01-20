@@ -70,3 +70,8 @@
 - Command: `npm run test:e2e`
 - Key output: `4 passed`
 - Evidence: `tests/e2e/app-launch.spec.ts`, `tests/e2e/sprint-1-editor.spec.ts`
+
+### 2026-01-20 commit
+- Command: `git commit -m "feat(sprint-1-editor): tiptap + dual mode + autosave + recovery (#28)"`
+- Key output: `[task/28-sprint-1-editor fb32503] feat(sprint-1-editor): tiptap + dual mode + autosave + recovery (#28)`
+- Evidence: `git log -1`
