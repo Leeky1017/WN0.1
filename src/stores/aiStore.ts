@@ -2,12 +2,17 @@ import { create } from 'zustand';
 
 import { IpcError, aiOps, versionOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
+import { createJudge } from '../lib/judge';
+import { useConstraintsStore } from './constraintsStore';
 import { useEditorStore } from './editorStore';
 
 import type { AiStreamEvent } from '../types/ai';
+import type { JudgeResult } from '../types/constraints';
 import type { ArticleSnapshot } from '../types/models';
 
 export type AiRunStatus = 'idle' | 'streaming' | 'done' | 'error' | 'canceled';
+
+let judgeSeq = 0;
 
 export type AiApplyTarget =
   | {
@@ -26,6 +31,11 @@ export type AiRunState = {
   originalText: string;
   suggestedText: string;
   errorMessage: string | null;
+  judge: {
+    status: 'idle' | 'checking' | 'done' | 'error';
+    result: JudgeResult | null;
+    errorMessage: string | null;
+  };
 };
 
 export type VersionListItem = Omit<ArticleSnapshot, 'content'>;
@@ -54,6 +64,7 @@ type AiState = {
   restorePreviewed: () => Promise<void>;
 
   handleStreamEvent: (event: AiStreamEvent) => void;
+  checkRunConstraints: () => Promise<void>;
 };
 
 function toErrorMessage(error: unknown): string {
@@ -99,6 +110,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           originalText: '',
           suggestedText: '',
           errorMessage: '请先选择一个文档',
+          judge: { status: 'idle', result: null, errorMessage: null },
         },
         historyPreview: null,
       });
@@ -123,6 +135,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           originalText,
           suggestedText: '',
           errorMessage: '选区/正文为空',
+          judge: { status: 'idle', result: null, errorMessage: null },
         },
         historyPreview: null,
       });
@@ -141,6 +154,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         originalText,
         suggestedText: '',
         errorMessage: null,
+        judge: { status: 'idle', result: null, errorMessage: null },
       },
       historyPreview: null,
     });
@@ -207,9 +221,11 @@ export const useAiStore = create<AiState>((set, get) => ({
               ...state.run,
               status: 'done',
               suggestedText: event.result.text,
+              judge: { status: 'checking', result: null, errorMessage: null },
             }
           : null,
       }));
+      get().checkRunConstraints().catch(() => undefined);
       return;
     }
 
@@ -224,6 +240,7 @@ export const useAiStore = create<AiState>((set, get) => ({
               runId: null,
               suggestedText: '',
               errorMessage: isCanceled ? null : toUserMessage(code, event.error.message),
+              judge: { status: 'idle', result: null, errorMessage: null },
             }
           : null,
       }));
@@ -334,5 +351,38 @@ export const useAiStore = create<AiState>((set, get) => ({
 
     set({ historyPreview: null });
     await get().loadVersions(articleId);
+  },
+
+  checkRunConstraints: async () => {
+    const run = get().run;
+    if (!run || run.status !== 'done') return;
+    if (!run.suggestedText.trim()) return;
+
+    const requestId = (judgeSeq += 1);
+    const effective = useConstraintsStore.getState().getEffectiveScopeConfig();
+    const judge = createJudge({ enableL2: effective.l2Enabled, timeoutMs: 3000 });
+
+    try {
+      const result = await judge.check(run.suggestedText, effective.rules);
+      if (requestId !== judgeSeq) return;
+      set((state) => ({
+        run: state.run
+          ? {
+              ...state.run,
+              judge: { status: 'done', result, errorMessage: null },
+            }
+          : null,
+      }));
+    } catch (error) {
+      if (requestId !== judgeSeq) return;
+      set((state) => ({
+        run: state.run
+          ? {
+              ...state.run,
+              judge: { status: 'error', result: null, errorMessage: toErrorMessage(error) },
+            }
+          : null,
+      }));
+    }
   },
 }));

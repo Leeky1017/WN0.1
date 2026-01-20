@@ -145,6 +145,9 @@ export function AIPanel() {
             suggestedText={run.suggestedText}
             status={run.status}
             errorMessage={run.errorMessage}
+            violations={run.judge.result?.violations ?? []}
+            violationStatus={run.judge.status}
+            violationErrorMessage={run.judge.errorMessage}
             onCancel={() => cancelRun().catch(() => undefined)}
             onAccept={() => acceptSuggestion().catch(() => undefined)}
             onReject={rejectSuggestion}

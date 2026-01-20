@@ -57,6 +57,58 @@ test.describe('Sprint 2 (AI) user flow', () => {
   test.skip(!E2E_AI_API_KEY, 'WN_E2E_AI_API_KEY is required to run Sprint 2 AI E2E');
   test.setTimeout(10 * 60_000);
 
+  test('constraints persist; violations are visible in diff', async () => {
+    const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-'));
+    const { electronApp, page } = await launchApp(userDataDir);
+
+    try {
+      await createFile(page, 'Sprint2 Judge');
+
+      const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+      const original = '我我我非常非常喜欢喜欢这个故事，但表达有点重复。';
+      await textarea.fill(`# Title\n\n${original}\n`);
+      await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
+
+      await page.locator('button[title="设置"]').click();
+      await expect(page.getByTestId('constraints-panel')).toBeVisible();
+
+      await page.getByLabel('禁用词').check();
+      await page.getByPlaceholder('每行一个禁用词').fill('，\n。');
+
+      await page.getByLabel('格式约束').check();
+      await page.getByTestId('constraints-save').click();
+      await expect(page.getByTestId('constraints-save')).toBeDisabled({ timeout: 15_000 });
+
+      const content = await textarea.inputValue();
+      const start = content.indexOf(original);
+      expect(start).toBeGreaterThanOrEqual(0);
+      await setTextareaSelection(page, start, start + original.length);
+
+      await page.getByTestId('ai-skill-builtin:polish').click();
+      await expect(page.getByTestId('ai-diff')).toBeVisible();
+      await expect(page.getByTestId('ai-diff-accept')).toBeVisible({ timeout: 5 * 60_000 });
+
+      await expect(page.getByTestId('ai-diff-violations')).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByTestId('diff-violation-marker').first()).toBeVisible();
+
+      await electronApp.close();
+
+      const dbPath = path.join(userDataDir, 'data', 'writenow.db');
+      expect(fs.existsSync(dbPath)).toBe(true);
+      const db = new Database(dbPath);
+      const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('constraints.config') as { value: string } | undefined;
+      db.close();
+
+      expect(row?.value).toBeTruthy();
+      const stored = JSON.parse(row?.value ?? '{}') as { global?: { rules?: Array<{ type: string; enabled: boolean }> } };
+      const rules = stored.global?.rules ?? [];
+      const formatRule = rules.find((r) => r.type === 'format');
+      expect(formatRule?.enabled).toBe(true);
+    } finally {
+      await electronApp.close().catch(() => undefined);
+    }
+  });
+
   test('streaming diff is visible; accept applies change and creates ai snapshot; history rollback works', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-'));
     const { electronApp, page } = await launchApp(userDataDir);
@@ -159,4 +211,3 @@ test.describe('Sprint 2 (AI) user flow', () => {
     }
   });
 });
-

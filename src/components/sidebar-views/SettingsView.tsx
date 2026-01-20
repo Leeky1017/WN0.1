@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { UpdateState } from '../../types/ipc';
 import { IpcError, updateOps } from '../../lib/ipc';
 import { toUserMessage } from '../../lib/errors';
+import { ConstraintsPanel } from '../Settings/ConstraintsPanel';
 
 function isUpdateState(value: unknown): value is UpdateState {
   if (!value || typeof value !== 'object') return false;
@@ -171,6 +172,8 @@ export function SettingsView() {
       </div>
 
       <div className="overflow-y-auto p-3 space-y-4">
+        <ConstraintsPanel />
+
         <div className="wn-elevated rounded-md p-3">
           <div className="text-[12px] text-[var(--text-secondary)] mb-2">{t('settings.language.title')}</div>
           <div className="flex flex-col gap-2">

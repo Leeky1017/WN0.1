@@ -24,6 +24,7 @@ const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
 const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
 const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
 const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
+const { registerJudgeIpcHandlers } = require('./ipc/judge.cjs')
 
 let logger = null
 let db = null
@@ -32,6 +33,7 @@ let vectorStore = null
 let ragIndexer = null
 let shuttingDown = false
 let updateService = null
+let judgeService = null
 
 function configureUserDataPath() {
   // Must be called before app 'ready'.
@@ -282,6 +284,13 @@ function setupIpc() {
 
   registerExportIpcHandlers(ipcMain, { handleInvoke, logger })
   registerClipboardIpcHandlers(ipcMain, { handleInvoke })
+
+  judgeService = registerJudgeIpcHandlers(ipcMain, {
+    app,
+    config,
+    logger,
+    handleInvoke,
+  })
 }
 
 async function createMainWindow() {
@@ -405,6 +414,7 @@ app.whenReady().then(async () => {
     logger?.info?.('main', 'app ready', { userData: app.getPath('userData') })
     await createMainWindow()
     updateService?.startBackgroundCheck?.()
+    judgeService?.startBackgroundModelDownload?.()
   } catch (e) {
     logger?.error?.('main', 'startup error', { message: e?.message })
     if (shouldShowDialogs()) dialog.showErrorBox('WriteNow 启动失败', String(e))
