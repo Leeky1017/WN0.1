@@ -1,7 +1,7 @@
 # ISSUE-34
 - Issue: #34
 - Branch: task/34-frontend-deep-remediation
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/35
 
 ## Goal
 - Draft a complete frontend deep remediation OpenSpec (design system + layout + editor + AI panel + perf/i18n + verification) based on `CODEX_TASK前端探讨.md`.
@@ -52,3 +52,18 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 10 passed, 0 failed (10 items)`
 - Evidence: `openspec/specs/wn-frontend-deep-remediation/spec.md`
+
+### 2026-01-20 commit
+- Command: `git commit -m "feat(frontend): add deep remediation OpenSpec (#34)"`
+- Key output: `feat(frontend): add deep remediation OpenSpec (#34)`
+- Evidence: `git log -1`
+
+### 2026-01-20 push
+- Command: `git push -u origin HEAD`
+- Key output: `HEAD -> task/34-frontend-deep-remediation`
+- Evidence: `origin/task/34-frontend-deep-remediation`
+
+### 2026-01-20 pr
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/35`
+- Evidence: `gh pr view 35`
