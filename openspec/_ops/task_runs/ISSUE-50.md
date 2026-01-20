@@ -1,7 +1,7 @@
 # ISSUE-50
 - Issue: #50
 - Branch: task/50-sprint-5-project-management
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/55
 
 ## Plan
 - Implement projects/characters/outline/knowledge graph end-to-end
@@ -60,3 +60,31 @@
 ### 2026-01-20 23:54 commit (e2e)
 - Command: `git commit -m "test: Sprint 5 project management E2E (#50)"`
 - Key output: `8488cfc test: Sprint 5 project management E2E (#50)`
+
+### 2026-01-20 23:55 pr
+- Command: `gh pr create --repo Leeky1017/WN0.1 --base main --head task/50-sprint-5-project-management ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/55`
+
+### 2026-01-21 00:18 pr (auto-merge)
+- Command: `gh pr merge --repo Leeky1017/WN0.1 --auto --squash 55`
+- Key output: `GraphQL: Pull request Protected branch rules not configured for this branch (enablePullRequestAutoMerge)`
+
+### 2026-01-21 00:18 merge main
+- Command: `git merge origin/main`
+- Key output: `86b07c1 chore: merge main into task/50-sprint-5-project-management (#50)`
+
+### 2026-01-21 00:18 contract
+- Command: `npm run contract:generate`
+- Key output: `updated src/types/ipc-generated.ts + electron/preload.cjs`
+
+### 2026-01-21 00:18 contract-check
+- Command: `npm run contract:check`
+- Key output: `ok`
+
+### 2026-01-21 00:18 lint
+- Command: `npm run lint`
+- Key output: `✖ 5 problems (0 errors, 5 warnings)`
+
+### 2026-01-21 00:18 e2e
+- Command: `npm run build && npx playwright test tests/e2e/sprint-5-project.spec.ts`
+- Key output: `4 passed (7.9s)`
