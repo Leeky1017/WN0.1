@@ -11,6 +11,8 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:e2e": "npm run electron:rebuild && npm run build && playwright test",
+    "contract:generate": "node scripts/ipc-contract-sync.js generate",
+    "contract:check": "node scripts/ipc-contract-sync.js check",
     "electron:rebuild": "electron-builder install-app-deps",
     "electron:dev": "npm run electron:rebuild && concurrently \"vite\" \"NODE_ENV=development electron .\"",
     "electron:build": "vite build && electron-builder"

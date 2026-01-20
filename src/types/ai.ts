@@ -1,4 +1,5 @@
 import type { JsonValue, Skill } from './models';
+import type { IpcErrorCode } from './ipc';
 
 export type AiProvider = 'anthropic' | 'openai';
 
@@ -38,11 +39,10 @@ export type AiStreamErrorEvent = {
   type: 'error';
   runId: AiSkillRunId;
   error: {
-    code: string;
+    code: IpcErrorCode;
     message: string;
     details?: JsonValue;
   };
 };
 
 export type AiStreamEvent = AiStreamDeltaEvent | AiStreamDoneEvent | AiStreamErrorEvent;
-

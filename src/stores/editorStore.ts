@@ -11,6 +11,7 @@ type EditorState = {
   currentPath: string | null;
   content: string;
   editorMode: EditorMode;
+  selection: { start: number; end: number } | null;
   isDirty: boolean;
   isLoading: boolean;
   loadError: string | null;
@@ -19,6 +20,8 @@ type EditorState = {
   pendingJumpLine: number | null;
   openFile: (path: string) => Promise<void>;
   setContent: (content: string) => void;
+  setSelection: (selection: { start: number; end: number } | null) => void;
+  replaceRange: (range: { start: number; end: number }, replacement: string) => string;
   setEditorMode: (mode: EditorMode) => void;
   save: () => Promise<void>;
   requestJumpToLine: (line: number) => void;
@@ -43,10 +46,23 @@ function toErrorMessage(error: unknown) {
 let openSeq = 0;
 let saveSeq = 0;
 
+function clampRange(value: number, max: number): number {
+  if (!Number.isFinite(value) || value < 0) return 0;
+  if (value > max) return max;
+  return value;
+}
+
+function normalizeRange(range: { start: number; end: number }, contentLength: number): { start: number; end: number } {
+  const start = clampRange(range.start, contentLength);
+  const end = clampRange(range.end, contentLength);
+  return end >= start ? { start, end } : { start: end, end: start };
+}
+
 export const useEditorStore = create<EditorState>((set, get) => ({
   currentPath: null,
   content: '',
   editorMode: 'markdown',
+  selection: null,
   isDirty: false,
   isLoading: false,
   loadError: null,
@@ -72,6 +88,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       currentPath: nextPath,
       content: '',
       editorMode: 'markdown',
+      selection: null,
       isDirty: false,
       isLoading: true,
       loadError: null,
@@ -85,6 +102,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       set({
         content: result.content ?? '',
         editorMode: 'markdown',
+        selection: null,
         isDirty: false,
         isLoading: false,
         loadError: null,
@@ -101,10 +119,35 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   setContent: (content: string) => {
+    const next = typeof content === 'string' ? content : '';
+    set((state) => ({
+      content: next,
+      selection: state.selection ? normalizeRange(state.selection, next.length) : state.selection,
+      isDirty: true,
+    }));
+  },
+
+  setSelection: (selection) => {
+    const contentLength = get().content.length;
+    if (!selection) {
+      set({ selection: null });
+      return;
+    }
+    set({ selection: normalizeRange(selection, contentLength) });
+  },
+
+  replaceRange: (range, replacement) => {
+    const content = get().content;
+    const normalized = normalizeRange(range, content.length);
+    const safeReplacement = typeof replacement === 'string' ? replacement : '';
+    const nextContent = content.slice(0, normalized.start) + safeReplacement + content.slice(normalized.end);
+    const nextSelection = { start: normalized.start, end: normalized.start + safeReplacement.length };
     set({
-      content,
+      content: nextContent,
+      selection: nextSelection,
       isDirty: true,
     });
+    return nextContent;
   },
 
   setEditorMode: (mode: EditorMode) => {
@@ -150,6 +193,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       currentPath: null,
       content: '',
       editorMode: 'markdown',
+      selection: null,
       isDirty: false,
       isLoading: false,
       loadError: null,

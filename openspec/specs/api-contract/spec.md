@@ -9,7 +9,9 @@
 - 统一的错误码（Error Codes）
 - 分页响应结构（如适用）
 
-本规范是 **“代码与测试必须遵循的单一事实来源（SSOT）”**。任何新增/变更 IPC 通道必须先更新本规范与 `src/types/ipc.ts`，再实现代码。
+本规范是 IPC 契约约束的权威描述。为杜绝前后端对接漂移：
+- **主进程 IPC 处理器（`electron/ipc/**`）MUST 为类型的唯一事实来源（SSOT）**
+- 渲染进程 IPC TypeScript 类型 MUST 由脚本自动生成（见 `契约自动化` Requirements）
 
 ## Requirements
 
@@ -20,7 +22,7 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 #### Scenario: 新增通道遵循命名规则
 - **WHEN** 任何新增 IPC 通道被引入
 - **THEN** 通道名 MUST 为 `domain:action`（允许多段）且全小写
-- **AND THEN** `domain` MUST 属于既定领域：`file | ai | search | embedding | version | update | export | clipboard`
+- **AND THEN** `domain` MUST 属于既定领域：`file | ai | search | embedding | rag | version | update | export | clipboard`
 
 ### Requirement: `ipcRenderer.invoke` 返回值 MUST 使用统一 Envelope
 
@@ -37,7 +39,7 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 
 ### Requirement: 错误码 MUST 稳定且集中定义
 
-错误码 MUST 为稳定字符串（UPPER_SNAKE_CASE）。新增错误码 MUST 先更新本规范与 `src/types/ipc.ts`。
+错误码 MUST 为稳定字符串（UPPER_SNAKE_CASE）。新增错误码 MUST 先更新本规范与主进程契约源，并重新生成渲染进程类型。
 
 #### Scenario: 参数校验失败映射为 `INVALID_ARGUMENT`
 - **WHEN** 渲染进程传入 payload 不满足参数约束（缺字段/类型错误/非法值）
@@ -50,6 +52,7 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 - `ai:skill:run/cancel`
 - `search:fulltext/semantic`
 - `embedding:encode/index`
+- `rag:retrieve`
 - `version:list/create/restore/diff`
 - `update:check/download/install/getState/skipVersion/clearSkipped`
 - `export:markdown/docx/pdf`
@@ -59,11 +62,30 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 - **WHEN** 规范被校验或实现准备接入 IPC
 - **THEN** 上述所有通道 MUST 在本规范中存在可引用的 TypeScript 类型定义
 
+### Requirement: 契约自动化 MUST 阻断漂移
+
+IPC 类型与通道列表 MUST 通过自动化从主进程契约源生成并在 CI 中校验，禁止手工维护渲染进程类型导致协议漂移。
+
+#### Scenario: 主进程 IPC 处理器为唯一类型来源
+- **WHEN** 任意 IPC invoke 通道被新增/删除/变更（`electron/ipc/**`）
+- **THEN** 类型定义 MUST 以主进程契约源为准
+- **AND THEN** 渲染进程不得手工维护对应 IPC 类型定义
+
+#### Scenario: 渲染进程 IPC 类型可一键生成
+- **WHEN** 开发者运行 `npm run contract:generate`
+- **THEN** MUST 生成/更新 `src/types/ipc-generated.ts`
+- **AND THEN** 生成结果 MUST 可重复（deterministic）
+
+#### Scenario: CI 检测漂移并阻断
+- **WHEN** CI 在 PR / main 上运行
+- **THEN** MUST 执行 `npm run contract:check`
+- **AND THEN** 若生成结果与仓库内文件不一致，CI MUST 失败并阻断合并
+
 ## Naming
 
 - 通道命名 MUST 使用 `domain:action`，必要时允许多段：`ai:skill:run`
 - 全部小写；段之间以 `:` 分隔；不得包含空格
-- `domain` MUST 为稳定领域名之一：`file | ai | search | embedding | version | update | export | clipboard`
+- `domain` MUST 为稳定领域名之一：`file | ai | search | embedding | rag | version | update | export | clipboard`
 - 同一通道的请求/响应类型命名 MUST 与通道保持一致（见下文）
 
 ## Transport & Envelope
@@ -544,6 +566,7 @@ Errors:
 ```ts
 export type VersionCreateRequest = {
   articleId: string
+  content?: string // 可选：用渲染进程当前编辑器内容创建快照
   name?: string
   reason?: string
   actor?: 'user' | 'ai' | 'auto'

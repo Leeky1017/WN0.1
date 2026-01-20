@@ -85,6 +85,18 @@ export const knowledgeGraphOps = {
   deleteRelation: (payload: IpcInvokePayloadMap['kg:relation:delete']) => invoke('kg:relation:delete', payload),
 };
 
+export const aiOps = {
+  runSkill: (payload: IpcInvokePayloadMap['ai:skill:run']) => invoke('ai:skill:run', payload),
+  cancelSkill: (runId: string) => invoke('ai:skill:cancel', { runId }),
+};
+
+export const versionOps = {
+  list: (payload: IpcInvokePayloadMap['version:list']) => invoke('version:list', payload),
+  create: (payload: IpcInvokePayloadMap['version:create']) => invoke('version:create', payload),
+  restore: (snapshotId: string) => invoke('version:restore', { snapshotId }),
+  diff: (payload: IpcInvokePayloadMap['version:diff']) => invoke('version:diff', payload),
+};
+
 export const updateOps = {
   getState: () => invoke('update:getState', {}),
   check: (payload: IpcInvokePayloadMap['update:check']) => invoke('update:check', payload),

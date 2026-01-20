@@ -8,6 +8,7 @@ const config = require('./lib/config.cjs')
 const { syncDocumentsToDatabase } = require('./lib/documents-indexer.cjs')
 const { EmbeddingService } = require('./lib/embedding-service.cjs')
 const { VectorStore } = require('./lib/vector-store.cjs')
+const { ensureBuiltinSkills } = require('./lib/skills.cjs')
 const { RagIndexer } = require('./lib/rag/indexer.cjs')
 const { registerFileIpcHandlers } = require('./ipc/files.cjs')
 const { registerUpdateIpcHandlers } = require('./ipc/update.cjs')
@@ -21,6 +22,8 @@ const { registerProjectsIpcHandlers } = require('./ipc/projects.cjs')
 const { registerCharactersIpcHandlers } = require('./ipc/characters.cjs')
 const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
 const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
+const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
+const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
 
 let logger = null
 let db = null
@@ -248,6 +251,19 @@ function setupIpc() {
     vectorStore,
   })
 
+  registerAiIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+    config,
+  })
+
+  registerVersionIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+  })
+
   registerRagIpcHandlers(ipcMain, {
     handleInvoke,
     db,
@@ -378,6 +394,7 @@ app.whenReady().then(async () => {
     await initSessionLock({ log: (message, details) => logger?.info?.('session', message, details) })
     db = initDatabase({ userDataPath: app.getPath('userData') })
     config.initConfig({ db, logger, safeStorage })
+    ensureBuiltinSkills(db, logger)
     embeddingService = new EmbeddingService({ userDataDir: app.getPath('userData'), logger })
     vectorStore = new VectorStore({ db, logger })
     ragIndexer = new RagIndexer({ db, logger, embeddingService, vectorStore })
