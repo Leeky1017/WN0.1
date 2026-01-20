@@ -1,13 +1,13 @@
 # ISSUE-28
 - Issue: #28
 - Branch: task/28-sprint-1-editor (deliverable), task/28-sprint-1-editor-closeout (closeout)
-- PR: https://github.com/Leeky1017/WN0.1/pull/31
+- PR: https://github.com/Leeky1017/WN0.1/pull/31 (deliverable), https://github.com/Leeky1017/WN0.1/pull/32 (closeout)
 
 ## Goal
 - Deliver Sprint 1 editor per `openspec/specs/sprint-1-editor/spec.md` (TipTap + dual mode + file ops + autosave + crash recovery) with Playwright E2E coverage.
 
 ## Status
-- CURRENT: PR #31 merged (merge commit `b2eef05`); Rulebook task archived locally and ready to ship via closeout PR.
+- CURRENT: PR #31 merged (merge commit `b2eef05`); closeout PR #32 open to commit Rulebook archive + run log updates.
 
 ## Next Actions
 - [x] Force-push rebased `task/28-sprint-1-editor` to update PR #31
@@ -118,3 +118,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 9 passed, 0 failed (9 items)`
 - Evidence: `openspec/specs/`
+
+### 2026-01-20 closeout PR
+- Command: `gh pr create --title "Closeout: archive Rulebook task + update run log (#28)" --body "..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/32`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/32`
