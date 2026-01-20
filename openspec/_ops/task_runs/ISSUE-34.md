@@ -7,7 +7,7 @@
 - Draft a complete frontend deep remediation OpenSpec (design system + layout + editor + AI panel + perf/i18n + verification) based on `CODEX_TASK前端探讨.md`.
 
 ## Status
-- CURRENT: PR #35 merged; closeout PR #36 pending (Rulebook archive + run log finalize).
+- CURRENT: PR #35 merged; closeout PR #36 merged; Rulebook task archived.
 
 ## Next Actions
 - [x] Write `openspec/specs/wn-frontend-deep-remediation/spec.md`
@@ -16,7 +16,7 @@
 - [x] Validate: `rulebook task validate issue-34-frontend-deep-remediation`
 - [x] Validate: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - [x] Open PR with `Closes #34` and enable auto-merge
-- [ ] Ship closeout PR (archive Rulebook task + finalize run log)
+- [x] Ship closeout PR (archive Rulebook task + finalize run log)
 
 ## Plan
 - Convert CODEX_TASK frontend findings into a verifiable spec (Requirements + Scenarios).
@@ -88,3 +88,18 @@
 - Command: `gh pr create ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/36`
 - Evidence: `gh pr view 36`
+
+### 2026-01-20 enable auto-merge (closeout)
+- Command: `gh pr merge 36 --auto --squash`
+- Key output: `(no output; exit=0)`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/36`
+
+### 2026-01-20 checks (closeout)
+- Command: `gh pr checks 36 --watch`
+- Key output: `ci=pass`, `merge-serial=pass`, `openspec-log-guard=pass`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/36`
+
+### 2026-01-20 confirm merged (closeout)
+- Command: `gh pr view 36 --json mergedAt,state,url,mergeCommit --jq '{state, mergedAt, url, mergeCommit}'`
+- Key output: `state=MERGED`, `mergedAt=2026-01-20T07:39:54Z`, `mergeCommit=6cc156a991a0b6ad54c1cf991abc271f0c4a0d11`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/36`
