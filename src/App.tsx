@@ -12,9 +12,19 @@ import { IpcError, fileOps } from './lib/ipc';
 import { toUserMessage } from './lib/errors';
 import { useFilesStore } from './stores/filesStore';
 import { useEditorStore } from './stores/editorStore';
+import { useProjectsStore } from './stores/projectsStore';
 
 export type ViewMode = 'edit' | 'preview' | 'split';
-export type SidebarView = 'files' | 'outline' | 'workflow' | 'materials' | 'publish' | 'stats' | 'settings';
+export type SidebarView =
+  | 'files'
+  | 'characters'
+  | 'outline'
+  | 'knowledgeGraph'
+  | 'workflow'
+  | 'materials'
+  | 'publish'
+  | 'stats'
+  | 'settings';
 
 function toErrorMessage(error: unknown) {
   if (error instanceof IpcError) return toUserMessage(error.code, error.message);
@@ -45,6 +55,11 @@ export default function App() {
   const filesError = useFilesStore((s) => s.error);
   const refreshFiles = useFilesStore((s) => s.refresh);
   const createFile = useFilesStore((s) => s.createFile);
+
+  const projectsHasLoaded = useProjectsStore((s) => s.hasLoaded);
+  const projectsLoading = useProjectsStore((s) => s.isLoading);
+  const projectsError = useProjectsStore((s) => s.error);
+  const bootstrapProjects = useProjectsStore((s) => s.bootstrap);
 
   const selectedFile = useEditorStore((s) => s.currentPath);
   const openFile = useEditorStore((s) => s.openFile);
@@ -88,11 +103,19 @@ export default function App() {
   }, [focusMode]);
 
   useEffect(() => {
+    bootstrapProjects().catch(() => undefined);
+  }, [bootstrapProjects]);
+
+  useEffect(() => {
+    if (!projectsHasLoaded || projectsLoading) return;
+    if (projectsError) return;
     refreshFiles().catch(() => undefined);
-  }, [refreshFiles]);
+  }, [projectsError, projectsHasLoaded, projectsLoading, refreshFiles]);
 
   useEffect(() => {
     if (bootstrappedRef.current) return;
+    if (!projectsHasLoaded || projectsLoading) return;
+    if (projectsError) return;
     if (!filesHasLoaded || filesLoading) return;
     if (filesError) return;
     if (!recoveryChecked) return;
@@ -109,7 +132,20 @@ export default function App() {
     createFile('欢迎使用').then((created) => {
       if (created) openFile(created.path).catch(() => undefined);
     }).catch(() => undefined);
-  }, [createFile, files, filesError, filesHasLoaded, filesLoading, openFile, recoveryChecked, recoverySnapshot, selectedFile]);
+  }, [
+    createFile,
+    files,
+    filesError,
+    filesHasLoaded,
+    filesLoading,
+    openFile,
+    projectsError,
+    projectsHasLoaded,
+    projectsLoading,
+    recoveryChecked,
+    recoverySnapshot,
+    selectedFile,
+  ]);
 
   const restoreSnapshot = async () => {
     if (!recoverySnapshot) return;
@@ -161,6 +197,7 @@ export default function App() {
             <ActivityBar activeView={sidebarView} onViewChange={setSidebarView} />
             <SidebarPanel 
               view={sidebarView} 
+              onViewChange={setSidebarView}
               selectedFile={selectedFile} 
               onSelectFile={openFile}
               editorContent={editorContent}

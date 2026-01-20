@@ -1,4 +1,4 @@
-import type { ArticleSnapshot } from './models';
+import type { ArticleSnapshot, Project } from './models';
 
 export type IpcChannel =
   | 'file:list'
@@ -16,6 +16,13 @@ export type IpcChannel =
   | 'embedding:encode'
   | 'embedding:index'
   | 'rag:retrieve'
+  | 'project:bootstrap'
+  | 'project:list'
+  | 'project:getCurrent'
+  | 'project:setCurrent'
+  | 'project:create'
+  | 'project:update'
+  | 'project:delete'
   | 'version:list'
   | 'version:create'
   | 'version:restore'
@@ -88,6 +95,7 @@ export type Paginated<TItem> = {
 
 export type FileListRequest = {
   scope?: 'documents';
+  projectId?: string;
 };
 
 export type DocumentFileListItem = {
@@ -114,6 +122,7 @@ export type FileWriteRequest = {
   path: string;
   content: string;
   encoding?: 'utf8';
+  projectId?: string;
 };
 
 export type FileWriteResponse = {
@@ -123,6 +132,7 @@ export type FileWriteResponse = {
 export type FileCreateRequest = {
   name: string;
   template?: 'default' | 'blank';
+  projectId?: string;
 };
 
 export type FileCreateResponse = {
@@ -471,6 +481,66 @@ export type ClipboardWriteHtmlResponse = {
   written: true;
 };
 
+export type ProjectBootstrapRequest = Record<string, never>;
+
+export type ProjectBootstrapResponse = {
+  createdDefault: boolean;
+  currentProjectId: string;
+  migratedArticles: number;
+};
+
+export type ProjectListRequest = Record<string, never>;
+
+export type ProjectListResponse = {
+  projects: Project[];
+};
+
+export type ProjectGetCurrentRequest = Record<string, never>;
+
+export type ProjectGetCurrentResponse = {
+  projectId: string | null;
+};
+
+export type ProjectSetCurrentRequest = {
+  projectId: string;
+};
+
+export type ProjectSetCurrentResponse = {
+  projectId: string;
+};
+
+export type ProjectCreateRequest = {
+  name: string;
+  description?: string;
+  styleGuide?: string;
+};
+
+export type ProjectCreateResponse = {
+  project: Project;
+  currentProjectId: string;
+};
+
+export type ProjectUpdateRequest = {
+  id: string;
+  name?: string;
+  description?: string;
+  styleGuide?: string;
+};
+
+export type ProjectUpdateResponse = {
+  project: Project;
+};
+
+export type ProjectDeleteRequest = {
+  id: string;
+  reassignProjectId?: string;
+};
+
+export type ProjectDeleteResponse = {
+  deleted: true;
+  currentProjectId: string;
+};
+
 export type IpcInvokePayloadMap = {
   'file:list': FileListRequest;
   'file:read': FileReadRequest;
@@ -487,6 +557,13 @@ export type IpcInvokePayloadMap = {
   'embedding:encode': EmbeddingEncodeRequest;
   'embedding:index': EmbeddingIndexRequest;
   'rag:retrieve': RagRetrieveRequest;
+  'project:bootstrap': ProjectBootstrapRequest;
+  'project:list': ProjectListRequest;
+  'project:getCurrent': ProjectGetCurrentRequest;
+  'project:setCurrent': ProjectSetCurrentRequest;
+  'project:create': ProjectCreateRequest;
+  'project:update': ProjectUpdateRequest;
+  'project:delete': ProjectDeleteRequest;
   'version:list': VersionListRequest;
   'version:create': VersionCreateRequest;
   'version:restore': VersionRestoreRequest;
@@ -520,6 +597,13 @@ export type IpcInvokeDataMap = {
   'embedding:encode': EmbeddingEncodeResponse;
   'embedding:index': EmbeddingIndexResponse;
   'rag:retrieve': RagRetrieveResponse;
+  'project:bootstrap': ProjectBootstrapResponse;
+  'project:list': ProjectListResponse;
+  'project:getCurrent': ProjectGetCurrentResponse;
+  'project:setCurrent': ProjectSetCurrentResponse;
+  'project:create': ProjectCreateResponse;
+  'project:update': ProjectUpdateResponse;
+  'project:delete': ProjectDeleteResponse;
   'version:list': VersionListResponse;
   'version:create': VersionCreateResponse;
   'version:restore': VersionRestoreResponse;

@@ -38,15 +38,28 @@ export async function invoke<T extends IpcChannel>(channel: T, payload: IpcInvok
 }
 
 export const fileOps = {
-  list: () => invoke('file:list', {}),
+  list: (options?: { projectId?: string }) =>
+    invoke('file:list', typeof options?.projectId === 'string' ? { projectId: options.projectId } : {}),
   read: (path: string) => invoke('file:read', { path }),
-  write: (path: string, content: string) => invoke('file:write', { path, content }),
-  create: (name: string) => invoke('file:create', { name }),
+  write: (path: string, content: string, options?: { projectId?: string }) =>
+    invoke('file:write', typeof options?.projectId === 'string' ? { path, content, projectId: options.projectId } : { path, content }),
+  create: (name: string, options?: { projectId?: string }) =>
+    invoke('file:create', typeof options?.projectId === 'string' ? { name, projectId: options.projectId } : { name }),
   delete: (path: string) => invoke('file:delete', { path }),
   sessionStatus: () => invoke('file:session:status', {}),
   snapshotWrite: (path: string, content: string, reason: 'auto' | 'manual' = 'auto') =>
     invoke('file:snapshot:write', { path, content, reason }),
   snapshotLatest: (path?: string) => invoke('file:snapshot:latest', path ? { path } : {}),
+};
+
+export const projectOps = {
+  bootstrap: () => invoke('project:bootstrap', {}),
+  list: () => invoke('project:list', {}),
+  getCurrent: () => invoke('project:getCurrent', {}),
+  setCurrent: (projectId: string) => invoke('project:setCurrent', { projectId }),
+  create: (payload: { name: string; description?: string; styleGuide?: string }) => invoke('project:create', payload),
+  update: (payload: { id: string; name?: string; description?: string; styleGuide?: string }) => invoke('project:update', payload),
+  delete: (payload: { id: string; reassignProjectId?: string }) => invoke('project:delete', payload),
 };
 
 export const updateOps = {

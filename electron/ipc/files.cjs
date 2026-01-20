@@ -25,6 +25,21 @@ function countWords(content) {
   return String(content).replace(/\s+/g, '').length
 }
 
+function parseProjectId(raw) {
+  if (typeof raw === 'undefined') return null
+  if (typeof raw !== 'string') return null
+  const trimmed = raw.trim()
+  return trimmed ? trimmed : null
+}
+
+function assertValidProjectId(payload) {
+  if (!payload || typeof payload !== 'object') return null
+  if (!('projectId' in payload)) return null
+  const value = parseProjectId(payload.projectId)
+  if (!value) throw createIpcError('INVALID_ARGUMENT', 'Invalid projectId', { projectId: payload.projectId })
+  return value
+}
+
 function resolveDocumentFilePath(relativePath) {
   if (typeof relativePath !== 'string') throw new Error('Invalid path')
   const trimmed = relativePath.trim()
@@ -111,6 +126,11 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     if (typeof scope !== 'undefined' && scope !== 'documents') {
       throw createIpcError('INVALID_ARGUMENT', 'Invalid scope', { scope })
     }
+    const projectId = assertValidProjectId(payload)
+    if (projectId && !db) {
+      throw createIpcError('DB_ERROR', 'Database is not ready')
+    }
+
     const dir = getDocumentsDir()
     const entries = await fs.readdir(dir, { withFileTypes: true })
     const mdFiles = entries.filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.md'))
@@ -131,6 +151,11 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     )
 
     items.sort((a, b) => b.createdAt - a.createdAt)
+    if (projectId) {
+      const rows = db.prepare("SELECT id FROM articles WHERE project_id = ? AND id LIKE '%.md'").all(projectId)
+      const allowed = new Set(rows.map((r) => (r && typeof r.id === 'string' ? r.id : null)).filter(Boolean))
+      return { items: items.filter((item) => allowed.has(item.path)) }
+    }
     return { items }
   })
 
@@ -168,7 +193,8 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
 
     if (db) {
       try {
-        upsertArticle(db, { id: payload.path, fileName: payload.path, content })
+        const projectId = assertValidProjectId(payload)
+        upsertArticle(db, { id: payload.path, fileName: payload.path, content, projectId })
       } catch (e) {
         log?.('[file:write] db index failed:', payload.path, e?.message)
         throw createIpcError('DB_ERROR', 'Saved to disk but failed to update search index', { path: payload.path, message: e?.message })
@@ -201,7 +227,8 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
 
     if (db) {
       try {
-        upsertArticle(db, { id: fileName, fileName, content: defaultContent })
+        const projectId = assertValidProjectId(payload)
+        upsertArticle(db, { id: fileName, fileName, content: defaultContent, projectId })
       } catch (e) {
         log?.('[file:create] db index failed:', fileName, e?.message)
         try {

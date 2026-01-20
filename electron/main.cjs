@@ -17,6 +17,7 @@ const { initSessionLock, clearSessionLock } = require('./lib/session.cjs')
 const { registerEmbeddingIpcHandlers } = require('./ipc/embedding.cjs')
 const { registerRagIpcHandlers } = require('./ipc/rag.cjs')
 const { registerSearchIpcHandlers } = require('./ipc/search.cjs')
+const { registerProjectsIpcHandlers } = require('./ipc/projects.cjs')
 
 let logger = null
 let db = null
@@ -212,6 +213,12 @@ function setupIpc() {
     logger,
     embeddingService,
     vectorStore,
+  })
+
+  registerProjectsIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
   })
 
   registerEmbeddingIpcHandlers(ipcMain, {

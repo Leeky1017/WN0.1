@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { useFilesStore } from './filesStore';
 import { IpcError, fileOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
+import { useProjectsStore } from './projectsStore';
 
 import type { EditorMode, SaveStatus } from '../types/editor';
 
@@ -114,7 +115,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ saveStatus: 'saving' });
 
     try {
-      await getFilesApi().write(currentPath, content);
+      const projectId = useProjectsStore.getState().currentProjectId;
+      await getFilesApi().write(currentPath, content, projectId ? { projectId } : undefined);
       if (requestId !== saveSeq) return;
       set({
         isDirty: false,

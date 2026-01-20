@@ -1,5 +1,5 @@
 import React from 'react';
-import { Files, ListTree, Workflow, Image, Share2, BarChart3, Settings } from 'lucide-react';
+import { Files, Users, ListTree, Network, Workflow, Image, Share2, BarChart3, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SidebarView } from '../App';
 
@@ -12,7 +12,9 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
   const { t } = useTranslation();
   const activities = [
     { id: 'files' as SidebarView, icon: Files, label: t('nav.files') },
+    { id: 'characters' as SidebarView, icon: Users, label: t('nav.characters') },
     { id: 'outline' as SidebarView, icon: ListTree, label: t('nav.outline') },
+    { id: 'knowledgeGraph' as SidebarView, icon: Network, label: t('nav.knowledgeGraph') },
     { id: 'workflow' as SidebarView, icon: Workflow, label: t('nav.workflow') },
     { id: 'materials' as SidebarView, icon: Image, label: t('nav.materials') },
     { id: 'publish' as SidebarView, icon: Share2, label: t('nav.publish') },

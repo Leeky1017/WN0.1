@@ -106,6 +106,11 @@ function stringifyTokens(tokens) {
   return tokens.map((t) => String(t).trim()).filter(Boolean).join(' ')
 }
 
+function normalizeProjectId(projectId) {
+  const trimmed = typeof projectId === 'string' ? projectId.trim() : ''
+  return trimmed ? trimmed : null
+}
+
 function upsertArticle(db, input) {
   if (!db) throw new Error('upsertArticle requires db')
   const id = typeof input?.id === 'string' ? input.id : ''
@@ -113,6 +118,7 @@ function upsertArticle(db, input) {
 
   const fileName = typeof input?.fileName === 'string' ? input.fileName : id
   const content = typeof input?.content === 'string' ? input.content : ''
+  const projectId = normalizeProjectId(input?.projectId)
 
   const meta = parseFrontMatter(content)
   const title = deriveTitle(fileName, content)
@@ -123,7 +129,7 @@ function upsertArticle(db, input) {
 
   const stmt = db.prepare(
     `INSERT INTO articles (id, title, content, characters, tags, format, workflow_stage, word_count, project_id, created_at, updated_at)
-     VALUES (@id, @title, @content, @characters, @tags, 'markdown', 'draft', @word_count, NULL, @created_at, @updated_at)
+     VALUES (@id, @title, @content, @characters, @tags, 'markdown', 'draft', @word_count, @project_id, @created_at, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
        title=excluded.title,
        content=excluded.content,
@@ -132,7 +138,7 @@ function upsertArticle(db, input) {
        format=excluded.format,
        workflow_stage=excluded.workflow_stage,
        word_count=excluded.word_count,
-       project_id=excluded.project_id,
+       project_id=COALESCE(excluded.project_id, articles.project_id),
        updated_at=excluded.updated_at`
   )
 
@@ -143,6 +149,7 @@ function upsertArticle(db, input) {
     characters,
     tags,
     word_count: countWords(content),
+    project_id: projectId,
     created_at: now,
     updated_at: now,
   })
@@ -158,4 +165,3 @@ function deleteArticle(db, articleId) {
 }
 
 module.exports = { upsertArticle, deleteArticle, deriveTitle }
-
