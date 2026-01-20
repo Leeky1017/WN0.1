@@ -36,6 +36,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const lastSavedAt = useEditorStore((s) => s.lastSavedAt);
 
   const setContent = useEditorStore((s) => s.setContent);
+  const setSelection = useEditorStore((s) => s.setSelection);
   const setEditorMode = useEditorStore((s) => s.setEditorMode);
   const save = useEditorStore((s) => s.save);
   const closeFile = useEditorStore((s) => s.closeFile);
@@ -148,6 +149,12 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
     isProgrammaticTipTapUpdateRef.current = false;
   }, [content, currentPath, editorMode, tiptapEditor]);
 
+  useEffect(() => {
+    if (editorMode !== 'markdown') {
+      setSelection(null);
+    }
+  }, [editorMode, setSelection]);
+
   if (!currentPath) {
     return (
       <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]">
@@ -178,6 +185,21 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onSelect={(e) => {
+                const start = e.currentTarget.selectionStart ?? 0;
+                const end = e.currentTarget.selectionEnd ?? start;
+                setSelection({ start, end });
+              }}
+              onKeyUp={(e) => {
+                const start = e.currentTarget.selectionStart ?? 0;
+                const end = e.currentTarget.selectionEnd ?? start;
+                setSelection({ start, end });
+              }}
+              onMouseUp={(e) => {
+                const start = e.currentTarget.selectionStart ?? 0;
+                const end = e.currentTarget.selectionEnd ?? start;
+                setSelection({ start, end });
+              }}
               className="w-full h-full bg-transparent text-[var(--text-primary)] outline-none resize-none px-4 py-3 leading-[1.6] font-mono text-[13px]"
               placeholder={t('editor.placeholderMarkdown')}
               spellCheck={false}

@@ -544,6 +544,7 @@ Errors:
 ```ts
 export type VersionCreateRequest = {
   articleId: string
+  content?: string // 可选：用渲染进程当前编辑器内容创建快照
   name?: string
   reason?: string
   actor?: 'user' | 'ai' | 'auto'
