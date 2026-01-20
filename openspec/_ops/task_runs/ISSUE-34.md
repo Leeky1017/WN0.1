@@ -1,13 +1,13 @@
 # ISSUE-34
 - Issue: #34
 - Branch: task/34-frontend-deep-remediation (deliverable), task/34-frontend-deep-remediation-closeout (closeout)
-- PR: https://github.com/Leeky1017/WN0.1/pull/35 (deliverable), <fill-after-created> (closeout)
+- PR: https://github.com/Leeky1017/WN0.1/pull/35 (deliverable), https://github.com/Leeky1017/WN0.1/pull/36 (closeout)
 
 ## Goal
 - Draft a complete frontend deep remediation OpenSpec (design system + layout + editor + AI panel + perf/i18n + verification) based on `CODEX_TASK前端探讨.md`.
 
 ## Status
-- CURRENT: PR #35 merged; closeout in progress (archive Rulebook task + finalize this run log).
+- CURRENT: PR #35 merged; closeout PR #36 pending (Rulebook archive + run log finalize).
 
 ## Next Actions
 - [x] Write `openspec/specs/wn-frontend-deep-remediation/spec.md`
@@ -83,3 +83,8 @@
 - Command: `rulebook task validate issue-34-frontend-deep-remediation && rulebook task archive issue-34-frontend-deep-remediation`
 - Key output: `✅ Task issue-34-frontend-deep-remediation archived successfully`
 - Evidence: `rulebook/tasks/archive/2026-01-20-issue-34-frontend-deep-remediation/`
+
+### 2026-01-20 closeout pr
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/36`
+- Evidence: `gh pr view 36`
