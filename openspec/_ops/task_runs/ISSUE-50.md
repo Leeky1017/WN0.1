@@ -32,3 +32,7 @@
 ### 2026-01-20 00:00 characters
 - Command: `git commit -m "feat: character cards CRUD (#50)"`
 - Key output: `fa546a8 feat: character cards CRUD (#50)`
+
+### 2026-01-20 00:00 outline
+- Command: `git commit -m "feat: outline persistence and editor jump (#50)"`
+- Key output: `48c8bc5 feat: outline persistence and editor jump (#50)`
