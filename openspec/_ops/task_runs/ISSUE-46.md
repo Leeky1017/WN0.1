@@ -1,20 +1,20 @@
 # ISSUE-46
 - Issue: #46
 - Branch: task/46-worktree-cleanup
-- PR: <fill>
+- PR: https://github.com/Leeky1017/WN0.1/pull/47
 
 ## Goal
 - Add a local-only cleanup helper for merged task worktrees.
 
 ## Status
-- CURRENT: Implemented cleanup script + docs; ready to commit + open PR + enable auto-merge.
+- CURRENT: PR open; waiting for required checks to pass then enable auto-merge.
 
 ## Next Actions
-- [ ] Commit changes with `(#46)`
-- [ ] Push branch `task/46-worktree-cleanup`
-- [ ] Create PR (body includes `Closes #46`) and enable auto-merge
+- [x] Commit changes with `(#46)`
+- [x] Push branch `task/46-worktree-cleanup`
+- [ ] Enable auto-merge for PR `#47`
 - [ ] Watch required checks (`ci`/`openspec-log-guard`/`merge-serial`) to green
-- [ ] Backfill `PR:` link in this RUN_LOG
+- [x] Backfill `PR:` link in this RUN_LOG
 
 ## Runs
 ### 2026-01-20 issue
@@ -40,3 +40,27 @@
   - `exit 0`
 - Evidence:
   - `scripts/agent_worktree_cleanup.sh`
+
+### 2026-01-20 openspec validate
+- Command:
+  - `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output:
+  - `Totals: 11 passed, 0 failed`
+- Evidence:
+  - `openspec/specs/`
+
+### 2026-01-20 dry-run cleanup
+- Command:
+  - `./scripts/agent_worktree_cleanup.sh 29 sprint-3-rag-impl --dry-run`
+- Key output:
+  - `Removing worktree: .worktrees/issue-29-sprint-3-rag-impl`
+- Evidence:
+  - `scripts/agent_worktree_cleanup.sh`
+
+### 2026-01-20 pr
+- Command:
+  - `gh pr create --base main --head task/46-worktree-cleanup --title "..." --body "..."`
+- Key output:
+  - `https://github.com/Leeky1017/WN0.1/pull/47`
+- Evidence:
+  - PR #47
