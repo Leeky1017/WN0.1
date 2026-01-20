@@ -37,8 +37,10 @@ Rulebook tasks are the execution checklist:
 - `rulebook/tasks/issue-<N>-<slug>/tasks.md`
 
 Worktree hygiene (mandatory after merge):
+- This is a local-only step (GitHub Actions cannot delete your local worktrees).
 - After the PR is merged and controlplane `main` is synced, run:
   - `scripts/agent_worktree_cleanup.sh <N> <slug>`
+  - Tip: start with `--dry-run` if you're unsure.
 
 ## Spec writing (strict)
 
