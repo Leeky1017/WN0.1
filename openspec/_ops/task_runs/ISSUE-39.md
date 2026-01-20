@@ -1,7 +1,7 @@
 # ISSUE-39
 - Issue: #39
 - Branch: task/39-sprint-2-5-context-engineering
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/40
 
 ## Plan
 - Create Sprint 2.5 OpenSpec (spec/design/task cards)
@@ -23,3 +23,8 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
 - Evidence: `openspec/specs/sprint-2.5-context-engineering/spec.md`
+
+### 2026-01-20 15:46 pr
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/40`
+- Evidence: `openspec/_ops/task_runs/ISSUE-39.md`
