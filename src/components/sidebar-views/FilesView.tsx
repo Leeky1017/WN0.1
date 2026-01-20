@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, ChevronDown, FileText, Plus, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileText, Plus, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useFilesStore } from '../../stores/filesStore';
+import { useEditorStore } from '../../stores/editorStore';
 
 interface FilesViewProps {
   selectedFile: string | null;
@@ -29,12 +30,16 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState('未命名');
   const [createError, setCreateError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTargetPath, setDeleteTargetPath] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const createInputRef = useRef<HTMLInputElement>(null);
   const files = useFilesStore((s) => s.files);
   const isLoading = useFilesStore((s) => s.isLoading);
   const error = useFilesStore((s) => s.error);
   const refresh = useFilesStore((s) => s.refresh);
   const createFile = useFilesStore((s) => s.createFile);
+  const deleteFile = useFilesStore((s) => s.deleteFile);
 
   useEffect(() => {
     refresh().catch(() => undefined);
@@ -137,11 +142,49 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
     await onSelectFile(created.path);
   };
 
+  const openDelete = () => {
+    if (!selectedFile) return;
+    setDeleteError(null);
+    setDeleteTargetPath(selectedFile);
+    setDeleteOpen(true);
+  };
+
+  const closeDelete = () => {
+    setDeleteOpen(false);
+    setDeleteTargetPath(null);
+    setDeleteError(null);
+  };
+
+  const submitDelete = async () => {
+    if (!deleteTargetPath) return;
+    setDeleteError(null);
+    await deleteFile(deleteTargetPath);
+    const nextError = useFilesStore.getState().error;
+    if (nextError) {
+      setDeleteError(nextError);
+      return;
+    }
+
+    if (useEditorStore.getState().currentPath === deleteTargetPath) {
+      useEditorStore.getState().closeFile();
+    }
+
+    closeDelete();
+  };
+
   return (
     <>
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
         <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('nav.files')}</span>
         <div className="flex items-center gap-1">
+          <button
+            onClick={openDelete}
+            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
+            title="删除文件"
+            disabled={!selectedFile || isLoading}
+          >
+            <Trash2 className="w-4 h-4 text-[var(--text-tertiary)]" />
+          </button>
           <button
             onClick={openCreate}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
@@ -220,6 +263,37 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
                 className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
               >
                 {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteOpen && deleteTargetPath && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onMouseDown={closeDelete}
+        >
+          <div className="wn-elevated p-5 w-[420px]" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="text-[15px] text-[var(--text-primary)] mb-3">删除文章</div>
+            <div className="text-[12px] text-[var(--text-tertiary)] mb-3 leading-relaxed">
+              将永久删除：<span className="text-[var(--text-secondary)]">{deleteTargetPath}</span>
+            </div>
+            {deleteError && <div className="mt-2 text-[12px] text-red-400">{deleteError}</div>}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => submitDelete().catch(() => undefined)}
+                className="flex-1 h-8 px-3 bg-red-600 hover:bg-red-500 rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
+                disabled={isLoading}
+              >
+                删除
+              </button>
+              <button
+                onClick={closeDelete}
+                className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
+                disabled={isLoading}
+              >
+                取消
               </button>
             </div>
           </div>

@@ -6,6 +6,9 @@ export type IpcChannel =
   | 'file:write'
   | 'file:create'
   | 'file:delete'
+  | 'file:session:status'
+  | 'file:snapshot:write'
+  | 'file:snapshot:latest'
   | 'ai:skill:run'
   | 'ai:skill:cancel'
   | 'search:fulltext'
@@ -132,6 +135,40 @@ export type FileDeleteRequest = {
 
 export type FileDeleteResponse = {
   deleted: true;
+};
+
+export type FileSessionStatusRequest = Record<string, never>;
+
+export type FileSessionStatusResponse = {
+  uncleanExitDetected: boolean;
+};
+
+export type SnapshotReason = 'auto' | 'manual';
+
+export type DocumentSnapshot = {
+  id: string;
+  path: string;
+  createdAt: number;
+  reason: SnapshotReason;
+  content: string;
+};
+
+export type FileSnapshotWriteRequest = {
+  path: string;
+  content: string;
+  reason?: SnapshotReason;
+};
+
+export type FileSnapshotWriteResponse = {
+  snapshotId: string;
+};
+
+export type FileSnapshotLatestRequest = {
+  path?: string;
+};
+
+export type FileSnapshotLatestResponse = {
+  snapshot: DocumentSnapshot | null;
 };
 
 export type AiSkillRunRequest = {
@@ -386,6 +423,9 @@ export type IpcInvokePayloadMap = {
   'file:write': FileWriteRequest;
   'file:create': FileCreateRequest;
   'file:delete': FileDeleteRequest;
+  'file:session:status': FileSessionStatusRequest;
+  'file:snapshot:write': FileSnapshotWriteRequest;
+  'file:snapshot:latest': FileSnapshotLatestRequest;
   'ai:skill:run': AiSkillRunRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'search:fulltext': SearchFulltextRequest;
@@ -415,6 +455,9 @@ export type IpcInvokeDataMap = {
   'file:write': FileWriteResponse;
   'file:create': FileCreateResponse;
   'file:delete': FileDeleteResponse;
+  'file:session:status': FileSessionStatusResponse;
+  'file:snapshot:write': FileSnapshotWriteResponse;
+  'file:snapshot:latest': FileSnapshotLatestResponse;
   'ai:skill:run': AiSkillRunResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'search:fulltext': SearchFulltextResponse;

@@ -6,6 +6,9 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'file:write',
   'file:create',
   'file:delete',
+  'file:session:status',
+  'file:snapshot:write',
+  'file:snapshot:latest',
   'ai:skill:run',
   'ai:skill:cancel',
   'search:fulltext',
@@ -50,6 +53,12 @@ function assertAllowed(channel, allowlist) {
 
 contextBridge.exposeInMainWorld('writenow', {
   platform: process.platform,
+  snapshotIntervalMs: (() => {
+    const raw = typeof process.env.WN_SNAPSHOT_INTERVAL_MS === 'string' ? process.env.WN_SNAPSHOT_INTERVAL_MS.trim() : ''
+    if (!raw) return undefined
+    const value = Number(raw)
+    return Number.isFinite(value) && value > 0 ? value : undefined
+  })(),
   send: (channel, payload) => {
     assertAllowed(channel, ALLOWED_SEND_CHANNELS)
     return ipcRenderer.send(channel, payload)

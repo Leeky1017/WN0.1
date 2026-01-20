@@ -4,11 +4,12 @@ import { useFilesStore } from './filesStore';
 import { IpcError, fileOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
 
-type SaveStatus = 'saved' | 'saving' | 'error';
+import type { EditorMode, SaveStatus } from '../types/editor';
 
 type EditorState = {
   currentPath: string | null;
   content: string;
+  editorMode: EditorMode;
   isDirty: boolean;
   isLoading: boolean;
   loadError: string | null;
@@ -16,6 +17,7 @@ type EditorState = {
   lastSavedAt: number | null;
   openFile: (path: string) => Promise<void>;
   setContent: (content: string) => void;
+  setEditorMode: (mode: EditorMode) => void;
   save: () => Promise<void>;
   closeFile: () => void;
 };
@@ -40,6 +42,7 @@ let saveSeq = 0;
 export const useEditorStore = create<EditorState>((set, get) => ({
   currentPath: null,
   content: '',
+  editorMode: 'markdown',
   isDirty: false,
   isLoading: false,
   loadError: null,
@@ -63,6 +66,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       currentPath: nextPath,
       content: '',
+      editorMode: 'markdown',
       isDirty: false,
       isLoading: true,
       loadError: null,
@@ -75,6 +79,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (requestId !== openSeq) return;
       set({
         content: result.content ?? '',
+        editorMode: 'markdown',
         isDirty: false,
         isLoading: false,
         loadError: null,
@@ -94,8 +99,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       content,
       isDirty: true,
-      saveStatus: 'saving',
     });
+  },
+
+  setEditorMode: (mode: EditorMode) => {
+    set({ editorMode: mode });
   },
 
   save: async () => {
@@ -125,6 +133,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       currentPath: null,
       content: '',
+      editorMode: 'markdown',
       isDirty: false,
       isLoading: false,
       loadError: null,

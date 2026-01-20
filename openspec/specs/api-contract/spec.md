@@ -279,6 +279,69 @@ Errors:
 - `NOT_FOUND`
 - `IO_ERROR`
 
+#### `file:session:status`
+
+获取上一次会话是否为非正常退出（用于崩溃恢复提示）。
+
+```ts
+export type FileSessionStatusRequest = {}
+
+export type FileSessionStatusResponse = {
+  uncleanExitDetected: boolean
+}
+```
+
+Errors:
+- `IO_ERROR`
+
+#### `file:snapshot:write`
+
+为指定文档写入一份快照（用于崩溃恢复）。
+
+```ts
+export type SnapshotReason = 'auto' | 'manual'
+
+export type FileSnapshotWriteRequest = {
+  path: string
+  content: string
+  reason?: SnapshotReason
+}
+
+export type FileSnapshotWriteResponse = {
+  snapshotId: string
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `IO_ERROR`
+
+#### `file:snapshot:latest`
+
+读取最近的一份快照；当 `path` 省略时返回所有文档中的“最近一份”。
+
+```ts
+export type DocumentSnapshot = {
+  id: string
+  path: string
+  createdAt: number // epoch ms
+  reason: SnapshotReason
+  content: string
+}
+
+export type FileSnapshotLatestRequest = {
+  path?: string
+}
+
+export type FileSnapshotLatestResponse = {
+  snapshot: DocumentSnapshot | null
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `IO_ERROR`
+
 ---
 
 ### AI（技能）

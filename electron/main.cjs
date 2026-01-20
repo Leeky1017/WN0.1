@@ -9,6 +9,7 @@ const { registerFileIpcHandlers } = require('./ipc/files.cjs')
 const { registerUpdateIpcHandlers } = require('./ipc/update.cjs')
 const { registerExportIpcHandlers } = require('./ipc/export.cjs')
 const { registerClipboardIpcHandlers } = require('./ipc/clipboard.cjs')
+const { initSessionLock, clearSessionLock } = require('./lib/session.cjs')
 
 let logger = null
 let db = null
@@ -309,6 +310,7 @@ app.whenReady().then(async () => {
   try {
     ensureAppDirs()
     initLogging()
+    await initSessionLock({ log: (message, details) => logger?.info?.('session', message, details) })
     db = initDatabase({ userDataPath: app.getPath('userData') })
     config.initConfig({ db, logger, safeStorage })
     setupIpc()
@@ -325,6 +327,12 @@ app.whenReady().then(async () => {
 async function gracefulShutdown(exitCode) {
   if (shuttingDown) return
   shuttingDown = true
+
+  try {
+    await clearSessionLock({ log: (message, details) => logger?.info?.('session', message, details) })
+  } catch {
+    // ignore
+  }
 
   try {
     db?.close?.()

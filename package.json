@@ -17,6 +17,10 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.25.0",
+    "@tiptap/extension-placeholder": "^3.15.3",
+    "@tiptap/markdown": "^3.15.3",
+    "@tiptap/react": "^3.15.3",
+    "@tiptap/starter-kit": "^3.15.3",
     "better-sqlite3": "^11.0.0",
     "electron-updater": "^6.7.3",
     "html-to-docx": "^1.8.0",
