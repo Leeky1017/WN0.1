@@ -58,3 +58,13 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed`
 - Evidence: `openspec/specs/`
+
+### 2026-01-21 01:00 rebase + validate
+- Command: `git rebase --continue && npm run contract:generate && npm run contract:check && npm test && npm run build && npx playwright test`
+- Key output: `Successfully rebased...` + `contract:check exit 0` + `vitest: Test Files 5 passed` + `playwright: 12 passed, 3 skipped`
+- Evidence: `git log --oneline -5`, `src/types/ipc-generated.ts`, `electron/preload.cjs`, `tests/e2e/`
+
+### 2026-01-21 01:00 openspec + rulebook
+- Command: `openspec validate --specs --strict --no-interactive && rulebook task validate issue-51-sprint-2b-judge-layer`
+- Key output: `Totals: 11 passed, 0 failed` + `✅ Task issue-51-sprint-2b-judge-layer is valid`
+- Evidence: `openspec/specs/`, `rulebook/tasks/issue-51-sprint-2b-judge-layer/`
