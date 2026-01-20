@@ -19,6 +19,14 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'update:check',
   'update:download',
   'update:install',
+  'update:getState',
+  'update:skipVersion',
+  'update:clearSkipped',
+  'export:markdown',
+  'export:docx',
+  'export:pdf',
+  'clipboard:writeText',
+  'clipboard:writeHtml',
 ])
 
 const ALLOWED_SEND_CHANNELS = new Set([

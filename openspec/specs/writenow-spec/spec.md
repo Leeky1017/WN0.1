@@ -747,6 +747,18 @@ WriteNow/
 'update:check'        // 检查更新
 'update:download'     // 下载更新
 'update:install'      // 安装更新
+'update:getState'     // 获取更新状态
+'update:skipVersion'  // 跳过指定版本
+'update:clearSkipped' // 清除跳过版本
+
+// 导出
+'export:markdown'     // 导出 Markdown
+'export:docx'         // 导出 Word（.docx）
+'export:pdf'          // 导出 PDF
+
+// 剪贴板
+'clipboard:writeText' // 写入剪贴板纯文本
+'clipboard:writeHtml' // 写入剪贴板 HTML
 ```
 
 ### 数据库 Schema

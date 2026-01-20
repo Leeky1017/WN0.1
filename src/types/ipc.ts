@@ -18,7 +18,15 @@ export type IpcChannel =
   | 'version:diff'
   | 'update:check'
   | 'update:download'
-  | 'update:install';
+  | 'update:install'
+  | 'update:getState'
+  | 'update:skipVersion'
+  | 'update:clearSkipped'
+  | 'export:markdown'
+  | 'export:docx'
+  | 'export:pdf'
+  | 'clipboard:writeText'
+  | 'clipboard:writeHtml';
 
 export type IpcErrorCode =
   | 'INVALID_ARGUMENT'
@@ -283,6 +291,95 @@ export type UpdateInstallResponse = {
   willRestart: boolean;
 };
 
+export type UpdateStatus = 'idle' | 'checking' | 'available' | 'not_available' | 'downloading' | 'downloaded' | 'error';
+
+export type UpdateProgress = {
+  percent: number;
+  transferred: number;
+  total: number;
+  bytesPerSecond: number;
+};
+
+export type UpdateStateError = {
+  code: IpcErrorCode;
+  message: string;
+  details?: unknown;
+  retryable?: boolean;
+};
+
+export type UpdateState = {
+  status: UpdateStatus;
+  currentVersion: string;
+  lastCheckedAt?: string;
+  latest?: UpdateInfo;
+  skippedVersion?: string | null;
+  downloadId?: string;
+  progress?: UpdateProgress;
+  error?: UpdateStateError;
+};
+
+export type UpdateGetStateRequest = Record<string, never>;
+
+export type UpdateGetStateResponse = UpdateState;
+
+export type UpdateSkipVersionRequest = {
+  version: string;
+};
+
+export type UpdateSkipVersionResponse = {
+  skippedVersion: string;
+};
+
+export type UpdateClearSkippedRequest = Record<string, never>;
+
+export type UpdateClearSkippedResponse = {
+  cleared: true;
+};
+
+export type ExportMarkdownRequest = {
+  title: string;
+  content: string;
+};
+
+export type ExportMarkdownResponse = {
+  path: string;
+};
+
+export type ExportDocxRequest = {
+  title: string;
+  content: string;
+};
+
+export type ExportDocxResponse = {
+  path: string;
+};
+
+export type ExportPdfRequest = {
+  title: string;
+  content: string;
+};
+
+export type ExportPdfResponse = {
+  path: string;
+};
+
+export type ClipboardWriteTextRequest = {
+  text: string;
+};
+
+export type ClipboardWriteTextResponse = {
+  written: true;
+};
+
+export type ClipboardWriteHtmlRequest = {
+  html: string;
+  text?: string;
+};
+
+export type ClipboardWriteHtmlResponse = {
+  written: true;
+};
+
 export type IpcInvokePayloadMap = {
   'file:list': FileListRequest;
   'file:read': FileReadRequest;
@@ -302,6 +399,14 @@ export type IpcInvokePayloadMap = {
   'update:check': UpdateCheckRequest;
   'update:download': UpdateDownloadRequest;
   'update:install': UpdateInstallRequest;
+  'update:getState': UpdateGetStateRequest;
+  'update:skipVersion': UpdateSkipVersionRequest;
+  'update:clearSkipped': UpdateClearSkippedRequest;
+  'export:markdown': ExportMarkdownRequest;
+  'export:docx': ExportDocxRequest;
+  'export:pdf': ExportPdfRequest;
+  'clipboard:writeText': ClipboardWriteTextRequest;
+  'clipboard:writeHtml': ClipboardWriteHtmlRequest;
 };
 
 export type IpcInvokeDataMap = {
@@ -323,9 +428,16 @@ export type IpcInvokeDataMap = {
   'update:check': UpdateCheckResponse;
   'update:download': UpdateDownloadResponse;
   'update:install': UpdateInstallResponse;
+  'update:getState': UpdateGetStateResponse;
+  'update:skipVersion': UpdateSkipVersionResponse;
+  'update:clearSkipped': UpdateClearSkippedResponse;
+  'export:markdown': ExportMarkdownResponse;
+  'export:docx': ExportDocxResponse;
+  'export:pdf': ExportPdfResponse;
+  'clipboard:writeText': ClipboardWriteTextResponse;
+  'clipboard:writeHtml': ClipboardWriteHtmlResponse;
 };
 
 export type IpcInvokeResponseMap = {
   [K in IpcChannel]: IpcResponse<IpcInvokeDataMap[K]>;
 };
-

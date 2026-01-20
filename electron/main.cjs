@@ -6,10 +6,14 @@ const { initDatabase } = require('./database/init.cjs')
 const { createLogger } = require('./lib/logger.cjs')
 const config = require('./lib/config.cjs')
 const { registerFileIpcHandlers } = require('./ipc/files.cjs')
+const { registerUpdateIpcHandlers } = require('./ipc/update.cjs')
+const { registerExportIpcHandlers } = require('./ipc/export.cjs')
+const { registerClipboardIpcHandlers } = require('./ipc/clipboard.cjs')
 
 let logger = null
 let db = null
 let shuttingDown = false
+let updateService = null
 
 function configureUserDataPath() {
   // Must be called before app 'ready'.
@@ -186,6 +190,16 @@ function setupIpc() {
     handleInvoke,
     log: (...args) => logger?.info?.('file', args.map((a) => String(a)).join(' ')),
   })
+
+  updateService = registerUpdateIpcHandlers(ipcMain, {
+    app,
+    config,
+    logger,
+    handleInvoke,
+  })
+
+  registerExportIpcHandlers(ipcMain, { handleInvoke, logger })
+  registerClipboardIpcHandlers(ipcMain, { handleInvoke })
 }
 
 async function createMainWindow() {
@@ -300,6 +314,7 @@ app.whenReady().then(async () => {
     setupIpc()
     logger?.info?.('main', 'app ready', { userData: app.getPath('userData') })
     await createMainWindow()
+    updateService?.startBackgroundCheck?.()
   } catch (e) {
     logger?.error?.('main', 'startup error', { message: e?.message })
     if (shouldShowDialogs()) dialog.showErrorBox('WriteNow 启动失败', String(e))
