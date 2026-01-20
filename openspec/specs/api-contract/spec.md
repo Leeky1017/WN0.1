@@ -20,7 +20,7 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 #### Scenario: 新增通道遵循命名规则
 - **WHEN** 任何新增 IPC 通道被引入
 - **THEN** 通道名 MUST 为 `domain:action`（允许多段）且全小写
-- **AND THEN** `domain` MUST 属于既定领域：`file | ai | search | embedding | version | update`
+- **AND THEN** `domain` MUST 属于既定领域：`file | ai | search | embedding | version | update | export | clipboard`
 
 ### Requirement: `ipcRenderer.invoke` 返回值 MUST 使用统一 Envelope
 
@@ -51,7 +51,9 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 - `search:fulltext/semantic`
 - `embedding:encode/index`
 - `version:list/create/restore/diff`
-- `update:check/download/install`
+- `update:check/download/install/getState/skipVersion/clearSkipped`
+- `export:markdown/docx/pdf`
+- `clipboard:writeText/writeHtml`
 
 #### Scenario: 覆盖范围完整
 - **WHEN** 规范被校验或实现准备接入 IPC
@@ -61,7 +63,7 @@ IPC 通道命名 MUST 稳定、可读、可扩展；并 MUST 使用小写 `:` �
 
 - 通道命名 MUST 使用 `domain:action`，必要时允许多段：`ai:skill:run`
 - 全部小写；段之间以 `:` 分隔；不得包含空格
-- `domain` MUST 为稳定领域名之一：`file | ai | search | embedding | version | update`
+- `domain` MUST 为稳定领域名之一：`file | ai | search | embedding | version | update | export | clipboard`
 - 同一通道的请求/响应类型命名 MUST 与通道保持一致（见下文）
 
 ## Transport & Envelope
@@ -603,6 +605,192 @@ Errors:
 - `NOT_FOUND`
 - `CONFLICT`
 - `IO_ERROR | UPSTREAM_ERROR`
+
+#### `update:getState`
+
+获取当前更新状态（供 UI 订阅/展示）。
+
+```ts
+export type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'not_available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
+
+export type UpdateProgress = {
+  percent: number
+  transferred: number
+  total: number
+  bytesPerSecond: number
+}
+
+export type UpdateStateError = {
+  code: IpcErrorCode
+  message: string
+  details?: unknown
+  retryable?: boolean
+}
+
+export type UpdateState = {
+  status: UpdateStatus
+  currentVersion: string
+  lastCheckedAt?: string // ISO
+  latest?: UpdateInfo
+  skippedVersion?: string | null
+  downloadId?: string
+  progress?: UpdateProgress
+  error?: UpdateStateError
+}
+
+export type UpdateGetStateRequest = {}
+
+export type UpdateGetStateResponse = UpdateState
+```
+
+Errors:
+- `INTERNAL`
+
+#### `update:skipVersion`
+
+跳过指定版本（该版本范围内不再提示；可通过 `update:clearSkipped` 清除）。
+
+```ts
+export type UpdateSkipVersionRequest = {
+  version: string
+}
+
+export type UpdateSkipVersionResponse = {
+  skippedVersion: string
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+
+#### `update:clearSkipped`
+
+清除“跳过版本”状态。
+
+```ts
+export type UpdateClearSkippedRequest = {}
+
+export type UpdateClearSkippedResponse = {
+  cleared: true
+}
+```
+
+Errors:
+- `INTERNAL`
+
+---
+
+### Export（导出）
+
+#### `export:markdown`
+
+导出当前文档为 Markdown（`.md`）。
+
+```ts
+export type ExportMarkdownRequest = {
+  title: string
+  content: string
+}
+
+export type ExportMarkdownResponse = {
+  path: string
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `CANCELED`
+- `PERMISSION_DENIED | IO_ERROR`
+
+#### `export:docx`
+
+导出当前文档为 Word（`.docx`）。
+
+```ts
+export type ExportDocxRequest = {
+  title: string
+  content: string
+}
+
+export type ExportDocxResponse = {
+  path: string
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `CANCELED`
+- `PERMISSION_DENIED | IO_ERROR`
+- `INTERNAL`
+
+#### `export:pdf`
+
+导出当前文档为 PDF（`.pdf`）。
+
+```ts
+export type ExportPdfRequest = {
+  title: string
+  content: string
+}
+
+export type ExportPdfResponse = {
+  path: string
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `CANCELED`
+- `PERMISSION_DENIED | IO_ERROR`
+- `INTERNAL`
+
+---
+
+### Clipboard（剪贴板）
+
+#### `clipboard:writeText`
+
+写入剪贴板纯文本。
+
+```ts
+export type ClipboardWriteTextRequest = {
+  text: string
+}
+
+export type ClipboardWriteTextResponse = {
+  written: true
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `INTERNAL`
+
+#### `clipboard:writeHtml`
+
+写入剪贴板 HTML（可附带纯文本 fallback）。
+
+```ts
+export type ClipboardWriteHtmlRequest = {
+  html: string
+  text?: string
+}
+
+export type ClipboardWriteHtmlResponse = {
+  written: true
+}
+```
+
+Errors:
+- `INVALID_ARGUMENT`
+- `INTERNAL`
 
 ---
 

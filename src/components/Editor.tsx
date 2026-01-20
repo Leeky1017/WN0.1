@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MoreHorizontal, Eye, Edit3, Columns, Bold, Italic, Underline, List, ListOrdered, Type, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { EditorMode, ViewMode } from '../App';
 
 import { useEditorStore } from '../stores/editorStore';
@@ -19,6 +20,7 @@ interface FloatingToolbarPosition {
 }
 
 export function Editor({ editorMode, viewMode, onEditorModeChange, onViewModeChange, focusMode, onFocusModeToggle }: EditorProps) {
+  const { i18n, t } = useTranslation();
   const selectedFile = useEditorStore((s) => s.currentPath);
   const content = useEditorStore((s) => s.content);
   const isDirty = useEditorStore((s) => s.isDirty);
@@ -110,8 +112,8 @@ export function Editor({ editorMode, viewMode, onEditorModeChange, onViewModeCha
     return (
       <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]">
         <div className="text-center">
-          <div className="text-[13px] text-[var(--text-tertiary)] mb-1">No file selected</div>
-          <div className="text-[11px] text-[var(--text-tertiary)]">Select a file from the workflow</div>
+          <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('editor.noFileSelected.title')}</div>
+          <div className="text-[11px] text-[var(--text-tertiary)]">{t('editor.noFileSelected.hint')}</div>
         </div>
       </div>
     );
@@ -158,7 +160,7 @@ export function Editor({ editorMode, viewMode, onEditorModeChange, onViewModeCha
                 setContent(e.target.value);
               }}
               className="w-full h-full bg-transparent text-[var(--text-primary)] outline-none resize-none px-4 py-3 leading-[1.6] font-mono text-[13px]"
-              placeholder="Start typing in Markdown..."
+              placeholder={t('editor.placeholderMarkdown')}
               spellCheck={false}
             />
           </div>
@@ -195,23 +197,23 @@ export function Editor({ editorMode, viewMode, onEditorModeChange, onViewModeCha
             <button
               onClick={() => closeFile()}
               className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors"
-              title="关闭"
+              title={t('common.close')}
             >
               <X className="w-3 h-3" />
             </button>
           </div>
           <div className="flex-1" />
           <div className="text-[11px] text-[var(--text-tertiary)] mr-3">
-            {isSaved ? '已保存' : '保存中...'}
+            {isSaved ? t('editor.save.saved') : t('editor.save.saving')}
             {isSaved && lastSavedAt
-              ? ` · ${new Date(lastSavedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`
+              ? ` · ${new Date(lastSavedAt).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}`
               : ''}
           </div>
           <button 
             onClick={onFocusModeToggle}
             className="h-7 px-2 mr-1 rounded-md hover:bg-[var(--bg-hover)] text-xs text-[var(--text-tertiary)] transition-colors"
           >
-            专注模式
+            {t('app.focus.enter')}
           </button>
           <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors mr-1">
             <MoreHorizontal className="w-4 h-4" />

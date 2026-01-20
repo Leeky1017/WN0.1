@@ -1,0 +1,150 @@
+{
+  "app": {
+    "title": "WriteNow",
+    "menu": {
+      "file": "File",
+      "edit": "Edit",
+      "view": "View",
+      "publish": "Publish"
+    },
+    "focus": {
+      "enter": "Focus",
+      "exitHint": "Press ESC to exit focus mode",
+      "exit": "Exit"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "create": "Create",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "loading": "Loading…",
+    "copied": "Copied",
+    "copy": "Copy",
+    "export": "Export"
+  },
+  "nav": {
+    "files": "File Explorer",
+    "outline": "Outline",
+    "workflow": "Workflow",
+    "materials": "Materials",
+    "publish": "Publish",
+    "stats": "Stats",
+    "settings": "Settings"
+  },
+  "files": {
+    "newFile": "New file",
+    "newArticle": "New article",
+    "supportsMarkdown": "Supports Markdown (.md will be appended)",
+    "untitled": "Untitled",
+    "wordCountSuffix": " chars",
+    "createFailed": "Create failed, please retry",
+    "empty": {
+      "title": "No documents yet",
+      "hint": "Click “+” to create your first one"
+    },
+    "loadFailed": "Load failed: {{error}}"
+  },
+  "editor": {
+    "noFileSelected": {
+      "title": "No file selected",
+      "hint": "Select a file from the sidebar"
+    },
+    "placeholderMarkdown": "Start typing in Markdown…",
+    "save": {
+      "saved": "Saved",
+      "saving": "Saving…"
+    }
+  },
+  "export": {
+    "markdown": "Markdown",
+    "word": "Word",
+    "pdf": "PDF",
+    "exportMarkdown": "Export Markdown",
+    "exportWord": "Export Word",
+    "exportPdf": "Export PDF",
+    "success": "Exported: {{path}}",
+    "failed": "Export failed: {{error}}",
+    "noDocument": "Select a document first"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Language",
+      "zhCN": "简体中文",
+      "en": "English"
+    },
+    "update": {
+      "title": "Updates",
+      "currentVersion": "Current version",
+      "latestVersion": "Latest version",
+      "lastCheckedAt": "Last checked",
+      "check": "Check for updates",
+      "install": "Restart to install",
+      "later": "Later",
+      "skip": "Skip this version",
+      "clearSkipped": "Clear skipped",
+      "status": {
+        "idle": "Not checked",
+        "checking": "Checking…",
+        "available": "Update available",
+        "not_available": "No updates",
+        "downloading": "Downloading…",
+        "downloaded": "Update ready",
+        "error": "Failed"
+      },
+      "unsupported": "Updates can’t be verified in dev mode; package the app to test"
+    }
+  },
+  "publish": {
+    "title": "Publish",
+    "platform": {
+      "wechat": "WeChat Official Account",
+      "zhihu": "Zhihu",
+      "xiaohongshu": "Xiaohongshu",
+      "toutiao": "Toutiao",
+      "medium": "Medium"
+    },
+    "options": {
+      "stripLinks": "Remove external links (recommended for WeChat)"
+    },
+    "warn": {
+      "wechat": {
+        "links": "WeChat: external links may not work; consider removing or moving them to notes.",
+        "images": "WeChat: images usually need re-uploading in the editor."
+      },
+      "zhihu": {
+        "links": "Zhihu: external links may be folded or moderated; review before publishing.",
+        "long": "Zhihu: content is long; there may be length/layout constraints."
+      },
+      "xiaohongshu": {
+        "short": "Xiaohongshu: best with short text + images; consider trimming and adding images.",
+        "links": "Xiaohongshu: links are typically not clickable; consider removing."
+      },
+      "toutiao": {
+        "links": "Toutiao: some external links may be restricted; review before publishing."
+      }
+    },
+    "warnings": "Warnings",
+    "preview": "Preview",
+    "copyFor": "Copy for {{platform}}",
+    "copyFailed": "Copy failed: {{error}}"
+  },
+  "errors": {
+    "INVALID_ARGUMENT": "Invalid argument",
+    "NOT_FOUND": "Not found",
+    "ALREADY_EXISTS": "Already exists",
+    "CONFLICT": "Conflict",
+    "PERMISSION_DENIED": "Permission denied",
+    "UNSUPPORTED": "Unsupported",
+    "IO_ERROR": "I/O error",
+    "DB_ERROR": "Database error",
+    "MODEL_NOT_READY": "Model not ready",
+    "RATE_LIMITED": "Rate limited",
+    "TIMEOUT": "Timeout",
+    "CANCELED": "Canceled",
+    "UPSTREAM_ERROR": "Upstream error",
+    "INTERNAL": "Internal error"
+  }
+}

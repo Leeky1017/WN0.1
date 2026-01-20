@@ -1,5 +1,6 @@
 import React from 'react';
 import { Files, ListTree, Workflow, Image, Share2, BarChart3, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { SidebarView } from '../App';
 
 interface ActivityBarProps {
@@ -8,14 +9,15 @@ interface ActivityBarProps {
 }
 
 export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
+  const { t } = useTranslation();
   const activities = [
-    { id: 'files' as SidebarView, icon: Files, label: '文件浏览器' },
-    { id: 'outline' as SidebarView, icon: ListTree, label: '文档大纲' },
-    { id: 'workflow' as SidebarView, icon: Workflow, label: '创作工作流' },
-    { id: 'materials' as SidebarView, icon: Image, label: '素材库' },
-    { id: 'publish' as SidebarView, icon: Share2, label: '发布平台' },
-    { id: 'stats' as SidebarView, icon: BarChart3, label: '创作统计' },
-    { id: 'settings' as SidebarView, icon: Settings, label: '设置' },
+    { id: 'files' as SidebarView, icon: Files, label: t('nav.files') },
+    { id: 'outline' as SidebarView, icon: ListTree, label: t('nav.outline') },
+    { id: 'workflow' as SidebarView, icon: Workflow, label: t('nav.workflow') },
+    { id: 'materials' as SidebarView, icon: Image, label: t('nav.materials') },
+    { id: 'publish' as SidebarView, icon: Share2, label: t('nav.publish') },
+    { id: 'stats' as SidebarView, icon: BarChart3, label: t('nav.stats') },
+    { id: 'settings' as SidebarView, icon: Settings, label: t('nav.settings') },
   ];
 
   return (

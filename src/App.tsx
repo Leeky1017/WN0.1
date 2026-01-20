@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TitleBar } from './components/TitleBar';
 import { ActivityBar } from './components/ActivityBar';
 import { SidebarPanel } from './components/SidebarPanel';
@@ -14,6 +15,7 @@ export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView = 'files' | 'outline' | 'workflow' | 'materials' | 'publish' | 'stats' | 'settings';
 
 export default function App() {
+  const { t } = useTranslation();
   const [aiPanelOpen, setAiPanelOpen] = useState(true);
   const [statsBarOpen, setStatsBarOpen] = useState(true);
   const [sidebarView, setSidebarView] = useState<SidebarView>('files');
@@ -109,12 +111,12 @@ export default function App() {
       {/* Focus Mode Exit Hint */}
       {focusMode && (
         <div className="fixed top-4 right-4 wn-elevated rounded-md px-3 py-2 flex items-center gap-2 animate-fade-in">
-          <span className="text-[11px] text-[var(--text-tertiary)]">按 ESC 退出专注模式</span>
+          <span className="text-[11px] text-[var(--text-tertiary)]">{t('app.focus.exitHint')}</span>
           <button
             onClick={() => setFocusMode(false)}
             className="text-[11px] text-[var(--accent-primary)] hover:text-[var(--accent-hover)] transition-colors"
           >
-            退出
+            {t('app.focus.exit')}
           </button>
         </div>
       )}

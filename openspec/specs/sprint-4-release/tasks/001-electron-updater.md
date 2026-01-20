@@ -22,12 +22,13 @@
    - 监听事件：`checking-for-update` / `update-available` / `update-not-available` / `download-progress` / `update-downloaded` / `error`
    - 维护一个可序列化的更新状态（供渲染进程展示）
 4. 设计 IPC 通道（渲染进程不可直连更新服务）：
-   - `updater:check`（手动检查）
-   - `updater:install`（立即重启安装）
-   - `updater:skipVersion`（跳过当前版本）
-   - `updater:clearSkipped`（清除跳过）
-   - `updater:getState`（读取当前状态）
-   - （推荐）事件推送：`updater:stateChanged`
+   - `update:check`（手动检查）
+   - `update:download`（下载更新包）
+   - `update:install`（立即重启安装）
+   - `update:skipVersion`（跳过当前版本）
+   - `update:clearSkipped`（清除跳过）
+   - `update:getState`（读取当前状态）
+   - （推荐）事件推送：`update:stateChanged`
 5. 渲染进程 UI 接入（设置/关于）：
    - 展示当前版本号、最后检查时间、检查/下载/就绪/失败状态
    - 提供按钮：检查更新、立即重启、稍后、跳过版本
@@ -38,7 +39,7 @@
 ## 新增/修改文件
 
 - `electron-builder.json` - 发布产物与 `publish` 配置
-- `electron/ipc/updater.cjs`（新增）- Updater IPC handlers
+- `electron/ipc/update.cjs`（新增）- Update IPC handlers
 - `electron/main.cjs` - 注册 Updater 模块与事件转发
 - `electron/preload.cjs` - 暴露安全的 updater API
 - `src/components/Settings/*` 或 `src/components/About/*` - 更新 UI（新增/修改）
@@ -55,4 +56,3 @@
 ## 参考
 
 - 核心规范：`openspec/specs/writenow-spec/spec.md` 第 484-509 行（自动更新机制）
-

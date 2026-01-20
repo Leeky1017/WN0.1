@@ -45,3 +45,22 @@ export const fileOps = {
   delete: (path: string) => invoke('file:delete', { path }),
 };
 
+export const updateOps = {
+  getState: () => invoke('update:getState', {}),
+  check: (payload: IpcInvokePayloadMap['update:check']) => invoke('update:check', payload),
+  download: (version: string) => invoke('update:download', { version }),
+  install: (downloadId: string) => invoke('update:install', { downloadId }),
+  skipVersion: (version: string) => invoke('update:skipVersion', { version }),
+  clearSkipped: () => invoke('update:clearSkipped', {}),
+};
+
+export const exportOps = {
+  markdown: (title: string, content: string) => invoke('export:markdown', { title, content }),
+  docx: (title: string, content: string) => invoke('export:docx', { title, content }),
+  pdf: (title: string, content: string) => invoke('export:pdf', { title, content }),
+};
+
+export const clipboardOps = {
+  writeText: (text: string) => invoke('clipboard:writeText', { text }),
+  writeHtml: (html: string, text?: string) => invoke('clipboard:writeHtml', typeof text === 'string' ? { html, text } : { html }),
+};
