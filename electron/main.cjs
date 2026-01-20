@@ -18,6 +18,7 @@ const { registerEmbeddingIpcHandlers } = require('./ipc/embedding.cjs')
 const { registerRagIpcHandlers } = require('./ipc/rag.cjs')
 const { registerSearchIpcHandlers } = require('./ipc/search.cjs')
 const { registerProjectsIpcHandlers } = require('./ipc/projects.cjs')
+const { registerCharactersIpcHandlers } = require('./ipc/characters.cjs')
 
 let logger = null
 let db = null
@@ -216,6 +217,12 @@ function setupIpc() {
   })
 
   registerProjectsIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+  })
+
+  registerCharactersIpcHandlers(ipcMain, {
     handleInvoke,
     db,
     logger,

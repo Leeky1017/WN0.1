@@ -62,6 +62,13 @@ export const projectOps = {
   delete: (payload: { id: string; reassignProjectId?: string }) => invoke('project:delete', payload),
 };
 
+export const characterOps = {
+  list: (projectId: string) => invoke('character:list', { projectId }),
+  create: (payload: IpcInvokePayloadMap['character:create']) => invoke('character:create', payload),
+  update: (payload: IpcInvokePayloadMap['character:update']) => invoke('character:update', payload),
+  delete: (payload: IpcInvokePayloadMap['character:delete']) => invoke('character:delete', payload),
+};
+
 export const updateOps = {
   getState: () => invoke('update:getState', {}),
   check: (payload: IpcInvokePayloadMap['update:check']) => invoke('update:check', payload),

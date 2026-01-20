@@ -1,4 +1,4 @@
-import type { ArticleSnapshot, Project } from './models';
+import type { ArticleSnapshot, Character, JsonValue, Project } from './models';
 
 export type IpcChannel =
   | 'file:list'
@@ -23,6 +23,10 @@ export type IpcChannel =
   | 'project:create'
   | 'project:update'
   | 'project:delete'
+  | 'character:list'
+  | 'character:create'
+  | 'character:update'
+  | 'character:delete'
   | 'version:list'
   | 'version:create'
   | 'version:restore'
@@ -541,6 +545,48 @@ export type ProjectDeleteResponse = {
   currentProjectId: string;
 };
 
+export type CharacterListRequest = {
+  projectId: string;
+};
+
+export type CharacterListResponse = {
+  characters: Character[];
+};
+
+export type CharacterCreateRequest = {
+  projectId: string;
+  name: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+};
+
+export type CharacterCreateResponse = {
+  character: Character;
+};
+
+export type CharacterUpdateRequest = {
+  projectId: string;
+  id: string;
+  name?: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+};
+
+export type CharacterUpdateResponse = {
+  character: Character;
+};
+
+export type CharacterDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type CharacterDeleteResponse = {
+  deleted: true;
+};
+
 export type IpcInvokePayloadMap = {
   'file:list': FileListRequest;
   'file:read': FileReadRequest;
@@ -564,6 +610,10 @@ export type IpcInvokePayloadMap = {
   'project:create': ProjectCreateRequest;
   'project:update': ProjectUpdateRequest;
   'project:delete': ProjectDeleteRequest;
+  'character:list': CharacterListRequest;
+  'character:create': CharacterCreateRequest;
+  'character:update': CharacterUpdateRequest;
+  'character:delete': CharacterDeleteRequest;
   'version:list': VersionListRequest;
   'version:create': VersionCreateRequest;
   'version:restore': VersionRestoreRequest;
@@ -604,6 +654,10 @@ export type IpcInvokeDataMap = {
   'project:create': ProjectCreateResponse;
   'project:update': ProjectUpdateResponse;
   'project:delete': ProjectDeleteResponse;
+  'character:list': CharacterListResponse;
+  'character:create': CharacterCreateResponse;
+  'character:update': CharacterUpdateResponse;
+  'character:delete': CharacterDeleteResponse;
   'version:list': VersionListResponse;
   'version:create': VersionCreateResponse;
   'version:restore': VersionRestoreResponse;
