@@ -1,7 +1,7 @@
 # ISSUE-28
 - Issue: #28
 - Branch: task/28-sprint-1-editor
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/31
 
 ## Goal
 - Deliver Sprint 1 editor per `openspec/specs/sprint-1-editor/spec.md` (TipTap + dual mode + file ops + autosave + crash recovery) with Playwright E2E coverage.
@@ -75,3 +75,13 @@
 - Command: `git commit -m "feat(sprint-1-editor): tiptap + dual mode + autosave + recovery (#28)"`
 - Key output: `[task/28-sprint-1-editor fb32503] feat(sprint-1-editor): tiptap + dual mode + autosave + recovery (#28)`
 - Evidence: `git log -1`
+
+### 2026-01-20 push
+- Command: `git push -u origin HEAD`
+- Key output: `HEAD -> task/28-sprint-1-editor`
+- Evidence: `origin/task/28-sprint-1-editor`
+
+### 2026-01-20 pr
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/31`
+- Evidence: `gh pr view 31`
