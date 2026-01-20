@@ -1,0 +1,150 @@
+{
+  "app": {
+    "title": "WriteNow",
+    "menu": {
+      "file": "文件",
+      "edit": "编辑",
+      "view": "视图",
+      "publish": "发布"
+    },
+    "focus": {
+      "enter": "专注模式",
+      "exitHint": "按 ESC 退出专注模式",
+      "exit": "退出"
+    }
+  },
+  "common": {
+    "cancel": "取消",
+    "close": "关闭",
+    "create": "创建",
+    "retry": "重试",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "copied": "已复制",
+    "copy": "复制",
+    "export": "导出"
+  },
+  "nav": {
+    "files": "文件浏览器",
+    "outline": "文档大纲",
+    "workflow": "创作工作流",
+    "materials": "素材库",
+    "publish": "发布平台",
+    "stats": "创作统计",
+    "settings": "设置"
+  },
+  "files": {
+    "newFile": "新建文件",
+    "newArticle": "新建文章",
+    "supportsMarkdown": "支持 Markdown（自动追加 .md）",
+    "untitled": "未命名",
+    "wordCountSuffix": "字",
+    "createFailed": "创建失败，请重试",
+    "empty": {
+      "title": "暂无文章",
+      "hint": "点击右上角「+」创建第一篇"
+    },
+    "loadFailed": "加载失败：{{error}}"
+  },
+  "editor": {
+    "noFileSelected": {
+      "title": "未选择文件",
+      "hint": "请从左侧选择文件"
+    },
+    "placeholderMarkdown": "开始用 Markdown 写作…",
+    "save": {
+      "saved": "已保存",
+      "saving": "保存中..."
+    }
+  },
+  "export": {
+    "markdown": "Markdown",
+    "word": "Word",
+    "pdf": "PDF",
+    "exportMarkdown": "导出 Markdown",
+    "exportWord": "导出 Word",
+    "exportPdf": "导出 PDF",
+    "success": "导出成功：{{path}}",
+    "failed": "导出失败：{{error}}",
+    "noDocument": "请先选择一个文档"
+  },
+  "settings": {
+    "title": "设置",
+    "language": {
+      "title": "语言",
+      "zhCN": "简体中文",
+      "en": "English"
+    },
+    "update": {
+      "title": "更新",
+      "currentVersion": "当前版本",
+      "latestVersion": "最新版本",
+      "lastCheckedAt": "上次检查",
+      "check": "检查更新",
+      "install": "立即重启安装",
+      "later": "稍后",
+      "skip": "跳过此版本",
+      "clearSkipped": "清除跳过",
+      "status": {
+        "idle": "未检查",
+        "checking": "检查中…",
+        "available": "发现新版本",
+        "not_available": "无更新",
+        "downloading": "下载中…",
+        "downloaded": "新版本已就绪",
+        "error": "检查失败"
+      },
+      "unsupported": "开发模式无法验证更新，请打包后测试"
+    }
+  },
+  "publish": {
+    "title": "发布平台",
+    "platform": {
+      "wechat": "微信公众号",
+      "zhihu": "知乎",
+      "xiaohongshu": "小红书",
+      "toutiao": "今日头条",
+      "medium": "Medium"
+    },
+    "options": {
+      "stripLinks": "移除外链（建议公众号）"
+    },
+    "warn": {
+      "wechat": {
+        "links": "公众号：外链可能无法直接使用，建议移除或改为文末提示。",
+        "images": "公众号：图片需在编辑器内重新上传以获得可用地址。"
+      },
+      "zhihu": {
+        "links": "知乎：外链可能触发审核或被折叠，建议发布前检查。",
+        "long": "知乎：内容较长，可能存在字数/排版限制。"
+      },
+      "xiaohongshu": {
+        "short": "小红书：更适合短文本 + 配图，建议精简段落并补充图片。",
+        "links": "小红书：外链通常不可直接点击，建议移除或改为提示。"
+      },
+      "toutiao": {
+        "links": "头条：部分外链可能受限，建议发布前检查。"
+      }
+    },
+    "warnings": "提示",
+    "preview": "预览",
+    "copyFor": "复制用于 {{platform}}",
+    "copyFailed": "复制失败：{{error}}"
+  },
+  "errors": {
+    "INVALID_ARGUMENT": "参数错误",
+    "NOT_FOUND": "未找到",
+    "ALREADY_EXISTS": "已存在",
+    "CONFLICT": "冲突",
+    "PERMISSION_DENIED": "权限不足",
+    "UNSUPPORTED": "不支持的操作",
+    "IO_ERROR": "读写失败",
+    "DB_ERROR": "数据库错误",
+    "MODEL_NOT_READY": "模型未就绪",
+    "RATE_LIMITED": "请求过于频繁",
+    "TIMEOUT": "请求超时",
+    "CANCELED": "已取消",
+    "UPSTREAM_ERROR": "上游服务错误",
+    "INTERNAL": "内部错误"
+  }
+}
