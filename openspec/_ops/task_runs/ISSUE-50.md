@@ -40,3 +40,23 @@
 ### 2026-01-20 00:00 knowledge-graph
 - Command: `git commit -m "feat: knowledge graph CRUD and visualization (#50)"`
 - Key output: `239e918 feat: knowledge graph CRUD and visualization (#50)`
+
+### 2026-01-20 23:52 lint
+- Command: `npm run lint`
+- Key output: `✖ 5 problems (0 errors, 5 warnings)`
+
+### 2026-01-20 23:52 build
+- Command: `npm run electron:rebuild`
+- Key output: `rebuilding native dependencies (better-sqlite3, sharp)`
+
+### 2026-01-20 23:52 build (renderer)
+- Command: `npm run build`
+- Key output: `✓ built in 3.44s`
+
+### 2026-01-20 23:52 e2e
+- Command: `npx playwright test tests/e2e/sprint-5-project.spec.ts`
+- Key output: `4 passed (11.1s)`
+
+### 2026-01-20 23:54 commit (e2e)
+- Command: `git commit -m "test: Sprint 5 project management E2E (#50)"`
+- Key output: `8488cfc test: Sprint 5 project management E2E (#50)`
