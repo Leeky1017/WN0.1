@@ -22,7 +22,9 @@
     "types": [
       "react",
       "react-dom",
-      "node"
+      "node",
+      "vite/client",
+      "vitest/globals"
     ]
   },
   "include": [

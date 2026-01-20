@@ -8,24 +8,32 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src",
-    "electron:dev": "concurrently \"vite\" \"NODE_ENV=development electron .\"",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "npm run electron:rebuild && npm run build && playwright test",
+    "electron:rebuild": "electron-builder install-app-deps",
+    "electron:dev": "npm run electron:rebuild && concurrently \"vite\" \"NODE_ENV=development electron .\"",
     "electron:build": "vite build && electron-builder"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.25.0",
     "better-sqlite3": "^11.0.0",
     "lucide-react": "^0.400.0",
+    "node-llama-cpp": "^3.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@playwright/test": "^1.57.0",
     "@types/better-sqlite3": "^7.6.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "@testing-library/react": "^16.3.2",
     "autoprefixer": "^10.4.19",
+    "better-sqlite3-node": "npm:better-sqlite3@^11.0.0",
     "concurrently": "^8.2.2",
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3",
@@ -33,10 +41,12 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^17.0.0",
+    "jsdom": "^27.4.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.53.0",
+    "vitest": "^4.0.17",
     "vite": "^5.3.0"
   }
 }

@@ -845,6 +845,40 @@ CREATE TABLE writing_stats (
   skills_used INTEGER DEFAULT 0
 );
 
+-- 写作约束配置表
+CREATE TABLE writing_constraints (
+  id TEXT PRIMARY KEY,
+  project_id TEXT,
+  type TEXT NOT NULL,
+  config TEXT NOT NULL,
+  level TEXT DEFAULT 'warning',
+  enabled INTEGER DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+-- 术语表
+CREATE TABLE terminology (
+  id TEXT PRIMARY KEY,
+  project_id TEXT,
+  term TEXT NOT NULL,
+  aliases TEXT,
+  definition TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+-- 禁用词表（便于批量管理）
+CREATE TABLE forbidden_words (
+  id TEXT PRIMARY KEY,
+  project_id TEXT,
+  word TEXT NOT NULL,
+  category TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
 -- 用户设置
 CREATE TABLE settings (
   key TEXT PRIMARY KEY,

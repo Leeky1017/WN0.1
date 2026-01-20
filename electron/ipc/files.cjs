@@ -10,6 +10,12 @@ async function ensureDocumentsDir() {
   await fs.mkdir(getDocumentsDir(), { recursive: true })
 }
 
+function createIpcError(code, message, details) {
+  const error = new Error(message)
+  error.ipcError = { code, message, details }
+  return error
+}
+
 function countWords(content) {
   if (!content) return 0
   return String(content).replace(/\s+/g, '').length
@@ -84,9 +90,15 @@ WriteNow 是一款本地优先的写作工具：文件保存在本机，可审�
 
 function registerFileIpcHandlers(ipcMain, options = {}) {
   const log = typeof options.log === 'function' ? options.log : null
+  const handleInvoke =
+    typeof options.handleInvoke === 'function' ? options.handleInvoke : (channel, handler) => ipcMain.handle(channel, handler)
 
-  ipcMain.handle('file:list', async () => {
+  handleInvoke('file:list', async (_evt, payload) => {
     await ensureDocumentsDir()
+    const scope = payload?.scope
+    if (typeof scope !== 'undefined' && scope !== 'documents') {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid scope', { scope })
+    }
     const dir = getDocumentsDir()
     const entries = await fs.readdir(dir, { withFileTypes: true })
     const mdFiles = entries.filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.md'))
@@ -107,44 +119,74 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     )
 
     items.sort((a, b) => b.createdAt - a.createdAt)
-    return items
+    return { items }
   })
 
-  ipcMain.handle('file:read', async (_evt, payload) => {
+  handleInvoke('file:read', async (_evt, payload) => {
     await ensureDocumentsDir()
-    const { fullPath } = resolveDocumentFilePath(payload?.path)
+    let fullPath = null
+    try {
+      fullPath = resolveDocumentFilePath(payload?.path).fullPath
+    } catch {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid path', { path: payload?.path })
+    }
     const content = await fs.readFile(fullPath, 'utf8')
-    return { content }
+    return { content, encoding: 'utf8' }
   })
 
-  ipcMain.handle('file:write', async (_evt, payload) => {
+  handleInvoke('file:write', async (_evt, payload) => {
     await ensureDocumentsDir()
-    const { fullPath } = resolveDocumentFilePath(payload?.path)
-    const content = typeof payload?.content === 'string' ? payload.content : ''
+    let fullPath = null
+    try {
+      fullPath = resolveDocumentFilePath(payload?.path).fullPath
+    } catch {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid path', { path: payload?.path })
+    }
+    const content = typeof payload?.content === 'string' ? payload.content : null
+    if (content === null) {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid content', { contentType: typeof payload?.content })
+    }
+    try {
+      await fs.access(fullPath)
+    } catch (e) {
+      if (e && typeof e === 'object' && e.code === 'ENOENT') throw e
+      throw e
+    }
     await fs.writeFile(fullPath, content, 'utf8')
-    return { ok: true }
+    return { written: true }
   })
 
-  ipcMain.handle('file:create', async (_evt, payload) => {
+  handleInvoke('file:create', async (_evt, payload) => {
     await ensureDocumentsDir()
     const safeName = sanitizeFileName(payload?.name)
     const fileName = await findAvailableFileName(safeName)
     const fullPath = path.join(getDocumentsDir(), fileName)
-    const defaultContent = getDefaultMarkdownContent(fileName)
+    const template = payload?.template
+    if (typeof template !== 'undefined' && template !== 'default' && template !== 'blank') {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid template', { template })
+    }
+    const defaultContent = template === 'blank' ? '' : getDefaultMarkdownContent(fileName)
 
     await fs.writeFile(fullPath, defaultContent, { encoding: 'utf8', flag: 'wx' })
     log?.('[file:create] created:', fileName)
     return { name: fileName, path: fileName }
   })
 
-  ipcMain.handle('file:delete', async (_evt, payload) => {
+  handleInvoke('file:delete', async (_evt, payload) => {
     await ensureDocumentsDir()
-    const { fullPath, name } = resolveDocumentFilePath(payload?.path)
+    let fullPath = null
+    let name = null
+    try {
+      const resolved = resolveDocumentFilePath(payload?.path)
+      fullPath = resolved.fullPath
+      name = resolved.name
+    } catch {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid path', { path: payload?.path })
+    }
     await fs.unlink(fullPath)
     log?.('[file:delete] deleted:', name)
-    return { ok: true }
+    return { deleted: true }
   })
 }
 
 module.exports = { registerFileIpcHandlers }
-

@@ -1,23 +1,30 @@
-const { app, BrowserWindow, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, safeStorage } = require('electron')
 const path = require('path')
 const fs = require('fs')
-const util = require('util')
+
+const { initDatabase } = require('./database/init.cjs')
+const { createLogger } = require('./lib/logger.cjs')
+const config = require('./lib/config.cjs')
 const { registerFileIpcHandlers } = require('./ipc/files.cjs')
 
-let desiredUserDataPath = null
+let logger = null
+let db = null
+let shuttingDown = false
 
 function configureUserDataPath() {
-  // Avoid sharing userData with legacy builds (and avoid Cache/GPUCache permission issues).
   // Must be called before app 'ready'.
-  const isDev = process.env.NODE_ENV === 'development' || process.defaultApp
-  if (isDev) return
+  const explicit = typeof process.env.WN_USER_DATA_DIR === 'string' ? process.env.WN_USER_DATA_DIR.trim() : ''
+  if (explicit) {
+    try {
+      app.setPath('userData', explicit)
+    } catch {
+      // ignore
+    }
+    return
+  }
 
   try {
-    const userDataPath =
-      process.platform === 'win32'
-        ? path.join(process.env.LOCALAPPDATA || process.env.APPDATA || process.cwd(), 'WriteNow-v2')
-        : path.join(app.getPath('appData'), 'WriteNow-v2')
-    desiredUserDataPath = userDataPath
+    const userDataPath = path.join(app.getPath('appData'), 'WriteNow')
     app.setPath('userData', userDataPath)
   } catch {
     // ignore
@@ -34,68 +41,115 @@ if (process.platform === 'win32') {
   }
 }
 
-// 日志系统
-let logStream = null
-let logPath = null
-
-function initLogging() {
-  try {
-    const logsDir = path.join(app.getPath('userData'), 'logs')
-    fs.mkdirSync(logsDir, { recursive: true })
-    logPath = path.join(logsDir, 'main.log')
-    logStream = fs.createWriteStream(logPath, { flags: 'a' })
-  } catch {
-    // ignore
-  }
+function isE2E() {
+  return process.env.WN_E2E === '1'
 }
 
-function log(...args) {
-  const msg = util.format(...args)
-  try {
-    console.log(msg)
-  } catch {
-    // ignore
+function shouldShowDialogs() {
+  return !isE2E()
+}
+
+function ensureAppDirs() {
+  const baseDir = app.getPath('userData')
+  const dirNames = ['documents', 'data', 'snapshots', 'logs', 'models', 'cache']
+  for (const dirName of dirNames) {
+    fs.mkdirSync(path.join(baseDir, dirName), { recursive: true })
   }
-  try {
-    if (logStream) logStream.write(`[${new Date().toISOString()}] ${msg}\n`)
-  } catch {
-    // ignore
+  return baseDir
+}
+
+function initLogging() {
+  const userDataPath = app.getPath('userData')
+  const logFilePath = path.join(userDataPath, 'logs', 'main.log')
+  const isDev = process.env.NODE_ENV === 'development' || process.defaultApp
+  logger = createLogger({ logFilePath, isDev })
+  return logger
+}
+
+function toIpcError(error) {
+  if (error && typeof error === 'object' && error.ipcError && typeof error.ipcError === 'object') {
+    const code = error.ipcError.code
+    const message = error.ipcError.message
+    const details = error.ipcError.details
+    if (typeof code === 'string' && typeof message === 'string') {
+      return { code, message, details }
+    }
+  }
+
+  const nodeCode = error && typeof error === 'object' ? error.code : null
+  if (nodeCode === 'ENOENT') return { code: 'NOT_FOUND', message: 'Not found' }
+  if (nodeCode === 'EEXIST') return { code: 'ALREADY_EXISTS', message: 'Already exists' }
+  if (nodeCode === 'EACCES' || nodeCode === 'EPERM') return { code: 'PERMISSION_DENIED', message: 'Permission denied' }
+
+  if (typeof nodeCode === 'string') return { code: 'IO_ERROR', message: 'I/O error', details: { cause: nodeCode } }
+  return { code: 'INTERNAL', message: 'Internal error' }
+}
+
+function createInvokeHandler() {
+  return (channel, handler) => {
+    ipcMain.handle(channel, async (evt, payload) => {
+      try {
+        const data = await handler(evt, payload)
+        return { ok: true, data }
+      } catch (error) {
+        const ipcError = toIpcError(error)
+        logger?.error?.('ipc', 'invoke failed', { channel, code: ipcError.code })
+        return { ok: false, error: ipcError }
+      }
+    })
   }
 }
 
 process.on('uncaughtException', (err) => {
-  log('[main] uncaughtException:', err && err.stack ? err.stack : String(err))
-  try {
-    dialog.showErrorBox('WriteNow 崩溃', err && err.stack ? err.stack : String(err))
-  } catch {
-    // ignore
+  logger?.error?.('main', 'uncaughtException', { message: err?.message, name: err?.name })
+  if (shouldShowDialogs()) {
+    try {
+      dialog.showErrorBox('WriteNow 崩溃', err && err.stack ? err.stack : String(err))
+    } catch {
+      // ignore
+    }
   }
 })
 
 process.on('unhandledRejection', (reason) => {
-  log('[main] unhandledRejection:', reason && reason.stack ? reason.stack : String(reason))
+  logger?.error?.('main', 'unhandledRejection', { reason: String(reason?.message || reason || '') })
 })
 
 function setupIpc() {
   ipcMain.on('app:renderer-boot', (_evt, payload) => {
-    log('[renderer] boot:', payload)
+    logger?.info?.('renderer', 'boot', payload)
   })
 
   ipcMain.on('app:renderer-ready', () => {
-    log('[renderer] ready')
+    logger?.info?.('renderer', 'ready')
+  })
+
+  ipcMain.on('app:renderer-log', (_evt, payload) => {
+    if (!payload || typeof payload !== 'object') return
+    const level = payload.level
+    const moduleName = typeof payload.module === 'string' ? payload.module : 'renderer'
+    const message = typeof payload.message === 'string' ? payload.message : 'log'
+    const details = payload.details
+
+    if (level === 'debug') logger?.debug?.(moduleName, message, details)
+    if (level === 'info') logger?.info?.(moduleName, message, details)
+    if (level === 'warn') logger?.warn?.(moduleName, message, details)
+    if (level === 'error') logger?.error?.(moduleName, message, details)
   })
 
   ipcMain.on('app:renderer-error', (_evt, payload) => {
-    log('[renderer] error:', payload)
-    try {
-      dialog.showErrorBox('WriteNow 渲染错误', `${JSON.stringify(payload, null, 2)}\nlog=${logPath ?? '(no log file)'}`)
-    } catch {
-      // ignore
+    logger?.error?.('renderer', 'error', payload)
+    if (shouldShowDialogs()) {
+      try {
+        dialog.showErrorBox('WriteNow 渲染错误', `${JSON.stringify(payload, null, 2)}\nlog=${logger?.getLogFilePath?.() ?? '(no log file)'}`)
+      } catch {
+        // ignore
+      }
     }
   })
 
   ipcMain.on('app:renderer-unhandledrejection', (_evt, payload) => {
-    log('[renderer] unhandledrejection:', payload)
+    logger?.error?.('renderer', 'unhandledrejection', payload)
   })
 
   ipcMain.on('window:minimize', (evt) => {
@@ -103,7 +157,7 @@ function setupIpc() {
       const win = BrowserWindow.fromWebContents(evt.sender)
       win?.minimize()
     } catch (e) {
-      log('[window] minimize error:', e)
+      logger?.warn?.('window', 'minimize error', { message: e?.message })
     }
   })
 
@@ -114,7 +168,7 @@ function setupIpc() {
       if (win.isMaximized()) win.unmaximize()
       else win.maximize()
     } catch (e) {
-      log('[window] maximize error:', e)
+      logger?.warn?.('window', 'maximize error', { message: e?.message })
     }
   })
 
@@ -123,16 +177,19 @@ function setupIpc() {
       const win = BrowserWindow.fromWebContents(evt.sender)
       win?.close()
     } catch (e) {
-      log('[window] close error:', e)
+      logger?.warn?.('window', 'close error', { message: e?.message })
     }
   })
 
-  registerFileIpcHandlers(ipcMain, { log })
+  const handleInvoke = createInvokeHandler()
+  registerFileIpcHandlers(ipcMain, {
+    handleInvoke,
+    log: (...args) => logger?.info?.('file', args.map((a) => String(a)).join(' ')),
+  })
 }
 
 async function createMainWindow() {
-  log('[main] creating window, isPackaged=%s, platform=%s', app.isPackaged, process.platform)
-  log('[main] __dirname:', __dirname)
+  logger?.info?.('main', 'creating window', { isPackaged: app.isPackaged, platform: process.platform })
 
   const win = new BrowserWindow({
     width: 1400,
@@ -164,28 +221,30 @@ async function createMainWindow() {
 
   // 错误处理
   win.webContents.on('console-message', (_evt, level, message, line, sourceId) => {
-    log('[renderer][console]', { level, message, sourceId, line })
+    logger?.debug?.('renderer', 'console', { level, message, sourceId, line })
   })
 
   win.webContents.on('render-process-gone', (_evt, details) => {
-    log('[renderer] render-process-gone:', details)
-    try {
-      dialog.showErrorBox(
-        'WriteNow 渲染进程崩溃',
-        `reason=${details?.reason ?? 'unknown'} exitCode=${details?.exitCode ?? 'unknown'}\nlog=${logPath ?? '(no log file)'}`
-      )
-    } catch {
-      // ignore
+    logger?.error?.('renderer', 'render-process-gone', details)
+    if (shouldShowDialogs()) {
+      try {
+        dialog.showErrorBox(
+          'WriteNow 渲染进程崩溃',
+          `reason=${details?.reason ?? 'unknown'} exitCode=${details?.exitCode ?? 'unknown'}\nlog=${logger?.getLogFilePath?.() ?? '(no log file)'}`
+        )
+      } catch {
+        // ignore
+      }
     }
   })
 
   win.webContents.on('did-fail-load', (_evt, errorCode, errorDescription, validatedURL, isMainFrame) => {
-    log('[renderer] did-fail-load:', { errorCode, errorDescription, validatedURL, isMainFrame })
-    if (isMainFrame) {
+    logger?.error?.('renderer', 'did-fail-load', { errorCode, errorDescription, validatedURL, isMainFrame })
+    if (isMainFrame && shouldShowDialogs()) {
       try {
         dialog.showErrorBox(
           'WriteNow 页面加载失败',
-          `${errorCode} ${errorDescription}\nurl=${validatedURL}\nlog=${logPath ?? '(no log file)'}`
+          `${errorCode} ${errorDescription}\nurl=${validatedURL}\nlog=${logger?.getLogFilePath?.() ?? '(no log file)'}`
         )
       } catch {
         // ignore
@@ -194,63 +253,84 @@ async function createMainWindow() {
   })
 
   win.webContents.on('dom-ready', () => {
-    log('[renderer] dom-ready')
+    logger?.debug?.('renderer', 'dom-ready')
   })
 
   win.webContents.on('did-finish-load', () => {
-    log('[renderer] did-finish-load:', win.webContents.getURL())
+    logger?.info?.('renderer', 'did-finish-load', { url: win.webContents.getURL() })
   })
 
   // 加载页面
-  if (!app.isPackaged) {
-    // 开发模式
-    log('[main] loading dev URL: http://localhost:5173')
-    await win.loadURL('http://localhost:5173')
-    win.webContents.openDevTools()
-  } else {
-    // 生产模式 - dist 在 asar 中与 electron 同级
-    const indexPath = path.join(__dirname, '..', 'dist', 'index.html')
-    log('[main] loading production file:', indexPath)
-
-    // 检查文件是否存在
-    try {
-      if (fs.existsSync(indexPath)) {
-        log('[main] index.html found')
-      } else {
-        log('[main] index.html NOT found!')
-        dialog.showErrorBox('WriteNow 启动失败', `找不到 index.html: ${indexPath}`)
-        return
-      }
-    } catch (e) {
-      log('[main] fs.existsSync error:', e)
-    }
-
-    await win.loadFile(indexPath)
+  const explicitUrl = typeof process.env.WN_RENDERER_URL === 'string' ? process.env.WN_RENDERER_URL.trim() : ''
+  const isDev = process.env.NODE_ENV === 'development' || process.defaultApp
+  if (explicitUrl) {
+    logger?.info?.('main', 'loading explicit renderer url', { url: explicitUrl })
+    await win.loadURL(explicitUrl)
+    return
   }
 
-  if (logPath) log('[main] log file:', logPath)
+  if (isDev && !isE2E()) {
+    const devUrl = typeof process.env.WN_DEV_URL === 'string' ? process.env.WN_DEV_URL.trim() : 'http://localhost:5173'
+    logger?.info?.('main', 'loading dev url', { url: devUrl })
+    await win.loadURL(devUrl)
+    if (process.env.WN_OPEN_DEVTOOLS !== '0') win.webContents.openDevTools()
+    return
+  }
+
+  const indexPath = path.join(__dirname, '..', 'dist', 'index.html')
+  logger?.info?.('main', 'loading renderer file', { indexPath })
+
+  if (!fs.existsSync(indexPath)) {
+    logger?.error?.('main', 'index.html not found', { indexPath })
+    if (shouldShowDialogs()) {
+      dialog.showErrorBox('WriteNow 启动失败', `找不到 index.html: ${indexPath}`)
+    }
+    return
+  }
+
+  await win.loadFile(indexPath)
 }
 
 app.whenReady().then(async () => {
   try {
+    ensureAppDirs()
     initLogging()
+    db = initDatabase({ userDataPath: app.getPath('userData') })
+    config.initConfig({ db, logger, safeStorage })
     setupIpc()
-    log('[main] app ready')
-    if (desiredUserDataPath) {
-      try {
-        log('[main] userData:', app.getPath('userData'))
-        log('[main] desired userData:', desiredUserDataPath)
-      } catch {
-        // ignore
-      }
-    }
+    logger?.info?.('main', 'app ready', { userData: app.getPath('userData') })
     await createMainWindow()
   } catch (e) {
-    log('[main] startup error:', e)
-    dialog.showErrorBox('WriteNow 启动失败', String(e))
-    app.quit()
+    logger?.error?.('main', 'startup error', { message: e?.message })
+    if (shouldShowDialogs()) dialog.showErrorBox('WriteNow 启动失败', String(e))
+    app.exit(1)
   }
 })
+
+async function gracefulShutdown(exitCode) {
+  if (shuttingDown) return
+  shuttingDown = true
+
+  try {
+    db?.close?.()
+  } catch {
+    // ignore
+  }
+
+  try {
+    await logger?.flush?.()
+  } catch {
+    // ignore
+  }
+
+  try {
+    await logger?.close?.()
+  } catch {
+    // ignore
+  }
+
+  app.exit(exitCode)
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
@@ -258,6 +338,12 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createMainWindow().catch(e => log('[main] activate error:', e))
+    createMainWindow().catch((e) => logger?.error?.('main', 'activate error', { message: e?.message }))
   }
+})
+
+app.on('before-quit', (event) => {
+  if (shuttingDown) return
+  event.preventDefault()
+  gracefulShutdown(0).catch(() => app.exit(0))
 })

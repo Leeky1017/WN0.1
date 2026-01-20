@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
 import { useFilesStore } from './filesStore';
+import { IpcError, fileOps } from '../lib/ipc';
+import { toUserMessage } from '../lib/errors';
 
 type SaveStatus = 'saved' | 'saving' | 'error';
 
@@ -19,12 +21,11 @@ type EditorState = {
 };
 
 function getFilesApi() {
-  const api = window.writenow?.files;
-  if (!api) throw new Error('WriteNow API is not available (are you running in Electron?)');
-  return api;
+  return fileOps;
 }
 
 function toErrorMessage(error: unknown) {
+  if (error instanceof IpcError) return toUserMessage(error.code, error.message);
   if (error instanceof Error) return error.message;
   try {
     return JSON.stringify(error);
@@ -132,4 +133,3 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     });
   },
 }));
-
