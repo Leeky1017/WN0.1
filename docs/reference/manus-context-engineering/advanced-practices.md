@@ -318,7 +318,481 @@ class ConversationContext:
 
 ---
 
-## 四、Prompt 结构模板
+## 四、文件系统上下文设计理念
+
+> ⚠️ 本部分整合 Manus 原文 + Cursor 实践 + WriteNow 适配设计
+
+### 核心理念：文件系统 = 无限持久记忆
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    LLM Context Window                    │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │  受限的、易失的、昂贵的                              │ │
+│  │  • Token 有上限                                     │ │
+│  │  • 每次请求重新计算                                 │ │
+│  │  • 越长越贵、越慢                                   │ │
+│  └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+                            ↓ 卸载到
+┌─────────────────────────────────────────────────────────┐
+│                      文件系统                            │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │  无限的、持久的、便宜的                              │ │
+│  │  • 容量无上限                                       │ │
+│  │  • 持久化存储                                       │ │
+│  │  • 按需读取                                         │ │
+│  └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 4.1 历史对话索引与摘要策略
+
+**问题**：长对话会导致上下文爆炸，但直接截断会丢失关键信息。
+
+**解决方案：可恢复压缩 (Recoverable Compression)**
+
+```
+原始对话 (10,000 tokens)
+    ↓
+摘要化 → 保存原文到文件 → 上下文只保留摘要 + 文件路径
+    ↓
+压缩后 (500 tokens) + 可恢复的完整历史
+```
+
+**WriteNow 实现方案**
+
+```typescript
+/**
+ * 对话历史管理器
+ * 实现可恢复压缩的对话历史存储
+ */
+interface ConversationManager {
+  // 对话存储目录结构
+  // .writenow/conversations/
+  // ├── index.json              # 对话索引（摘要 + 元数据）
+  // ├── conv_001.json           # 完整对话记录
+  // ├── conv_002.json
+  // └── summaries/
+  //     ├── conv_001_summary.md # 对话摘要
+  //     └── conv_002_summary.md
+}
+
+interface ConversationIndex {
+  id: string;
+  articleId: string;           // 关联的文章
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+  summary: string;             // 核心摘要（保留在上下文中）
+  keyTopics: string[];         // 关键话题（用于检索）
+  fullPath: string;            // 完整对话文件路径（需要时加载）
+}
+
+// 上下文注入时的策略
+function buildConversationContext(
+  currentConv: Conversation,
+  historyIndex: ConversationIndex[],
+  tokenBudget: number
+): string {
+  const parts: string[] = [];
+  
+  // 1. 当前对话完整保留
+  parts.push(formatCurrentConversation(currentConv));
+  
+  // 2. 历史对话只注入摘要
+  const relevantHistory = historyIndex
+    .filter(h => h.articleId === currentConv.articleId)  // 同文章优先
+    .slice(-5);  // 最近 5 次
+  
+  if (relevantHistory.length > 0) {
+    parts.push("## 历史对话摘要");
+    for (const h of relevantHistory) {
+      parts.push(`- [${h.createdAt}] ${h.summary}`);
+    }
+    parts.push("（完整历史可通过 retrieve_conversation(id) 获取）");
+  }
+  
+  return parts.join("\n");
+}
+```
+
+**摘要生成策略**
+
+```typescript
+/**
+ * 对话摘要生成
+ * 在对话结束或达到阈值时触发
+ */
+async function generateConversationSummary(
+  conversation: Conversation
+): Promise<string> {
+  // 使用 LLM 生成结构化摘要
+  const prompt = `
+请为以下 AI 写作助手对话生成简洁摘要：
+
+${formatMessages(conversation.messages)}
+
+摘要要求：
+1. 一句话概括用户的主要需求
+2. 列出关键的修改/建议
+3. 标注用户的偏好信号（接受/拒绝了什么）
+
+输出格式：
+{
+  "summary": "用户请求...",
+  "changes": ["修改1", "修改2"],
+  "preferences": {"accepted": [...], "rejected": [...]}
+}
+`;
+  
+  return await llm.generate(prompt);
+}
+```
+
+---
+
+### 4.2 项目规则文件设计（.writenow/rules）
+
+**灵感来源**：Cursor 的 `.cursorrules` 文件设计
+
+**WriteNow 适配**：创建 `.writenow/` 项目配置目录
+
+```
+.writenow/
+├── project.json              # 项目元数据
+├── rules/
+│   ├── style.md              # 写作风格规则
+│   ├── terminology.json      # 术语表
+│   └── constraints.json      # 写作约束
+├── characters/
+│   ├── 张三.md               # 人物设定卡片
+│   └── 李四.md
+├── settings/
+│   ├── world.md              # 世界观设定
+│   └── timeline.md           # 时间线
+├── conversations/
+│   ├── index.json            # 对话索引
+│   └── *.json                # 完整对话记录
+└── cache/
+    ├── embeddings/           # 向量缓存
+    └── summaries/            # 摘要缓存
+```
+
+**项目规则文件示例 (style.md)**
+
+```markdown
+# 写作风格指南
+
+## 语言风格
+- 使用简洁、现代的中文表达
+- 避免文言文和过度修辞
+- 对话要自然，符合人物性格
+
+## 禁止事项
+- 不使用"竟然"、"居然"等惊叹词
+- 不使用"不得不说"等口水话
+- 不使用省略号开头的句子
+
+## 人称视角
+- 第三人称限制视角（主角视角）
+- 不出现"他心想"之外的心理描写
+
+## AI 行为指引
+当执行润色时，请：
+1. 保持原文风格
+2. 不改变情节走向
+3. 只修改表达，不增删内容
+```
+
+**规则加载与注入**
+
+```typescript
+class ProjectRulesLoader {
+  private projectDir: string;
+  
+  /**
+   * 加载项目规则作为 System Prompt 前缀
+   */
+  async loadRules(): Promise<string> {
+    const rules: string[] = [];
+    
+    // 1. 写作风格（始终加载）
+    const styleRule = await this.loadFile('rules/style.md');
+    if (styleRule) rules.push(`## 写作风格\n${styleRule}`);
+    
+    // 2. 术语表（始终加载，保持一致性）
+    const terminology = await this.loadJSON('rules/terminology.json');
+    if (terminology) {
+      rules.push(`## 术语规范\n请使用以下标准术语：`);
+      for (const [term, aliases] of Object.entries(terminology)) {
+        rules.push(`- ${term}（而非：${aliases.join('、')}）`);
+      }
+    }
+    
+    // 3. 约束规则
+    const constraints = await this.loadJSON('rules/constraints.json');
+    if (constraints?.forbiddenWords) {
+      rules.push(`## 禁止使用的词汇\n${constraints.forbiddenWords.join('、')}`);
+    }
+    
+    return rules.join('\n\n');
+  }
+  
+  /**
+   * 根据 SKILL 类型加载相关设定
+   */
+  async loadContextForSkill(
+    skillType: string,
+    mentionedEntities: string[]
+  ): Promise<string> {
+    const context: string[] = [];
+    
+    // 人物设定（按需加载）
+    for (const entity of mentionedEntities) {
+      const charFile = `characters/${entity}.md`;
+      if (await this.fileExists(charFile)) {
+        context.push(`### 人物：${entity}\n${await this.loadFile(charFile)}`);
+      }
+    }
+    
+    // 一致性检查需要时间线
+    if (skillType === 'consistency_check') {
+      const timeline = await this.loadFile('settings/timeline.md');
+      if (timeline) context.push(`### 时间线\n${timeline}`);
+    }
+    
+    return context.join('\n\n');
+  }
+}
+```
+
+---
+
+### 4.3 上下文文件的生命周期管理
+
+**文件类型与更新策略**
+
+| 文件类型 | 更新频率 | 缓存策略 | 索引方式 |
+|---------|---------|---------|---------|
+| 项目规则 (rules/) | 手动更新 | 启动时加载，watch 变更 | 全量加载 |
+| 人物设定 (characters/) | 手动更新 | 按需加载，缓存 | 文件名匹配 + 语义搜索 |
+| 世界设定 (settings/) | 手动更新 | 按需加载 | SKILL 类型映射 |
+| 对话历史 (conversations/) | 自动更新 | 索引常驻，内容按需 | 时间序 + 摘要搜索 |
+| 缓存文件 (cache/) | 自动更新 | 定期清理 | 内部使用 |
+
+**增量更新策略**
+
+```typescript
+class ContextFileWatcher {
+  private cache: Map<string, { content: string; mtime: number }> = new Map();
+  
+  /**
+   * 智能加载：仅在文件变更时重新读取
+   */
+  async loadWithCache(path: string): Promise<string> {
+    const stat = await fs.stat(path);
+    const cached = this.cache.get(path);
+    
+    if (cached && cached.mtime >= stat.mtimeMs) {
+      return cached.content;  // 缓存命中
+    }
+    
+    // 缓存未命中，重新加载
+    const content = await fs.readFile(path, 'utf-8');
+    this.cache.set(path, { content, mtime: stat.mtimeMs });
+    
+    // 如果是设定文件，触发向量重建
+    if (path.includes('characters/') || path.includes('settings/')) {
+      await this.rebuildEmbedding(path, content);
+    }
+    
+    return content;
+  }
+  
+  /**
+   * 向量索引更新
+   */
+  private async rebuildEmbedding(path: string, content: string): Promise<void> {
+    const embedding = await this.embedder.encode(content);
+    await this.vectorStore.upsert(path, embedding, {
+      type: path.includes('characters/') ? 'character' : 'setting',
+      lastModified: Date.now()
+    });
+  }
+}
+```
+
+---
+
+### 4.4 历史对话的语义检索
+
+**问题**：用户可能说"像上次那样改"，AI 需要理解"上次"是什么。
+
+**解决方案：对话历史的语义索引**
+
+```typescript
+class ConversationRetriever {
+  private vectorStore: VectorStore;
+  
+  /**
+   * 为对话建立向量索引
+   */
+  async indexConversation(conv: Conversation): Promise<void> {
+    // 1. 生成对话摘要
+    const summary = await this.summarize(conv);
+    
+    // 2. 提取关键信息
+    const metadata = {
+      id: conv.id,
+      articleId: conv.articleId,
+      date: conv.createdAt,
+      skillsUsed: this.extractSkillsUsed(conv),
+      userPreferences: this.extractPreferences(conv),  // 接受/拒绝信号
+    };
+    
+    // 3. 生成向量并存储
+    const embedding = await this.embedder.encode(summary);
+    await this.vectorStore.insert(conv.id, embedding, metadata);
+  }
+  
+  /**
+   * 检索相关历史对话
+   */
+  async retrieveRelevant(
+    query: string,
+    currentArticleId: string,
+    limit: number = 5
+  ): Promise<ConversationSummary[]> {
+    // 向量相似度搜索
+    const results = await this.vectorStore.search(
+      await this.embedder.encode(query),
+      {
+        filter: { articleId: currentArticleId },  // 优先同文章
+        limit: limit * 2  // 多取一些，后续过滤
+      }
+    );
+    
+    // 按相关性 + 时间排序
+    return results
+      .sort((a, b) => {
+        // 相关性权重 0.7 + 时间权重 0.3
+        const scoreA = a.score * 0.7 + this.recencyScore(a.date) * 0.3;
+        const scoreB = b.score * 0.7 + this.recencyScore(b.date) * 0.3;
+        return scoreB - scoreA;
+      })
+      .slice(0, limit);
+  }
+  
+  /**
+   * "像上次那样" 的特殊处理
+   */
+  async resolvePreviousReference(
+    userMessage: string,
+    currentArticleId: string
+  ): Promise<string | null> {
+    // 检测引用模式
+    const patterns = [
+      /像(上次|之前|那次)(那样|一样)/,
+      /跟(上次|之前)(一样|的方式)/,
+      /按照(上次|之前)的/,
+    ];
+    
+    if (!patterns.some(p => p.test(userMessage))) {
+      return null;
+    }
+    
+    // 检索最近的相关对话
+    const recent = await this.retrieveRelevant(
+      userMessage,
+      currentArticleId,
+      1
+    );
+    
+    if (recent.length === 0) return null;
+    
+    // 加载完整对话并提取关键改动
+    const fullConv = await this.loadFull(recent[0].id);
+    return this.extractKeyChanges(fullConv);
+  }
+}
+```
+
+---
+
+### 4.5 与 RAG 的整合
+
+文件系统上下文与 RAG 检索的协同工作：
+
+```
+用户选中文本 + 触发 SKILL
+    ↓
+┌─────────────────────────────────────────────┐
+│             Context Assembly                │
+├─────────────────────────────────────────────┤
+│ Layer 1: 规则文件（始终加载）                 │
+│ ├── style.md                                │
+│ └── terminology.json                        │
+├─────────────────────────────────────────────┤
+│ Layer 2: 动态检索（按需加载）                 │
+│ ├── 人物设定（检测到人物名时）               │
+│ ├── 历史对话（用户引用时）                   │
+│ └── 相关段落（RAG 检索）                     │
+├─────────────────────────────────────────────┤
+│ Layer 3: 当前内容                            │
+│ ├── 选中文本                                │
+│ └── 前后文（可配置范围）                     │
+└─────────────────────────────────────────────┘
+    ↓
+组装成完整 Prompt → 发送给 LLM
+```
+
+**Token 预算分配**
+
+```typescript
+const TOKEN_BUDGET = {
+  total: 8000,                    // 最大上下文
+  rules: 1000,                    // 规则文件固定预算
+  characters: 1500,               // 人物设定弹性预算
+  history: 500,                   // 历史对话摘要
+  rag: 2000,                      // RAG 检索内容
+  currentContent: 3000,           // 当前编辑内容
+};
+
+function assembleContext(parts: ContextParts): string {
+  let remaining = TOKEN_BUDGET.total;
+  const result: string[] = [];
+  
+  // 按优先级分配
+  // 1. 规则（必须）
+  result.push(truncate(parts.rules, TOKEN_BUDGET.rules));
+  remaining -= countTokens(result[0]);
+  
+  // 2. 当前内容（必须）
+  result.push(truncate(parts.currentContent, TOKEN_BUDGET.currentContent));
+  remaining -= countTokens(result[1]);
+  
+  // 3. 人物设定（按需）
+  if (parts.characters && remaining > 500) {
+    const charBudget = Math.min(TOKEN_BUDGET.characters, remaining - 500);
+    result.push(truncate(parts.characters, charBudget));
+    remaining -= countTokens(result[result.length - 1]);
+  }
+  
+  // 4. RAG 内容（填充剩余）
+  if (parts.rag && remaining > 0) {
+    result.push(truncate(parts.rag, remaining));
+  }
+  
+  return result.join('\n\n---\n\n');
+}
+```
+
+---
+
+## 五、Prompt 结构模板
 
 ### 标准 SKILL Prompt 结构
 
