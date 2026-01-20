@@ -7,12 +7,13 @@
 - Deliver Sprint 4 release readiness (update/export/i18n/publish) with E2E coverage.
 
 ## Status
-- CURRENT: Implement Sprint 4 tasks 001→005 in isolated worktree with E2E coverage.
+- CURRENT: All checks green locally; preparing PR + auto-merge.
 
 ## Next Actions
 - [x] Create `task/27-sprint-4-release-impl` worktree
-- [ ] Implement Sprint 4 tasks 001→005 with E2E
-- [ ] Run required checks and open PR
+- [x] Implement Sprint 4 tasks 001→005 with E2E
+- [x] Run required checks (ci local)
+- [ ] Open PR + enable auto-merge
 
 ## Decisions Made
 
@@ -33,3 +34,28 @@
 - Command: `git commit -m "chore: scaffold issue 27 delivery logs (#27)"`
 - Key output: `7440e4c chore: scaffold issue 27 delivery logs (#27)`
 - Evidence: `openspec/_ops/task_runs/ISSUE-27.md`, `rulebook/tasks/issue-27-sprint-4-release-impl/*`
+
+### 2026-01-20 deps
+- Command: `npm install electron-updater i18next react-i18next markdown-it html-to-docx && npm install -D @types/markdown-it adm-zip`
+- Key output: `added packages; package-lock.json updated`
+- Evidence: `package.json`, `package-lock.json`
+
+### 2026-01-20 openspec validate
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 9 passed, 0 failed`
+- Evidence: `openspec/specs/api-contract/spec.md`, `openspec/specs/writenow-spec/spec.md`
+
+### 2026-01-20 lint
+- Command: `npm run lint`
+- Key output: `0 errors (warnings only)`
+- Evidence: `eslint.config.js`
+
+### 2026-01-20 unit tests
+- Command: `npm test`
+- Key output: `PASS`
+- Evidence: `src/lib/*.test.ts`
+
+### 2026-01-20 e2e
+- Command: `npm run test:e2e`
+- Key output: `2 passed`
+- Evidence: `tests/e2e/*.spec.ts`
