@@ -14,9 +14,9 @@ declare global {
 
       send?: (channel: string, payload?: unknown) => void;
       platform?: string;
+      snapshotIntervalMs?: number;
     };
   }
 }
 
 export {};
-

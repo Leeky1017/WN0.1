@@ -7,22 +7,37 @@ import { Editor } from './components/Editor';
 import { AIPanel } from './components/AIPanel';
 import { StatsBar } from './components/StatsBar';
 
+import type { DocumentSnapshot } from './types/ipc';
+import { IpcError, fileOps } from './lib/ipc';
+import { toUserMessage } from './lib/errors';
 import { useFilesStore } from './stores/filesStore';
 import { useEditorStore } from './stores/editorStore';
 
-export type EditorMode = 'markdown' | 'word';
 export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView = 'files' | 'outline' | 'workflow' | 'materials' | 'publish' | 'stats' | 'settings';
+
+function toErrorMessage(error: unknown) {
+  if (error instanceof IpcError) return toUserMessage(error.code, error.message);
+  if (error instanceof Error) return error.message;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
 
 export default function App() {
   const { t } = useTranslation();
   const [aiPanelOpen, setAiPanelOpen] = useState(true);
   const [statsBarOpen, setStatsBarOpen] = useState(true);
   const [sidebarView, setSidebarView] = useState<SidebarView>('files');
-  const [editorMode, setEditorMode] = useState<EditorMode>('markdown');
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [focusMode, setFocusMode] = useState(false);
   const bootstrappedRef = useRef(false);
+  const [recoveryChecked, setRecoveryChecked] = useState(false);
+  const [recoverySnapshot, setRecoverySnapshot] = useState<DocumentSnapshot | null>(null);
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
 
   const files = useFilesStore((s) => s.files);
   const filesHasLoaded = useFilesStore((s) => s.hasLoaded);
@@ -34,6 +49,32 @@ export default function App() {
   const selectedFile = useEditorStore((s) => s.currentPath);
   const openFile = useEditorStore((s) => s.openFile);
   const editorContent = useEditorStore((s) => s.content);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkRecovery = async () => {
+      try {
+        const status = await fileOps.sessionStatus();
+        if (!status.uncleanExitDetected) return;
+
+        const { snapshot } = await fileOps.snapshotLatest();
+        if (!snapshot) return;
+        if (cancelled) return;
+        setRecoverySnapshot(snapshot);
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setRecoveryChecked(true);
+      }
+    };
+
+    checkRecovery().catch(() => {
+      if (!cancelled) setRecoveryChecked(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ESC to exit focus mode
   useEffect(() => {
@@ -54,6 +95,8 @@ export default function App() {
     if (bootstrappedRef.current) return;
     if (!filesHasLoaded || filesLoading) return;
     if (filesError) return;
+    if (!recoveryChecked) return;
+    if (recoverySnapshot) return;
 
     bootstrappedRef.current = true;
 
@@ -66,7 +109,36 @@ export default function App() {
     createFile('欢迎使用').then((created) => {
       if (created) openFile(created.path).catch(() => undefined);
     }).catch(() => undefined);
-  }, [createFile, files, filesError, filesHasLoaded, filesLoading, openFile, selectedFile]);
+  }, [createFile, files, filesError, filesHasLoaded, filesLoading, openFile, recoveryChecked, recoverySnapshot, selectedFile]);
+
+  const restoreSnapshot = async () => {
+    if (!recoverySnapshot) return;
+    setRecoveryBusy(true);
+    setRecoveryError(null);
+
+    try {
+      let targetPath = recoverySnapshot.path;
+
+      try {
+        await fileOps.read(targetPath);
+      } catch (error) {
+        if (!(error instanceof IpcError) || error.code !== 'NOT_FOUND') throw error;
+
+        const baseName = targetPath.replace(/\.md$/i, '') || '恢复内容';
+        const created = await createFile(`${baseName} (Recovered)`);
+        if (!created) throw new Error(useFilesStore.getState().error ?? '创建恢复文件失败');
+        targetPath = created.path;
+      }
+
+      await openFile(targetPath);
+      useEditorStore.getState().setContent(recoverySnapshot.content);
+      setRecoverySnapshot(null);
+    } catch (error) {
+      setRecoveryError(toErrorMessage(error));
+    } finally {
+      setRecoveryBusy(false);
+    }
+  };
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
@@ -97,9 +169,7 @@ export default function App() {
         )}
         
         <Editor 
-          editorMode={editorMode}
           viewMode={viewMode}
-          onEditorModeChange={setEditorMode}
           onViewModeChange={setViewMode}
           focusMode={focusMode}
           onFocusModeToggle={() => setFocusMode(!focusMode)}
@@ -118,6 +188,40 @@ export default function App() {
           >
             {t('app.focus.exit')}
           </button>
+        </div>
+      )}
+
+      {recoverySnapshot && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="wn-elevated p-6 w-[520px]">
+            <div className="text-[15px] text-[var(--text-primary)] mb-2">检测到上次异常退出</div>
+            <div className="text-[12px] text-[var(--text-tertiary)] mb-4 leading-relaxed">
+              是否恢复最近一次快照？
+              <div className="mt-2 text-[12px] text-[var(--text-secondary)]">
+                <div>文件：{recoverySnapshot.path}</div>
+                <div>时间：{new Date(recoverySnapshot.createdAt).toLocaleString('zh-CN')}</div>
+              </div>
+            </div>
+
+            {recoveryError && <div className="mb-3 text-[12px] text-red-400">{recoveryError}</div>}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => restoreSnapshot().catch(() => undefined)}
+                className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
+                disabled={recoveryBusy}
+              >
+                恢复快照
+              </button>
+              <button
+                onClick={() => setRecoverySnapshot(null)}
+                className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
+                disabled={recoveryBusy}
+              >
+                忽略
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

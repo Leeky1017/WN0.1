@@ -2,6 +2,9 @@ const path = require('path')
 const fs = require('fs/promises')
 const { app } = require('electron')
 
+const { getSessionStatus } = require('../lib/session.cjs')
+const { writeSnapshot, readLatestSnapshot } = require('../lib/snapshots.cjs')
+
 function getDocumentsDir() {
   return path.join(app.getPath('userData'), 'documents')
 }
@@ -92,6 +95,10 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
   const log = typeof options.log === 'function' ? options.log : null
   const handleInvoke =
     typeof options.handleInvoke === 'function' ? options.handleInvoke : (channel, handler) => ipcMain.handle(channel, handler)
+
+  handleInvoke('file:session:status', async () => {
+    return getSessionStatus()
+  })
 
   handleInvoke('file:list', async (_evt, payload) => {
     await ensureDocumentsDir()
@@ -186,6 +193,54 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     await fs.unlink(fullPath)
     log?.('[file:delete] deleted:', name)
     return { deleted: true }
+  })
+
+  handleInvoke('file:snapshot:write', async (_evt, payload) => {
+    await ensureDocumentsDir()
+    let resolved = null
+    try {
+      resolved = resolveDocumentFilePath(payload?.path)
+    } catch {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid path', { path: payload?.path })
+    }
+
+    const content = typeof payload?.content === 'string' ? payload.content : null
+    if (content === null) {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid content', { contentType: typeof payload?.content })
+    }
+
+    const reason = payload?.reason
+    if (typeof reason !== 'undefined' && reason !== 'auto' && reason !== 'manual') {
+      throw createIpcError('INVALID_ARGUMENT', 'Invalid reason', { reason })
+    }
+
+    const result = await writeSnapshot({
+      docName: resolved.name,
+      docPath: resolved.name,
+      content,
+      reason: reason || 'auto',
+      maxKeep: 50,
+    })
+
+    log?.('[file:snapshot:write] created:', result.snapshotId)
+    return result
+  })
+
+  handleInvoke('file:snapshot:latest', async (_evt, payload) => {
+    await ensureDocumentsDir()
+
+    const inputPath = payload?.path
+    let docName = null
+    if (typeof inputPath !== 'undefined') {
+      try {
+        docName = resolveDocumentFilePath(inputPath).name
+      } catch {
+        throw createIpcError('INVALID_ARGUMENT', 'Invalid path', { path: inputPath })
+      }
+    }
+
+    const snapshot = await readLatestSnapshot({ docName: docName || undefined })
+    return { snapshot }
   })
 }
 

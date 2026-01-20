@@ -43,6 +43,10 @@ export const fileOps = {
   write: (path: string, content: string) => invoke('file:write', { path, content }),
   create: (name: string) => invoke('file:create', { name }),
   delete: (path: string) => invoke('file:delete', { path }),
+  sessionStatus: () => invoke('file:session:status', {}),
+  snapshotWrite: (path: string, content: string, reason: 'auto' | 'manual' = 'auto') =>
+    invoke('file:snapshot:write', { path, content, reason }),
+  snapshotLatest: (path?: string) => invoke('file:snapshot:latest', path ? { path } : {}),
 };
 
 export const updateOps = {
