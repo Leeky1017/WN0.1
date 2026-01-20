@@ -1,7 +1,7 @@
 # ISSUE-48
 - Issue: #48
 - Branch: task/48-sprint-2-ai-a
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/49
 
 ## Plan
 - Implement main-process Claude streaming IPC (run/cancel + baseUrl)
