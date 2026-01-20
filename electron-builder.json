@@ -4,6 +4,13 @@
     "directories": {
         "output": "release"
     },
+    "publish": [
+        {
+            "provider": "github",
+            "owner": "Leeky1017",
+            "repo": "WN0.1"
+        }
+    ],
     "files": [
         "dist/**/*",
         "electron/**/*"
@@ -11,7 +18,13 @@
     "win": {
         "target": [
             {
-                "target": "dir",
+                "target": "nsis",
+                "arch": [
+                    "x64"
+                ]
+            },
+            {
+                "target": "zip",
                 "arch": [
                     "x64"
                 ]
@@ -19,6 +32,10 @@
         ],
         "icon": "public/icon.ico",
         "signAndEditExecutable": false
+    },
+    "nsis": {
+        "oneClick": false,
+        "allowToChangeInstallationDirectory": true
     },
     "asar": true,
     "asarUnpack": [
