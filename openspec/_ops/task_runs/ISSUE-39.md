@@ -1,7 +1,7 @@
 # ISSUE-39
 - Issue: #39
-- Branch: task/39-sprint-2-5-context-engineering
-- PR: https://github.com/Leeky1017/WN0.1/pull/40
+- Branch: task/39-sprint-2-5-context-engineering (spec), task/39-sprint-2-5-context-engineering-closeout (closeout)
+- PR: https://github.com/Leeky1017/WN0.1/pull/40 (spec), https://github.com/Leeky1017/WN0.1/pull/42 (closeout)
 
 ## Plan
 - Create Sprint 2.5 OpenSpec (spec/design/task cards)
@@ -27,4 +27,19 @@
 ### 2026-01-20 15:46 pr
 - Command: `gh pr create ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/40`
+- Evidence: `openspec/_ops/task_runs/ISSUE-39.md`
+
+### 2026-01-20 16:03 merge-confirm
+- Command: `gh pr view 40 --json url,mergeStateStatus,mergedAt`
+- Key output: `mergedAt: 2026-01-20T08:01:43Z`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/40`
+
+### 2026-01-20 16:04 closeout-archive
+- Command: `rulebook_task_archive issue-39-sprint-2-5-context-engineering`
+- Key output: `moved to rulebook/tasks/archive/2026-01-20-issue-39-sprint-2-5-context-engineering/`
+- Evidence: `rulebook/tasks/archive/2026-01-20-issue-39-sprint-2-5-context-engineering/proposal.md`
+
+### 2026-01-20 16:18 closeout-pr
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/42`
 - Evidence: `openspec/_ops/task_runs/ISSUE-39.md`
