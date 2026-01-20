@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { X, MoreHorizontal, Eye, Edit3, Columns } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
+import { useTranslation } from 'react-i18next';
 
 import type { ViewMode } from '../../App';
 import { fileOps } from '../../lib/ipc';
@@ -24,6 +25,7 @@ function formatSavedTime(ts: number) {
 }
 
 export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggle }: EditorProps) {
+  const { t } = useTranslation();
   const currentPath = useEditorStore((s) => s.currentPath);
   const content = useEditorStore((s) => s.content);
   const editorMode = useEditorStore((s) => s.editorMode);
@@ -45,11 +47,11 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const isProgrammaticTipTapUpdateRef = useRef(false);
 
   const saveLabel = useMemo(() => {
-    if (saveStatus === 'saving') return '保存中...';
+    if (saveStatus === 'saving') return t('editor.save.saving');
     if (saveStatus === 'error') return '保存失败';
     if (isDirty) return '未保存';
-    return '已保存';
-  }, [isDirty, saveStatus]);
+    return t('editor.save.saved');
+  }, [isDirty, saveStatus, t]);
 
   useEffect(() => {
     setLineCount(content.split('\n').length);
@@ -150,8 +152,8 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
     return (
       <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]">
         <div className="text-center">
-          <div className="text-[13px] text-[var(--text-tertiary)] mb-1">No file selected</div>
-          <div className="text-[11px] text-[var(--text-tertiary)]">Select a file from the workflow</div>
+          <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('editor.noFileSelected.title')}</div>
+          <div className="text-[11px] text-[var(--text-tertiary)]">{t('editor.noFileSelected.hint')}</div>
         </div>
       </div>
     );
@@ -177,7 +179,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full h-full bg-transparent text-[var(--text-primary)] outline-none resize-none px-4 py-3 leading-[1.6] font-mono text-[13px]"
-              placeholder="Start typing in Markdown..."
+              placeholder={t('editor.placeholderMarkdown')}
               spellCheck={false}
             />
           </div>

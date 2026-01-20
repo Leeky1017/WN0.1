@@ -83,7 +83,7 @@ test('dual-mode: richtext edits roundtrip back to markdown', async () => {
   await richText.type('item2');
 
   await page.getByRole('button', { name: 'Markdown' }).click();
-  const textarea = page.locator('textarea[placeholder="Start typing in Markdown..."]');
+  const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
   await expect(textarea).toBeVisible();
   const markdown = await textarea.inputValue();
 
@@ -109,7 +109,7 @@ test('file delete removes file and closes editor', async () => {
   const docPath = path.join(userDataDir, 'documents', 'Delete Me.md');
   expect(fs.existsSync(docPath)).toBe(false);
 
-  await expect(page.getByText('No file selected')).toBeVisible();
+  await expect(page.getByText('未选择文件')).toBeVisible();
   await electronApp.close();
 });
 
@@ -120,7 +120,7 @@ test('crash recovery restores latest snapshot on next launch', async () => {
   const first = await launchApp(userDataDir, { WN_SNAPSHOT_INTERVAL_MS: '200' });
   await createFile(first.page, 'Crash');
 
-  const textarea = first.page.locator('textarea[placeholder="Start typing in Markdown..."]');
+  const textarea = first.page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
   await textarea.fill(`# Crash\n\n${unique}`);
   await waitForSnapshot(userDataDir, { contains: unique });
 
@@ -131,7 +131,7 @@ test('crash recovery restores latest snapshot on next launch', async () => {
   await expect(second.page.getByText('检测到上次异常退出')).toBeVisible();
   await second.page.getByRole('button', { name: '恢复快照' }).click();
 
-  const textarea2 = second.page.locator('textarea[placeholder="Start typing in Markdown..."]');
+  const textarea2 = second.page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
   await expect(textarea2).toBeVisible();
   const restored = await textarea2.inputValue();
   expect(restored).toContain(unique);
