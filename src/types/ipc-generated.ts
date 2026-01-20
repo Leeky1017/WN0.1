@@ -65,6 +65,27 @@ export type IpcChannel =
   | 'file:snapshot:latest'
   | 'file:snapshot:write'
   | 'file:write'
+  | 'project:bootstrap'
+  | 'project:create'
+  | 'project:delete'
+  | 'project:getCurrent'
+  | 'project:list'
+  | 'project:setCurrent'
+  | 'project:update'
+  | 'character:create'
+  | 'character:delete'
+  | 'character:list'
+  | 'character:update'
+  | 'outline:get'
+  | 'outline:save'
+  | 'kg:entity:create'
+  | 'kg:entity:delete'
+  | 'kg:entity:list'
+  | 'kg:entity:update'
+  | 'kg:graph:get'
+  | 'kg:relation:create'
+  | 'kg:relation:delete'
+  | 'kg:relation:list'
   | 'ai:skill:cancel'
   | 'ai:skill:run'
   | 'search:fulltext'
@@ -90,6 +111,7 @@ export type IpcChannel =
 
 export type FileListRequest = {
   scope?: 'documents';
+  projectId?: string;
 };
 
 export type DocumentFileListItem = {
@@ -116,6 +138,7 @@ export type FileWriteRequest = {
   path: string;
   content: string;
   encoding?: 'utf8';
+  projectId?: string;
 };
 
 export type FileWriteResponse = {
@@ -125,6 +148,7 @@ export type FileWriteResponse = {
 export type FileCreateRequest = {
   name: string;
   template?: 'default' | 'blank';
+  projectId?: string;
 };
 
 export type FileCreateResponse = {
@@ -313,6 +337,263 @@ export type RagRetrieveResponse = {
   };
 };
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+export type Project = {
+  id: string;
+  name: string;
+  description?: string;
+  styleGuide?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Character = {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OutlineNode = {
+  id: string;
+  title: string;
+  level: number;
+  summary?: string;
+  status?: string;
+};
+
+export type KnowledgeGraphEntity = {
+  id: string;
+  projectId: string;
+  type: string;
+  name: string;
+  description?: string;
+  metadata?: JsonValue;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type KnowledgeGraphRelation = {
+  id: string;
+  projectId: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: string;
+  metadata?: JsonValue;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProjectBootstrapRequest = Record<string, never>;
+
+export type ProjectBootstrapResponse = {
+  createdDefault: boolean;
+  currentProjectId: string;
+  migratedArticles: number;
+};
+
+export type ProjectListRequest = Record<string, never>;
+
+export type ProjectListResponse = {
+  projects: Project[];
+};
+
+export type ProjectGetCurrentRequest = Record<string, never>;
+
+export type ProjectGetCurrentResponse = {
+  projectId: string | null;
+};
+
+export type ProjectSetCurrentRequest = {
+  projectId: string;
+};
+
+export type ProjectSetCurrentResponse = {
+  projectId: string;
+};
+
+export type ProjectCreateRequest = {
+  name: string;
+  description?: string;
+  styleGuide?: string;
+};
+
+export type ProjectCreateResponse = {
+  project: Project;
+  currentProjectId: string;
+};
+
+export type ProjectUpdateRequest = {
+  id: string;
+  name?: string;
+  description?: string;
+  styleGuide?: string;
+};
+
+export type ProjectUpdateResponse = {
+  project: Project;
+};
+
+export type ProjectDeleteRequest = {
+  id: string;
+  reassignProjectId?: string;
+};
+
+export type ProjectDeleteResponse = {
+  deleted: true;
+  currentProjectId: string;
+};
+
+export type CharacterListRequest = {
+  projectId: string;
+};
+
+export type CharacterListResponse = {
+  characters: Character[];
+};
+
+export type CharacterCreateRequest = {
+  projectId: string;
+  name: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+};
+
+export type CharacterCreateResponse = {
+  character: Character;
+};
+
+export type CharacterUpdateRequest = {
+  projectId: string;
+  id: string;
+  name?: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+};
+
+export type CharacterUpdateResponse = {
+  character: Character;
+};
+
+export type CharacterDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type CharacterDeleteResponse = {
+  deleted: true;
+};
+
+export type OutlineGetRequest = {
+  projectId: string;
+  articleId: string;
+};
+
+export type OutlineGetResponse = {
+  outline: OutlineNode[] | null;
+  updatedAt?: string;
+};
+
+export type OutlineSaveRequest = {
+  projectId: string;
+  articleId: string;
+  outline: OutlineNode[];
+};
+
+export type OutlineSaveResponse = {
+  saved: true;
+  updatedAt: string;
+};
+
+export type KgGraphGetRequest = {
+  projectId: string;
+};
+
+export type KgGraphGetResponse = {
+  entities: KnowledgeGraphEntity[];
+  relations: KnowledgeGraphRelation[];
+};
+
+export type KgEntityListRequest = {
+  projectId: string;
+};
+
+export type KgEntityListResponse = {
+  entities: KnowledgeGraphEntity[];
+};
+
+export type KgEntityCreateRequest = {
+  projectId: string;
+  type: string;
+  name: string;
+  description?: string;
+  metadata?: JsonValue;
+};
+
+export type KgEntityCreateResponse = {
+  entity: KnowledgeGraphEntity;
+};
+
+export type KgEntityUpdateRequest = {
+  projectId: string;
+  id: string;
+  type?: string;
+  name?: string;
+  description?: string;
+  metadata?: JsonValue;
+};
+
+export type KgEntityUpdateResponse = {
+  entity: KnowledgeGraphEntity;
+};
+
+export type KgEntityDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type KgEntityDeleteResponse = {
+  deleted: true;
+};
+
+export type KgRelationListRequest = {
+  projectId: string;
+  entityId?: string;
+};
+
+export type KgRelationListResponse = {
+  relations: KnowledgeGraphRelation[];
+};
+
+export type KgRelationCreateRequest = {
+  projectId: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: string;
+  metadata?: JsonValue;
+};
+
+export type KgRelationCreateResponse = {
+  relation: KnowledgeGraphRelation;
+};
+
+export type KgRelationDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type KgRelationDeleteResponse = {
+  deleted: true;
+};
+
 export type VersionListItem = {
   id: string;
   articleId: string;
@@ -499,6 +780,27 @@ export type IpcInvokePayloadMap = {
   'file:snapshot:latest': FileSnapshotLatestRequest;
   'file:snapshot:write': FileSnapshotWriteRequest;
   'file:write': FileWriteRequest;
+  'project:bootstrap': ProjectBootstrapRequest;
+  'project:create': ProjectCreateRequest;
+  'project:delete': ProjectDeleteRequest;
+  'project:getCurrent': ProjectGetCurrentRequest;
+  'project:list': ProjectListRequest;
+  'project:setCurrent': ProjectSetCurrentRequest;
+  'project:update': ProjectUpdateRequest;
+  'character:create': CharacterCreateRequest;
+  'character:delete': CharacterDeleteRequest;
+  'character:list': CharacterListRequest;
+  'character:update': CharacterUpdateRequest;
+  'outline:get': OutlineGetRequest;
+  'outline:save': OutlineSaveRequest;
+  'kg:entity:create': KgEntityCreateRequest;
+  'kg:entity:delete': KgEntityDeleteRequest;
+  'kg:entity:list': KgEntityListRequest;
+  'kg:entity:update': KgEntityUpdateRequest;
+  'kg:graph:get': KgGraphGetRequest;
+  'kg:relation:create': KgRelationCreateRequest;
+  'kg:relation:delete': KgRelationDeleteRequest;
+  'kg:relation:list': KgRelationListRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'ai:skill:run': AiSkillRunRequest;
   'search:fulltext': SearchFulltextRequest;
@@ -532,6 +834,27 @@ export type IpcInvokeDataMap = {
   'file:snapshot:latest': FileSnapshotLatestResponse;
   'file:snapshot:write': FileSnapshotWriteResponse;
   'file:write': FileWriteResponse;
+  'project:bootstrap': ProjectBootstrapResponse;
+  'project:create': ProjectCreateResponse;
+  'project:delete': ProjectDeleteResponse;
+  'project:getCurrent': ProjectGetCurrentResponse;
+  'project:list': ProjectListResponse;
+  'project:setCurrent': ProjectSetCurrentResponse;
+  'project:update': ProjectUpdateResponse;
+  'character:create': CharacterCreateResponse;
+  'character:delete': CharacterDeleteResponse;
+  'character:list': CharacterListResponse;
+  'character:update': CharacterUpdateResponse;
+  'outline:get': OutlineGetResponse;
+  'outline:save': OutlineSaveResponse;
+  'kg:entity:create': KgEntityCreateResponse;
+  'kg:entity:delete': KgEntityDeleteResponse;
+  'kg:entity:list': KgEntityListResponse;
+  'kg:entity:update': KgEntityUpdateResponse;
+  'kg:graph:get': KgGraphGetResponse;
+  'kg:relation:create': KgRelationCreateResponse;
+  'kg:relation:delete': KgRelationDeleteResponse;
+  'kg:relation:list': KgRelationListResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'ai:skill:run': AiSkillRunResponse;
   'search:fulltext': SearchFulltextResponse;
