@@ -391,6 +391,7 @@ export function KnowledgeGraphPanel() {
               <div>
                 <div className="text-[12px] text-[var(--text-tertiary)] mb-2">类型</div>
                 <select
+                  aria-label="Type"
                   value={createNodeType}
                   onChange={(e) => setCreateNodeType(e.target.value as KnowledgeGraphEntityType)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
@@ -454,6 +455,7 @@ export function KnowledgeGraphPanel() {
               <div>
                 <div className="text-[12px] text-[var(--text-tertiary)] mb-2">From</div>
                 <select
+                  aria-label="From"
                   value={createRelFrom}
                   onChange={(e) => setCreateRelFrom(e.target.value)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
@@ -469,6 +471,7 @@ export function KnowledgeGraphPanel() {
               <div>
                 <div className="text-[12px] text-[var(--text-tertiary)] mb-2">To</div>
                 <select
+                  aria-label="To"
                   value={createRelTo}
                   onChange={(e) => setCreateRelTo(e.target.value)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"

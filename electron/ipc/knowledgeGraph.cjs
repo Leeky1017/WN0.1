@@ -21,6 +21,7 @@ function hasOwn(obj, key) {
 function encodeJsonField(payload, key, options = {}) {
   if (!hasOwn(payload, key)) return { present: false, value: undefined }
   const raw = payload[key]
+  if (typeof raw === 'undefined') return { present: false, value: undefined }
   if (raw === null) return { present: true, value: null }
 
   let json = null
@@ -303,4 +304,3 @@ function registerKnowledgeGraphIpcHandlers(ipcMain, options = {}) {
 }
 
 module.exports = { registerKnowledgeGraphIpcHandlers }
-

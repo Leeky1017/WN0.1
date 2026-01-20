@@ -257,6 +257,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
             <button
               type="button"
               onClick={() => onJump(node)}
+              data-testid={`outline-node-${index}`}
               className="flex-1 min-w-0 flex items-center gap-2 rounded hover:bg-[var(--bg-hover)] transition-colors px-2 py-1"
               style={{ paddingLeft: `${8 + (Math.max(1, node.level) - 1) * 12}px` }}
               title="定位到编辑器"
@@ -265,6 +266,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
               <input
                 value={node.title}
                 onChange={(e) => updateNode(node.id, { title: e.target.value })}
+                data-testid={`outline-node-title-${index}`}
                 className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-[var(--text-secondary)]"
                 spellCheck={false}
               />
