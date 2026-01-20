@@ -7,13 +7,13 @@
 - Deliver Sprint 1 editor per `openspec/specs/sprint-1-editor/spec.md` (TipTap + dual mode + file ops + autosave + crash recovery) with Playwright E2E coverage.
 
 ## Status
-- CURRENT: PR #31 merged (merge commit `b2eef05`); closeout PR #32 open to commit Rulebook archive + run log updates.
+- CURRENT: PR #31 merged (merge commit `b2eef05`); closeout PR #32 merged (merge commit `0484789`); Rulebook task archived + committed.
 
 ## Next Actions
 - [x] Force-push rebased `task/28-sprint-1-editor` to update PR #31
 - [x] Enable auto-merge + wait required checks (`ci`/`openspec-log-guard`/`merge-serial`)
 - [x] Confirm PR merged (`mergedAt != null`) then sync controlplane + cleanup worktree
-- [ ] Ship closeout PR: commit Rulebook archive + update this run log
+- [x] Ship closeout PR: commit Rulebook archive + update this run log
 
 ## Decisions Made
 - 2026-01-20: Dual mode strategy → Markdown is SSOT; richtext derives via TipTap Markdown extension (Sprint 1 scope).
@@ -122,4 +122,9 @@
 ### 2026-01-20 closeout PR
 - Command: `gh pr create --title "Closeout: archive Rulebook task + update run log (#28)" --body "..."`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/32`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/32`
+
+### 2026-01-20 confirm closeout merged
+- Command: `gh pr view 32 --json mergedAt,mergeCommit,state,url --jq '{state, mergedAt, url, mergeCommit}'`
+- Key output: `state=MERGED`, `mergedAt=2026-01-20T05:38:58Z`, `mergeCommit=04847892c12c227b51656c4750253bf2488dfd04`
 - Evidence: `https://github.com/Leeky1017/WN0.1/pull/32`
