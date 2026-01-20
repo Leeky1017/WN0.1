@@ -321,6 +321,7 @@ export type VersionListResponse = Paginated<Omit<ArticleSnapshot, 'content'>>;
 
 export type VersionCreateRequest = {
   articleId: string;
+  content?: string;
   name?: string;
   reason?: string;
   actor?: 'user' | 'ai' | 'auto';
