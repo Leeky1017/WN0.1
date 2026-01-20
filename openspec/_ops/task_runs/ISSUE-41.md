@@ -28,3 +28,18 @@
 - Command: `git push -u origin HEAD && gh pr create --title "chore(openspec): align roadmap + Sprint 2 Judge tasks (#41)" --body "Closes #41 ..."`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/43`
 - Evidence: `openspec/_ops/task_runs/ISSUE-41.md`
+
+### 2026-01-20 18:18 merged
+- Command: `gh pr view 43 --json state,mergedAt,url`
+- Key output: `state=MERGED mergedAt=2026-01-20T10:11:36Z`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/43`
+
+### 2026-01-20 18:18 archive rulebook task
+- Command: `git mv rulebook/tasks/issue-41-specs-alignment rulebook/tasks/archive/2026-01-20-issue-41-specs-alignment`
+- Key output: `moved rulebook task to archive`
+- Evidence: `rulebook/tasks/archive/2026-01-20-issue-41-specs-alignment/`
+
+### 2026-01-20 18:18 openspec validate (closeout)
+- Command: `cd .worktrees/issue-41-specs-alignment && npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 11 passed, 0 failed (11 items)`
+- Evidence: `openspec/_ops/task_runs/ISSUE-41.md`
