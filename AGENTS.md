@@ -88,6 +88,10 @@ WriteNow/
 - 每个 commit message 必须包含 (#N)
 - PR body 必须包含 Closes #N
 
+Worktree 规范（本地，必须执行）：
+- 任务开始：在控制面（`main`）创建 worktree 到 `.worktrees/issue-N-slug`
+- 合并完成且控制面 `main` 同步后：运行 `scripts/agent_worktree_cleanup.sh <N> <slug>` 清理本地 worktree + 分支
+
 ## 本地开发
 
 ```bash
