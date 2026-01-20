@@ -1,13 +1,13 @@
 # ISSUE-34
 - Issue: #34
-- Branch: task/34-frontend-deep-remediation
-- PR: https://github.com/Leeky1017/WN0.1/pull/35
+- Branch: task/34-frontend-deep-remediation (deliverable), task/34-frontend-deep-remediation-closeout (closeout)
+- PR: https://github.com/Leeky1017/WN0.1/pull/35 (deliverable), https://github.com/Leeky1017/WN0.1/pull/36 (closeout)
 
 ## Goal
 - Draft a complete frontend deep remediation OpenSpec (design system + layout + editor + AI panel + perf/i18n + verification) based on `CODEX_TASK前端探讨.md`.
 
 ## Status
-- CURRENT: Spec + design docs + task cards drafted; validations green; PR pending.
+- CURRENT: PR #35 merged; closeout PR #36 pending (Rulebook archive + run log finalize).
 
 ## Next Actions
 - [x] Write `openspec/specs/wn-frontend-deep-remediation/spec.md`
@@ -15,7 +15,8 @@
 - [x] Add priority-grouped task cards under `openspec/specs/wn-frontend-deep-remediation/task_cards/`
 - [x] Validate: `rulebook task validate issue-34-frontend-deep-remediation`
 - [x] Validate: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
-- [ ] Open PR with `Closes #34` and enable auto-merge
+- [x] Open PR with `Closes #34` and enable auto-merge
+- [ ] Ship closeout PR (archive Rulebook task + finalize run log)
 
 ## Plan
 - Convert CODEX_TASK frontend findings into a verifiable spec (Requirements + Scenarios).
@@ -67,3 +68,23 @@
 - Command: `gh pr create ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/35`
 - Evidence: `gh pr view 35`
+
+### 2026-01-20 enable auto-merge
+- Command: `gh pr merge 35 --auto --squash`
+- Key output: `(no output; exit=0)`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/35`
+
+### 2026-01-20 confirm merged
+- Command: `gh pr view 35 --json mergedAt,state,url,mergeCommit --jq '{state, mergedAt, url, mergeCommit}'`
+- Key output: `state=MERGED`, `mergedAt=2026-01-20T07:33:43Z`, `mergeCommit=5b6abe5b0255c58a51d7549be2b82988a5c277f3`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/35`
+
+### 2026-01-20 archive rulebook task (closeout)
+- Command: `rulebook task validate issue-34-frontend-deep-remediation && rulebook task archive issue-34-frontend-deep-remediation`
+- Key output: `✅ Task issue-34-frontend-deep-remediation archived successfully`
+- Evidence: `rulebook/tasks/archive/2026-01-20-issue-34-frontend-deep-remediation/`
+
+### 2026-01-20 closeout pr
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/36`
+- Evidence: `gh pr view 36`
