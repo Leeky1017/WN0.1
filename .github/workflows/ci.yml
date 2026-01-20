@@ -25,6 +25,9 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: IPC contract check
+        run: npm run contract:check
+
       - name: Lint
         run: npm run lint
 
