@@ -6,7 +6,7 @@ import process from 'node:process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const DOMAIN_ORDER = ['file', 'ai', 'search', 'embedding', 'rag', 'version', 'update', 'export', 'clipboard'];
+const DOMAIN_ORDER = ['file', 'project', 'character', 'outline', 'kg', 'ai', 'search', 'embedding', 'rag', 'version', 'update', 'export', 'clipboard'];
 const domainRank = new Map(DOMAIN_ORDER.map((domain, idx) => [domain, idx]));
 
 function sortChannels(channels) {

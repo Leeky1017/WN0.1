@@ -18,6 +18,10 @@ const { initSessionLock, clearSessionLock } = require('./lib/session.cjs')
 const { registerEmbeddingIpcHandlers } = require('./ipc/embedding.cjs')
 const { registerRagIpcHandlers } = require('./ipc/rag.cjs')
 const { registerSearchIpcHandlers } = require('./ipc/search.cjs')
+const { registerProjectsIpcHandlers } = require('./ipc/projects.cjs')
+const { registerCharactersIpcHandlers } = require('./ipc/characters.cjs')
+const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
+const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
 const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
 const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
 
@@ -215,6 +219,30 @@ function setupIpc() {
     logger,
     embeddingService,
     vectorStore,
+  })
+
+  registerProjectsIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+  })
+
+  registerCharactersIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+  })
+
+  registerOutlineIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+  })
+
+  registerKnowledgeGraphIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
   })
 
   registerEmbeddingIpcHandlers(ipcMain, {

@@ -90,6 +90,52 @@ export type Character = {
   updatedAt: IsoDateString;
 };
 
+export type KnowledgeGraphEntityType = 'Character' | 'Location' | 'Event' | 'TimePoint' | 'Item' | (string & {});
+
+export type DbKnowledgeGraphEntityRow = {
+  id: string;
+  project_id: string;
+  type: string;
+  name: string;
+  description: string | null;
+  metadata_json: string | null;
+  created_at: IsoDateString;
+  updated_at: IsoDateString;
+};
+
+export type KnowledgeGraphEntity = {
+  id: string;
+  projectId: string;
+  type: KnowledgeGraphEntityType;
+  name: string;
+  description?: string;
+  metadata?: JsonValue;
+  createdAt: IsoDateString;
+  updatedAt: IsoDateString;
+};
+
+export type DbKnowledgeGraphRelationRow = {
+  id: string;
+  project_id: string;
+  from_entity_id: string;
+  to_entity_id: string;
+  type: string;
+  metadata_json: string | null;
+  created_at: IsoDateString;
+  updated_at: IsoDateString;
+};
+
+export type KnowledgeGraphRelation = {
+  id: string;
+  projectId: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: string;
+  metadata?: JsonValue;
+  createdAt: IsoDateString;
+  updatedAt: IsoDateString;
+};
+
 export type DbSkillRow = {
   id: string;
   name: string;
@@ -161,4 +207,3 @@ export type Setting = {
   key: string;
   value: string;
 };
-

@@ -57,6 +57,7 @@ export type Paginated<TItem> = {
 const IPC_CHANNEL_TYPES = `
 export type FileListRequest = {
   scope?: 'documents';
+  projectId?: string;
 };
 
 export type DocumentFileListItem = {
@@ -83,6 +84,7 @@ export type FileWriteRequest = {
   path: string;
   content: string;
   encoding?: 'utf8';
+  projectId?: string;
 };
 
 export type FileWriteResponse = {
@@ -92,6 +94,7 @@ export type FileWriteResponse = {
 export type FileCreateRequest = {
   name: string;
   template?: 'default' | 'blank';
+  projectId?: string;
 };
 
 export type FileCreateResponse = {
@@ -280,6 +283,263 @@ export type RagRetrieveResponse = {
   };
 };
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+export type Project = {
+  id: string;
+  name: string;
+  description?: string;
+  styleGuide?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Character = {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OutlineNode = {
+  id: string;
+  title: string;
+  level: number;
+  summary?: string;
+  status?: string;
+};
+
+export type KnowledgeGraphEntity = {
+  id: string;
+  projectId: string;
+  type: string;
+  name: string;
+  description?: string;
+  metadata?: JsonValue;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type KnowledgeGraphRelation = {
+  id: string;
+  projectId: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: string;
+  metadata?: JsonValue;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProjectBootstrapRequest = Record<string, never>;
+
+export type ProjectBootstrapResponse = {
+  createdDefault: boolean;
+  currentProjectId: string;
+  migratedArticles: number;
+};
+
+export type ProjectListRequest = Record<string, never>;
+
+export type ProjectListResponse = {
+  projects: Project[];
+};
+
+export type ProjectGetCurrentRequest = Record<string, never>;
+
+export type ProjectGetCurrentResponse = {
+  projectId: string | null;
+};
+
+export type ProjectSetCurrentRequest = {
+  projectId: string;
+};
+
+export type ProjectSetCurrentResponse = {
+  projectId: string;
+};
+
+export type ProjectCreateRequest = {
+  name: string;
+  description?: string;
+  styleGuide?: string;
+};
+
+export type ProjectCreateResponse = {
+  project: Project;
+  currentProjectId: string;
+};
+
+export type ProjectUpdateRequest = {
+  id: string;
+  name?: string;
+  description?: string;
+  styleGuide?: string;
+};
+
+export type ProjectUpdateResponse = {
+  project: Project;
+};
+
+export type ProjectDeleteRequest = {
+  id: string;
+  reassignProjectId?: string;
+};
+
+export type ProjectDeleteResponse = {
+  deleted: true;
+  currentProjectId: string;
+};
+
+export type CharacterListRequest = {
+  projectId: string;
+};
+
+export type CharacterListResponse = {
+  characters: Character[];
+};
+
+export type CharacterCreateRequest = {
+  projectId: string;
+  name: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+};
+
+export type CharacterCreateResponse = {
+  character: Character;
+};
+
+export type CharacterUpdateRequest = {
+  projectId: string;
+  id: string;
+  name?: string;
+  description?: string;
+  traits?: JsonValue;
+  relationships?: JsonValue;
+};
+
+export type CharacterUpdateResponse = {
+  character: Character;
+};
+
+export type CharacterDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type CharacterDeleteResponse = {
+  deleted: true;
+};
+
+export type OutlineGetRequest = {
+  projectId: string;
+  articleId: string;
+};
+
+export type OutlineGetResponse = {
+  outline: OutlineNode[] | null;
+  updatedAt?: string;
+};
+
+export type OutlineSaveRequest = {
+  projectId: string;
+  articleId: string;
+  outline: OutlineNode[];
+};
+
+export type OutlineSaveResponse = {
+  saved: true;
+  updatedAt: string;
+};
+
+export type KgGraphGetRequest = {
+  projectId: string;
+};
+
+export type KgGraphGetResponse = {
+  entities: KnowledgeGraphEntity[];
+  relations: KnowledgeGraphRelation[];
+};
+
+export type KgEntityListRequest = {
+  projectId: string;
+};
+
+export type KgEntityListResponse = {
+  entities: KnowledgeGraphEntity[];
+};
+
+export type KgEntityCreateRequest = {
+  projectId: string;
+  type: string;
+  name: string;
+  description?: string;
+  metadata?: JsonValue;
+};
+
+export type KgEntityCreateResponse = {
+  entity: KnowledgeGraphEntity;
+};
+
+export type KgEntityUpdateRequest = {
+  projectId: string;
+  id: string;
+  type?: string;
+  name?: string;
+  description?: string;
+  metadata?: JsonValue;
+};
+
+export type KgEntityUpdateResponse = {
+  entity: KnowledgeGraphEntity;
+};
+
+export type KgEntityDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type KgEntityDeleteResponse = {
+  deleted: true;
+};
+
+export type KgRelationListRequest = {
+  projectId: string;
+  entityId?: string;
+};
+
+export type KgRelationListResponse = {
+  relations: KnowledgeGraphRelation[];
+};
+
+export type KgRelationCreateRequest = {
+  projectId: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: string;
+  metadata?: JsonValue;
+};
+
+export type KgRelationCreateResponse = {
+  relation: KnowledgeGraphRelation;
+};
+
+export type KgRelationDeleteRequest = {
+  projectId: string;
+  id: string;
+};
+
+export type KgRelationDeleteResponse = {
+  deleted: true;
+};
+
 export type VersionListItem = {
   id: string;
   articleId: string;
@@ -462,4 +722,3 @@ module.exports = {
   BASE_TYPES,
   IPC_CHANNEL_TYPES,
 };
-

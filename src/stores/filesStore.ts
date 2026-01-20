@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import type { DocumentFileListItem, FileCreateResponse } from '../types/ipc';
 import { IpcError, fileOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
+import { useProjectsStore } from './projectsStore';
 
 export type DocumentFile = DocumentFileListItem;
 
@@ -43,7 +44,8 @@ export const useFilesStore = create<FilesState>((set, get) => ({
   refresh: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { items } = await getFilesApi().list();
+      const projectId = useProjectsStore.getState().currentProjectId;
+      const { items } = await getFilesApi().list(projectId ? { projectId } : undefined);
       set({ files: items, isLoading: false, hasLoaded: true });
     } catch (error) {
       set({ isLoading: false, error: toErrorMessage(error), hasLoaded: true });
@@ -53,7 +55,8 @@ export const useFilesStore = create<FilesState>((set, get) => ({
   createFile: async (name: string) => {
     set({ isLoading: true, error: null });
     try {
-      const created = await getFilesApi().create(name);
+      const projectId = useProjectsStore.getState().currentProjectId;
+      const created = await getFilesApi().create(name, projectId ? { projectId } : undefined);
       await get().refresh();
       return pickCreatedFile(get().files, created);
     } catch (error) {

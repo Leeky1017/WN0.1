@@ -38,15 +38,51 @@ export async function invoke<T extends IpcChannel>(channel: T, payload: IpcInvok
 }
 
 export const fileOps = {
-  list: () => invoke('file:list', {}),
+  list: (options?: { projectId?: string }) =>
+    invoke('file:list', typeof options?.projectId === 'string' ? { projectId: options.projectId } : {}),
   read: (path: string) => invoke('file:read', { path }),
-  write: (path: string, content: string) => invoke('file:write', { path, content }),
-  create: (name: string) => invoke('file:create', { name }),
+  write: (path: string, content: string, options?: { projectId?: string }) =>
+    invoke('file:write', typeof options?.projectId === 'string' ? { path, content, projectId: options.projectId } : { path, content }),
+  create: (name: string, options?: { projectId?: string }) =>
+    invoke('file:create', typeof options?.projectId === 'string' ? { name, projectId: options.projectId } : { name }),
   delete: (path: string) => invoke('file:delete', { path }),
   sessionStatus: () => invoke('file:session:status', {}),
   snapshotWrite: (path: string, content: string, reason: 'auto' | 'manual' = 'auto') =>
     invoke('file:snapshot:write', { path, content, reason }),
   snapshotLatest: (path?: string) => invoke('file:snapshot:latest', path ? { path } : {}),
+};
+
+export const projectOps = {
+  bootstrap: () => invoke('project:bootstrap', {}),
+  list: () => invoke('project:list', {}),
+  getCurrent: () => invoke('project:getCurrent', {}),
+  setCurrent: (projectId: string) => invoke('project:setCurrent', { projectId }),
+  create: (payload: { name: string; description?: string; styleGuide?: string }) => invoke('project:create', payload),
+  update: (payload: { id: string; name?: string; description?: string; styleGuide?: string }) => invoke('project:update', payload),
+  delete: (payload: { id: string; reassignProjectId?: string }) => invoke('project:delete', payload),
+};
+
+export const characterOps = {
+  list: (projectId: string) => invoke('character:list', { projectId }),
+  create: (payload: IpcInvokePayloadMap['character:create']) => invoke('character:create', payload),
+  update: (payload: IpcInvokePayloadMap['character:update']) => invoke('character:update', payload),
+  delete: (payload: IpcInvokePayloadMap['character:delete']) => invoke('character:delete', payload),
+};
+
+export const outlineOps = {
+  get: (payload: IpcInvokePayloadMap['outline:get']) => invoke('outline:get', payload),
+  save: (payload: IpcInvokePayloadMap['outline:save']) => invoke('outline:save', payload),
+};
+
+export const knowledgeGraphOps = {
+  getGraph: (payload: IpcInvokePayloadMap['kg:graph:get']) => invoke('kg:graph:get', payload),
+  listEntities: (payload: IpcInvokePayloadMap['kg:entity:list']) => invoke('kg:entity:list', payload),
+  createEntity: (payload: IpcInvokePayloadMap['kg:entity:create']) => invoke('kg:entity:create', payload),
+  updateEntity: (payload: IpcInvokePayloadMap['kg:entity:update']) => invoke('kg:entity:update', payload),
+  deleteEntity: (payload: IpcInvokePayloadMap['kg:entity:delete']) => invoke('kg:entity:delete', payload),
+  listRelations: (payload: IpcInvokePayloadMap['kg:relation:list']) => invoke('kg:relation:list', payload),
+  createRelation: (payload: IpcInvokePayloadMap['kg:relation:create']) => invoke('kg:relation:create', payload),
+  deleteRelation: (payload: IpcInvokePayloadMap['kg:relation:delete']) => invoke('kg:relation:delete', payload),
 };
 
 export const aiOps = {

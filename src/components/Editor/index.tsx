@@ -24,6 +24,19 @@ function formatSavedTime(ts: number) {
   return new Date(ts).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 }
 
+function getOffsetForLine(content: string, line: number) {
+  const safeLine = Math.max(1, Math.floor(line));
+  if (safeLine === 1) return 0;
+  let currentLine = 1;
+  for (let i = 0; i < content.length; i += 1) {
+    if (content[i] === '\n') {
+      currentLine += 1;
+      if (currentLine === safeLine) return i + 1;
+    }
+  }
+  return content.length;
+}
+
 export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggle }: EditorProps) {
   const { t } = useTranslation();
   const currentPath = useEditorStore((s) => s.currentPath);
@@ -40,12 +53,15 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const setEditorMode = useEditorStore((s) => s.setEditorMode);
   const save = useEditorStore((s) => s.save);
   const closeFile = useEditorStore((s) => s.closeFile);
+  const pendingJumpLine = useEditorStore((s) => s.pendingJumpLine);
+  const consumeJumpToLine = useEditorStore((s) => s.consumeJumpToLine);
 
   const [lineCount, setLineCount] = useState(1);
   const autosaveTimerRef = useRef<number | null>(null);
   const lastSnapshotContentRef = useRef<string>('');
   const lastSnapshotPathRef = useRef<string>('');
   const isProgrammaticTipTapUpdateRef = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const saveLabel = useMemo(() => {
     if (saveStatus === 'saving') return t('editor.save.saving');
@@ -75,6 +91,31 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
       autosaveTimerRef.current = null;
     };
   }, [content, isDirty, save, currentPath]);
+
+  useEffect(() => {
+    if (!currentPath) return;
+    if (!pendingJumpLine) return;
+
+    if (editorMode !== 'markdown') {
+      setEditorMode('markdown');
+      return;
+    }
+
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const offset = getOffsetForLine(useEditorStore.getState().content, pendingJumpLine);
+    textarea.focus();
+    textarea.setSelectionRange(offset, offset);
+
+    const lineHeightRaw = window.getComputedStyle(textarea).lineHeight;
+    const lineHeight = Number.parseFloat(lineHeightRaw);
+    if (Number.isFinite(lineHeight) && lineHeight > 0) {
+      textarea.scrollTop = Math.max(0, (pendingJumpLine - 1) * lineHeight);
+    }
+
+    consumeJumpToLine();
+  }, [consumeJumpToLine, currentPath, editorMode, pendingJumpLine, setEditorMode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -183,6 +224,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
           </div>
           <div className="flex-1 overflow-auto">
             <textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onSelect={(e) => {

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { useFilesStore } from './filesStore';
 import { IpcError, fileOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
+import { useProjectsStore } from './projectsStore';
 
 import type { EditorMode, SaveStatus } from '../types/editor';
 
@@ -16,12 +17,15 @@ type EditorState = {
   loadError: string | null;
   saveStatus: SaveStatus;
   lastSavedAt: number | null;
+  pendingJumpLine: number | null;
   openFile: (path: string) => Promise<void>;
   setContent: (content: string) => void;
   setSelection: (selection: { start: number; end: number } | null) => void;
   replaceRange: (range: { start: number; end: number }, replacement: string) => string;
   setEditorMode: (mode: EditorMode) => void;
   save: () => Promise<void>;
+  requestJumpToLine: (line: number) => void;
+  consumeJumpToLine: () => void;
   closeFile: () => void;
 };
 
@@ -64,6 +68,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   loadError: null,
   saveStatus: 'saved',
   lastSavedAt: null,
+  pendingJumpLine: null,
 
   openFile: async (path: string) => {
     const nextPath = typeof path === 'string' ? path : '';
@@ -157,7 +162,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ saveStatus: 'saving' });
 
     try {
-      await getFilesApi().write(currentPath, content);
+      const projectId = useProjectsStore.getState().currentProjectId;
+      await getFilesApi().write(currentPath, content, projectId ? { projectId } : undefined);
       if (requestId !== saveSeq) return;
       set({
         isDirty: false,
@@ -172,6 +178,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
   },
 
+  requestJumpToLine: (line: number) => {
+    const next = Number.isFinite(line) ? Math.max(1, Math.floor(line)) : null;
+    if (!next) return;
+    set({ pendingJumpLine: next });
+  },
+
+  consumeJumpToLine: () => {
+    set({ pendingJumpLine: null });
+  },
+
   closeFile: () => {
     set({
       currentPath: null,
@@ -183,6 +199,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       loadError: null,
       saveStatus: 'saved',
       lastSavedAt: null,
+      pendingJumpLine: null,
     });
   },
 }));
