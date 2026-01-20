@@ -7,18 +7,20 @@
 - Deliver Sprint 1 editor per `openspec/specs/sprint-1-editor/spec.md` (TipTap + dual mode + file ops + autosave + crash recovery) with Playwright E2E coverage.
 
 ## Status
-- CURRENT: Sprint 1 editor implemented; OpenSpec validate + lint/build + Playwright E2E are green. Preparing commit + PR.
+- CURRENT: PR open; branch rebased on latest `origin/main`; E2E suite green. Need force-push + merge.
 
 ## Next Actions
-- [ ] Commit changes on `task/28-sprint-1-editor` (must include `(#28)`)
-- [ ] Push branch + open PR (body includes `Closes #28`)
+- [ ] Force-push rebased `task/28-sprint-1-editor` to update PR #31
 - [ ] Enable auto-merge + wait required checks (`ci`/`openspec-log-guard`/`merge-serial`)
+- [ ] Confirm PR merged (`mergedAt != null`) then sync controlplane + cleanup worktree
 
 ## Decisions Made
 - 2026-01-20: Dual mode strategy → Markdown is SSOT; richtext derives via TipTap Markdown extension (Sprint 1 scope).
 
 ## Errors Encountered
 - 2026-01-20: `npm run test:e2e` initially failed (Toolbar disabled state + Playwright selector ambiguity) → fixed UI/test, reran to green.
+- 2026-01-20: Rebase onto `origin/main` caused conflicts (electron/main, ipc lib, package.json/lock) → resolved and revalidated.
+- 2026-01-20: E2E timeouts due to i18n placeholder mismatch → updated Editor + tests.
 
 ## Plan
 - TipTap editor + Markdown/richtext switching
@@ -85,3 +87,18 @@
 - Command: `gh pr create ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/31`
 - Evidence: `gh pr view 31`
+
+### 2026-01-20 rebase
+- Command: `git fetch origin && git rebase origin/main`
+- Key output: `rebased onto latest origin/main`
+- Evidence: `git log --oneline -5`
+
+### 2026-01-20 e2e (green)
+- Command: `npx playwright test`
+- Key output: `5 passed`
+- Evidence: `tests/e2e/*.spec.ts`
+
+### 2026-01-20 commit (follow-up)
+- Command: `git commit -m "fix(i18n): localize editor placeholder (#28)"`
+- Key output: `fix(i18n): localize editor placeholder (#28)`
+- Evidence: `git log -1`
