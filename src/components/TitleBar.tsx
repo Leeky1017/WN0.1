@@ -1,5 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Minus, Square, X, PenLine, PanelRightOpen, PanelRightClose, BarChart3, Focus } from 'lucide-react';
+
+import { useTranslation } from 'react-i18next';
+
+import { exportOps, IpcError } from '../lib/ipc';
+import { toUserMessage } from '../lib/errors';
+import { useEditorStore } from '../stores/editorStore';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from './ui/dropdown-menu';
 
 interface TitleBarProps {
   focusMode: boolean;
@@ -18,7 +25,62 @@ export function TitleBar({
   onToggleStatsBar,
   onToggleFocusMode,
 }: TitleBarProps) {
+  const { t } = useTranslation();
   const api = window.writenow;
+  const currentPath = useEditorStore((s) => s.currentPath);
+  const content = useEditorStore((s) => s.content);
+
+  const [fileMenuOpen, setFileMenuOpen] = useState(false);
+  const [exporting, setExporting] = useState<null | 'markdown' | 'docx' | 'pdf'>(null);
+  const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const noticeTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    };
+  }, []);
+
+  function getTitle() {
+    const raw = typeof currentPath === 'string' ? currentPath : '';
+    if (!raw) return '';
+    return raw.toLowerCase().endsWith('.md') ? raw.slice(0, -3) : raw;
+  }
+
+  function showNotice(message: string) {
+    setExportNotice(message);
+    if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = window.setTimeout(() => setExportNotice(null), 4500);
+  }
+
+  async function handleExport(format: 'markdown' | 'docx' | 'pdf') {
+    if (!currentPath) {
+      showNotice(t('export.noDocument'));
+      return;
+    }
+
+    setExporting(format);
+    try {
+      const title = getTitle() || 'Untitled';
+      const result =
+        format === 'markdown'
+          ? await exportOps.markdown(title, content)
+          : format === 'docx'
+            ? await exportOps.docx(title, content)
+            : await exportOps.pdf(title, content);
+      showNotice(t('export.success', { path: result.path }));
+    } catch (error) {
+      const message =
+        error instanceof IpcError
+          ? toUserMessage(error.code, error.message)
+          : error instanceof Error
+            ? error.message
+            : String(error);
+      showNotice(t('export.failed', { error: message }));
+    } finally {
+      setExporting(null);
+    }
+  }
 
   const WindowControls = (
     <div className="flex items-center wn-no-drag">
@@ -57,21 +119,68 @@ export function TitleBar({
       <div className="flex items-center gap-2 min-w-0 wn-no-drag">
         <div className="flex items-center gap-2 px-2 h-7 rounded-md hover:bg-[var(--bg-hover)] transition-colors">
           <PenLine className="w-4 h-4 text-[var(--text-secondary)]" />
-          <span className="text-[13px] font-medium text-[var(--text-primary)]">WriteNow</span>
+          <span className="text-[13px] font-medium text-[var(--text-primary)]">{t('app.title')}</span>
         </div>
         {!focusMode && (
           <div className="flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
-            <button type="button" className="wn-titlebar-pill" title="File">
-              File
+            <DropdownMenu
+              open={fileMenuOpen}
+              onOpenChange={setFileMenuOpen}
+              side="bottom"
+              trigger={
+                <button type="button" className="wn-titlebar-pill" title={t('app.menu.file')}>
+                  {t('app.menu.file')}
+                </button>
+              }
+            >
+              <DropdownMenuItem
+                disabled={!currentPath || exporting !== null}
+                onClick={() => {
+                  setFileMenuOpen(false);
+                  handleExport('markdown').catch(() => undefined);
+                }}
+              >
+                {t('export.exportMarkdown')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!currentPath || exporting !== null}
+                onClick={() => {
+                  setFileMenuOpen(false);
+                  handleExport('docx').catch(() => undefined);
+                }}
+              >
+                {t('export.exportWord')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!currentPath || exporting !== null}
+                onClick={() => {
+                  setFileMenuOpen(false);
+                  handleExport('pdf').catch(() => undefined);
+                }}
+              >
+                {t('export.exportPdf')}
+              </DropdownMenuItem>
+              {exporting && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled onClick={() => undefined}>
+                    {exporting === 'markdown'
+                      ? `${t('common.export')} ${t('export.markdown')}…`
+                      : exporting === 'docx'
+                        ? `${t('common.export')} ${t('export.word')}…`
+                        : `${t('common.export')} ${t('export.pdf')}…`}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenu>
+            <button type="button" className="wn-titlebar-pill" title={t('app.menu.edit')}>
+              {t('app.menu.edit')}
             </button>
-            <button type="button" className="wn-titlebar-pill" title="Edit">
-              Edit
+            <button type="button" className="wn-titlebar-pill" title={t('app.menu.view')}>
+              {t('app.menu.view')}
             </button>
-            <button type="button" className="wn-titlebar-pill" title="View">
-              View
-            </button>
-            <button type="button" className="wn-titlebar-pill" title="Publish">
-              Publish
+            <button type="button" className="wn-titlebar-pill" title={t('app.menu.publish')}>
+              {t('app.menu.publish')}
             </button>
           </div>
         )}
@@ -112,6 +221,12 @@ export function TitleBar({
         )}
         {WindowControls}
       </div>
+
+      {exportNotice && (
+        <div className="fixed top-12 right-4 wn-elevated rounded-md px-3 py-2 text-[12px] text-[var(--text-secondary)] shadow-lg">
+          {exportNotice}
+        </div>
+      )}
     </div>
   );
 }

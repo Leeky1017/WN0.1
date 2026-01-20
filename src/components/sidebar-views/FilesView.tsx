@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Plus, MoreHorizontal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useFilesStore } from '../../stores/filesStore';
 
@@ -23,6 +24,7 @@ type FileNode =
     };
 
 export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
+  const { t } = useTranslation();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['创作项目']));
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState('未命名');
@@ -103,7 +105,10 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
         >
           <FileText className="w-4 h-4 flex-shrink-0" />
           <span className="truncate flex-1 min-w-0">{node.name}</span>
-          <span className="text-[11px] text-[var(--text-tertiary)] tabular-nums">{node.wordCount}字</span>
+          <span className="text-[11px] text-[var(--text-tertiary)] tabular-nums">
+            {node.wordCount}
+            {t('files.wordCountSuffix')}
+          </span>
         </button>
       );
     }
@@ -111,7 +116,7 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
 
   const openCreate = () => {
     setCreateError(null);
-    setCreateName('未命名');
+    setCreateName(t('files.untitled'));
     setCreateOpen(true);
 
     window.setTimeout(() => {
@@ -122,10 +127,10 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
 
   const submitCreate = async () => {
     setCreateError(null);
-    const name = createName.trim() || '未命名';
+    const name = createName.trim() || t('files.untitled');
     const created = await createFile(name);
     if (!created) {
-      setCreateError(useFilesStore.getState().error ?? '创建失败，请重试');
+      setCreateError(useFilesStore.getState().error ?? t('files.createFailed'));
       return;
     }
     setCreateOpen(false);
@@ -135,19 +140,19 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
   return (
     <>
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">文件浏览器</span>
+        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('nav.files')}</span>
         <div className="flex items-center gap-1">
           <button
             onClick={openCreate}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
-            title="新建文件"
+            title={t('files.newFile')}
           >
             <Plus className="w-4 h-4 text-[var(--text-tertiary)]" />
           </button>
           <button
             onClick={() => refresh().catch(() => undefined)}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
-            title="刷新"
+            title={t('common.refresh')}
           >
             <MoreHorizontal className="w-4 h-4 text-[var(--text-tertiary)]" />
           </button>
@@ -157,24 +162,24 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
       <div className="flex-1 overflow-y-auto py-1">
         {error && (
           <div className="px-3 py-3 text-[12px] text-[var(--text-tertiary)]">
-            <div className="mb-2">加载失败：{error}</div>
+            <div className="mb-2">{t('files.loadFailed', { error })}</div>
             <button
               onClick={() => refresh().catch(() => undefined)}
               className="h-7 px-2 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
             >
-              重试
+              {t('common.retry')}
             </button>
           </div>
         )}
 
         {!error && isLoading && files.length === 0 && (
-          <div className="px-3 py-3 text-[12px] text-[var(--text-tertiary)]">加载中...</div>
+          <div className="px-3 py-3 text-[12px] text-[var(--text-tertiary)]">{t('common.loading')}</div>
         )}
 
         {!error && !isLoading && files.length === 0 && (
           <div className="px-3 py-6 text-center">
-            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">暂无文章</div>
-            <div className="text-[11px] text-[var(--text-tertiary)]">点击右上角「+」创建第一篇</div>
+            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('files.empty.title')}</div>
+            <div className="text-[11px] text-[var(--text-tertiary)]">{t('files.empty.hint')}</div>
           </div>
         )}
 
@@ -187,8 +192,8 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
           onMouseDown={() => setCreateOpen(false)}
         >
           <div className="wn-elevated p-5 w-[380px]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="text-[15px] text-[var(--text-primary)] mb-3">新建文章</div>
-            <div className="text-[12px] text-[var(--text-tertiary)] mb-2">支持 Markdown（自动追加 .md）</div>
+            <div className="text-[15px] text-[var(--text-primary)] mb-3">{t('files.newArticle')}</div>
+            <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('files.supportsMarkdown')}</div>
             <input
               ref={createInputRef}
               value={createName}
@@ -198,7 +203,7 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
                 if (e.key === 'Escape') setCreateOpen(false);
               }}
               className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
-              placeholder="未命名"
+              placeholder={t('files.untitled')}
               spellCheck={false}
             />
             {createError && <div className="mt-2 text-[12px] text-red-400">{createError}</div>}
@@ -208,13 +213,13 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
                 className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
                 disabled={isLoading}
               >
-                创建
+                {t('common.create')}
               </button>
               <button
                 onClick={() => setCreateOpen(false)}
                 className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
               >
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </div>
