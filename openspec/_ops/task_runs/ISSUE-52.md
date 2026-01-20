@@ -1,7 +1,7 @@
 # ISSUE-52
 - Issue: #52
 - Branch: task/52-ipc-contract-automation
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/53
 
 ## Plan
 - Update OpenSpec with IPC contract automation requirements
