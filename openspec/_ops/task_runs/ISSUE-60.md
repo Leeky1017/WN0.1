@@ -1,7 +1,7 @@
 # ISSUE-60
 - Issue: #60
 - Branch: task/60-p1b-conversation-memory
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/62
 
 ## Plan
 - Implement conversation persistence + index
