@@ -135,8 +135,6 @@ export class ContextAssembler {
       loadSettings: deps?.loadSettings ?? loadWritenowSettings,
       loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
       getPrefetchedSettings: deps?.getPrefetchedSettings ?? getPrefetchedSettings,
-      loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
-      getPrefetchedSettings: deps?.getPrefetchedSettings ?? getPrefetchedSettings,
     };
   }
 
