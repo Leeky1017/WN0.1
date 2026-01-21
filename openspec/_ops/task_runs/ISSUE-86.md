@@ -43,3 +43,28 @@
 - Command: `npm run test:e2e`
 - Key output: `30 passed, 3 skipped`
 - Evidence: `dist/`, `tests/e2e/`
+
+### 2026-01-21 18:56 push
+- Command: `git push -u origin task/86-frontend-deep-remediation`
+- Key output: `task/86-frontend-deep-remediation -> task/86-frontend-deep-remediation`
+- Evidence: `git log --oneline -2`
+
+### 2026-01-21 18:56 PR
+- Command: `gh pr create --base main --head task/86-frontend-deep-remediation ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/87`
+- Evidence: `openspec/_ops/task_runs/ISSUE-86.md`
+
+### 2026-01-21 18:56 auto-merge
+- Command: `gh pr merge 87 --auto --rebase`
+- Key output: `autoMergeRequest.mergeMethod=REBASE`
+- Evidence: `gh pr view 87 --json autoMergeRequest,mergeStateStatus,url`
+
+### 2026-01-21 18:58 openspec
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 11 passed, 0 failed`
+- Evidence: `openspec/specs/`
+
+### 2026-01-21 18:58 rulebook
+- Command: `rulebook task validate issue-86-frontend-deep-remediation`
+- Key output: `✅ Task issue-86-frontend-deep-remediation is valid`
+- Evidence: `rulebook/tasks/issue-86-frontend-deep-remediation/`
