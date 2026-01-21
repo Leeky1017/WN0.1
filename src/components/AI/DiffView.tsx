@@ -2,8 +2,10 @@ import React, { useMemo } from 'react';
 
 import { diffChars } from '../../lib/textDiff';
 import { ViolationMarker } from '../Diff/ViolationMarker';
+import { ContextDebugPanel } from './ContextDebugPanel';
 
 import type { ConstraintViolation } from '../../types/constraints';
+import type { ContextDebugState } from '../../types/context-debug';
 
 type DiffViewStatus = 'streaming' | 'done' | 'error' | 'canceled';
 
@@ -14,6 +16,7 @@ type DiffViewProps = {
   originalText: string;
   suggestedText: string;
   status: DiffViewStatus;
+  contextDebug?: ContextDebugState;
   errorMessage?: string | null;
   violations?: ConstraintViolation[];
   violationStatus?: DiffViolationStatus;
@@ -94,6 +97,7 @@ export function DiffView({
   originalText,
   suggestedText,
   status,
+  contextDebug,
   errorMessage,
   violations = [],
   violationStatus = 'idle',
@@ -271,6 +275,8 @@ export function DiffView({
           {renderSuggested()}
         </div>
       </div>
+
+      {contextDebug && <ContextDebugPanel value={contextDebug} />}
     </div>
   );
 }

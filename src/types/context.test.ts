@@ -37,9 +37,9 @@ describe('context types', () => {
       fragments: [fragment],
       tokenStats,
       budgetEvidence: null,
+      metrics: { prefixHash: '00000000', assembleMs: 0, settingsPrefetchHit: false },
     };
 
     expect(result.fragments[0].layer).toBe(layer);
   });
 });
-
