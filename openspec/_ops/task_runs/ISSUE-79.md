@@ -1,7 +1,7 @@
 # ISSUE-79
 - Issue: #79
 - Branch: task/79-unify-context-assembly
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/82
 
 ## Plan
 - Audit current prompt assembly (legacy vs ContextAssembler)
