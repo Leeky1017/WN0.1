@@ -1,7 +1,7 @@
 # ISSUE-86
 - Issue: #86
 - Branch: task/86-frontend-deep-remediation
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/87
 
 ## Plan
 - Align specs + task cards status
