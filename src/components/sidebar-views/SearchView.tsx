@@ -93,7 +93,7 @@ export function SearchView({ selectedFile, onSelectFile }: SearchViewProps) {
 
     await onSelectFile(id);
 
-    const content = useEditorStore.getState().content;
+    const content = useEditorStore.getState().tabStateById[id]?.content ?? '';
     const ranges = findMatches(content, matchTokens);
     setMatches(ranges);
     setMatchIndex(0);

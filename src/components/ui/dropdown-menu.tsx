@@ -9,6 +9,12 @@ interface DropdownMenuProps {
   side?: 'top' | 'bottom'
 }
 
+type DropdownMenuContextValue = {
+  requestClose: () => void
+}
+
+const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(null)
+
 export function DropdownMenu({ trigger, children, open, onOpenChange, align = 'start', side = 'top' }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
@@ -16,6 +22,7 @@ export function DropdownMenu({ trigger, children, open, onOpenChange, align = 's
   const controlled = open !== undefined
   const openState = controlled ? open : isOpen
   const setOpenState = controlled ? onOpenChange! : setIsOpen
+  const requestClose = React.useCallback(() => setOpenState(false), [setOpenState])
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,40 +46,55 @@ export function DropdownMenu({ trigger, children, open, onOpenChange, align = 's
   const sideClasses = side === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
-      <div onClick={() => setOpenState(!openState)}>
-        {trigger}
-      </div>
-      {openState && (
-        <div
-          className={`absolute ${sideClasses} ${alignmentClasses[align]} z-50 min-w-[180px] overflow-hidden rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-2xl py-1`}
-        >
-          {children}
+    <DropdownMenuContext.Provider value={{ requestClose }}>
+      <div className="relative inline-block" ref={dropdownRef}>
+        <div onClick={() => setOpenState(!openState)}>
+          {trigger}
         </div>
-      )}
-    </div>
+        {openState && (
+          <div
+            className={`absolute ${sideClasses} ${alignmentClasses[align]} z-50 min-w-[180px] overflow-hidden rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-2xl py-1`}
+          >
+            {children}
+          </div>
+        )}
+      </div>
+    </DropdownMenuContext.Provider>
   )
 }
 
-export function DropdownMenuItem({ 
-  children, 
+export interface DropdownMenuItemProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'onClick' | 'disabled'> {
+  children: React.ReactNode
+  onClick?: () => void
+  disabled?: boolean
+}
+
+export function DropdownMenuItem({
+  children,
   onClick,
   className = '',
   disabled = false,
-}: { 
-  children: React.ReactNode
-  onClick?: () => void
-  className?: string
-  disabled?: boolean
-}) {
+  ...props
+}: DropdownMenuItemProps) {
+  const ctx = React.useContext(DropdownMenuContext)
+
   return (
     <button
       type="button"
       disabled={disabled}
+      {...props}
       className={`relative flex w-full select-none items-center px-3 py-1.5 text-[13px] outline-none transition-colors text-left ${
         disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-hover)] cursor-pointer'
       } text-[var(--text-secondary)] ${className}`}
-      onClick={disabled ? undefined : onClick}
+      onClick={
+        disabled
+          ? undefined
+          : () => {
+              onClick?.()
+              ctx?.requestClose()
+            }
+      }
     >
       {children}
     </button>

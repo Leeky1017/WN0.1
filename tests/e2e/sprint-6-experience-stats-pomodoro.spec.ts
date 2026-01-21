@@ -50,14 +50,16 @@ function escapeRegExp(text: string) {
 }
 
 async function waitForBootstrap(page: Page) {
-  await expect(page.getByRole('button', { name: /^欢迎使用\.md/ })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^欢迎使用\.md/ })).toBeVisible({ timeout: 20_000 });
 }
 
 async function createFile(page: Page, name: string) {
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill(name);
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
+  ).toBeVisible({ timeout: 15_000 });
 }
 
 async function saveNow(page: Page) {
@@ -88,7 +90,7 @@ test('stats: create + save updates writing_stats and UI', async () => {
     const baseline = baselineResp.data.stats;
 
     await createFile(page, 'Stats Doc');
-    await page.getByRole('button', { name: /^Stats Doc\.md/ }).click();
+    await page.getByTestId('layout-sidebar').getByRole('button', { name: /^Stats Doc\.md/ }).click();
 
     const afterCreateResp = await invoke<{ stats: WritingStatsRow }>(page, 'stats:getToday', {});
     expect(afterCreateResp.ok).toBe(true);

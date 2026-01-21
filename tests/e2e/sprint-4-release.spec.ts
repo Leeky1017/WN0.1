@@ -25,7 +25,7 @@ test('Sprint 4: export, publish, i18n, and update UX', async () => {
   await page.getByPlaceholder('未命名').fill('Sprint4');
   await page.getByPlaceholder('未命名').press('Enter');
 
-  await expect(page.getByRole('button', { name: /^Sprint4\.md/ })).toBeVisible();
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Sprint4\.md/ })).toBeVisible();
 
   const markdown = `# E2E Sprint4
 

@@ -64,7 +64,9 @@ async function createFile(page: Page, name: string) {
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill(name);
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
+  ).toBeVisible({ timeout: 15_000 });
 }
 
 test('projects: create/switch isolates documents', async () => {
@@ -76,14 +78,14 @@ test('projects: create/switch isolates documents', async () => {
     await createFile(page, 'Alpha Doc');
 
     await createProject(page, 'Beta');
-    await expect(page.getByRole('button', { name: /^Alpha Doc\.md/ })).toBeHidden();
+    await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Alpha Doc\.md/ })).toBeHidden();
 
     await createFile(page, 'Beta Doc');
-    await expect(page.getByRole('button', { name: /^Beta Doc\.md/ })).toBeVisible();
+    await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Beta Doc\.md/ })).toBeVisible();
 
     await switchToProject(page, 'Alpha');
-    await expect(page.getByRole('button', { name: /^Alpha Doc\.md/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Beta Doc\.md/ })).toBeHidden();
+    await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Alpha Doc\.md/ })).toBeVisible();
+    await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Beta Doc\.md/ })).toBeHidden();
   } finally {
     await electronApp.close();
   }
@@ -173,7 +175,7 @@ test('outline: edit persists and node click locates editor', async () => {
 
   const second = await launchApp(userDataDir);
   try {
-    await second.page.getByRole('button', { name: /^Outline Doc\.md/ }).click();
+    await second.page.getByTestId('layout-sidebar').getByRole('button', { name: /^Outline Doc\.md/ }).click();
     await second.page.locator('button[title="文档大纲"]').click();
     await expect(second.page.getByTestId('outline-node-title-2')).toHaveValue('第二章（改）');
   } finally {

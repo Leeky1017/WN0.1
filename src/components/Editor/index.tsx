@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X, MoreHorizontal, Eye, Edit3, Columns } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,20 +6,19 @@ import type { ViewMode } from '../../App';
 import { fileOps } from '../../lib/ipc';
 import { useEditorContextStore } from '../../stores/editorContextStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { Toolbar } from './Toolbar';
+import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MarkdownPreview } from './MarkdownPreview';
+import { TabToolbar } from './TabToolbar';
 import { createEditorExtensions } from './extensions/base';
 import { computeEditorContextFromMarkdown, computeEditorContextFromTipTap } from './editor-context-sync';
+import { applyParagraphFocus, clearParagraphFocus } from './modes/focus';
+import { applyTypewriterToTextarea, applyTypewriterToTipTap } from './modes/typewriter';
 import { WnResizable } from '../wn';
 
 interface EditorProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   focusMode: boolean;
-}
-
-function getShortcutKeyLabel() {
-  return window.writenow?.platform === 'darwin' ? '⌘' : 'Ctrl';
 }
 
 function getOffsetForLine(content: string, line: number) {
@@ -59,29 +57,39 @@ const EDITOR_SPLIT_MIN_PX = 360;
 
 export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   const { t } = useTranslation();
-  const currentPath = useEditorStore((s) => s.currentPath);
-  const content = useEditorStore((s) => s.content);
-  const editorMode = useEditorStore((s) => s.editorMode);
-  const isDirty = useEditorStore((s) => s.isDirty);
-  const isLoading = useEditorStore((s) => s.isLoading);
-  const loadError = useEditorStore((s) => s.loadError);
-  const selection = useEditorStore((s) => s.selection);
+  const activeTabId = useEditorStore((s) => s.activeTabId);
+  const activeTab = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId] ?? null : null));
+
+  const currentPath = activeTab?.path ?? null;
+  const content = activeTab?.content ?? '';
+  const editorMode = activeTab?.editorMode ?? 'markdown';
+  const isDirty = activeTab?.isDirty ?? false;
+  const isLoading = activeTab?.isLoading ?? false;
+  const loadError = activeTab?.loadError ?? null;
+  const selection = activeTab?.selection ?? null;
+  const pendingJumpLine = activeTab?.pendingJumpLine ?? null;
+  const pendingJumpRange = activeTab?.pendingJumpRange ?? null;
 
   const setContent = useEditorStore((s) => s.setContent);
   const setSelection = useEditorStore((s) => s.setSelection);
   const setEditorMode = useEditorStore((s) => s.setEditorMode);
   const save = useEditorStore((s) => s.save);
   const closeFile = useEditorStore((s) => s.closeFile);
-  const pendingJumpLine = useEditorStore((s) => s.pendingJumpLine);
   const consumeJumpToLine = useEditorStore((s) => s.consumeJumpToLine);
-  const pendingJumpRange = useEditorStore((s) => s.pendingJumpRange);
   const consumeJumpToRange = useEditorStore((s) => s.consumeJumpToRange);
+  const setTabScroll = useEditorStore((s) => s.setTabScroll);
+
+  const typewriterEnabled = usePreferencesStore((s) => s.flow.typewriterEnabled);
+  const typewriterTolerancePx = usePreferencesStore((s) => s.flow.typewriterTolerancePx);
+  const paragraphFocusEnabled = usePreferencesStore((s) => s.flow.paragraphFocusEnabled);
+  const paragraphFocusDimOpacity = usePreferencesStore((s) => s.flow.paragraphFocusDimOpacity);
 
   const [lineCount, setLineCount] = useState(1);
   const autosaveTimerRef = useRef<number | null>(null);
   const lastSnapshotContentRef = useRef<string>('');
   const lastSnapshotPathRef = useRef<string>('');
   const isProgrammaticTipTapUpdateRef = useRef(false);
+  const typewriterRafRef = useRef<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const markdownSyncTimerRef = useRef<number | null>(null);
   const tiptapSyncTimerRef = useRef<number | null>(null);
@@ -152,7 +160,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
 
   useEffect(() => {
     if (viewMode !== 'split') return;
-    const editorEl = editorScrollRef.current;
+    const editorEl = editorMode === 'markdown' ? textareaRef.current : editorScrollRef.current;
     const previewEl = previewScrollRef.current;
     if (!editorEl || !previewEl) return;
 
@@ -188,6 +196,43 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
       window.cancelAnimationFrame(rafId);
     };
   }, [editorMode, viewMode]);
+
+  useEffect(() => {
+    if (!activeTabId) return;
+    const scroll = useEditorStore.getState().scrollMap[activeTabId] ?? { editorScrollTop: 0, previewScrollTop: 0 };
+    const editorEl = editorMode === 'markdown' ? textareaRef.current : editorScrollRef.current;
+    if (editorEl) editorEl.scrollTop = scroll.editorScrollTop;
+    if (previewScrollRef.current) previewScrollRef.current.scrollTop = scroll.previewScrollTop;
+  }, [activeTabId, editorMode, viewMode]);
+
+  useEffect(() => {
+    if (!activeTabId) return;
+    const editorEl = editorMode === 'markdown' ? textareaRef.current : editorScrollRef.current;
+    const previewEl = previewScrollRef.current;
+    if (!editorEl && !previewEl) return;
+
+    let rafId = 0;
+    const schedulePersist = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        setTabScroll(activeTabId, {
+          editorScrollTop: editorEl?.scrollTop ?? 0,
+          previewScrollTop: previewEl?.scrollTop ?? 0,
+        });
+      });
+    };
+
+    editorEl?.addEventListener('scroll', schedulePersist, { passive: true });
+    previewEl?.addEventListener('scroll', schedulePersist, { passive: true });
+    schedulePersist();
+
+    return () => {
+      editorEl?.removeEventListener('scroll', schedulePersist);
+      previewEl?.removeEventListener('scroll', schedulePersist);
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [activeTabId, editorMode, setTabScroll, viewMode]);
 
   useEffect(() => {
     if (currentPath) return;
@@ -281,7 +326,10 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const offset = getOffsetForLine(useEditorStore.getState().content, pendingJumpLine);
+    const state = useEditorStore.getState();
+    const activeId = state.activeTabId;
+    const activeContent = activeId ? state.tabStateById[activeId]?.content ?? '' : '';
+    const offset = getOffsetForLine(activeContent, pendingJumpLine);
     textarea.focus();
     textarea.setSelectionRange(offset, offset);
 
@@ -306,12 +354,15 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const { start, end } = normalizeJumpRange(pendingJumpRange, useEditorStore.getState().content.length);
+    const state = useEditorStore.getState();
+    const activeId = state.activeTabId;
+    const activeContent = activeId ? state.tabStateById[activeId]?.content ?? '' : '';
+    const { start, end } = normalizeJumpRange(pendingJumpRange, activeContent.length);
     textarea.focus();
     textarea.setSelectionRange(start, end);
     setSelection({ start, end });
 
-    const line = getLineForOffset(useEditorStore.getState().content, start);
+    const line = getLineForOffset(activeContent, start);
     const lineHeightRaw = window.getComputedStyle(textarea).lineHeight;
     const lineHeight = Number.parseFloat(lineHeightRaw);
     if (Number.isFinite(lineHeight) && lineHeight > 0) {
@@ -336,22 +387,26 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
 
   useEffect(() => {
     if (!currentPath) return;
+    if (!activeTabId) return;
     lastSnapshotPathRef.current = currentPath;
-    lastSnapshotContentRef.current = useEditorStore.getState().content;
+    lastSnapshotContentRef.current = useEditorStore.getState().tabStateById[activeTabId]?.content ?? '';
 
     const rawInterval = typeof window.writenow?.snapshotIntervalMs === 'number' ? window.writenow.snapshotIntervalMs : null;
     const intervalMs = rawInterval && rawInterval > 0 ? rawInterval : 5 * 60 * 1000;
 
     const intervalId = window.setInterval(() => {
       const state = useEditorStore.getState();
-      if (!state.currentPath) return;
-      if (state.currentPath !== lastSnapshotPathRef.current) return;
+      const activeId = state.activeTabId;
+      if (!activeId) return;
+      const tab = state.tabStateById[activeId];
+      if (!tab) return;
+      if (tab.path !== lastSnapshotPathRef.current) return;
 
-      const nextContent = state.content;
+      const nextContent = tab.content;
       if (nextContent === lastSnapshotContentRef.current) return;
 
       fileOps
-        .snapshotWrite(state.currentPath, nextContent, 'auto')
+        .snapshotWrite(tab.path, nextContent, 'auto')
         .then(() => {
           lastSnapshotContentRef.current = nextContent;
         })
@@ -359,7 +414,36 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
     }, intervalMs);
 
     return () => window.clearInterval(intervalId);
-  }, [currentPath]);
+  }, [activeTabId, currentPath]);
+
+  const scheduleTypewriter = useCallback((editorOverride: Parameters<typeof applyTypewriterToTipTap>[0] | null = null) => {
+    if (!typewriterEnabled) return;
+    if (typewriterRafRef.current) return;
+
+    typewriterRafRef.current = window.requestAnimationFrame(() => {
+      typewriterRafRef.current = null;
+      const tolerancePx = typewriterTolerancePx;
+
+      if (editorMode === 'markdown') {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        applyTypewriterToTextarea(textarea, { tolerancePx });
+        return;
+      }
+
+      const container = editorScrollRef.current;
+      const editor = editorOverride;
+      if (!container || !editor) return;
+      applyTypewriterToTipTap(editor, container, { tolerancePx });
+    });
+  }, [editorMode, typewriterEnabled, typewriterTolerancePx]);
+
+  useEffect(() => {
+    return () => {
+      if (typewriterRafRef.current) window.cancelAnimationFrame(typewriterRafRef.current);
+      typewriterRafRef.current = null;
+    };
+  }, []);
 
   const tiptapEditor = useEditor({
     extensions: createEditorExtensions(),
@@ -374,13 +458,20 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
     onUpdate: ({ editor }) => {
       if (isProgrammaticTipTapUpdateRef.current) return;
       const markdown = editor.getMarkdown();
-      if (markdown !== useEditorStore.getState().content) {
+      const state = useEditorStore.getState();
+      const activeId = state.activeTabId;
+      const activeContent = activeId ? state.tabStateById[activeId]?.content ?? '' : '';
+      if (markdown !== activeContent) {
         setContent(markdown);
       }
       scheduleTipTapSyncRef.current?.(editor);
+      scheduleTypewriter(editor);
+      if (paragraphFocusEnabled) applyParagraphFocus(editor, { dimOpacity: paragraphFocusDimOpacity });
     },
     onSelectionUpdate: ({ editor }) => {
       scheduleTipTapSyncRef.current?.(editor);
+      scheduleTypewriter(editor);
+      if (paragraphFocusEnabled) applyParagraphFocus(editor, { dimOpacity: paragraphFocusDimOpacity });
     },
   });
 
@@ -398,6 +489,22 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
     isProgrammaticTipTapUpdateRef.current = false;
     scheduleTipTapSyncRef.current?.(tiptapEditor);
   }, [content, currentPath, editorMode, tiptapEditor]);
+
+  useEffect(() => {
+    if (!tiptapEditor) return;
+    if (editorMode !== 'richtext' || !paragraphFocusEnabled) {
+      clearParagraphFocus(tiptapEditor);
+      return;
+    }
+
+    applyParagraphFocus(tiptapEditor, { dimOpacity: paragraphFocusDimOpacity });
+    return () => clearParagraphFocus(tiptapEditor);
+  }, [editorMode, paragraphFocusDimOpacity, paragraphFocusEnabled, tiptapEditor]);
+
+  useEffect(() => {
+    if (!typewriterEnabled) return;
+    scheduleTypewriter(tiptapEditor);
+  }, [activeTabId, editorMode, scheduleTypewriter, tiptapEditor, typewriterEnabled, typewriterTolerancePx]);
 
   useEffect(() => {
     if (editorMode !== 'markdown') {
@@ -431,25 +538,32 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
               <div key={i + 1}>{i + 1}</div>
             ))}
           </div>
-          <div ref={editorScrollRef} className="flex-1 overflow-auto" data-testid="editor-scroll">
+          <div ref={editorScrollRef} className="flex-1 overflow-hidden">
             <textarea
               ref={textareaRef}
+              data-testid="editor-scroll"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => {
+                setContent(e.target.value);
+                scheduleTypewriter();
+              }}
               onSelect={(e) => {
                 const start = e.currentTarget.selectionStart ?? 0;
                 const end = e.currentTarget.selectionEnd ?? start;
                 setSelection({ start, end });
+                scheduleTypewriter();
               }}
               onKeyUp={(e) => {
                 const start = e.currentTarget.selectionStart ?? 0;
                 const end = e.currentTarget.selectionEnd ?? start;
                 setSelection({ start, end });
+                scheduleTypewriter();
               }}
               onMouseUp={(e) => {
                 const start = e.currentTarget.selectionStart ?? 0;
                 const end = e.currentTarget.selectionEnd ?? start;
                 setSelection({ start, end });
+                scheduleTypewriter();
               }}
               className="w-full h-full bg-transparent text-[var(--text-primary)] outline-none resize-none px-4 py-3 leading-[1.6] font-mono text-[13px]"
               placeholder={t('editor.placeholderMarkdown')}
@@ -472,100 +586,13 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   return (
     <div className="flex-1 flex flex-col bg-[var(--bg-primary)]">
       {!focusMode && (
-        <div className="h-9 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] flex items-center">
-          <div className="flex items-center gap-2 px-3 h-full bg-[var(--bg-tertiary)] border-r border-[var(--border-subtle)] min-w-0">
-            <span className="text-[13px] text-[var(--text-secondary)] truncate">{currentPath}</span>
-            {isDirty && (
-              <span
-                className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
-                title="未保存"
-                aria-label="Unsaved changes"
-              />
-            )}
-            <button
-              onClick={() => closeFile()}
-              className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors"
-              title="关闭"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="flex-1" />
-          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors mr-1">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {!focusMode && (
-        <div className="h-10 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] flex items-center justify-between px-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setEditorMode('markdown')}
-              className={`h-6 px-2.5 rounded-md text-xs transition-colors ${
-                editorMode === 'markdown'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-              }`}
-              title={`Markdown（${getShortcutKeyLabel()}+S 保存）`}
-            >
-              Markdown
-            </button>
-            <button
-              onClick={() => setEditorMode('richtext')}
-              className={`h-6 px-2.5 rounded-md text-xs transition-colors ${
-                editorMode === 'richtext'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-              }`}
-            >
-              Rich Text
-            </button>
-
-            {editorMode === 'richtext' && (
-              <>
-                <div className="w-px h-4 bg-[var(--border-default)] mx-1" />
-                <Toolbar editor={tiptapEditor} />
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onViewModeChange('edit')}
-              className={`h-6 px-2 rounded-md text-xs flex items-center gap-1 transition-colors ${
-                viewMode === 'edit'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-              }`}
-            >
-              <Edit3 className="w-3 h-3" />
-              Edit
-            </button>
-            <button
-              onClick={() => onViewModeChange('preview')}
-              className={`h-6 px-2 rounded-md text-xs flex items-center gap-1 transition-colors ${
-                viewMode === 'preview'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-              }`}
-            >
-              <Eye className="w-3 h-3" />
-              Preview
-            </button>
-            <button
-              onClick={() => onViewModeChange('split')}
-              className={`h-6 px-2 rounded-md text-xs flex items-center gap-1 transition-colors ${
-                viewMode === 'split'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-              }`}
-            >
-              <Columns className="w-3 h-3" />
-              Split
-            </button>
-          </div>
-        </div>
+        <TabToolbar
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
+          editorMode={editorMode}
+          onEditorModeChange={setEditorMode}
+          richtextEditor={tiptapEditor}
+        />
       )}
 
       <div ref={splitRootRef} className="flex-1 flex overflow-hidden" data-testid="editor-split-root">

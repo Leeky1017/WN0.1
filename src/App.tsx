@@ -18,12 +18,14 @@ import { useEditorStore } from './stores/editorStore';
 import { usePomodoroStore } from './stores/pomodoroStore';
 import { useProjectsStore } from './stores/projectsStore';
 import { useLayoutStore } from './stores/layoutStore';
+import { usePreferencesStore } from './stores/preferencesStore';
 import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
 import { usePomodoroRuntime } from './hooks/usePomodoroRuntime';
 import { useAiStore } from './stores/aiStore';
 import { CommandPalette } from './components/CommandPalette';
 import { BUILTIN_SKILLS } from './lib/skills';
 import { createCommandRegistry } from './lib/commands/registry';
+import { useZenChrome } from './components/Editor/modes/zen';
 
 export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView =
@@ -54,7 +56,6 @@ export default function App() {
   const { t } = useTranslation();
   const [sidebarView, setSidebarView] = useState<SidebarView>('files');
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
-  const [focusMode, setFocusMode] = useState(false);
   const [windowWidth, setWindowWidth] = useState(() => window.innerWidth);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const bootstrappedRef = useRef(false);
@@ -68,6 +69,13 @@ export default function App() {
   usePomodoroRuntime();
 
   const hydrateLayout = useLayoutStore((s) => s.hydrate);
+  const hydratePreferences = usePreferencesStore((s) => s.hydrate);
+
+  const zenEnabled = usePreferencesStore((s) => s.flow.zenEnabled);
+  const setZenEnabled = usePreferencesStore((s) => s.setZenEnabled);
+  const toggleZen = usePreferencesStore((s) => s.toggleZen);
+  const { chromeHidden } = useZenChrome({ enabled: zenEnabled });
+  const focusMode = chromeHidden;
   const sidebarWidthPx = useLayoutStore((s) => s.sidebarWidthPx);
   const isSidebarCollapsed = useLayoutStore((s) => s.isSidebarCollapsed);
   const setSidebarWidthPx = useLayoutStore((s) => s.setSidebarWidthPx);
@@ -83,6 +91,10 @@ export default function App() {
   useEffect(() => {
     hydrateLayout();
   }, [hydrateLayout]);
+
+  useEffect(() => {
+    hydratePreferences();
+  }, [hydratePreferences]);
 
   useEffect(() => {
     const onResize = () => setWindowWidth(window.innerWidth);
@@ -102,9 +114,9 @@ export default function App() {
   const projectsError = useProjectsStore((s) => s.error);
   const bootstrapProjects = useProjectsStore((s) => s.bootstrap);
 
-  const selectedFile = useEditorStore((s) => s.currentPath);
+  const selectedFile = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId]?.path ?? null : null));
   const openFile = useEditorStore((s) => s.openFile);
-  const editorContent = useEditorStore((s) => s.content);
+  const editorContent = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId]?.content ?? '' : ''));
 
   const runSkill = useAiStore((s) => s.runSkill);
   const startPomodoro = usePomodoroStore((s) => s.start);
@@ -140,16 +152,16 @@ export default function App() {
   // ESC to exit focus mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && focusMode) {
-        setFocusMode(false);
-      }
+      if (e.key !== 'Escape') return;
+      if (!zenEnabled) return;
+      setZenEnabled(false);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusMode]);
+  }, [setZenEnabled, zenEnabled]);
 
   useEffect(() => {
-    if (focusMode) return;
+    if (zenEnabled) return;
 
     const applyResponsiveCollapse = () => {
       const width = window.innerWidth;
@@ -173,7 +185,7 @@ export default function App() {
     applyResponsiveCollapse();
     window.addEventListener('resize', applyResponsiveCollapse);
     return () => window.removeEventListener('resize', applyResponsiveCollapse);
-  }, [focusMode, isAiPanelCollapsed, isSidebarCollapsed, setAiPanelCollapsed, setSidebarCollapsed]);
+  }, [isAiPanelCollapsed, isSidebarCollapsed, setAiPanelCollapsed, setSidebarCollapsed, zenEnabled]);
 
   // Global Ctrl/Cmd+K command palette (capture so it can safely override editor shortcuts)
   useEffect(() => {
@@ -204,28 +216,28 @@ export default function App() {
     return createCommandRegistry({
       t,
       openStats: () => {
-        setFocusMode(false);
+        setZenEnabled(false);
         setSidebarCollapsed(false);
         setSidebarView('stats');
       },
       openMemory: () => {
-        setFocusMode(false);
+        setZenEnabled(false);
         setSidebarCollapsed(false);
         setSidebarView('memory');
       },
       openSettings: () => {
-        setFocusMode(false);
+        setZenEnabled(false);
         setSidebarCollapsed(false);
         setSidebarView('settings');
       },
-      toggleFocusMode: () => setFocusMode((v) => !v),
+      toggleFocusMode: () => toggleZen(),
       startPomodoro,
       pausePomodoro,
       stopPomodoro,
       runSkill,
       skills: BUILTIN_SKILLS,
     });
-  }, [pausePomodoro, runSkill, setSidebarCollapsed, startPomodoro, stopPomodoro, t]);
+  }, [pausePomodoro, runSkill, setSidebarCollapsed, setZenEnabled, startPomodoro, stopPomodoro, t, toggleZen]);
 
   useEffect(() => {
     bootstrapProjects().catch(() => undefined);
@@ -332,14 +344,17 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
-      <TitleBar
-        focusMode={focusMode}
-        sidebarOpen={!isSidebarCollapsed}
-        aiPanelOpen={!isAiPanelCollapsed}
-        onToggleSidebar={toggleSidebarCollapsed}
-        onToggleAIPanel={toggleAiPanelCollapsed}
-        onToggleFocusMode={() => setFocusMode(!focusMode)}
-      />
+      {!focusMode && (
+        <TitleBar
+          focusMode={focusMode}
+          zenEnabled={zenEnabled}
+          sidebarOpen={!isSidebarCollapsed}
+          aiPanelOpen={!isAiPanelCollapsed}
+          onToggleSidebar={toggleSidebarCollapsed}
+          onToggleAIPanel={toggleAiPanelCollapsed}
+          onToggleFocusMode={toggleZen}
+        />
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
@@ -349,7 +364,12 @@ export default function App() {
 
             {!isSidebarCollapsed && (
               <>
-                <div className="flex-none overflow-hidden" style={{ width: effectiveSidebarWidthPx }} data-testid="layout-sidebar">
+                <div
+                  className="flex-none overflow-hidden"
+                  style={{ width: effectiveSidebarWidthPx }}
+                  data-testid="layout-sidebar"
+                  data-zen-chrome
+                >
                   <SidebarPanel
                     view={sidebarView}
                     onViewChange={openSidebarView}
@@ -388,33 +408,27 @@ export default function App() {
               ariaLabel="Resize AI panel"
               onSizePxChange={setAiPanelWidthPx}
             />
-            <div className="flex-none overflow-hidden" style={{ width: effectiveAiPanelWidthPx }} data-testid="layout-ai-panel">
+            <div
+              className="flex-none overflow-hidden"
+              style={{ width: effectiveAiPanelWidthPx }}
+              data-testid="layout-ai-panel"
+              data-zen-chrome
+            >
               <AIPanel />
             </div>
           </>
         )}
       </div>
 
-      <StatusBar
-        focusMode={focusMode}
-        onOpenStats={() => {
-          setFocusMode(false);
-          setSidebarCollapsed(false);
-          setSidebarView('stats');
-        }}
-      />
-
-      {/* Focus Mode Exit Hint */}
-      {focusMode && (
-        <div className="fixed top-4 right-4 wn-elevated rounded-md px-3 py-2 flex items-center gap-2 animate-fade-in">
-          <span className="text-[11px] text-[var(--text-tertiary)]">{t('app.focus.exitHint')}</span>
-          <button
-            onClick={() => setFocusMode(false)}
-            className="text-[11px] text-[var(--accent-primary)] hover:text-[var(--accent-hover)] transition-colors"
-          >
-            {t('app.focus.exit')}
-          </button>
-        </div>
+      {!focusMode && (
+        <StatusBar
+          focusMode={focusMode}
+          onOpenStats={() => {
+            setZenEnabled(false);
+            setSidebarCollapsed(false);
+            setSidebarView('stats');
+          }}
+        />
       )}
 
       {recoverySnapshot && (

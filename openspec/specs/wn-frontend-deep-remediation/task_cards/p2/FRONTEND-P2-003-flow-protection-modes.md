@@ -1,5 +1,10 @@
 # FRONTEND-P2-003: 心流保护（Typewriter / Paragraph Focus / Zen）
 
+Status: done
+Issue: #89
+PR: https://github.com/Leeky1017/WN0.1/pull/99
+RUN_LOG: openspec/_ops/task_runs/ISSUE-89.md
+
 ## Goal
 
 提供写作心流保护模式：打字机滚动、段落聚焦、Zen 模式，降低 UI 干扰，让用户更容易进入沉浸写作状态。
@@ -19,11 +24,10 @@
 
 ## Acceptance Criteria
 
-- [ ] Typewriter：光标行保持视口垂直居中（容错可配置），且不抖动
-- [ ] Focus：非当前段落渐隐，强度可调，且不影响复制/选择
-- [ ] Zen：隐藏所有 chrome，仅保留文字与光标；鼠标到边缘可临时唤出 UI；退出后状态恢复
+- [x] Typewriter：光标行保持视口垂直居中（容错可配置），且不抖动
+- [x] Focus：非当前段落渐隐，强度可调，且不影响复制/选择
+- [x] Zen：隐藏所有 chrome，仅保留文字与光标；鼠标到边缘可临时唤出 UI；退出后状态恢复
 
 ## Tests
 
-- [ ] Playwright E2E：开启/关闭各模式，断言 UI 显隐与状态恢复（含重启恢复偏好）
-
+- [x] Playwright E2E：开启/关闭各模式，断言 UI 显隐与状态恢复（含重启恢复偏好）

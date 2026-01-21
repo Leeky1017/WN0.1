@@ -31,7 +31,9 @@ async function createFile(page: Page, name: string) {
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill(name);
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible();
+  await expect(
+    page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
+  ).toBeVisible();
 }
 
 async function waitForSnapshot(userDataDir: string, options: { timeoutMs?: number; contains?: string } = {}) {
@@ -104,12 +106,13 @@ test('file delete removes file and closes editor', async () => {
   await expect(page.getByText('删除文章')).toBeVisible();
   await page.getByRole('button', { name: '删除', exact: true }).click();
 
-  await expect(page.getByRole('button', { name: /^Delete Me\.md/ })).toBeHidden();
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Delete Me\.md/ })).toBeHidden();
 
   const docPath = path.join(userDataDir, 'documents', 'Delete Me.md');
   expect(fs.existsSync(docPath)).toBe(false);
 
-  await expect(page.getByTestId('editor-empty')).toBeVisible();
+  await expect(page.getByTestId('editor-tabbar').getByRole('button', { name: 'Delete Me.md', exact: true })).toHaveCount(0);
+  await expect(page.locator('textarea[placeholder="开始用 Markdown 写作…"]')).toBeVisible();
   await electronApp.close();
 });
 

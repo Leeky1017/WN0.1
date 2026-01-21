@@ -22,7 +22,7 @@ test('Frontend P1: StatusBar is unified (≤24px) and supports progressive discl
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill('StatusBar');
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: /^StatusBar\.md/ })).toBeVisible();
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^StatusBar\.md/ })).toBeVisible();
 
   await page.getByPlaceholder('开始用 Markdown 写作…').fill('# StatusBar\n\nHello\n\n' + 'line\n'.repeat(40));
 

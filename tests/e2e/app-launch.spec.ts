@@ -26,7 +26,7 @@ test('app launch, create file, and initialize storage', async () => {
   await page.getByPlaceholder('未命名').fill('E2E Test');
   await page.getByPlaceholder('未命名').press('Enter');
 
-  await expect(page.getByRole('button', { name: /^E2E Test\.md/ })).toBeVisible();
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^E2E Test\.md/ })).toBeVisible();
   await page.getByPlaceholder('开始用 Markdown 写作…').fill('# E2E\n\nHello');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
 

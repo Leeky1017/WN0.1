@@ -28,7 +28,7 @@ test('Frontend P0: theme mapping is visually stable (dark/light baseline)', asyn
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill('ThemeBaseline');
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: /^ThemeBaseline\.md/ })).toBeVisible();
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^ThemeBaseline\.md/ })).toBeVisible();
 
   await page.getByPlaceholder('开始用 Markdown 写作…').fill('# Theme Baseline\n\nHello world.\n');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });

@@ -255,8 +255,10 @@ export const useAiStore = create<AiState>((set, get) => ({
     if (!skillId) return;
 
     const editor = useEditorStore.getState();
-    const articleId = editor.currentPath;
-    const content = editor.content ?? '';
+    const activeId = editor.activeTabId;
+    const activeTab = activeId ? editor.tabStateById[activeId] : null;
+    const articleId = activeTab?.path ?? null;
+    const content = activeTab?.content ?? '';
 
     if (!articleId) {
       const localId = (runSeq += 1);
@@ -281,7 +283,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       return;
     }
 
-    const selection = editor.selection;
+    const selection = activeTab?.selection;
     const safeStart = clampRange(selection?.start ?? 0, content.length);
     const safeEnd = clampRange(selection?.end ?? safeStart, content.length);
     const hasSelection = safeEnd > safeStart;
@@ -535,7 +537,9 @@ export const useAiStore = create<AiState>((set, get) => ({
     }
 
     const projectId = useProjectsStore.getState().currentProjectId;
-    const articleId = useEditorStore.getState().currentPath;
+    const editor = useEditorStore.getState();
+    const activeId = editor.activeTabId;
+    const articleId = activeId ? editor.tabStateById[activeId]?.path ?? null : null;
     if (!projectId || !articleId) {
       set({ run: null, historyPreview: null });
       return;
@@ -587,7 +591,9 @@ export const useAiStore = create<AiState>((set, get) => ({
     if (!run || run.status !== 'done') return;
 
     const editor = useEditorStore.getState();
-    const articleId = editor.currentPath;
+    const activeId = editor.activeTabId;
+    const activeTab = activeId ? editor.tabStateById[activeId] : null;
+    const articleId = activeTab?.path ?? null;
     if (!articleId) return;
 
     const suggested = run.suggestedText;
@@ -634,7 +640,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       }
     }
 
-    let nextContent = editor.content;
+    let nextContent = activeTab?.content ?? '';
 
     if (run.target.kind === 'selection') {
       nextContent = useEditorStore.getState().replaceRange({ start: run.target.start, end: run.target.end }, suggested);
@@ -697,7 +703,8 @@ export const useAiStore = create<AiState>((set, get) => ({
     if (!preview) return;
 
     const editor = useEditorStore.getState();
-    const articleId = editor.currentPath;
+    const activeId = editor.activeTabId;
+    const articleId = activeId ? editor.tabStateById[activeId]?.path ?? null : null;
     if (!articleId) return;
 
     useEditorStore.getState().setContent(preview.snapshotContent);

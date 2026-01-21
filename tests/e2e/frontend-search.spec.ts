@@ -41,7 +41,9 @@ async function createFile(page: Page, name: string) {
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill(name);
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
+  ).toBeVisible({ timeout: 15_000 });
 }
 
 async function readEditorSelection(page: Page) {
@@ -77,10 +79,10 @@ test('sidebar search: fulltext highlight + match navigation', async () => {
     await page.getByTestId('search-mode-fulltext').click();
     await page.getByTestId('search-input').fill(needle);
 
-    await expect(page.getByTitle('Search Doc')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('layout-sidebar').getByTitle('Search Doc')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('mark')).toContainText(needle);
 
-    await page.getByTitle('Search Doc').click();
+    await page.getByTestId('layout-sidebar').getByTitle('Search Doc').click();
 
     const first = content.indexOf(needle);
     const second = content.indexOf(needle, first + needle.length);
@@ -99,4 +101,3 @@ test('sidebar search: fulltext highlight + match navigation', async () => {
     await electronApp.close();
   }
 });
-

@@ -117,7 +117,7 @@ export function ProjectSidebar({ activeView, onViewChange }: ProjectSidebarProps
 
   const runAfterProjectChange = async () => {
     await useFilesStore.getState().refresh();
-    useEditorStore.getState().closeFile();
+    useEditorStore.getState().closeAllTabs();
   };
 
   const switchProject = async (projectId: string) => {
@@ -126,9 +126,12 @@ export function ProjectSidebar({ activeView, onViewChange }: ProjectSidebarProps
     if (!targetId || targetId === currentProjectId) return;
 
     const editorState = useEditorStore.getState();
-    if (editorState.currentPath && editorState.isDirty) {
+    const dirtyTabIds = editorState.openTabs.filter((tab) => editorState.dirtyMap[tab.id]).map((tab) => tab.id);
+    if (dirtyTabIds.length > 0) {
       try {
-        await editorState.save();
+        for (const tabId of dirtyTabIds) {
+          await editorState.save(tabId);
+        }
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setSwitchError(t('projects.switchSaveFailed', { error: message }));
