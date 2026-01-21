@@ -26,7 +26,10 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
   ];
 
   return (
-    <div className="w-12 bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] flex flex-col items-center py-2 px-1">
+    <div
+      className="w-12 bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] flex flex-col items-center py-2 px-1"
+      data-zen-chrome
+    >
       {activities.map((activity) => {
         const Icon = activity.icon;
         const isActive = activeView === activity.id;

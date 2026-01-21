@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from './ui/drop
 
 interface TitleBarProps {
   focusMode: boolean;
+  zenEnabled: boolean;
   sidebarOpen: boolean;
   aiPanelOpen: boolean;
   onToggleSidebar: () => void;
@@ -19,6 +20,7 @@ interface TitleBarProps {
 
 export function TitleBar({
   focusMode,
+  zenEnabled,
   sidebarOpen,
   aiPanelOpen,
   onToggleSidebar,
@@ -27,8 +29,8 @@ export function TitleBar({
 }: TitleBarProps) {
   const { t } = useTranslation();
   const api = window.writenow;
-  const currentPath = useEditorStore((s) => s.currentPath);
-  const content = useEditorStore((s) => s.content);
+  const currentPath = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId]?.path ?? null : null));
+  const content = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId]?.content ?? '' : ''));
 
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
   const [exporting, setExporting] = useState<null | 'markdown' | 'docx' | 'pdf'>(null);
@@ -115,7 +117,10 @@ export function TitleBar({
   );
 
   return (
-    <div className="h-9 flex items-center justify-between px-2 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] wn-drag">
+    <div
+      className="h-9 flex items-center justify-between px-2 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] wn-drag"
+      data-zen-chrome
+    >
       <div className="flex items-center gap-2 min-w-0 wn-no-drag">
         <div className="flex items-center gap-2 px-2 h-7 rounded-md hover:bg-[var(--bg-hover)] transition-colors">
           <PenLine className="w-4 h-4 text-[var(--text-secondary)]" />
@@ -193,8 +198,8 @@ export function TitleBar({
               type="button"
               onClick={onToggleFocusMode}
               className="wn-icon-btn"
-              aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
-              title="Focus"
+              aria-label={zenEnabled ? 'Exit zen mode' : 'Enter zen mode'}
+              title={zenEnabled ? 'Exit Zen' : 'Zen'}
             >
               <Focus className="w-4 h-4" />
             </button>

@@ -34,8 +34,9 @@ function isAiStreamEvent(value: unknown): value is AiStreamEvent {
 }
 
 export function AIPanel() {
-  const currentPath = useEditorStore((s) => s.currentPath);
-  const editorContent = useEditorStore((s) => s.content);
+  const activeTab = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId] ?? null : null));
+  const currentPath = activeTab?.path ?? null;
+  const editorContent = activeTab?.content ?? '';
 
   const run = useAiStore((s) => s.run);
   const historyPreview = useAiStore((s) => s.historyPreview);

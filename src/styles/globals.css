@@ -49,3 +49,13 @@ body {
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
+
+/* Flow protection: paragraph focus (rich-text / ProseMirror). */
+.ProseMirror.wn-focus-mode > * {
+  opacity: var(--wn-focus-dim-opacity, 0.35);
+  transition: opacity 120ms ease;
+}
+
+.ProseMirror.wn-focus-mode > *.wn-focus-active-block {
+  opacity: 1;
+}

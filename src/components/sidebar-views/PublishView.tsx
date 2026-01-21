@@ -16,8 +16,9 @@ function getTitleFromPath(path: string | null): string {
 
 export function PublishView() {
   const { t } = useTranslation();
-  const currentPath = useEditorStore((s) => s.currentPath);
-  const content = useEditorStore((s) => s.content);
+  const activeTab = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId] ?? null : null));
+  const currentPath = activeTab?.path ?? null;
+  const content = activeTab?.content ?? '';
 
   const [platform, setPlatform] = useState<PublishPlatform>('wechat');
   const [stripLinks, setStripLinks] = useState(false);

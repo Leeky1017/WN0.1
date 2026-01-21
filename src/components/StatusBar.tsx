@@ -36,11 +36,12 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
   const [focusMinutesDraft, setFocusMinutesDraft] = useState(25);
   const [breakMinutesDraft, setBreakMinutesDraft] = useState(5);
 
-  const content = useEditorStore((s) => s.content);
-  const currentPath = useEditorStore((s) => s.currentPath);
-  const isDirty = useEditorStore((s) => s.isDirty);
-  const saveStatus = useEditorStore((s) => s.saveStatus);
-  const lastSavedAt = useEditorStore((s) => s.lastSavedAt);
+  const activeTab = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId] ?? null : null));
+  const content = activeTab?.content ?? '';
+  const currentPath = activeTab?.path ?? null;
+  const isDirty = activeTab?.isDirty ?? false;
+  const saveStatus = activeTab?.saveStatus ?? 'saved';
+  const lastSavedAt = activeTab?.lastSavedAt ?? null;
 
   const today = useStatsStore((s) => s.today);
   const dailyGoal = useStatsStore((s) => s.dailyWordGoal);
@@ -116,7 +117,7 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
   const canExpand = !focusMode;
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" data-zen-chrome>
       {isExpanded && canExpand && (
         <div className="absolute bottom-6 left-3 right-3 z-40">
           <WnPanel padding="sm" className="flex items-start justify-between gap-3">

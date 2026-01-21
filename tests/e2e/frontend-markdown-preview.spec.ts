@@ -22,7 +22,7 @@ test('Frontend P0: Markdown preview is full-fidelity and scroll-sync works', asy
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill('MarkdownPreview');
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: /^MarkdownPreview\.md/ })).toBeVisible();
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^MarkdownPreview\.md/ })).toBeVisible();
 
   const longTail = Array.from({ length: 220 }, (_, i) => `Line ${i + 1}: lorem ipsum dolor sit amet.`).join('\n');
 

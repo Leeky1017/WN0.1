@@ -165,9 +165,9 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
       return;
     }
 
-    if (useEditorStore.getState().currentPath === deleteTargetPath) {
-      useEditorStore.getState().closeFile();
-    }
+    const editorState = useEditorStore.getState();
+    const tab = editorState.openTabs.find((t) => t.path === deleteTargetPath);
+    if (tab) editorState.closeTab(tab.id);
 
     closeDelete();
   };

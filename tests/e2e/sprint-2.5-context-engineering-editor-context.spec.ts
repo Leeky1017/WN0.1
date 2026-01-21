@@ -76,7 +76,7 @@ test('editor context sync: selection + paragraph window updates within debounce'
     await page.locator('button[title="新建文件"]').click();
     await page.getByPlaceholder('未命名').fill('Context Sync');
     await page.getByPlaceholder('未命名').press('Enter');
-    await expect(page.getByRole('button', { name: /^Context Sync\.md/ })).toBeVisible();
+    await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Context Sync\.md/ })).toBeVisible();
 
     await page.getByPlaceholder('开始用 Markdown 写作…').fill('');
 

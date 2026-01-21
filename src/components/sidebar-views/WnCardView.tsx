@@ -95,6 +95,14 @@ export function WnCardView({ selectedFile, onSelectFile }: WnCardViewProps) {
     syncOrder(projectId, fileIds);
   }, [cardsHydrated, fileIds, projectId, syncOrder]);
 
+  const orderReady = useMemo(() => {
+    if (!cardsHydrated) return false;
+    if (fileIds.length === 0) return true;
+    if (cardState.order.length === 0) return false;
+    const orderSet = new Set(cardState.order);
+    return fileIds.every((id) => orderSet.has(id));
+  }, [cardState.order, cardsHydrated, fileIds]);
+
   const orderedFiles = useMemo(() => {
     const byId = new Map(files.map((f) => [f.path, f]));
     const orderedIds = cardState.order.filter((id) => byId.has(id));
@@ -192,7 +200,11 @@ export function WnCardView({ selectedFile, onSelectFile }: WnCardViewProps) {
           <div className="text-[12px] text-[var(--text-tertiary)] py-6 text-center">{t('cards.empty')}</div>
         )}
 
-        {!error && orderedFiles.length > 0 && (
+        {!error && !orderReady && files.length > 0 && (
+          <div className="text-[12px] text-[var(--text-tertiary)] py-6 text-center">{t('common.loading')}</div>
+        )}
+
+        {!error && orderReady && orderedFiles.length > 0 && (
           <div className="flex flex-col gap-2" data-testid="cards-list">
             {orderedFiles.map((file) => {
               const docId = file.path;
