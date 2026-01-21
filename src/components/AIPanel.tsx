@@ -146,6 +146,7 @@ export function AIPanel() {
               suggestedText={run.suggestedText}
               status={run.status}
               contextDebug={run.contextDebug ?? undefined}
+              sentPrompt={run.sentPrompt}
               errorMessage={run.errorMessage}
               violations={run.judge.result?.violations ?? []}
               violationStatus={run.judge.status}
