@@ -1,7 +1,7 @@
 # ISSUE-70
 - Issue: #70
 - Branch: task/70-s6-stats-pomodoro
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/73
 
 ## Plan
 - Implement persisted `writing_stats` + IPC + UI
