@@ -48,7 +48,8 @@ function readSkillRow(db, skillId) {
   if (!id) return null
   return db
     .prepare(
-      `SELECT id, name, description, tag, system_prompt, user_prompt_template, context_rules, model, is_builtin, created_at, updated_at
+      `SELECT id, name, description, tag, system_prompt, user_prompt_template, context_rules, model, is_builtin,
+              enabled, is_valid, error_code, error_message, created_at, updated_at
        FROM skills
        WHERE id = ?`
     )
@@ -173,6 +174,13 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
 
     const skillRow = db ? readSkillRow(db, skillId) : null
     if (!skillRow) throw createIpcError('NOT_FOUND', 'Skill not found', { skillId })
+    if (skillRow.enabled === 0) throw createIpcError('CONFLICT', 'Skill is disabled', { skillId })
+    if (skillRow.is_valid === 0) {
+      throw createIpcError('INVALID_ARGUMENT', 'Skill is invalid', {
+        skillId,
+        error: { code: coerceString(skillRow.error_code) || 'INVALID_ARGUMENT', message: coerceString(skillRow.error_message) || 'Invalid skill' },
+      })
+    }
 
     const prompt = payload?.prompt
     const system = requirePromptString(prompt?.systemPrompt, 'prompt.systemPrompt')

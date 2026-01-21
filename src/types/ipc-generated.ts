@@ -98,6 +98,10 @@ export type IpcChannel =
   | 'memory:settings:get'
   | 'memory:settings:update'
   | 'memory:update'
+  | 'skill:list'
+  | 'skill:read'
+  | 'skill:toggle'
+  | 'skill:write'
   | 'ai:skill:cancel'
   | 'ai:skill:run'
   | 'context:writenow:conversations:analysis:update'
@@ -269,6 +273,78 @@ export type StatsIncrementRequest = {
 
 export type StatsIncrementResponse = {
   stats: WritingStatsRow;
+};
+
+export type SkillScope = 'builtin' | 'global' | 'project';
+
+export type SkillListItem = {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  scope: SkillScope;
+  packageId?: string;
+  enabled: boolean;
+  valid: boolean;
+  error?: { code: IpcErrorCode; message: string };
+};
+
+export type SkillListRequest = {
+  includeDisabled?: boolean;
+};
+
+export type SkillListResponse = {
+  skills: SkillListItem[];
+};
+
+export type SkillReadRequest = {
+  id: string;
+};
+
+export type SkillFileDefinition = {
+  frontmatter: Record<string, unknown>;
+  markdown: string;
+};
+
+export type SkillParseError = {
+  code: IpcErrorCode;
+  message: string;
+  details?: unknown;
+};
+
+export type SkillReadResponse = {
+  skill: SkillListItem & {
+    sourceUri: string;
+    sourceHash?: string;
+    definition?: SkillFileDefinition;
+    parseError?: SkillParseError;
+    rawText: string;
+  };
+};
+
+export type SkillToggleRequest = {
+  id: string;
+  enabled: boolean;
+};
+
+export type SkillToggleResponse = {
+  id: string;
+  enabled: boolean;
+};
+
+export type SkillWriteRequest = {
+  scope: SkillScope;
+  projectId?: string;
+  packageId: string;
+  packageVersion: string;
+  skillSlug: string;
+  content: string;
+  overwrite?: boolean;
+};
+
+export type SkillWriteResponse = {
+  written: true;
+  sourceUri: string;
 };
 
 export type AiPromptPayload = {
@@ -1310,6 +1386,10 @@ export type IpcInvokePayloadMap = {
   'memory:settings:get': MemorySettingsGetRequest;
   'memory:settings:update': MemorySettingsUpdateRequest;
   'memory:update': MemoryUpdateRequest;
+  'skill:list': SkillListRequest;
+  'skill:read': SkillReadRequest;
+  'skill:toggle': SkillToggleRequest;
+  'skill:write': SkillWriteRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'ai:skill:run': AiSkillRunRequest;
   'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateRequest;
@@ -1392,6 +1472,10 @@ export type IpcInvokeDataMap = {
   'memory:settings:get': MemorySettingsGetResponse;
   'memory:settings:update': MemorySettingsUpdateResponse;
   'memory:update': MemoryUpdateResponse;
+  'skill:list': SkillListResponse;
+  'skill:read': SkillReadResponse;
+  'skill:toggle': SkillToggleResponse;
+  'skill:write': SkillWriteResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'ai:skill:run': AiSkillRunResponse;
   'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateResponse;

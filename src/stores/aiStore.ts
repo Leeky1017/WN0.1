@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 
-import { IpcError, aiOps, memoryOps, projectOps, versionOps } from '../lib/ipc';
+import { IpcError, aiOps, memoryOps, projectOps, skillOps, versionOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
 import { ContextAssembler } from '../lib/context/ContextAssembler';
 import type { TokenBudget } from '../lib/context/TokenBudgetManager';
 import type { PromptTemplateSkill } from '../lib/context/prompt-template';
-import { BUILTIN_SKILLS, type SkillDefinition } from '../lib/skills';
 import { buildAiConversationMessages, saveAiConversation } from '../lib/context/conversation';
 import { generateAndPersistConversationSummary } from '../lib/context/conversation-summary';
 import { createJudge } from '../lib/judge';
+import { parseSkillDefinitionV2 } from '../lib/skills/v2/parser';
+import { validateSkillDefinitionV2 } from '../lib/skills/v2/validator';
 import { useConstraintsStore } from './constraintsStore';
 import { useEditorStore } from './editorStore';
 import { useEditorContextStore } from './editorContextStore';
@@ -20,6 +21,7 @@ import type { ArticleSnapshot } from '../types/models';
 import type { AssembleResult, ContextFragmentInput, EditorContext } from '../types/context';
 import type { ContextDebugState } from '../types/context-debug';
 import type { UserMemory } from '../types/ipc';
+import type { SkillDefinitionV2 } from '../lib/skills/v2/types';
 
 export type AiRunStatus = 'idle' | 'streaming' | 'done' | 'error' | 'canceled';
 
@@ -189,19 +191,19 @@ function firstParagraph(template: string): string {
  * Maps the built-in skill definition into the PromptTemplateSystem contract.
  * Why: ContextAssembler expects a normalized, versioned skill payload to keep the system prompt stable for KV-cache.
  */
-function toPromptTemplateSkill(def: SkillDefinition): PromptTemplateSkill {
-  const constraints: string[] = [];
-  if (def.outputConstraints.outputOnlyRewrittenText) constraints.push('Output ONLY rewritten text');
-  if (def.outputConstraints.forbidExplanations) constraints.push('No explanations');
-  if (def.outputConstraints.forbidCodeBlock) constraints.push('No code blocks');
+function toPromptTemplateSkill(def: SkillDefinitionV2): PromptTemplateSkill {
+  const rawConstraints = def.frontmatter.output?.constraints ?? [];
+  const constraints = rawConstraints.map((c) => (typeof c === 'string' ? c.trim() : '')).filter(Boolean);
+  const format = typeof def.frontmatter.output?.format === 'string' ? def.frontmatter.output.format.trim() : '';
+  const outputFormat = format === 'plain_text' ? 'plain text' : format || 'plain text';
 
   return {
-    id: def.id,
-    name: def.name,
-    description: def.description,
-    systemPrompt: def.systemPrompt,
+    id: def.frontmatter.id,
+    name: def.frontmatter.name,
+    description: def.frontmatter.description,
+    systemPrompt: def.frontmatter.prompt?.system,
     outputConstraints: constraints,
-    outputFormat: 'plain text',
+    outputFormat,
   };
 }
 
@@ -339,7 +341,6 @@ export const useAiStore = create<AiState>((set, get) => ({
     try {
       const isCurrent = () => get().run?.localId === localId;
       const projectId = await resolveProjectId();
-      const builtin = BUILTIN_SKILLS.find((s) => s.id === skillId) ?? null;
       if (!isCurrent()) return;
       if (!projectId) {
         set((state) => ({
@@ -350,21 +351,6 @@ export const useAiStore = create<AiState>((set, get) => ({
                   status: 'error',
                   errorMessage: '上下文组装失败：项目未就绪',
                   contextDebug: { status: 'error', assembled: null, errorMessage: 'Context assemble failed: project is not ready' },
-                }
-              : state.run,
-        }));
-        return;
-      }
-
-      if (!builtin) {
-        set((state) => ({
-          run:
-            state.run && state.run.localId === localId
-              ? {
-                  ...state.run,
-                  status: 'error',
-                  errorMessage: '上下文组装失败：未找到 SKILL 定义',
-                  contextDebug: { status: 'error', assembled: null, errorMessage: 'Context assemble failed: skill definition not found' },
                 }
               : state.run,
         }));
@@ -387,6 +373,109 @@ export const useAiStore = create<AiState>((set, get) => ({
 
       if (!isCurrent()) return;
 
+      let skillText: string | null = null;
+      try {
+        const read = await skillOps.read(skillId);
+        const meta = read.skill;
+        if (!meta.enabled) {
+          set((state) => ({
+            run:
+              state.run && state.run.localId === localId
+                ? {
+                    ...state.run,
+                    status: 'error',
+                    errorMessage: 'SKILL 已禁用',
+                    contextDebug: { status: 'error', assembled: null, errorMessage: 'Skill is disabled' },
+                  }
+                : state.run,
+          }));
+          return;
+        }
+        if (!meta.valid) {
+          const msg = meta.error?.message || 'SKILL 无效';
+          set((state) => ({
+            run:
+              state.run && state.run.localId === localId
+                ? {
+                    ...state.run,
+                    status: 'error',
+                    errorMessage: msg,
+                    contextDebug: { status: 'error', assembled: null, errorMessage: `Skill invalid: ${msg}` },
+                  }
+                : state.run,
+          }));
+          return;
+        }
+        skillText = typeof meta.rawText === 'string' ? meta.rawText : null;
+      } catch (error) {
+        const msg = `读取 SKILL 失败：${toErrorMessage(error)}`;
+        set((state) => ({
+          run:
+            state.run && state.run.localId === localId
+              ? {
+                  ...state.run,
+                  status: 'error',
+                  errorMessage: msg,
+                  contextDebug: { status: 'error', assembled: null, errorMessage: msg },
+                }
+              : state.run,
+        }));
+        return;
+      }
+
+      if (!isCurrent()) return;
+      if (!skillText?.trim()) {
+        set((state) => ({
+          run:
+            state.run && state.run.localId === localId
+              ? {
+                  ...state.run,
+                  status: 'error',
+                  errorMessage: 'SKILL 定义为空',
+                  contextDebug: { status: 'error', assembled: null, errorMessage: 'Skill definition is empty' },
+                }
+              : state.run,
+        }));
+        return;
+      }
+
+      const parsedSkill = parseSkillDefinitionV2(skillText);
+      if (!parsedSkill.ok) {
+        const msg = toUserMessage(parsedSkill.error.code, parsedSkill.error.message);
+        set((state) => ({
+          run:
+            state.run && state.run.localId === localId
+              ? {
+                  ...state.run,
+                  status: 'error',
+                  errorMessage: msg,
+                  contextDebug: { status: 'error', assembled: null, errorMessage: `Skill parse failed: ${msg}` },
+                }
+              : state.run,
+        }));
+        return;
+      }
+
+      const validatedSkill = validateSkillDefinitionV2(parsedSkill.data);
+      if (!validatedSkill.ok) {
+        const msg = toUserMessage(validatedSkill.error.code, validatedSkill.error.message);
+        set((state) => ({
+          run:
+            state.run && state.run.localId === localId
+              ? {
+                  ...state.run,
+                  status: 'error',
+                  errorMessage: msg,
+                  contextDebug: { status: 'error', assembled: null, errorMessage: `Skill validation failed: ${msg}` },
+                }
+              : state.run,
+        }));
+        return;
+      }
+
+      const skillDef = validatedSkill.data;
+      const model = skillDef.frontmatter.modelProfile?.preferred ?? 'claude-3-5-sonnet-latest';
+
       const settingsPrefetch = useEditorContextStore.getState().settingsPrefetch;
       const settings =
         settingsPrefetch.status === 'ready'
@@ -400,11 +489,14 @@ export const useAiStore = create<AiState>((set, get) => ({
       const assembled: AssembleResult = await assembler.assemble({
         projectId,
         articleId,
-        model: builtin.model,
+        model,
         budget: DEFAULT_CONTEXT_BUDGET,
-        skill: toPromptTemplateSkill(builtin),
+        skill: toPromptTemplateSkill(skillDef),
         editorContext: getEffectiveEditorContext(originalText),
-        userInstruction: firstParagraph(builtin.userPromptTemplate) || builtin.name,
+        userInstruction:
+          skillDef.markdown.userInstruction ||
+          firstParagraph(skillDef.frontmatter.prompt?.user ?? '') ||
+          skillDef.frontmatter.name,
         retrieved: buildInjectedMemoryFragments(injectedMemory),
         ...(settings ? { settings } : {}),
       });
