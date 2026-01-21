@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { IpcError, aiOps, projectOps, versionOps } from '../lib/ipc';
+import { IpcError, aiOps, memoryOps, projectOps, versionOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
 import { ContextAssembler } from '../lib/context/ContextAssembler';
 import type { TokenBudget } from '../lib/context/TokenBudgetManager';
@@ -17,7 +17,7 @@ import { useProjectsStore } from './projectsStore';
 import type { AiStreamEvent } from '../types/ai';
 import type { JudgeResult } from '../types/constraints';
 import type { ArticleSnapshot } from '../types/models';
-import type { AssembleResult, EditorContext } from '../types/context';
+import type { AssembleResult, ContextFragmentInput, EditorContext } from '../types/context';
 import type { ContextDebugState } from '../types/context-debug';
 import type { UserMemory } from '../types/ipc';
 
@@ -41,6 +41,10 @@ export type AiRunState = {
   runId: string | null;
   localId: number;
   injectedMemory: UserMemory[];
+  sentPrompt: {
+    prefixHash: string | null;
+    promptHash: string | null;
+  };
   target: AiApplyTarget;
   originalText: string;
   suggestedText: string;
@@ -96,6 +100,50 @@ function clampRange(value: number, max: number): number {
   if (!Number.isFinite(value) || value < 0) return 0;
   if (value > max) return max;
   return value;
+}
+
+function fnv1a32Hex(text: string): string {
+  const raw = typeof text === 'string' ? text : '';
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < raw.length; i += 1) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Builds Retrieved fragments from injected memory items.
+ * Why: memory injection must be part of ContextAssembler input so Context Viewer equals the actual model prompt.
+ */
+function buildInjectedMemoryFragments(items: UserMemory[]): ContextFragmentInput[] {
+  const list = Array.isArray(items) ? items : [];
+  if (list.length === 0) return [];
+
+  const lines: string[] = [];
+  lines.push('Injected user memory (ordered, minimal):');
+
+  for (const item of list) {
+    const content = typeof item.content === 'string' ? item.content.trim() : '';
+    if (!content) continue;
+    const type = item.type;
+    const scope = item.projectId ? 'project' : 'global';
+    const origin = item.origin;
+    lines.push(`- [${type}/${scope}/${origin}] ${content}`);
+  }
+
+  if (lines.length === 1) return [];
+
+  return [
+    {
+      id: 'retrieved:memory:user-memory',
+      layer: 'retrieved',
+      source: { kind: 'module', id: 'memory:user-memory' },
+      content: lines.join('\n'),
+      priority: 80,
+      meta: { itemCount: lines.length - 1 },
+    },
+  ];
 }
 
 /**
@@ -220,6 +268,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           runId: null,
           localId,
           injectedMemory: [],
+          sentPrompt: { prefixHash: null, promptHash: null },
           target: { kind: 'document' },
           originalText: '',
           suggestedText: '',
@@ -249,6 +298,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           runId: null,
           localId,
           injectedMemory: [],
+          sentPrompt: { prefixHash: null, promptHash: null },
           target,
           originalText,
           suggestedText: '',
@@ -273,6 +323,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         runId: null,
         localId,
         injectedMemory: [],
+        sentPrompt: { prefixHash: null, promptHash: null },
         target,
         originalText,
         suggestedText: '',
@@ -284,75 +335,109 @@ export const useAiStore = create<AiState>((set, get) => ({
     });
 
     try {
+      const isCurrent = () => get().run?.localId === localId;
       const projectId = await resolveProjectId();
       const builtin = BUILTIN_SKILLS.find((s) => s.id === skillId) ?? null;
+      if (!isCurrent()) return;
       if (!projectId) {
         set((state) => ({
           run:
             state.run && state.run.localId === localId
-              ? { ...state.run, contextDebug: { status: 'error', assembled: null, errorMessage: 'Context assemble failed: project is not ready' } }
+              ? {
+                  ...state.run,
+                  status: 'error',
+                  errorMessage: '上下文组装失败：项目未就绪',
+                  contextDebug: { status: 'error', assembled: null, errorMessage: 'Context assemble failed: project is not ready' },
+                }
               : state.run,
         }));
-      } else if (!builtin) {
+        return;
+      }
+
+      if (!builtin) {
         set((state) => ({
           run:
             state.run && state.run.localId === localId
-              ? { ...state.run, contextDebug: { status: 'error', assembled: null, errorMessage: 'Context assemble failed: skill definition not found' } }
+              ? {
+                  ...state.run,
+                  status: 'error',
+                  errorMessage: '上下文组装失败：未找到 SKILL 定义',
+                  contextDebug: { status: 'error', assembled: null, errorMessage: 'Context assemble failed: skill definition not found' },
+                }
               : state.run,
         }));
-      } else {
-        try {
-          const settingsPrefetch = useEditorContextStore.getState().settingsPrefetch;
-          const settings =
-            settingsPrefetch.status === 'ready'
-              ? {
-                  characters: settingsPrefetch.resolved.characters,
-                  settings: settingsPrefetch.resolved.settings,
-                }
-              : undefined;
-
-          const assembler = new ContextAssembler();
-          const assembled: AssembleResult = await assembler.assemble({
-            projectId,
-            articleId,
-            model: builtin.model,
-            budget: DEFAULT_CONTEXT_BUDGET,
-            skill: toPromptTemplateSkill(builtin),
-            editorContext: getEffectiveEditorContext(originalText),
-            userInstruction: firstParagraph(builtin.userPromptTemplate) || builtin.name,
-            ...(settings ? { settings } : {}),
-          });
-
-          set((state) => ({
-            run: state.run && state.run.localId === localId ? { ...state.run, contextDebug: { status: 'ready', assembled, errorMessage: null } } : state.run,
-          }));
-        } catch (error) {
-          set((state) => ({
-            run:
-              state.run && state.run.localId === localId
-                ? {
-                    ...state.run,
-                    contextDebug: { status: 'error', assembled: null, errorMessage: `Context assemble failed: ${toErrorMessage(error)}` },
-                  }
-                : state.run,
-          }));
-        }
+        return;
       }
+
+      let injectedMemory: UserMemory[] = [];
+      try {
+        const preview = await memoryOps.previewInjection({ projectId });
+        injectedMemory = preview.injected?.memory ?? [];
+      } catch (error) {
+        injectedMemory = [];
+        set((state) => ({
+          run:
+            state.run && state.run.localId === localId
+              ? { ...state.run, injectedMemory: [], errorMessage: `记忆注入预览失败：${toErrorMessage(error)}` }
+              : state.run,
+        }));
+      }
+
+      if (!isCurrent()) return;
+
+      const settingsPrefetch = useEditorContextStore.getState().settingsPrefetch;
+      const settings =
+        settingsPrefetch.status === 'ready'
+          ? {
+              characters: settingsPrefetch.resolved.characters,
+              settings: settingsPrefetch.resolved.settings,
+            }
+          : undefined;
+
+      const assembler = new ContextAssembler();
+      const assembled: AssembleResult = await assembler.assemble({
+        projectId,
+        articleId,
+        model: builtin.model,
+        budget: DEFAULT_CONTEXT_BUDGET,
+        skill: toPromptTemplateSkill(builtin),
+        editorContext: getEffectiveEditorContext(originalText),
+        userInstruction: firstParagraph(builtin.userPromptTemplate) || builtin.name,
+        retrieved: buildInjectedMemoryFragments(injectedMemory),
+        ...(settings ? { settings } : {}),
+      });
+
+      if (!isCurrent()) return;
+
+      set((state) => ({
+        run: state.run && state.run.localId === localId ? { ...state.run, contextDebug: { status: 'ready', assembled, errorMessage: null } } : state.run,
+      }));
 
       const res = await aiOps.runSkill({
         skillId,
         input: { text: originalText, language: 'zh-CN' },
-        context: { articleId },
+        context: { articleId, projectId },
         stream: true,
+        prompt: { systemPrompt: assembled.systemPrompt, userContent: assembled.userContent },
+        injected: { memory: injectedMemory },
       });
+
+      const expectedPromptHash = fnv1a32Hex(`${assembled.systemPrompt}\n\n---\n\n${assembled.userContent}`);
+
       set((state) => ({
-        run: state.run
-          ? {
-              ...state.run,
-              runId: res.runId,
-              injectedMemory: res.injected?.memory ?? [],
-            }
-          : null,
+        run:
+          state.run && state.run.localId === localId
+            ? {
+                ...state.run,
+                runId: res.runId,
+                injectedMemory: res.injected?.memory ?? injectedMemory,
+                sentPrompt: { prefixHash: res.prompt?.prefixHash ?? null, promptHash: res.prompt?.promptHash ?? null },
+                errorMessage:
+                  res.prompt?.promptHash && res.prompt.promptHash !== expectedPromptHash
+                    ? `⚠️ Prompt mismatch: viewer=${expectedPromptHash} sent=${res.prompt.promptHash}`
+                    : state.run.errorMessage,
+              }
+            : state.run,
       }));
     } catch (error) {
       set((state) => ({
@@ -429,15 +514,16 @@ export const useAiStore = create<AiState>((set, get) => ({
 
   cancelRun: async () => {
     const run = get().run;
-    if (!run?.runId) return;
+    if (!run) return;
     const runId = run.runId;
 
     set({ run: null, historyPreview: null });
 
+    if (!runId) return;
     try {
       await aiOps.cancelSkill(runId);
-    } catch {
-      // ignore
+    } catch (error) {
+      console.warn('cancel ai run failed', error);
     }
   },
 

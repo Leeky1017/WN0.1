@@ -130,6 +130,13 @@ test.describe('Sprint 2 (AI) user flow', () => {
 
       await expect(page.getByTestId('ai-diff')).toBeVisible();
       await expect(page.getByTestId('ai-diff-streaming')).toBeVisible();
+
+      await page.getByTestId('ai-context-toggle').click();
+      await expect(page.getByTestId('ai-context-panel')).toBeVisible();
+      await expect(page.getByTestId('ai-context-prompt-hash')).toBeVisible();
+      await expect(page.getByTestId('ai-context-sent-prompt-hash')).toBeVisible();
+      await expect(page.getByTestId('ai-context-prompt-hash-match')).toHaveText('match');
+
       await expect(page.getByTestId('ai-diff-accept')).toBeVisible({ timeout: 5 * 60_000 });
 
       const suggestedDuring = await page.getByTestId('ai-diff-suggested').innerText();

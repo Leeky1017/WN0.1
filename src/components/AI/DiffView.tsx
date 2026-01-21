@@ -17,6 +17,10 @@ type DiffViewProps = {
   suggestedText: string;
   status: DiffViewStatus;
   contextDebug?: ContextDebugState;
+  sentPrompt?: {
+    prefixHash: string | null;
+    promptHash: string | null;
+  };
   errorMessage?: string | null;
   violations?: ConstraintViolation[];
   violationStatus?: DiffViolationStatus;
@@ -98,6 +102,7 @@ export function DiffView({
   suggestedText,
   status,
   contextDebug,
+  sentPrompt,
   errorMessage,
   violations = [],
   violationStatus = 'idle',
@@ -276,7 +281,7 @@ export function DiffView({
         </div>
       </div>
 
-      {contextDebug && <ContextDebugPanel value={contextDebug} />}
+      {contextDebug && <ContextDebugPanel value={contextDebug} sentPrompt={sentPrompt} />}
     </div>
   );
 }

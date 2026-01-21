@@ -271,6 +271,11 @@ export type StatsIncrementResponse = {
   stats: WritingStatsRow;
 };
 
+export type AiPromptPayload = {
+  systemPrompt: string;
+  userContent: string;
+};
+
 export type AiSkillRunRequest = {
   skillId: string;
   input: {
@@ -282,6 +287,10 @@ export type AiSkillRunRequest = {
     articleId?: string;
   };
   stream?: boolean;
+  prompt: AiPromptPayload;
+  injected?: {
+    memory: UserMemory[];
+  };
 };
 
 export type AiSkillRunResponse = {
@@ -289,6 +298,10 @@ export type AiSkillRunResponse = {
   stream: boolean;
   injected?: {
     memory: UserMemory[];
+  };
+  prompt?: {
+    prefixHash: string;
+    promptHash: string;
   };
 };
 

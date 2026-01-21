@@ -1,8 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk')
 const { incrementWritingStats, toLocalDateKey } = require('../lib/writing-stats.cjs')
 
-const { selectMemoryForInjection } = require('./memory.cjs')
-
 const AI_STREAM_EVENT = 'ai:skill:stream'
 
 function createIpcError(code, message, details) {
@@ -15,6 +13,16 @@ function coerceString(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+/**
+ * Ensures prompt fields are strings without mutating the content.
+ * Why: renderer is the SSOT for ContextAssembler output; main must not trim/normalize prompt bytes.
+ */
+function requirePromptString(value, fieldName) {
+  if (typeof value !== 'string') throw createIpcError('INVALID_ARGUMENT', `Invalid ${fieldName}`, { fieldName })
+  if (!value.trim()) throw createIpcError('INVALID_ARGUMENT', `${fieldName} is empty`, { fieldName })
+  return value
+}
+
 function nowIso() {
   return new Date().toISOString()
 }
@@ -24,13 +32,14 @@ function generateRunId() {
   return `ai_${Date.now()}_${rand}`
 }
 
-function tryParseJson(raw) {
-  if (typeof raw !== 'string' || !raw.trim()) return null
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return null
+function fnv1a32Hex(text) {
+  const raw = typeof text === 'string' ? text : ''
+  let hash = 0x811c9dc5
+  for (let i = 0; i < raw.length; i += 1) {
+    hash ^= raw.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193)
   }
+  return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
 function readSkillRow(db, skillId) {
@@ -118,124 +127,6 @@ function resolveModel(config, skillRow) {
   return env || skillModel || configured || 'claude-3-5-sonnet-latest'
 }
 
-function readArticleContext(db, articleId) {
-  const id = coerceString(articleId)
-  if (!db || !id) return null
-
-  const row = db.prepare('SELECT id, title, content, project_id FROM articles WHERE id = ?').get(id)
-  if (!row) return null
-
-  const content = typeof row.content === 'string' ? row.content : ''
-  const title = typeof row.title === 'string' ? row.title : ''
-  const projectId = typeof row.project_id === 'string' ? row.project_id : null
-
-  return {
-    articleId: id,
-    title,
-    projectId,
-    content,
-  }
-}
-
-function readProjectContext(db, projectId) {
-  const id = coerceString(projectId)
-  if (!db || !id) return null
-
-  const row = db.prepare('SELECT id, name, style_guide FROM projects WHERE id = ?').get(id)
-  if (!row) return null
-
-  const styleGuide = typeof row.style_guide === 'string' && row.style_guide.trim() ? row.style_guide : null
-  const name = typeof row.name === 'string' ? row.name : ''
-  return { projectId: id, name, styleGuide }
-}
-
-function formatContextBlock(context) {
-  if (!context) return ''
-  const title = typeof context.title === 'string' && context.title.trim() ? context.title.trim() : null
-  const content = typeof context.content === 'string' ? context.content : ''
-
-  const excerpt = content.trim().slice(0, 3000)
-  const parts = []
-  if (title) parts.push(`Article title: ${title}`)
-  if (excerpt) parts.push(`Article excerpt:\n${excerpt}`)
-  return parts.length > 0 ? parts.join('\n\n') : ''
-}
-
-function formatInjectedMemoryBlock(items) {
-  const list = Array.isArray(items) ? items : []
-  if (list.length === 0) return ''
-
-  const lines = []
-  lines.push('## Retrieved (User Memory)')
-  for (const item of list) {
-    const type = typeof item?.type === 'string' ? item.type : 'preference'
-    const scope = typeof item?.projectId === 'string' && item.projectId.trim() ? 'project' : 'global'
-    const origin = typeof item?.origin === 'string' ? item.origin : 'manual'
-    const content = typeof item?.content === 'string' ? item.content.trim() : ''
-    if (!content) continue
-    lines.push(`- [${type}/${scope}/${origin}] ${content}`)
-  }
-
-  return lines.length > 1 ? lines.join('\n') : ''
-}
-
-function renderTemplate(template, vars) {
-  let result = typeof template === 'string' ? template : ''
-
-  for (const [key, value] of Object.entries(vars)) {
-    const open = `{{#${key}}}`
-    const close = `{{/${key}}}`
-
-    while (true) {
-      const start = result.indexOf(open)
-      const end = result.indexOf(close)
-      if (start === -1 || end === -1 || end < start) break
-
-      const inner = result.slice(start + open.length, end)
-      const replacement = value ? inner : ''
-      result = result.slice(0, start) + replacement + result.slice(end + close.length)
-    }
-  }
-
-  for (const [key, value] of Object.entries(vars)) {
-    result = result.split(`{{${key}}}`).join(value)
-  }
-
-  return result
-}
-
-function buildPrompt({ skillRow, inputText, articleContext, projectContext, injectedMemory }) {
-  const systemPrompt =
-    typeof skillRow?.system_prompt === 'string' && skillRow.system_prompt.trim()
-      ? skillRow.system_prompt.trim()
-      : 'You are a careful writing assistant. Follow the output constraints strictly.'
-
-  const template = typeof skillRow?.user_prompt_template === 'string' ? skillRow.user_prompt_template : ''
-  const contextRules = tryParseJson(skillRow?.context_rules)
-
-  const includeArticle = contextRules?.includeArticle !== false
-  const includeStyleGuide = contextRules?.includeStyleGuide !== false
-
-  const memoryBlock = formatInjectedMemoryBlock(injectedMemory)
-  const articleBlock = includeArticle ? formatContextBlock(articleContext) : ''
-  const contextText = [memoryBlock, articleBlock].filter(Boolean).join('\n\n')
-  const styleGuide =
-    includeStyleGuide && typeof projectContext?.styleGuide === 'string' && projectContext.styleGuide.trim()
-      ? projectContext.styleGuide.trim()
-      : ''
-
-  const prompt = renderTemplate(template, {
-    text: inputText,
-    context: contextText,
-    styleGuide,
-  })
-
-  return {
-    system: systemPrompt,
-    user: prompt,
-  }
-}
-
 function toStreamError(err) {
   if (!err || typeof err !== 'object') return { code: 'INTERNAL', message: 'Internal error' }
 
@@ -283,21 +174,13 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
     const skillRow = db ? readSkillRow(db, skillId) : null
     if (!skillRow) throw createIpcError('NOT_FOUND', 'Skill not found', { skillId })
 
-    const articleId = coerceString(payload?.context?.articleId)
-    const projectId = coerceString(payload?.context?.projectId)
+    const prompt = payload?.prompt
+    const system = requirePromptString(prompt?.systemPrompt, 'prompt.systemPrompt')
+    const user = requirePromptString(prompt?.userContent, 'prompt.userContent')
+    const prefixHash = fnv1a32Hex(system)
+    const promptHash = fnv1a32Hex(`${system}\n\n---\n\n${user}`)
 
-    const articleContext = articleId ? readArticleContext(db, articleId) : null
-    const resolvedProjectId = projectId || articleContext?.projectId || ''
-    const projectContext = resolvedProjectId ? readProjectContext(db, resolvedProjectId) : null
-
-    let injectedMemory = []
-    try {
-      const selection = selectMemoryForInjection({ db, config, projectId: resolvedProjectId })
-      injectedMemory = selection.items
-    } catch (error) {
-      logger?.warn?.('ai', 'memory injection skipped', { message: error?.message })
-      injectedMemory = []
-    }
+    const injectedMemory = Array.isArray(payload?.injected?.memory) ? payload.injected.memory : []
 
     const ai = assertConfigured()
     const model = resolveModel(config, skillRow)
@@ -311,15 +194,7 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
 
     const sender = evt.sender
 
-    const { system, user } = buildPrompt({
-      skillRow,
-      inputText,
-      articleContext,
-      projectContext,
-      injectedMemory,
-    })
-
-    logger?.info?.('ai', 'run start', { runId, skillId, model, baseUrl: ai.baseUrl })
+    logger?.info?.('ai', 'run start', { runId, skillId, model, baseUrl: ai.baseUrl, promptHash })
 
     if (db) {
       try {
@@ -355,8 +230,8 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
             assembled += delta
             try {
               sender.send(AI_STREAM_EVENT, { type: 'delta', runId, text: delta })
-            } catch {
-              // ignore
+            } catch (error) {
+              logger?.debug?.('ai', 'stream delta send failed', { runId, message: error?.message })
             }
           })
 
@@ -369,8 +244,8 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
               runId,
               result: { text: finalText, meta: { provider: ai.provider, model } },
             })
-          } catch {
-            // ignore
+          } catch (error) {
+            logger?.debug?.('ai', 'stream done send failed', { runId, message: error?.message })
           }
         } else {
           const resp = await client.messages.create(
@@ -397,8 +272,8 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
               runId,
               result: { text, meta: { provider: ai.provider, model } },
             })
-          } catch {
-            // ignore
+          } catch (error) {
+            logger?.debug?.('ai', 'non-stream done send failed', { runId, message: error?.message })
           }
         }
       } catch (error) {
@@ -406,15 +281,15 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
         logger?.error?.('ai', 'run error', { runId, code: streamError.code, message: streamError.message })
         try {
           sender.send(AI_STREAM_EVENT, { type: 'error', runId, error: streamError })
-        } catch {
-          // ignore
+        } catch (sendError) {
+          logger?.debug?.('ai', 'stream error send failed', { runId, message: sendError?.message })
         }
       } finally {
         runs.delete(runId)
       }
     })()
 
-    return { runId, stream, injected: { memory: injectedMemory } }
+    return { runId, stream, injected: { memory: injectedMemory }, prompt: { prefixHash, promptHash } }
   })
 
   handleInvoke('ai:skill:cancel', async (_evt, payload) => {

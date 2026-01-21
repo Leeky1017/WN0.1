@@ -8,6 +8,10 @@ import type { ContextDebugState } from '../../types/context-debug';
 
 type ContextDebugPanelProps = {
   value: ContextDebugState;
+  sentPrompt?: {
+    prefixHash: string | null;
+    promptHash: string | null;
+  };
 };
 
 function formatLayer(layer: ContextLayer): string {
@@ -55,10 +59,24 @@ function summarizeTokenStats(stats: TokenStats) {
 }
 
 /**
+ * Deterministic prompt hash (FNV-1a 32-bit).
+ * Why: enable E2E and UI to assert "viewer prompt == sent prompt" without exposing raw prompt content by default.
+ */
+function fnv1a32Hex(text: string): string {
+  const raw = typeof text === 'string' ? text : '';
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < raw.length; i += 1) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
  * Renders the "查看上下文" expandable panel for a single AI run.
  * Why: provide explainable prompt structure + token usage + trimming evidence to debug context engineering.
  */
-export function ContextDebugPanel({ value }: ContextDebugPanelProps) {
+export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps) {
   const [open, setOpen] = React.useState(false);
   const [copyState, setCopyState] = React.useState<{ key: 'system' | 'user' | 'full' | null; status: 'idle' | 'ok' | 'error' }>({
     key: null,
@@ -68,6 +86,13 @@ export function ContextDebugPanel({ value }: ContextDebugPanelProps) {
   const assembled = value.assembled;
   const tokenSummary = useMemo(() => (assembled ? summarizeTokenStats(assembled.tokenStats) : null), [assembled]);
   const metrics = assembled?.metrics ?? null;
+  const viewerPromptHash = useMemo(() => {
+    if (!assembled) return null;
+    return fnv1a32Hex(`${assembled.systemPrompt}\n\n---\n\n${assembled.userContent}`);
+  }, [assembled]);
+  const sentPromptHash = typeof sentPrompt?.promptHash === 'string' ? sentPrompt.promptHash : null;
+  const sentPrefixHash = typeof sentPrompt?.prefixHash === 'string' ? sentPrompt.prefixHash : null;
+  const hashMatches = viewerPromptHash && sentPromptHash ? viewerPromptHash === sentPromptHash : null;
 
   const byLayer = useMemo(() => {
     const fragments = assembled?.fragments ?? [];
@@ -176,6 +201,30 @@ export function ContextDebugPanel({ value }: ContextDebugPanelProps) {
                         <div data-testid="ai-context-prefix-hash" className="font-mono">
                           {metrics.prefixHash}
                         </div>
+                      </div>
+                    )}
+                    {viewerPromptHash && (
+                      <div>
+                        <div className="text-[var(--text-secondary)]">Prompt Hash</div>
+                        <div data-testid="ai-context-prompt-hash" className="font-mono">
+                          {viewerPromptHash}
+                        </div>
+                      </div>
+                    )}
+                    {(sentPromptHash || sentPrefixHash) && (
+                      <div>
+                        <div className="text-[var(--text-secondary)]">Sent Hash</div>
+                        <div data-testid="ai-context-sent-prompt-hash" className="font-mono">
+                          {sentPromptHash ?? sentPrefixHash ?? ''}
+                        </div>
+                        {hashMatches !== null && (
+                          <div
+                            data-testid="ai-context-prompt-hash-match"
+                            className={`mt-0.5 ${hashMatches ? 'text-emerald-300' : 'text-amber-300'}`}
+                          >
+                            {hashMatches ? 'match' : 'mismatch'}
+                          </div>
+                        )}
                       </div>
                     )}
                     <div>
