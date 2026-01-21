@@ -1,7 +1,7 @@
 # ISSUE-76
 - Issue: #76
 - Branch: task/76-issue-69-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/78
 
 ## Plan
 - Append ISSUE-69 RUN_LOG merge/sync evidence
@@ -26,3 +26,7 @@
 ### 2026-01-21 14:06 OpenSpec validate
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
+
+### 2026-01-21 14:10 PR + auto-merge
+- Command: `gh pr create --head task/76-issue-69-closeout --base main ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/78`
