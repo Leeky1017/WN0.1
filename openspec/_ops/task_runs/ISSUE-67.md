@@ -1,7 +1,7 @@
 # ISSUE-67
 - Issue: #67
 - Branch: task/67-issue-61-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/68
 
 ## Plan
 - Sync Sprint 2.5 closeout docs
@@ -33,3 +33,8 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
 - Evidence: CLI output
+
+### 2026-01-21 12:01 Create PR
+- Command: `gh pr create --title "[GOV] Closeout ISSUE-61: task cards + roadmap sync" --body "Closes #67 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/68`
+- Evidence: PR #68
