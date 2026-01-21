@@ -35,13 +35,13 @@ function renderHtml(title: string, markdown: string): string {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</title>
     <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; line-height: 1.65; color: #0b0d10; background: #ffffff; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; line-height: 1.65; color: black; background: white; }
       h1, h2, h3 { line-height: 1.25; }
       img { max-width: 100%; }
-      blockquote { margin: 1em 0; padding: 0.2em 1em; border-left: 3px solid #ddd; color: #555; }
-      pre { background: #f6f8fa; padding: 12px 14px; border-radius: 8px; overflow: auto; }
+      blockquote { margin: 1em 0; padding: 0.2em 1em; border-left: 3px solid gainsboro; color: dimgray; }
+      pre { background: whitesmoke; padding: 12px 14px; border-radius: 8px; overflow: auto; }
       code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-      a { color: #0969da; text-decoration: none; }
+      a { color: royalblue; text-decoration: none; }
     </style>
   </head>
   <body>

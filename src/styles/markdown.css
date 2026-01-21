@@ -1,0 +1,135 @@
+.wn-markdown {
+  color: var(--wn-text-secondary);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.wn-markdown h1,
+.wn-markdown h2,
+.wn-markdown h3,
+.wn-markdown h4 {
+  color: var(--wn-text-primary);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.2em 0 0.6em;
+}
+
+.wn-markdown h1 {
+  font-size: 1.6em;
+}
+
+.wn-markdown h2 {
+  font-size: 1.35em;
+}
+
+.wn-markdown h3 {
+  font-size: 1.15em;
+}
+
+.wn-markdown p {
+  margin: 0.85em 0;
+}
+
+.wn-markdown a {
+  color: var(--wn-accent-primary);
+  text-decoration: none;
+}
+
+.wn-markdown a:hover {
+  color: var(--wn-accent-hover);
+  text-decoration: underline;
+}
+
+.wn-markdown ul,
+.wn-markdown ol {
+  margin: 0.85em 0;
+  padding-left: 1.4em;
+}
+
+.wn-markdown ul {
+  list-style: disc;
+}
+
+.wn-markdown ol {
+  list-style: decimal;
+}
+
+.wn-markdown li {
+  margin: 0.25em 0;
+}
+
+.wn-markdown blockquote {
+  margin: 1em 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--wn-border-default);
+  color: var(--wn-text-tertiary);
+}
+
+.wn-markdown hr {
+  border: none;
+  border-top: 1px solid var(--wn-border-subtle);
+  margin: 1.2em 0;
+}
+
+.wn-markdown :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  background: var(--wn-bg-surface-2);
+  border: 1px solid var(--wn-border-subtle);
+  border-radius: var(--wn-radius-sm);
+  padding: 0.12em 0.35em;
+  color: var(--wn-text-primary);
+}
+
+.wn-markdown pre {
+  margin: 1em 0;
+}
+
+.wn-markdown .shiki {
+  border: 1px solid var(--wn-border-subtle);
+  border-radius: var(--wn-radius-md);
+  overflow-x: auto;
+}
+
+.wn-markdown .shiki code {
+  display: block;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.wn-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.wn-markdown th,
+.wn-markdown td {
+  border: 1px solid var(--wn-border-subtle);
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.wn-markdown th {
+  background: var(--wn-bg-surface-2);
+  color: var(--wn-text-primary);
+  font-weight: 600;
+}
+
+.wn-markdown tbody tr:nth-child(even) {
+  background: var(--wn-bg-surface-1);
+}
+
+.wn-markdown input[type='checkbox'] {
+  accent-color: var(--wn-accent-primary);
+}
+
+.wn-markdown .wn-mermaid {
+  border: 1px solid var(--wn-border-subtle);
+  border-radius: var(--wn-radius-md);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+

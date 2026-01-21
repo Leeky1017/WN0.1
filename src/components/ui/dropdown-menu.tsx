@@ -44,7 +44,9 @@ export function DropdownMenu({ trigger, children, open, onOpenChange, align = 's
         {trigger}
       </div>
       {openState && (
-        <div className={`absolute ${sideClasses} ${alignmentClasses[align]} z-50 min-w-[180px] overflow-hidden rounded-lg border border-[#2d2d30] bg-[#252526] shadow-2xl py-1`}>
+        <div
+          className={`absolute ${sideClasses} ${alignmentClasses[align]} z-50 min-w-[180px] overflow-hidden rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-2xl py-1`}
+        >
           {children}
         </div>
       )}
@@ -68,8 +70,8 @@ export function DropdownMenuItem({
       type="button"
       disabled={disabled}
       className={`relative flex w-full select-none items-center px-3 py-1.5 text-[13px] outline-none transition-colors text-left ${
-        disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#2a2d2e] cursor-pointer'
-      } text-[#cccccc] ${className}`}
+        disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-hover)] cursor-pointer'
+      } text-[var(--text-secondary)] ${className}`}
       onClick={disabled ? undefined : onClick}
     >
       {children}
@@ -78,5 +80,5 @@ export function DropdownMenuItem({
 }
 
 export function DropdownMenuSeparator() {
-  return <div className="h-px bg-[#2d2d30] my-1" />
+  return <div className="h-px bg-[var(--border-subtle)] my-1" />
 }
