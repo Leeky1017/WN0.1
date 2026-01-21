@@ -34,3 +34,22 @@
 - Command: `gh pr create --base main --head task/74-issue-70-closeout ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/75`
 - Evidence: https://github.com/Leeky1017/WN0.1/pull/75
+
+### 2026-01-21 14:00 Enable auto-merge (squash)
+- Command: `gh pr merge 75 --auto --squash`
+- Command: `gh pr view 75 --json autoMergeRequest,mergeStateStatus,state,url`
+- Key output: `autoMergeRequest.enabledAt != null`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/75
+
+### 2026-01-21 14:01 Sync PR branch with origin/main
+- Command: `git fetch origin`
+- Command: `git merge --no-edit origin/main`
+- Key output: `Merge made by the 'ort' strategy.`
+- Command: `git commit --amend -m "chore: sync with origin/main (#74)"`
+- Command: `git push`
+- Evidence: `git log -1`, PR head updated
+
+### 2026-01-21 14:02 Check required workflows
+- Command: `gh pr checks 75`
+- Key output: `openspec-log-guard: pass; ci/merge-serial: pending`
+- Evidence: https://github.com/Leeky1017/WN0.1/actions
