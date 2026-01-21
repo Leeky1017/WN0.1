@@ -37,6 +37,34 @@ skills/<skill-slug>/
   assets/             # 可选：模板/片段（纯文本/静态）
 ```
 
+### `references/`：按需引用（Progressive Disclosure）
+
+`references/` 目录用于存放“可扩展、可替换、可能很长”的参考规范文件（例如：不同平台的排版/标题/禁忌）。其核心原则：
+
+- 索引阶段只读取 **元数据**（用于 UI 列表、搜索与可选项展示）。
+- 运行阶段只有在用户选择（或 workflow 明确需要）时才读取 **正文内容** 并注入 Prompt（避免无意义 token 占用）。
+
+#### Reference Slot（参数化引用位）
+
+为了让 UI 知道“需要用户先选哪个 ref”，`SKILL.md` 需要声明 ref slot（引用位）。示例：
+
+```yaml
+references:
+  slots:
+    platform:
+      directory: references
+      pattern: "*.md"
+      required: true
+      load: on_demand
+      maxTokens: 1500
+```
+
+运行时行为（概念层）：
+
+1. UI 扫描/读取 slot 的可用 refs（文件名或 ref frontmatter），展示为下拉/列表。
+2. 用户选择某一 ref 后，系统读取该 ref 文件正文，并将其作为本次运行的 skill-scoped context 注入 Prompt。
+3. 若 ref 内容超出预算：优先选择更短 variant/减少上下文层；仍超限则失败并给出拆分建议。
+
 ## `SKILL.md`：YAML frontmatter + Markdown 正文
 
 ### 最小 frontmatter（必须）
@@ -116,6 +144,37 @@ variants:
 - `## Prompt Notes`：使用约束/边界（why）
 - `## Examples`：可选示例（建议放入 `references/`，避免默认膨胀）
 
+## Reference 文件格式（`references/*.md`）
+
+ref 文件推荐也使用 YAML frontmatter（用于 UI 列表与结构化展示），正文作为可注入的“平台规范/风格指南”：
+
+```md
+---
+id: wechat-official
+name: 微信公众号
+wordCountPreference:
+  preferred: 1200
+  min: 800
+  max: 2000
+titleStyle:
+  prefer: "利益点 + 场景"
+layoutRules:
+  - "多用小标题分段"
+  - "段落不超过 5 行"
+taboos:
+  - "避免过度营销话术"
+  - "避免标题党"
+---
+
+# 微信公众号规范
+（正文可用 Markdown，内容将被按需注入）
+```
+
+最小要求（MVP）：
+
+- 无 frontmatter 时也可用：用文件名作为 `id/name`，并把整个正文当作可注入规范文本。
+- UI 展示优先读取 frontmatter 的 `name/wordCountPreference/titleStyle/layoutRules/taboos`（若存在）。
+
 ## 解析与校验规则（必须可恢复）
 
 ### 必填校验
@@ -129,6 +188,11 @@ variants:
 
 - `prompt.system` + `User Instruction` + `output.constraints` 等 “可注入指令” 的 token 估算 MUST 有上限。
 - 超限时 MUST 返回 `INVALID_ARGUMENT`（或索引状态=invalid），并给出建议：拆分为 `references/` 或拆为多个子 SKILL/变体。
+
+### refs 与 slots 校验（建议）
+
+- `references.slots.*.directory/pattern` 必须可解析；目录不存在时应标记为 invalid 并给出可恢复错误原因。
+- `required=true` 的 slot 在运行时必须有明确的 UI 选择与失败语义（未选择不得 silent fallback）。
 
 ### 安全与兼容
 
@@ -164,4 +228,3 @@ variants:
 2. 启动时由 **SkillIndexService** 扫描 builtin/global/project 目录并写入索引（取代 `electron/lib/skills.cjs` 的硬编码 upsert）。
 3. 渲染进程 UI 不再引用 `src/lib/skills.ts` 常量，而是通过 IPC 拉取 skills 列表（避免双源）。
 4. `ai:skill:run` 仍以 `skillId` 为主键；prompt 由 ContextAssembler + SkillDefinitionV2 统一生成（保持现有 Diff/版本闭环）。
-

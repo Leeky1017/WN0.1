@@ -17,6 +17,7 @@
 2. 手动创建流程：
    - 选择作用域：Global / Project
    - 填写最小字段（name/description/tags/output constraints）
+   - 可选：声明 refs slots（例如 platform），并管理 `references/` 下的 ref 文件（新增/编辑/删除）
    - 选择模型 tier 与默认模型（可选）
    - 生成并保存 `SKILL.md`（用户确认后落盘）
 3. 编辑与校验：
@@ -30,6 +31,7 @@
    - 新建 skill → 出现在列表 → 可运行
    - 编辑 skill → 版本/内容变更生效
    - 校验失败 → 无法保存且错误提示明确
+   - refs 管理：新增一个 ref 文件后可在运行前被选择并生效
 
 ## 新增/修改文件
 
@@ -43,5 +45,5 @@
 - [ ] 用户可在 UI 中创建/编辑自定义 SKILL，并以 `SKILL.md` 形式落盘
 - [ ] 保存前有明确校验与 token 估算；失败可恢复且不会写入无效文件
 - [ ] 变更后索引自动更新，列表与运行立即生效
+- [ ] refs slots 与 ref 文件可在 UI 中管理，并遵循 progressive disclosure（只按需注入正文）
 - [ ] E2E 覆盖创建/编辑/校验失败分支
-

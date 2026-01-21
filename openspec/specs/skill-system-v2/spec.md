@@ -9,7 +9,7 @@
 - **可组合**：支持 workflow（多 SKILL 串联）与路由（按场景/模型能力选择子 SKILL/变体）。
 - **可兼容多模型**：在顶级/中端/低端模型下均有明确可用策略（语义/规则分层路由）。
 
-本规范是 `openspec/specs/writenow-spec/spec.md` 中 SKILL 概念（第 57-79 行）在 “自定义/工程化/组合/多模型” 方向的可执行增量，并与 Sprint 2 的 SKILL 运行闭环保持一致。
+本规范是 `openspec/specs/writenow-spec/spec.md` 的「核心概念 → SKILL 系统」在“自定义/工程化/组合/多模型”方向的可执行增量，并与 Sprint 2 的 SKILL 运行闭环保持一致。
 
 ## Requirements
 
@@ -69,6 +69,28 @@ SKILL MUST 同时对写作者友好（UI 友好）并可被系统稳定解析与
   - 将长内容移入 `references/` 并按需加载（progressive disclosure）
   - 或拆为 Skill Package 内多个子 SKILL，由路由选择
 - **THEN** MUST 禁止“静默截断”导致指令不完整（失败必须可观测、可恢复）
+
+---
+
+### Requirement: SKILL 系统 MUST 支持 `references/` 按需引用（Progressive Disclosure）与参数化选择
+
+系统 MUST 支持在 Skill Package 内使用 `references/` 存放可扩展参考规范文件，并以 progressive disclosure 方式按需注入：默认仅索引/展示 refs 元数据，不在运行时自动把 refs 正文注入模型 Prompt；只有当用户选择（或 workflow 明确需要）时才读取并注入。
+
+#### Scenario: 平台适配改写（refs 扫描 → 选择后按需加载）
+- **WHEN** 用户触发“平台适配”类 SKILL（例如把文章改写成微信公众号/知乎/小红书/微博长文）
+- **THEN** UI MUST 从该 SKILL 的 `references/` 目录扫描可用平台列表并展示给用户（文件名或 frontmatter 元数据）
+- **THEN** 在用户选择目标平台前，系统 MUST NOT 读取并注入 refs 正文内容（避免无意义 token 占用）
+- **THEN** 用户选择平台后，系统 MUST 读取所选 ref 文件正文，并将其作为本次运行的 skill-scoped 上下文注入到 Prompt（可在 Context Viewer 中可见来源与 token）
+
+#### Scenario: refs 可扩展（用户自定义平台）
+- **WHEN** 用户在该 SKILL 的 `references/` 新增一个 ref 文件（例如 `my-blog.md`）
+- **THEN** 系统 MUST 增量发现并更新平台列表，无需重启
+- **THEN** 新增 ref MUST 可被选择并参与生成（失败必须可观测、可恢复）
+
+#### Scenario: refs 注入与 Token 预算
+- **WHEN** 用户选择的 ref 文件导致本次 Prompt 超出 Token 预算（尤其是 low tier 模型）
+- **THEN** 系统 MUST 先尝试选择更短的 skill variant（如 low-tier variant）并减少可选上下文层（settings/retrieved）
+- **THEN** 若仍无法满足预算，系统 MUST 以可理解错误码失败（`INVALID_ARGUMENT`），并提示用户缩短 ref 内容或拆分为更小 refs
 
 ---
 
@@ -155,7 +177,7 @@ SKILL MUST 同时对写作者友好（UI 友好）并可被系统稳定解析与
 
 ## References
 
-- 核心规范：`openspec/specs/writenow-spec/spec.md`（SKILL 概念、第 57-79 行；skills 表、第 814-827 行）
+- 核心规范：`openspec/specs/writenow-spec/spec.md`（「核心概念 → SKILL 系统」；数据库 schema 的 `skills` 表）
 - Sprint 2：`openspec/specs/sprint-2-ai/spec.md`（SKILL 运行闭环与 IPC 边界）
 - Sprint 2.5：`openspec/specs/sprint-2.5-context-engineering/spec.md`（`.writenow/` 与分层上下文）
 - 研究材料：`docs/reference/agent-skills/README.md`（对比 Codex/Claude skills 与工程化载体）

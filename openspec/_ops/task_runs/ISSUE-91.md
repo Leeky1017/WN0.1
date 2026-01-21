@@ -38,3 +38,23 @@
 - Command: `rulebook task validate issue-91-skill-system-v2`
 - Key output: `✅ Task issue-91-skill-system-v2 is valid`
 - Evidence: `rulebook/tasks/issue-91-skill-system-v2/`
+
+### 2026-01-21 20:36 refs-progressive-disclosure
+- Command: `edit openspec/specs/skill-system-v2/spec.md + design/* + tasks/* (references/ on-demand)`
+- Key output: `added requirement + platform rewrite scenario + task 010`
+- Evidence: `openspec/specs/skill-system-v2/spec.md`, `openspec/specs/skill-system-v2/design/skill-format.md`, `openspec/specs/skill-system-v2/tasks/010-platform-rewrite-with-on-demand-references.md`
+
+### 2026-01-21 20:37 openspec
+- Command: `openspec validate --specs --strict --no-interactive`
+- Key output: `Totals: 12 passed, 0 failed`
+- Evidence: `openspec/specs/skill-system-v2/spec.md`
+
+### 2026-01-21 20:37 rulebook
+- Command: `rulebook task validate issue-91-skill-system-v2`
+- Key output: `✅ Task issue-91-skill-system-v2 is valid`
+- Evidence: `rulebook/tasks/issue-91-skill-system-v2/`
+
+### 2026-01-21 20:35 docs+index
+- Command: `ls -la docs/README.md docs/reference/agent-skills/README.md && rg -n "skill-system-v2" openspec/project.md`
+- Key output: `docs/README.md` + `docs/reference/agent-skills/README.md` present; `openspec/project.md` contains `skill-system-v2`
+- Evidence: `docs/README.md`, `docs/reference/agent-skills/README.md`, `openspec/project.md`

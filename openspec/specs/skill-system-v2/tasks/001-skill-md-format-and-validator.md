@@ -14,10 +14,12 @@
 2. 实现 `SKILL.md` 解析器：
    - 读取 frontmatter（YAML）并解析为类型安全结构
    - 提取正文中 `User Instruction`（若采用）与展示用段落（可选）
+   - 解析 `references.slots`（用于 refs 按需引用与 UI 参数化选择）
 3. 实现校验器：
    - 必填字段校验（`id/name/version/tags`）
    - SemVer 校验
    - 长度/Token 估算上限校验（超限必须失败且给出拆分建议）
+   - refs slot 校验（directory/pattern/required/load/maxTokens 等）
    - 前向兼容：未知字段忽略但保留原文（用于 round-trip）
 4. 输出稳定失败语义：
    - 统一返回 `IpcResponse`（或内部 Result）并带 `error.code/message/details`
@@ -37,6 +39,7 @@
 - [ ] 给定任意合法 `SKILL.md`，可解析为结构化 SkillDefinitionV2（字段完整、类型安全）
 - [ ] 对缺字段/非法版本/超长等输入，校验失败可恢复且有稳定错误码
 - [ ] 校验器具备明确的长度控制策略与拆分建议（references/package/variants）
+- [ ] refs slot 定义可被解析与校验（无效 slot 会被拒绝并给出可恢复错误原因）
 - [ ] 单元测试覆盖关键边界分支并可重复运行
 
 ## 参考

@@ -24,6 +24,29 @@
     rules.yml
 ```
 
+## 示例：平台适配改写（refs 按需引用）
+
+一个可直接落地的 package 示例：把同一篇文章改写为适配不同平台的版本（微信公众号/知乎/小红书/微博长文），并通过 `references/` 做 progressive disclosure：
+
+```
+rewrite-for-platform/
+  PACKAGE.md
+  skills/
+    rewrite-for-platform/
+      SKILL.md
+      references/
+        wechat-official.md
+        zhihu-column.md
+        xiaohongshu.md
+        weibo-long.md
+```
+
+关键点：
+
+- `SKILL.md` 声明一个 `platform` ref slot（见 `design/skill-format.md`），UI 通过扫描 `references/` 展示“平台列表”。
+- refs 正文不随 SKILL 默认加载；仅在用户选择平台后才读取并注入 Prompt（节省 token，避免无关上下文）。
+- 用户可以自行新增 `references/my-blog.md`，系统增量发现后自动出现在平台列表中（无需重启）。
+
 ### `PACKAGE.md` frontmatter（建议）
 
 ```yaml
@@ -92,4 +115,3 @@ UI 必须能展示来源与许可证，避免“未知来源技能”静默生�
 - 现有 3 个内置 SKILL 迁移为 builtin package（`pkg.writenow.builtin`）内的 3 个 `SKILL.md`。
 - 索引器启动时确保 builtin package 被索引到 `skills` 表，`skillId` 保持不变（例如继续使用 `builtin:polish`），从而不影响现有 UI 流程与历史记录。
 - 渲染进程 UI 从 IPC 获取技能列表，逐步移除 `src/lib/skills.ts` 的硬编码列表。
-

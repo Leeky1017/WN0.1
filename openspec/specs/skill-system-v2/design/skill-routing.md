@@ -33,12 +33,20 @@ V2 的“路由”分为两层：
 路由器的输入应最小化：
 
 - 用户显式选择（若有）：skillId / variantId
+- 用户显式参数（若有）：skillParams（例如 refs slot 选择：platform=wechat-official）
 - 用户指令（短文本）：例如“把这一段改得更口语”
 - 任务标签：rewrite/generate/analyze/assist（可由 UI 决策）
 - 编辑器信号（不上传正文为前提下的统计）：选区长度、是否包含 Markdown、语言等
 - 可选：检测到的实体（人物/地点），用于决定是否需要 settings
 
 > Why：路由是“决策”而非“生成”；避免把正文作为路由输入可降低隐私与 token 成本。
+
+### refs 选择与路由边界
+
+当某个 SKILL 声明了 `references.slots`（例如平台适配的 `platform`），路由器的职责应保持边界清晰：
+
+- 路由器可以使用 refs 的 **元数据**（id/name/tags）参与候选排序或消歧。
+- 路由器不应读取 refs 的 **正文内容** 来做路由（正文只在用户选择后按需注入，用于生成而非决策）。
 
 ## 分层路由策略（按 tier）
 
@@ -117,4 +125,3 @@ type SkillRouteDecision = {
   evidence: Array<{ kind: 'rule' | 'semantic'; id: string; note: string }>;
 };
 ```
-
