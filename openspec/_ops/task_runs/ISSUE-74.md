@@ -1,7 +1,7 @@
 # ISSUE-74
 - Issue: #74
 - Branch: task/74-issue-70-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/75
 
 ## Plan
 - Close out Sprint 6 A task cards (001/002)
@@ -29,3 +29,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
 - Evidence: `openspec/specs/sprint-6-experience/tasks/001-writing-stats.md`, `openspec/specs/sprint-6-experience/tasks/002-pomodoro-timer.md`, `openspec/specs/writenow-spec/spec.md`
+
+### 2026-01-21 13:58 Create PR
+- Command: `gh pr create --base main --head task/74-issue-70-closeout ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/75`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/75
