@@ -1,6 +1,8 @@
 const Anthropic = require('@anthropic-ai/sdk')
 const { incrementWritingStats, toLocalDateKey } = require('../lib/writing-stats.cjs')
 
+const { selectMemoryForInjection } = require('./memory.cjs')
+
 const AI_STREAM_EVENT = 'ai:skill:stream'
 
 function createIpcError(code, message, details) {
@@ -159,6 +161,24 @@ function formatContextBlock(context) {
   return parts.length > 0 ? parts.join('\n\n') : ''
 }
 
+function formatInjectedMemoryBlock(items) {
+  const list = Array.isArray(items) ? items : []
+  if (list.length === 0) return ''
+
+  const lines = []
+  lines.push('## Retrieved (User Memory)')
+  for (const item of list) {
+    const type = typeof item?.type === 'string' ? item.type : 'preference'
+    const scope = typeof item?.projectId === 'string' && item.projectId.trim() ? 'project' : 'global'
+    const origin = typeof item?.origin === 'string' ? item.origin : 'manual'
+    const content = typeof item?.content === 'string' ? item.content.trim() : ''
+    if (!content) continue
+    lines.push(`- [${type}/${scope}/${origin}] ${content}`)
+  }
+
+  return lines.length > 1 ? lines.join('\n') : ''
+}
+
 function renderTemplate(template, vars) {
   let result = typeof template === 'string' ? template : ''
 
@@ -184,7 +204,7 @@ function renderTemplate(template, vars) {
   return result
 }
 
-function buildPrompt({ skillRow, inputText, articleContext, projectContext }) {
+function buildPrompt({ skillRow, inputText, articleContext, projectContext, injectedMemory }) {
   const systemPrompt =
     typeof skillRow?.system_prompt === 'string' && skillRow.system_prompt.trim()
       ? skillRow.system_prompt.trim()
@@ -196,7 +216,9 @@ function buildPrompt({ skillRow, inputText, articleContext, projectContext }) {
   const includeArticle = contextRules?.includeArticle !== false
   const includeStyleGuide = contextRules?.includeStyleGuide !== false
 
-  const contextText = includeArticle ? formatContextBlock(articleContext) : ''
+  const memoryBlock = formatInjectedMemoryBlock(injectedMemory)
+  const articleBlock = includeArticle ? formatContextBlock(articleContext) : ''
+  const contextText = [memoryBlock, articleBlock].filter(Boolean).join('\n\n')
   const styleGuide =
     includeStyleGuide && typeof projectContext?.styleGuide === 'string' && projectContext.styleGuide.trim()
       ? projectContext.styleGuide.trim()
@@ -268,6 +290,15 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
     const resolvedProjectId = projectId || articleContext?.projectId || ''
     const projectContext = resolvedProjectId ? readProjectContext(db, resolvedProjectId) : null
 
+    let injectedMemory = []
+    try {
+      const selection = selectMemoryForInjection({ db, config, projectId: resolvedProjectId })
+      injectedMemory = selection.items
+    } catch (error) {
+      logger?.warn?.('ai', 'memory injection skipped', { message: error?.message })
+      injectedMemory = []
+    }
+
     const ai = assertConfigured()
     const model = resolveModel(config, skillRow)
     const temperature = resolveTemperature(config)
@@ -285,6 +316,7 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
       inputText,
       articleContext,
       projectContext,
+      injectedMemory,
     })
 
     logger?.info?.('ai', 'run start', { runId, skillId, model, baseUrl: ai.baseUrl })
@@ -382,7 +414,7 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
       }
     })()
 
-    return { runId, stream }
+    return { runId, stream, injected: { memory: injectedMemory } }
   })
 
   handleInvoke('ai:skill:cancel', async (_evt, payload) => {

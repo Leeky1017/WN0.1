@@ -33,7 +33,81 @@
     "materials": "Materials",
     "publish": "Publish",
     "stats": "Stats",
+    "memory": "Memory",
     "settings": "Settings"
+  },
+  "commands": {
+    "title": "Command Palette",
+    "description": "Search commands or skills…",
+    "empty": "No results",
+    "group": {
+      "navigation": "Navigation",
+      "ai": "AI",
+      "view": "View",
+      "pomodoro": "Pomodoro"
+    },
+    "openStats": "Open Stats",
+    "openMemory": "Open Memory",
+    "openSettings": "Open Settings",
+    "toggleFocusMode": "Toggle Focus Mode",
+    "pomodoroStart": "Start Pomodoro",
+    "pomodoroPause": "Pause Pomodoro",
+    "pomodoroStop": "Stop Pomodoro"
+  },
+  "memory": {
+    "title": "Memory",
+    "settings": {
+      "title": "Preferences & Injection",
+      "injectionEnabled": "Enable memory injection",
+      "learningEnabled": "Enable preference learning",
+      "privacyMode": "Privacy mode",
+      "threshold": "Learning threshold"
+    },
+    "injection": {
+      "title": "Will be injected (preview)",
+      "empty": "(Nothing to inject)",
+      "enabledHint": "AI runs will inject memory (minimal, auditable).",
+      "disabledHint": "Memory injection is disabled: AI runs inject no user_memory.",
+      "privacyHint": "Privacy mode: learned memories are excluded from injection."
+    },
+    "create": {
+      "title": "Add memory",
+      "placeholder": "e.g. Prefer concise wording; avoid adjective stacking…"
+    },
+    "list": {
+      "title": "Memory items",
+      "empty": "No memory items",
+      "learned": "Learned (auto)"
+    },
+    "fields": {
+      "type": "Type",
+      "scope": "Scope",
+      "content": "Content"
+    },
+    "actions": {
+      "edit": "Edit",
+      "save": "Save",
+      "delete": "Delete",
+      "clearLearned": "Clear learned"
+    },
+    "filters": {
+      "includeLearned": "Include learned"
+    },
+    "type": {
+      "all": "All types",
+      "preference": "Preference",
+      "feedback": "Feedback",
+      "style": "Style"
+    },
+    "scope": {
+      "all": "All scopes",
+      "global": "Global",
+      "project": "Project"
+    },
+    "origin": {
+      "manual": "Manual",
+      "learned": "Learned"
+    }
   },
   "projects": {
     "title": "Project",

@@ -89,6 +89,15 @@ export type IpcChannel =
   | 'kg:relation:create'
   | 'kg:relation:delete'
   | 'kg:relation:list'
+  | 'memory:create'
+  | 'memory:delete'
+  | 'memory:injection:preview'
+  | 'memory:list'
+  | 'memory:preferences:clear'
+  | 'memory:preferences:ingest'
+  | 'memory:settings:get'
+  | 'memory:settings:update'
+  | 'memory:update'
   | 'ai:skill:cancel'
   | 'ai:skill:run'
   | 'context:writenow:conversations:analysis:update'
@@ -278,6 +287,9 @@ export type AiSkillRunRequest = {
 export type AiSkillRunResponse = {
   runId: string;
   stream: boolean;
+  injected?: {
+    memory: UserMemory[];
+  };
 };
 
 export type AiSkillCancelRequest = {
@@ -452,6 +464,119 @@ export type KnowledgeGraphRelation = {
   metadata?: JsonValue;
   createdAt: string;
   updatedAt: string;
+};
+
+export type UserMemoryType = 'preference' | 'feedback' | 'style';
+
+export type UserMemoryOrigin = 'manual' | 'learned';
+
+export type UserMemory = {
+  id: string;
+  type: UserMemoryType;
+  content: string;
+  projectId: string | null;
+  origin: UserMemoryOrigin;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MemoryListRequest = {
+  projectId?: string;
+  type?: UserMemoryType;
+  scope?: 'all' | 'global' | 'project';
+  includeGlobal?: boolean;
+  includeLearned?: boolean;
+  limit?: number;
+};
+
+export type MemoryListResponse = {
+  items: UserMemory[];
+};
+
+export type MemoryCreateRequest = {
+  type: UserMemoryType;
+  content: string;
+  projectId?: string | null;
+};
+
+export type MemoryCreateResponse = {
+  item: UserMemory;
+};
+
+export type MemoryUpdateRequest = {
+  id: string;
+  type?: UserMemoryType;
+  content?: string;
+  projectId?: string | null;
+};
+
+export type MemoryUpdateResponse = {
+  item: UserMemory;
+};
+
+export type MemoryDeleteRequest = {
+  id: string;
+};
+
+export type MemoryDeleteResponse = {
+  deleted: true;
+};
+
+export type MemorySettings = {
+  injectionEnabled: boolean;
+  preferenceLearningEnabled: boolean;
+  privacyModeEnabled: boolean;
+  preferenceLearningThreshold: number;
+};
+
+export type MemorySettingsGetRequest = Record<string, never>;
+
+export type MemorySettingsGetResponse = {
+  settings: MemorySettings;
+};
+
+export type MemorySettingsUpdateRequest = {
+  injectionEnabled?: boolean;
+  preferenceLearningEnabled?: boolean;
+  privacyModeEnabled?: boolean;
+  preferenceLearningThreshold?: number;
+};
+
+export type MemorySettingsUpdateResponse = {
+  settings: MemorySettings;
+};
+
+export type MemoryPreferencesIngestRequest = {
+  projectId: string;
+  signals: {
+    accepted: string[];
+    rejected: string[];
+  };
+};
+
+export type MemoryPreferencesIngestResponse = {
+  learned: UserMemory[];
+  ignored: number;
+  settings: MemorySettings;
+};
+
+export type MemoryPreferencesClearRequest = {
+  scope?: 'learned' | 'all';
+};
+
+export type MemoryPreferencesClearResponse = {
+  deletedCount: number;
+};
+
+export type MemoryInjectionPreviewRequest = {
+  projectId?: string;
+};
+
+export type MemoryInjectionPreviewResponse = {
+  settings: MemorySettings;
+  injected: {
+    memory: UserMemory[];
+  };
 };
 
 export type ProjectBootstrapRequest = Record<string, never>;
@@ -1163,6 +1288,15 @@ export type IpcInvokePayloadMap = {
   'kg:relation:create': KgRelationCreateRequest;
   'kg:relation:delete': KgRelationDeleteRequest;
   'kg:relation:list': KgRelationListRequest;
+  'memory:create': MemoryCreateRequest;
+  'memory:delete': MemoryDeleteRequest;
+  'memory:injection:preview': MemoryInjectionPreviewRequest;
+  'memory:list': MemoryListRequest;
+  'memory:preferences:clear': MemoryPreferencesClearRequest;
+  'memory:preferences:ingest': MemoryPreferencesIngestRequest;
+  'memory:settings:get': MemorySettingsGetRequest;
+  'memory:settings:update': MemorySettingsUpdateRequest;
+  'memory:update': MemoryUpdateRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'ai:skill:run': AiSkillRunRequest;
   'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateRequest;
@@ -1236,6 +1370,15 @@ export type IpcInvokeDataMap = {
   'kg:relation:create': KgRelationCreateResponse;
   'kg:relation:delete': KgRelationDeleteResponse;
   'kg:relation:list': KgRelationListResponse;
+  'memory:create': MemoryCreateResponse;
+  'memory:delete': MemoryDeleteResponse;
+  'memory:injection:preview': MemoryInjectionPreviewResponse;
+  'memory:list': MemoryListResponse;
+  'memory:preferences:clear': MemoryPreferencesClearResponse;
+  'memory:preferences:ingest': MemoryPreferencesIngestResponse;
+  'memory:settings:get': MemorySettingsGetResponse;
+  'memory:settings:update': MemorySettingsUpdateResponse;
+  'memory:update': MemoryUpdateResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'ai:skill:run': AiSkillRunResponse;
   'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateResponse;

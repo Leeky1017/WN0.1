@@ -4,8 +4,9 @@ import type {
   WritenowConversationSummaryQuality,
 } from '../../types/ipc';
 
-import { IpcError, judgeOps } from '../ipc';
+import { IpcError, judgeOps, memoryOps } from '../ipc';
 import { updateConversationAnalysis } from './conversation-update';
+import { logger } from '../logger';
 
 export type ConversationSummary = {
   summary: string;
@@ -64,6 +65,61 @@ function clampText(text: string, maxChars: number): string {
   return `${text.slice(0, Math.max(0, maxChars - 1))}…`;
 }
 
+/**
+ * Counts regex matches in a forward-safe way.
+ * Why: preference signals should be deterministic even when regexes can match empty / overlapping patterns.
+ */
+function countRepeatMatches(text: string, pattern: RegExp): number {
+  const re = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
+  let count = 0;
+  while (true) {
+    const next = re.exec(text);
+    if (!next) break;
+    count += 1;
+    if (re.lastIndex === next.index) re.lastIndex += 1;
+  }
+  return count;
+}
+
+/**
+ * Extracts lightweight, local preference signals from an AI interaction.
+ * Why: keep preference learning usable even when L2 summary is unavailable (offline / model missing).
+ */
+function detectPreferenceSignals(input: {
+  skillId: string;
+  outcome: 'accepted' | 'rejected' | 'canceled' | 'error';
+  originalText: string;
+  suggestedText: string;
+}): { accepted: string[]; rejected: string[] } {
+  const original = input.originalText;
+  const suggested = input.suggestedText;
+  if (!original.trim() || !suggested.trim()) return { accepted: [], rejected: [] };
+
+  const ratio = suggested.length / Math.max(1, original.length);
+
+  const repeatChar = /(.)\1{1,}/g;
+  const repeatBigram = /(..)\1{1,}/g;
+  const originalRepeats = countRepeatMatches(original, repeatChar) + countRepeatMatches(original, repeatBigram);
+  const suggestedRepeats = countRepeatMatches(suggested, repeatChar) + countRepeatMatches(suggested, repeatBigram);
+
+  const signals: { accepted: string[]; rejected: string[] } = { accepted: [], rejected: [] };
+
+  if (input.outcome === 'accepted') {
+    if (ratio <= 0.85) signals.accepted.push('偏好更简洁的表达');
+    if (ratio >= 1.15) signals.accepted.push('偏好更丰富的细节描写');
+    if (suggestedRepeats < originalRepeats) signals.accepted.push('偏好减少重复表达');
+  } else if (input.outcome === 'rejected') {
+    if (ratio <= 0.85) signals.rejected.push('过度删减内容');
+    if (ratio >= 1.15) signals.rejected.push('过度扩写内容');
+    if (suggestedRepeats > originalRepeats) signals.rejected.push('重复表达过多');
+  }
+
+  if (signals.accepted.length === 0 && signals.rejected.length === 0) return signals;
+
+  const uniq = (list: string[]) => Array.from(new Set(list.map((v) => v.trim()).filter(Boolean)));
+  return { accepted: uniq(signals.accepted), rejected: uniq(signals.rejected) };
+}
+
 function buildL2Prompt(input: {
   articleId: string;
   skillId: string;
@@ -120,12 +176,12 @@ export function buildHeuristicSummary(input: {
     .filter(Boolean)
     .join('\n');
 
-  const preferences =
-    input.outcome === 'accepted'
-      ? { accepted: [`skill:${input.skillId}`], rejected: [] }
-      : input.outcome === 'rejected'
-        ? { accepted: [], rejected: [`skill:${input.skillId}`] }
-        : { accepted: [], rejected: [] };
+  const preferences = detectPreferenceSignals({
+    skillId: input.skillId,
+    outcome: input.outcome,
+    originalText: input.originalText,
+    suggestedText: input.suggestedText,
+  });
 
   return {
     summary,
@@ -197,7 +253,7 @@ export async function generateAndPersistConversationSummary(input: {
     });
   }
 
-  return updateConversationAnalysis({
+  const updated = await updateConversationAnalysis({
     projectId: input.projectId,
     conversationId: input.conversationId,
     analysis: {
@@ -208,5 +264,24 @@ export async function generateAndPersistConversationSummary(input: {
       userPreferences: summary.userPreferences,
     },
   });
-}
 
+  try {
+    await memoryOps.ingestPreferences({
+      projectId: input.projectId,
+      signals: {
+        accepted: summary.userPreferences.accepted,
+        rejected: summary.userPreferences.rejected,
+      },
+    });
+  } catch (error) {
+    if (error instanceof IpcError) {
+      logger.error('memory', 'preference ingest failed', { code: error.code, message: error.message });
+    } else if (error instanceof Error) {
+      logger.error('memory', 'preference ingest failed', { message: error.message });
+    } else {
+      logger.error('memory', 'preference ingest failed', { error: String(error) });
+    }
+  }
+
+  return updated;
+}

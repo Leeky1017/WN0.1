@@ -7,6 +7,7 @@ import { MaterialsView } from './sidebar-views/MaterialsView';
 import { PublishView } from './sidebar-views/PublishView';
 import { StatsView } from './sidebar-views/StatsView';
 import { SettingsView } from './sidebar-views/SettingsView';
+import { MemoryView } from './sidebar-views/MemoryView';
 import { CharactersView } from './sidebar-views/CharactersView';
 import { KnowledgeGraphView } from './sidebar-views/KnowledgeGraphView';
 import { ProjectSidebar } from './ProjectSidebar';
@@ -20,7 +21,7 @@ interface SidebarPanelProps {
 }
 
 function getSidebarWidth(view: SidebarView) {
-  if (view === 'characters' || view === 'knowledgeGraph') return 'w-[420px]';
+  if (view === 'characters' || view === 'knowledgeGraph' || view === 'memory') return 'w-[420px]';
   return 'w-64';
 }
 
@@ -37,6 +38,7 @@ export function SidebarPanel({ view, onViewChange, selectedFile, onSelectFile, e
         {view === 'materials' && <MaterialsView />}
         {view === 'publish' && <PublishView />}
         {view === 'stats' && <StatsView />}
+        {view === 'memory' && <MemoryView />}
         {view === 'settings' && <SettingsView />}
       </div>
     </div>

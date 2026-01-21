@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TitleBar } from './components/TitleBar';
 import { ActivityBar } from './components/ActivityBar';
@@ -14,9 +14,14 @@ import { toUserMessage } from './lib/errors';
 import { useFilesStore } from './stores/filesStore';
 import { useConstraintsStore } from './stores/constraintsStore';
 import { useEditorStore } from './stores/editorStore';
+import { usePomodoroStore } from './stores/pomodoroStore';
 import { useProjectsStore } from './stores/projectsStore';
 import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
 import { usePomodoroRuntime } from './hooks/usePomodoroRuntime';
+import { useAiStore } from './stores/aiStore';
+import { CommandPalette } from './components/CommandPalette';
+import { BUILTIN_SKILLS } from './lib/skills';
+import { createCommandRegistry } from './lib/commands/registry';
 
 export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView =
@@ -28,6 +33,7 @@ export type SidebarView =
   | 'materials'
   | 'publish'
   | 'stats'
+  | 'memory'
   | 'settings';
 
 function toErrorMessage(error: unknown) {
@@ -47,6 +53,7 @@ export default function App() {
   const [sidebarView, setSidebarView] = useState<SidebarView>('files');
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [focusMode, setFocusMode] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const bootstrappedRef = useRef(false);
   const [recoveryChecked, setRecoveryChecked] = useState(false);
   const [recoverySnapshot, setRecoverySnapshot] = useState<DocumentSnapshot | null>(null);
@@ -71,6 +78,11 @@ export default function App() {
   const selectedFile = useEditorStore((s) => s.currentPath);
   const openFile = useEditorStore((s) => s.openFile);
   const editorContent = useEditorStore((s) => s.content);
+
+  const runSkill = useAiStore((s) => s.runSkill);
+  const startPomodoro = usePomodoroStore((s) => s.start);
+  const pausePomodoro = usePomodoroStore((s) => s.pause);
+  const stopPomodoro = usePomodoroStore((s) => s.stop);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,6 +120,55 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusMode]);
+
+  // Global Ctrl/Cmd+K command palette (capture so it can safely override editor shortcuts)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const key = typeof e.key === 'string' ? e.key.toLowerCase() : '';
+
+      if (key === 'escape' && commandPaletteOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        setCommandPaletteOpen(false);
+        return;
+      }
+
+      const isK = key === 'k';
+      const metaOrCtrl = e.metaKey || e.ctrlKey;
+      if (!isK || !metaOrCtrl) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      setCommandPaletteOpen((v) => !v);
+    };
+
+    window.addEventListener('keydown', handler, { capture: true });
+    return () => window.removeEventListener('keydown', handler, { capture: true });
+  }, [commandPaletteOpen]);
+
+  const commandRegistry = useMemo(() => {
+    return createCommandRegistry({
+      t,
+      openStats: () => {
+        setFocusMode(false);
+        setSidebarView('stats');
+      },
+      openMemory: () => {
+        setFocusMode(false);
+        setSidebarView('memory');
+      },
+      openSettings: () => {
+        setFocusMode(false);
+        setSidebarView('settings');
+      },
+      toggleFocusMode: () => setFocusMode((v) => !v),
+      startPomodoro,
+      pausePomodoro,
+      stopPomodoro,
+      runSkill,
+      skills: BUILTIN_SKILLS,
+    });
+  }, [pausePomodoro, runSkill, startPomodoro, stopPomodoro, t]);
 
   useEffect(() => {
     bootstrapProjects().catch(() => undefined);
@@ -274,6 +335,14 @@ export default function App() {
       )}
 
       <PomodoroOverlay />
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        title={t('commands.title')}
+        description={t('commands.description')}
+        emptyText={t('commands.empty')}
+        commands={commandRegistry}
+      />
     </div>
   );
 }

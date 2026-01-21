@@ -96,6 +96,19 @@ export const aiOps = {
   cancelSkill: (runId: string) => invoke('ai:skill:cancel', { runId }),
 };
 
+export const memoryOps = {
+  list: (payload: IpcInvokePayloadMap['memory:list']) => invoke('memory:list', payload),
+  create: (payload: IpcInvokePayloadMap['memory:create']) => invoke('memory:create', payload),
+  update: (payload: IpcInvokePayloadMap['memory:update']) => invoke('memory:update', payload),
+  delete: (id: string) => invoke('memory:delete', { id }),
+  getSettings: () => invoke('memory:settings:get', {}),
+  updateSettings: (payload: IpcInvokePayloadMap['memory:settings:update']) => invoke('memory:settings:update', payload),
+  previewInjection: (payload?: IpcInvokePayloadMap['memory:injection:preview']) => invoke('memory:injection:preview', payload ?? {}),
+  ingestPreferences: (payload: IpcInvokePayloadMap['memory:preferences:ingest']) => invoke('memory:preferences:ingest', payload),
+  clearLearnedPreferences: (payload?: IpcInvokePayloadMap['memory:preferences:clear']) =>
+    invoke('memory:preferences:clear', payload ?? {}),
+};
+
 export const versionOps = {
   list: (payload: IpcInvokePayloadMap['version:list']) => invoke('version:list', payload),
   create: (payload: IpcInvokePayloadMap['version:create']) => invoke('version:create', payload),

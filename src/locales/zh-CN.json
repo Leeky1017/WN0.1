@@ -33,7 +33,81 @@
     "materials": "素材库",
     "publish": "发布平台",
     "stats": "创作统计",
+    "memory": "记忆",
     "settings": "设置"
+  },
+  "commands": {
+    "title": "命令面板",
+    "description": "搜索命令或 SKILL…",
+    "empty": "未找到匹配的命令",
+    "group": {
+      "navigation": "导航",
+      "ai": "AI",
+      "view": "视图",
+      "pomodoro": "番茄钟"
+    },
+    "openStats": "打开创作统计",
+    "openMemory": "打开记忆",
+    "openSettings": "打开设置",
+    "toggleFocusMode": "切换专注模式",
+    "pomodoroStart": "开始番茄钟",
+    "pomodoroPause": "暂停番茄钟",
+    "pomodoroStop": "结束番茄钟"
+  },
+  "memory": {
+    "title": "记忆",
+    "settings": {
+      "title": "偏好与注入",
+      "injectionEnabled": "启用记忆注入",
+      "learningEnabled": "启用偏好学习",
+      "privacyMode": "隐私模式",
+      "threshold": "学习阈值（次数）"
+    },
+    "injection": {
+      "title": "本次将注入的记忆（预览）",
+      "empty": "（暂无可注入的记忆）",
+      "enabledHint": "AI 调用会注入记忆（最小必要、可审计）。",
+      "disabledHint": "已关闭记忆注入：AI 调用不会注入任何 user_memory。",
+      "privacyHint": "隐私模式：不注入 learned 记忆，仅注入用户显式记忆。"
+    },
+    "create": {
+      "title": "新增记忆",
+      "placeholder": "例如：偏好更简洁的表达，减少形容词堆叠…"
+    },
+    "list": {
+      "title": "记忆列表",
+      "empty": "暂无记忆项",
+      "learned": "学习产物（learned）"
+    },
+    "fields": {
+      "type": "类型",
+      "scope": "范围",
+      "content": "内容"
+    },
+    "actions": {
+      "edit": "编辑",
+      "save": "保存",
+      "delete": "删除",
+      "clearLearned": "清空学习产物"
+    },
+    "filters": {
+      "includeLearned": "含 learned"
+    },
+    "type": {
+      "all": "全部类型",
+      "preference": "偏好",
+      "feedback": "反馈",
+      "style": "风格"
+    },
+    "scope": {
+      "all": "全部范围",
+      "global": "全局",
+      "project": "项目"
+    },
+    "origin": {
+      "manual": "手动",
+      "learned": "学习"
+    }
   },
   "projects": {
     "title": "项目",
