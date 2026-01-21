@@ -14,6 +14,15 @@ function coerceString(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function nowIso() {
+  return new Date().toISOString()
+}
+
+function generateConversationId() {
+  const rand = Math.random().toString(16).slice(2, 10)
+  return `conv_${Date.now()}_${rand}`
+}
+
 function ensureSafeFileName(fileName) {
   const raw = coerceString(fileName)
   if (!raw) throw createIpcError('INVALID_ARGUMENT', 'Invalid file name', { fileName })
@@ -59,6 +68,18 @@ function getWritenowCacheDir(projectId) {
   return path.join(getWritenowRoot(projectId), 'cache')
 }
 
+function ensureSafeConversationId(value) {
+  const raw = coerceString(value)
+  if (!raw) throw createIpcError('INVALID_ARGUMENT', 'conversationId is required')
+  const base = path.basename(raw)
+  if (base !== raw) throw createIpcError('INVALID_ARGUMENT', 'Invalid conversationId', { conversationId: value })
+  if (base === '.' || base === '..') throw createIpcError('INVALID_ARGUMENT', 'Invalid conversationId', { conversationId: value })
+  if (!/^[a-zA-Z0-9_-]+$/.test(base)) {
+    throw createIpcError('INVALID_ARGUMENT', 'Invalid conversationId', { conversationId: value })
+  }
+  return base
+}
+
 function toRelPath(projectId, absolutePath) {
   const root = getWritenowRoot(projectId)
   const rel = path.relative(root, absolutePath)
@@ -98,6 +119,294 @@ async function safeReadJsonUtf8(filePath) {
       ok: false,
       error: { code: 'INVALID_ARGUMENT', message: 'Invalid JSON', details: { message: error?.message } },
     }
+  }
+}
+
+async function safeReadJsonValue(filePath) {
+  const raw = await safeReadUtf8(filePath)
+  if (!raw.ok) return raw
+  try {
+    const value = JSON.parse(raw.content)
+    return { ok: true, value, updatedAtMs: raw.updatedAtMs }
+  } catch (error) {
+    return {
+      ok: false,
+      error: { code: 'INVALID_ARGUMENT', message: 'Invalid JSON', details: { message: error?.message } },
+    }
+  }
+}
+
+function normalizeStringArray(value) {
+  if (!Array.isArray(value)) return []
+  return value.map((v) => coerceString(v)).filter(Boolean)
+}
+
+function normalizeUserPreferences(value) {
+  const obj = value && typeof value === 'object' ? value : null
+  return {
+    accepted: normalizeStringArray(obj?.accepted),
+    rejected: normalizeStringArray(obj?.rejected),
+  }
+}
+
+function normalizeSummaryQuality(value) {
+  if (value === 'l2' || value === 'heuristic' || value === 'placeholder') return value
+  return 'placeholder'
+}
+
+function getConversationIndexPath(projectId) {
+  return path.join(getWritenowConversationsDir(projectId), 'index.json')
+}
+
+function getConversationFilePath(projectId, conversationId) {
+  const safeId = ensureSafeConversationId(conversationId)
+  return path.join(getWritenowConversationsDir(projectId), `${safeId}.json`)
+}
+
+async function writeUtf8Atomic(filePath, content) {
+  const dir = path.dirname(filePath)
+  const base = path.basename(filePath)
+  const tmpPath = path.join(dir, `.${base}.tmp-${process.pid}-${Date.now()}`)
+
+  try {
+    await fsp.writeFile(tmpPath, content, 'utf8')
+    await fsp.rename(tmpPath, filePath)
+  } catch (error) {
+    let cleanupError = null
+    try {
+      await fsp.unlink(tmpPath)
+    } catch (err) {
+      cleanupError = err
+    }
+
+    const code = error && typeof error === 'object' ? error.code : null
+    const cleanupCode = cleanupError && typeof cleanupError === 'object' ? cleanupError.code : null
+    throw createIpcError('IO_ERROR', 'Atomic write failed', {
+      filePath,
+      cause: String(code || ''),
+      ...(cleanupError ? { cleanupCause: String(cleanupCode || ''), cleanupMessage: cleanupError?.message } : {}),
+    })
+  }
+}
+
+async function loadConversationIndex(projectId) {
+  await ensureWritenowScaffold(projectId)
+  const indexPath = getConversationIndexPath(projectId)
+  const parsed = await safeReadJsonValue(indexPath)
+
+  const errors = []
+  const normalizeIndexFile = (value) => {
+    const obj = value && typeof value === 'object' ? value : null
+    const version = typeof obj?.version === 'number' && Number.isFinite(obj.version) ? obj.version : 1
+    const items = Array.isArray(obj?.items) ? obj.items : []
+    return { version, items }
+  }
+
+  if (parsed.ok) {
+    const normalized = normalizeIndexFile(parsed.value)
+    const items = normalized.items
+      .map((item) => normalizeConversationIndexItem(item))
+      .filter((item) => item !== null)
+    return {
+      ok: true,
+      loadedAtMs: Date.now(),
+      index: { version: normalized.version, updatedAt: nowIso(), items },
+      errors,
+      indexPath,
+    }
+  }
+
+  if (parsed.error.code !== 'NOT_FOUND') {
+    errors.push({
+      path: toRelPath(projectId, indexPath),
+      code: parsed.error.code,
+      message: parsed.error.message,
+      details: parsed.error.details,
+    })
+
+    const backupPath = path.join(getWritenowConversationsDir(projectId), `index.corrupt-${Date.now()}.json`)
+    try {
+      const raw = await safeReadUtf8(indexPath)
+      if (raw.ok) await writeUtf8Atomic(backupPath, raw.content)
+    } catch (error) {
+      const code = error && typeof error === 'object' ? error.code : null
+      errors.push({
+        path: toRelPath(projectId, backupPath),
+        code: typeof code === 'string' ? 'IO_ERROR' : 'INTERNAL',
+        message: 'Failed to back up corrupt conversation index',
+        details: { cause: String(code || ''), message: error?.message },
+      })
+    }
+  }
+
+  const rebuilt = await rebuildConversationIndex(projectId, errors)
+  return {
+    ok: true,
+    loadedAtMs: Date.now(),
+    index: rebuilt.index,
+    errors: rebuilt.errors,
+    indexPath,
+  }
+}
+
+function normalizeConversationIndexItem(value) {
+  const obj = value && typeof value === 'object' ? value : null
+  const id = coerceString(obj?.id)
+  const articleId = coerceString(obj?.articleId)
+  const createdAt = coerceString(obj?.createdAt)
+  const updatedAt = coerceString(obj?.updatedAt)
+  const fullPath = coerceString(obj?.fullPath)
+  if (!id || !articleId || !createdAt || !updatedAt || !fullPath) return null
+
+  const messageCount = typeof obj?.messageCount === 'number' && Number.isFinite(obj.messageCount) ? obj.messageCount : 0
+  const summary = typeof obj?.summary === 'string' ? obj.summary : ''
+  const summaryQuality = normalizeSummaryQuality(obj?.summaryQuality)
+  const keyTopics = normalizeStringArray(obj?.keyTopics)
+  const skillsUsed = normalizeStringArray(obj?.skillsUsed)
+  const userPreferences = normalizeUserPreferences(obj?.userPreferences)
+
+  return {
+    id,
+    articleId,
+    createdAt,
+    updatedAt,
+    messageCount,
+    summary,
+    summaryQuality,
+    keyTopics,
+    skillsUsed,
+    userPreferences,
+    fullPath,
+  }
+}
+
+async function rebuildConversationIndex(projectId, existingErrors) {
+  const conversationsDir = getWritenowConversationsDir(projectId)
+  const errors = Array.isArray(existingErrors) ? [...existingErrors] : []
+  const items = []
+
+  let entries = []
+  try {
+    entries = await fsp.readdir(conversationsDir, { withFileTypes: true })
+  } catch (error) {
+    const code = error && typeof error === 'object' ? error.code : null
+    errors.push({
+      path: toRelPath(projectId, conversationsDir),
+      code: code === 'ENOENT' ? 'NOT_FOUND' : 'IO_ERROR',
+      message: code === 'ENOENT' ? 'Not found' : 'I/O error',
+      details: { cause: String(code || '') },
+    })
+    return { index: { version: 1, updatedAt: nowIso(), items: [] }, errors }
+  }
+
+  const conversationFiles = entries
+    .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.json') && e.name !== 'index.json' && !e.name.startsWith('.'))
+    .map((e) => e.name)
+    .sort((a, b) => a.localeCompare(b))
+
+  for (const fileName of conversationFiles) {
+    const fullPath = path.join(conversationsDir, fileName)
+    const parsed = await safeReadJsonValue(fullPath)
+    if (!parsed.ok) {
+      errors.push({
+        path: toRelPath(projectId, fullPath),
+        code: parsed.error.code,
+        message: parsed.error.message,
+        details: parsed.error.details,
+      })
+      continue
+    }
+
+    const record = normalizeConversationRecord(parsed.value)
+    if (!record) {
+      errors.push({
+        path: toRelPath(projectId, fullPath),
+        code: 'INVALID_ARGUMENT',
+        message: 'Invalid conversation record',
+      })
+      continue
+    }
+
+    const indexItem = toConversationIndexItem(projectId, fullPath, record)
+    if (indexItem) items.push(indexItem)
+  }
+
+  items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))
+
+  const index = { version: 1, updatedAt: nowIso(), items }
+  const indexPath = getConversationIndexPath(projectId)
+  try {
+    await writeUtf8Atomic(indexPath, JSON.stringify(index, null, 2) + '\n')
+  } catch (error) {
+    const code = error && typeof error === 'object' ? error.code : null
+    errors.push({
+      path: toRelPath(projectId, indexPath),
+      code: typeof code === 'string' ? 'IO_ERROR' : 'INTERNAL',
+      message: 'Failed to write rebuilt conversation index',
+      details: { cause: String(code || ''), message: error?.message },
+    })
+  }
+
+  return { index, errors }
+}
+
+function normalizeConversationMessage(value) {
+  const obj = value && typeof value === 'object' ? value : null
+  const role = obj?.role
+  const content = typeof obj?.content === 'string' ? obj.content : ''
+  const createdAt = coerceString(obj?.createdAt) || nowIso()
+  if (role !== 'system' && role !== 'user' && role !== 'assistant') return null
+  return { role, content, createdAt }
+}
+
+function normalizeConversationRecord(value) {
+  const obj = value && typeof value === 'object' ? value : null
+  const id = coerceString(obj?.id)
+  const articleId = coerceString(obj?.articleId)
+  const createdAt = coerceString(obj?.createdAt)
+  const updatedAt = coerceString(obj?.updatedAt)
+  const messages = Array.isArray(obj?.messages) ? obj.messages.map((m) => normalizeConversationMessage(m)).filter(Boolean) : []
+
+  if (!id || !articleId || !createdAt || !updatedAt) return null
+
+  const analysis = obj?.analysis && typeof obj.analysis === 'object' ? obj.analysis : null
+  const summary = typeof analysis?.summary === 'string' ? analysis.summary : ''
+  const summaryQuality = normalizeSummaryQuality(analysis?.summaryQuality)
+  const keyTopics = normalizeStringArray(analysis?.keyTopics)
+  const skillsUsed = normalizeStringArray(analysis?.skillsUsed)
+  const userPreferences = normalizeUserPreferences(analysis?.userPreferences)
+
+  return {
+    version: 1,
+    id,
+    articleId,
+    createdAt,
+    updatedAt,
+    messages,
+    analysis: {
+      summary,
+      summaryQuality,
+      keyTopics,
+      skillsUsed,
+      userPreferences,
+    },
+  }
+}
+
+function toConversationIndexItem(projectId, conversationFilePath, record) {
+  const rel = toRelPath(projectId, conversationFilePath)
+  return {
+    id: record.id,
+    articleId: record.articleId,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+    messageCount: Array.isArray(record.messages) ? record.messages.length : 0,
+    summary: record.analysis?.summary ?? '',
+    summaryQuality: normalizeSummaryQuality(record.analysis?.summaryQuality),
+    keyTopics: normalizeStringArray(record.analysis?.keyTopics),
+    skillsUsed: normalizeStringArray(record.analysis?.skillsUsed),
+    userPreferences: normalizeUserPreferences(record.analysis?.userPreferences),
+    fullPath: rel,
   }
 }
 
@@ -418,7 +727,142 @@ function registerContextIpcHandlers(ipcMain, options = {}) {
     const result = await readSettingsFiles(projectId, payload)
     return { projectId, rootPath, ...result }
   })
+
+  handleInvoke('context:writenow:conversations:save', async (_evt, payload) => {
+    const projectId = coerceString(payload?.projectId)
+    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+
+    const conv = payload?.conversation
+    const articleId = coerceString(conv?.articleId)
+    if (!articleId) throw createIpcError('INVALID_ARGUMENT', 'conversation.articleId is required')
+
+    const explicitId = coerceString(conv?.id)
+    const conversationId = explicitId ? ensureSafeConversationId(explicitId) : generateConversationId()
+    const createdAt = coerceString(conv?.createdAt) || nowIso()
+    const updatedAt = coerceString(conv?.updatedAt) || createdAt
+
+    const rawMessages = Array.isArray(conv?.messages) ? conv.messages : []
+    const messages = rawMessages.map((m) => normalizeConversationMessage(m)).filter(Boolean)
+
+    const analysis = {
+      summary: '',
+      summaryQuality: 'placeholder',
+      keyTopics: [],
+      skillsUsed: normalizeStringArray(conv?.skillsUsed),
+      userPreferences: normalizeUserPreferences(conv?.userPreferences),
+    }
+
+    const record = {
+      version: 1,
+      id: conversationId,
+      articleId,
+      createdAt,
+      updatedAt,
+      messages,
+      analysis,
+    }
+
+    await ensureWritenowScaffold(projectId)
+    const conversationPath = getConversationFilePath(projectId, conversationId)
+    await writeUtf8Atomic(conversationPath, JSON.stringify(record, null, 2) + '\n')
+
+    const indexLoaded = await loadConversationIndex(projectId)
+    const nextItems = indexLoaded.index.items.filter((item) => item.id !== conversationId)
+    const indexItem = toConversationIndexItem(projectId, conversationPath, record)
+    nextItems.push(indexItem)
+    nextItems.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))
+
+    const nextIndex = {
+      version: 1,
+      updatedAt: nowIso(),
+      items: nextItems,
+    }
+    await writeUtf8Atomic(indexLoaded.indexPath, JSON.stringify(nextIndex, null, 2) + '\n')
+
+    return { saved: true, index: indexItem }
+  })
+
+  handleInvoke('context:writenow:conversations:list', async (_evt, payload) => {
+    const projectId = coerceString(payload?.projectId)
+    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+    const articleId = coerceString(payload?.articleId)
+    const limitRaw = payload?.limit
+    const limit = typeof limitRaw === 'number' && Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(200, Math.floor(limitRaw)) : 50
+
+    const rootPath = getWritenowRoot(projectId)
+    const loaded = await loadConversationIndex(projectId)
+    const filtered = articleId ? loaded.index.items.filter((item) => item.articleId === articleId) : loaded.index.items
+    return {
+      projectId,
+      rootPath,
+      loadedAtMs: loaded.loadedAtMs,
+      items: filtered.slice(0, limit),
+      errors: loaded.errors,
+    }
+  })
+
+  handleInvoke('context:writenow:conversations:read', async (_evt, payload) => {
+    const projectId = coerceString(payload?.projectId)
+    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+    const conversationId = ensureSafeConversationId(payload?.conversationId)
+    const rootPath = getWritenowRoot(projectId)
+
+    const filePath = getConversationFilePath(projectId, conversationId)
+    const parsed = await safeReadJsonValue(filePath)
+    if (!parsed.ok) throw createIpcError(parsed.error.code, parsed.error.message, { path: toRelPath(projectId, filePath), details: parsed.error.details })
+
+    const record = normalizeConversationRecord(parsed.value)
+    if (!record) throw createIpcError('IO_ERROR', 'Conversation file is corrupted', { path: toRelPath(projectId, filePath) })
+    return { projectId, rootPath, conversation: record }
+  })
+
+  handleInvoke('context:writenow:conversations:analysis:update', async (_evt, payload) => {
+    const projectId = coerceString(payload?.projectId)
+    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+    const conversationId = ensureSafeConversationId(payload?.conversationId)
+    const analysis = payload?.analysis
+    const summary = typeof analysis?.summary === 'string' ? analysis.summary : ''
+    if (!summary.trim()) throw createIpcError('INVALID_ARGUMENT', 'analysis.summary is required')
+
+    const rootPath = getWritenowRoot(projectId)
+    const filePath = getConversationFilePath(projectId, conversationId)
+
+    const parsed = await safeReadJsonValue(filePath)
+    if (!parsed.ok) throw createIpcError(parsed.error.code, parsed.error.message, { path: toRelPath(projectId, filePath), details: parsed.error.details })
+
+    const record = normalizeConversationRecord(parsed.value)
+    if (!record) throw createIpcError('IO_ERROR', 'Conversation file is corrupted', { path: toRelPath(projectId, filePath) })
+
+    const updatedAt = nowIso()
+    const nextRecord = {
+      ...record,
+      updatedAt,
+      analysis: {
+        summary: summary.trim(),
+        summaryQuality: normalizeSummaryQuality(analysis?.summaryQuality),
+        keyTopics: normalizeStringArray(analysis?.keyTopics),
+        skillsUsed: normalizeStringArray(analysis?.skillsUsed),
+        userPreferences: normalizeUserPreferences(analysis?.userPreferences),
+      },
+    }
+
+    await writeUtf8Atomic(filePath, JSON.stringify(nextRecord, null, 2) + '\n')
+
+    const indexLoaded = await loadConversationIndex(projectId)
+    const nextItems = indexLoaded.index.items.filter((item) => item.id !== conversationId)
+    const indexItem = toConversationIndexItem(projectId, filePath, nextRecord)
+    nextItems.push(indexItem)
+    nextItems.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))
+
+    const nextIndex = {
+      version: 1,
+      updatedAt: nowIso(),
+      items: nextItems,
+    }
+    await writeUtf8Atomic(indexLoaded.indexPath, JSON.stringify(nextIndex, null, 2) + '\n')
+
+    return { updated: true, index: indexItem }
+  })
 }
 
 module.exports = { registerContextIpcHandlers }
-

@@ -210,10 +210,12 @@ export function DiffView({
         </div>
       </div>
 
-      {status === 'error' && errorMessage && (
+      {errorMessage && (
         <div
           data-testid="ai-diff-error"
-          className="px-3 py-2 border-b border-[var(--border-subtle)] text-[12px] text-red-300"
+          className={`px-3 py-2 border-b border-[var(--border-subtle)] text-[12px] ${
+            status === 'error' ? 'text-red-300' : 'text-amber-300'
+          }`}
         >
           {errorMessage}
         </div>

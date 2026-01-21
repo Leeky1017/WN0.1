@@ -150,7 +150,7 @@ export function AIPanel() {
             violationErrorMessage={run.judge.errorMessage}
             onCancel={() => cancelRun().catch(() => undefined)}
             onAccept={() => acceptSuggestion().catch(() => undefined)}
-            onReject={rejectSuggestion}
+            onReject={() => rejectSuggestion().catch(() => undefined)}
             acceptLabel="接受并应用"
             rejectLabel="拒绝"
           />

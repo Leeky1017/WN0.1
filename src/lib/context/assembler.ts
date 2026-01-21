@@ -3,11 +3,13 @@ import type { AssembleResult, ContextFragment, ContextFragmentInput, EditorConte
 import { TokenBudgetError, TokenBudgetManager, type TokenBudget } from './budget';
 import { loadProjectRules } from './loaders/rules-loader';
 import { loadWritenowSettings } from './loaders/settings-loader';
+import { loadPreviousReferenceFragments } from './previous-reference';
 import { renderPromptTemplate, type PromptTemplateSkill } from './prompt-template';
 import { createDefaultTokenEstimator } from './token-estimator';
 
 export type ContextAssemblerInput = {
   projectId: string;
+  articleId?: string;
   model: string;
   budget: TokenBudget;
   skill: PromptTemplateSkill;
@@ -23,6 +25,7 @@ export type ContextAssemblerInput = {
 export type ContextAssemblerDeps = {
   loadRules: typeof loadProjectRules;
   loadSettings: typeof loadWritenowSettings;
+  loadPreviousReferences: typeof loadPreviousReferenceFragments;
 };
 
 function ensureLayer(
@@ -116,6 +119,7 @@ export class ContextAssembler {
     this.deps = {
       loadRules: deps?.loadRules ?? loadProjectRules,
       loadSettings: deps?.loadSettings ?? loadWritenowSettings,
+      loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
     };
   }
 
@@ -134,7 +138,12 @@ export class ContextAssembler {
         : null;
     const settings = ensureLayer(settingsLoaded?.fragments, 'settings');
 
-    const retrieved = ensureLayer(input.retrieved, 'retrieved');
+    const previousReferences = await this.deps.loadPreviousReferences({
+      projectId: input.projectId,
+      articleId: input.articleId,
+      userInstruction: input.userInstruction,
+    });
+    const retrieved = ensureLayer([...(Array.isArray(input.retrieved) ? input.retrieved : []), ...previousReferences], 'retrieved');
     const immediate = ensureLayer(buildImmediateFragments(input), 'immediate');
 
     const candidates: ContextFragmentInput[] = [...rules, ...settings, ...retrieved, ...immediate];
