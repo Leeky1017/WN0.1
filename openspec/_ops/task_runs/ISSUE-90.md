@@ -1,7 +1,7 @@
 # ISSUE-90
 - Issue: #90
 - Branch: task/90-p3-search-kanban
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/95
 
 ## Plan
 - Implement sidebar search (FTS + semantic) with highlight + navigation
@@ -38,3 +38,8 @@
 - Command: `npx playwright test tests/e2e/frontend-theme-visual.spec.ts --update-snapshots`
 - Key output: `frontend-theme-dark-linux.png / frontend-theme-light-linux.png updated`
 - Evidence: `tests/e2e/frontend-theme-visual.spec.ts-snapshots/frontend-theme-dark-linux.png`
+
+### 2026-01-21 22:03 PR
+- Command: `gh pr create --base main --head task/90-p3-search-kanban ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/95`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/95
