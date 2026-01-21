@@ -1,5 +1,10 @@
 # CONTEXT-P1-010: “像上次那样” 引用检索与注入
 
+Status: done
+Issue: #60
+PR: https://github.com/Leeky1017/WN0.1/pull/62
+RUN_LOG: openspec/_ops/task_runs/ISSUE-60.md
+
 ## Goal
 
 在用户指令包含“像上次/之前那样”等引用时，检索相关历史对话摘要与偏好信号并注入 Retrieved 层，避免模型丢失用户偏好与历史策略。
@@ -19,15 +24,14 @@
 
 ## Acceptance Criteria
 
-- [ ] 检索优先按 `articleId` 与最近对话；若无历史则无副作用
-- [ ] 注入内容必须可追溯（引用了哪个对话 id/摘要）并可在 ContextViewer 中展示
-- [ ] 注入严格受 TokenBudgetManager 约束；超预算时按 Retrieved 优先级裁剪并给出证据
+- [x] 检索优先按 `articleId` 与最近对话；若无历史则无副作用
+- [x] 注入内容必须可追溯（引用了哪个对话 id/摘要）并可在 ContextViewer 中展示
+- [x] 注入严格受 TokenBudgetManager 约束；超预算时按 Retrieved 优先级裁剪并给出证据
 
 ## Tests
 
-- [ ] Playwright E2E：先完成一次对话并生成摘要 → 新请求输入“像上次那样” → 打开上下文预览 → 断言引用摘要 chunk 存在且来源正确
+- [x] Playwright E2E：先完成一次对话并生成摘要 → 新请求输入“像上次那样” → 打开上下文预览 → 断言引用摘要 chunk 存在且来源正确
 
 ## Effort Estimate
 
 - M（2 天）
-
