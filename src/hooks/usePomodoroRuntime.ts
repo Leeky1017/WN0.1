@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { usePomodoroStore } from '../stores/pomodoroStore';
 
 /**
- * Why: Pomodoro must keep time (and recover) independently from whether the StatsBar is shown.
+ * Why: Pomodoro must keep time (and recover) independently from whether the StatusBar UI is open/expanded.
  */
 export function usePomodoroRuntime() {
   const hydrate = usePomodoroStore((s) => s.hydrate);
@@ -21,4 +21,3 @@ export function usePomodoroRuntime() {
     return () => window.clearInterval(id);
   }, [isHydrated, tick]);
 }
-

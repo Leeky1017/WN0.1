@@ -109,7 +109,7 @@ test('file delete removes file and closes editor', async () => {
   const docPath = path.join(userDataDir, 'documents', 'Delete Me.md');
   expect(fs.existsSync(docPath)).toBe(false);
 
-  await expect(page.getByText('未选择文件')).toBeVisible();
+  await expect(page.getByTestId('editor-empty')).toBeVisible();
   await electronApp.close();
 });
 

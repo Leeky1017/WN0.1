@@ -1,5 +1,7 @@
 # FRONTEND-P2-001: 内联 AI（Cmd/Ctrl+K）+ 可控应用到文稿
 
+Status: done (completed in Sprint 6)
+
 ## Goal
 
 实现编辑器内联 AI 指令入口，减少“写字区 ↔ 聊天区”切换成本，并确保结果应用可控、可撤销、可版本化。
@@ -25,4 +27,3 @@
 ## Tests
 
 - [ ] Playwright E2E：输入文本 → `Cmd/Ctrl+K` → 生成 → 点击“插入/替换” → 断言正文变化 → undo → 断言恢复
-

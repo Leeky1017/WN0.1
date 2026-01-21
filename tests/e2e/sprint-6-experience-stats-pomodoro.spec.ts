@@ -136,7 +136,9 @@ test('pomodoro: focus credits writing_minutes and recovers after restart', async
     if (!baselineResp.ok) throw new Error('stats:getToday failed');
     baselineWritingMinutes = baselineResp.data.stats.writingMinutes;
 
-    await first.page.locator('button[title="设置计时器"]').click();
+    await first.page.getByRole('button', { name: 'Expand status details' }).click();
+    await expect(first.page.getByText('今日')).toBeVisible();
+    await first.page.getByRole('button', { name: 'Timer settings' }).click();
     await expect(first.page.getByText('设置计时器')).toBeVisible();
     await first.page.getByLabel('专注时长（分钟）').fill('2');
     await first.page.getByLabel('休息时长（分钟）').fill('1');

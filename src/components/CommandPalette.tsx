@@ -86,7 +86,7 @@ export function CommandPalette({ open, onOpenChange, title, description, emptyTe
                 placeholder={description}
                 value={search}
                 onValueChange={setSearch}
-                className="flex-1 h-10 bg-transparent text-[13px] text-[var(--text-secondary)] outline-none placeholder:text-[var(--text-tertiary)]"
+                className="flex-1 h-10 bg-transparent text-[13px] text-[var(--text-secondary)] outline-none placeholder-[var(--text-tertiary)]"
               />
             </div>
 

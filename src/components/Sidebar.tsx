@@ -72,7 +72,7 @@ export function Sidebar({ selectedFile, onSelectFile }: SidebarProps) {
         return (
           <div key={item.name}>
             <div
-              className="flex items-center gap-1 px-2 py-1 hover:bg-[#2a2d2e] cursor-pointer text-[13px]"
+              className="flex items-center gap-1 px-2 py-1 hover:bg-[var(--bg-hover)] cursor-pointer text-[13px] text-[var(--text-secondary)]"
               style={{ paddingLeft: `${8 + level * 16}px` }}
               onClick={() => toggleFolder(item.name)}
             >
@@ -82,9 +82,9 @@ export function Sidebar({ selectedFile, onSelectFile }: SidebarProps) {
                 <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" />
               )}
               {isExpanded ? (
-                <FolderOpen className="w-4 h-4 flex-shrink-0 text-[#dcb67a]" />
+                <FolderOpen className="w-4 h-4 flex-shrink-0 text-[var(--text-tertiary)]" />
               ) : (
-                <Folder className="w-4 h-4 flex-shrink-0 text-[#dcb67a]" />
+                <Folder className="w-4 h-4 flex-shrink-0 text-[var(--text-tertiary)]" />
               )}
               <span className="truncate">{item.name}</span>
             </div>
@@ -95,13 +95,13 @@ export function Sidebar({ selectedFile, onSelectFile }: SidebarProps) {
         return (
           <div
             key={item.name}
-            className={`flex items-center gap-1 px-2 py-1 hover:bg-[#2a2d2e] cursor-pointer text-[13px] ${
-              isSelected ? 'bg-[#37373d]' : ''
+            className={`flex items-center gap-1 px-2 py-1 hover:bg-[var(--bg-hover)] cursor-pointer text-[13px] text-[var(--text-secondary)] ${
+              isSelected ? 'bg-[var(--bg-active)]' : ''
             }`}
             style={{ paddingLeft: `${24 + level * 16}px` }}
             onClick={() => onSelectFile(item.name)}
           >
-            <FileText className="w-4 h-4 flex-shrink-0 text-[#519aba]" />
+            <FileText className="w-4 h-4 flex-shrink-0 text-[var(--text-tertiary)]" />
             <span className="truncate">{item.name}</span>
           </div>
         );
@@ -110,28 +110,28 @@ export function Sidebar({ selectedFile, onSelectFile }: SidebarProps) {
   };
 
   return (
-    <div className="w-64 bg-[#252526] border-r border-[#2d2d30] flex flex-col">
+    <div className="w-64 bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] flex flex-col">
       {/* Sidebar Header */}
-      <div className="h-9 flex items-center justify-between px-3 border-b border-[#2d2d30]">
-        <span className="text-[11px] uppercase tracking-wider text-[#888888]">资源管理器</span>
+      <div className="h-9 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+        <span className="text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">资源管理器</span>
         <div className="flex gap-1">
-          <button className="hover:bg-[#2a2d2e] p-1 rounded">
-            <Plus className="w-4 h-4" />
+          <button className="hover:bg-[var(--bg-hover)] p-1 rounded">
+            <Plus className="w-4 h-4 text-[var(--text-tertiary)]" />
           </button>
-          <button className="hover:bg-[#2a2d2e] p-1 rounded">
-            <MoreHorizontal className="w-4 h-4" />
+          <button className="hover:bg-[var(--bg-hover)] p-1 rounded">
+            <MoreHorizontal className="w-4 h-4 text-[var(--text-tertiary)]" />
           </button>
         </div>
       </div>
 
       {/* Search Bar */}
       <div className="px-2 py-2">
-        <div className="flex items-center gap-2 bg-[#3c3c3c] rounded px-2 py-1">
-          <Search className="w-3.5 h-3.5 text-[#888888]" />
+        <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] rounded px-2 py-1">
+          <Search className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
           <input
             type="text"
             placeholder="搜索文件..."
-            className="bg-transparent outline-none text-[13px] flex-1 text-[#cccccc] placeholder-[#888888]"
+            className="bg-transparent outline-none text-[13px] flex-1 text-[var(--text-secondary)] placeholder-[var(--text-tertiary)]"
           />
         </div>
       </div>

@@ -45,12 +45,12 @@ function layoutCircle(entities: KnowledgeGraphEntity[]): Map<string, NodePos> {
 }
 
 function entityColor(type: KnowledgeGraphEntityType) {
-  if (type === 'Character') return '#6D7CFF';
-  if (type === 'Location') return '#2EC4B6';
-  if (type === 'Event') return '#FF9F1C';
-  if (type === 'TimePoint') return '#C77DFF';
-  if (type === 'Item') return '#E71D36';
-  return '#9CA3AF';
+  if (type === 'Character') return 'var(--wn-kg-entity-character)';
+  if (type === 'Location') return 'var(--wn-kg-entity-location)';
+  if (type === 'Event') return 'var(--wn-kg-entity-event)';
+  if (type === 'TimePoint') return 'var(--wn-kg-entity-timepoint)';
+  if (type === 'Item') return 'var(--wn-kg-entity-item)';
+  return 'var(--wn-kg-entity-unknown)';
 }
 
 function buildEntityLabel(entity: KnowledgeGraphEntity) {
@@ -256,7 +256,7 @@ export function KnowledgeGraphPanel() {
           <svg className="absolute inset-0 w-full h-full select-none" role="img" aria-label="Knowledge graph">
             <defs>
               <marker id="wn-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                <path d="M0,0 L8,4 L0,8 z" fill="rgba(148,163,184,0.8)" />
+                <path d="M0,0 L8,4 L0,8 z" fill="var(--wn-text-tertiary)" fillOpacity={0.8} />
               </marker>
             </defs>
             <rect
@@ -283,7 +283,8 @@ export function KnowledgeGraphPanel() {
                       y1={from.y}
                       x2={to.x}
                       y2={to.y}
-                      stroke={selected ? 'rgba(109,124,255,0.95)' : 'rgba(148,163,184,0.55)'}
+                      stroke={selected ? 'var(--wn-accent-primary)' : 'var(--wn-text-tertiary)'}
+                      strokeOpacity={selected ? 0.95 : 0.55}
                       strokeWidth={selected ? 2.5 : 1.5}
                       markerEnd="url(#wn-arrow)"
                       pointerEvents="none"
@@ -321,8 +322,14 @@ export function KnowledgeGraphPanel() {
                     }}
                     style={{ cursor: 'pointer' }}
                   >
-                    <circle r={selected ? 18 : 16} fill={fill} opacity={selected ? 0.95 : 0.75} stroke={selected ? '#FFFFFF' : 'transparent'} strokeWidth={2} />
-                    <text x={0} y={36} textAnchor="middle" fontSize={12} fill="rgba(226,232,240,0.9)">
+                    <circle
+                      r={selected ? 18 : 16}
+                      fill={fill}
+                      opacity={selected ? 0.95 : 0.75}
+                      stroke={selected ? 'var(--wn-text-primary)' : 'transparent'}
+                      strokeWidth={2}
+                    />
+                    <text x={0} y={36} textAnchor="middle" fontSize={12} fill="var(--wn-text-secondary)">
                       {buildEntityLabel(entity)}
                     </text>
                   </g>

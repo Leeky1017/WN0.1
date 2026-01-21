@@ -20,14 +20,9 @@ interface SidebarPanelProps {
   editorContent: string;
 }
 
-function getSidebarWidth(view: SidebarView) {
-  if (view === 'characters' || view === 'knowledgeGraph' || view === 'memory') return 'w-[420px]';
-  return 'w-64';
-}
-
 export function SidebarPanel({ view, onViewChange, selectedFile, onSelectFile, editorContent }: SidebarPanelProps) {
   return (
-    <div className={`${getSidebarWidth(view)} bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] flex flex-col`}>
+    <div className="w-full bg-[var(--bg-secondary)] flex flex-col">
       <ProjectSidebar activeView={view} onViewChange={onViewChange} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {view === 'files' && <FilesView selectedFile={selectedFile} onSelectFile={onSelectFile} />}

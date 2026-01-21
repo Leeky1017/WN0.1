@@ -5,8 +5,9 @@ import { ActivityBar } from './components/ActivityBar';
 import { SidebarPanel } from './components/SidebarPanel';
 import { Editor } from './components/Editor';
 import { AIPanel } from './components/AIPanel';
-import { StatsBar } from './components/StatsBar';
+import { StatusBar } from './components/StatusBar';
 import { PomodoroOverlay } from './components/PomodoroOverlay';
+import { WnResizable } from './components/wn';
 
 import type { DocumentSnapshot } from './types/ipc';
 import { IpcError, fileOps } from './lib/ipc';
@@ -16,6 +17,7 @@ import { useConstraintsStore } from './stores/constraintsStore';
 import { useEditorStore } from './stores/editorStore';
 import { usePomodoroStore } from './stores/pomodoroStore';
 import { useProjectsStore } from './stores/projectsStore';
+import { useLayoutStore } from './stores/layoutStore';
 import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
 import { usePomodoroRuntime } from './hooks/usePomodoroRuntime';
 import { useAiStore } from './stores/aiStore';
@@ -48,13 +50,13 @@ function toErrorMessage(error: unknown) {
 
 export default function App() {
   const { t } = useTranslation();
-  const [aiPanelOpen, setAiPanelOpen] = useState(true);
-  const [statsBarOpen, setStatsBarOpen] = useState(true);
   const [sidebarView, setSidebarView] = useState<SidebarView>('files');
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [focusMode, setFocusMode] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(() => window.innerWidth);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const bootstrappedRef = useRef(false);
+  const responsiveRestoreRef = useRef<null | { sidebarCollapsed: boolean; aiPanelCollapsed: boolean }>(null);
   const [recoveryChecked, setRecoveryChecked] = useState(false);
   const [recoverySnapshot, setRecoverySnapshot] = useState<DocumentSnapshot | null>(null);
   const [recoveryBusy, setRecoveryBusy] = useState(false);
@@ -62,6 +64,29 @@ export default function App() {
 
   useContextEntityPrefetch();
   usePomodoroRuntime();
+
+  const hydrateLayout = useLayoutStore((s) => s.hydrate);
+  const sidebarWidthPx = useLayoutStore((s) => s.sidebarWidthPx);
+  const isSidebarCollapsed = useLayoutStore((s) => s.isSidebarCollapsed);
+  const setSidebarWidthPx = useLayoutStore((s) => s.setSidebarWidthPx);
+  const setSidebarCollapsed = useLayoutStore((s) => s.setSidebarCollapsed);
+  const toggleSidebarCollapsed = useLayoutStore((s) => s.toggleSidebarCollapsed);
+
+  const aiPanelWidthPx = useLayoutStore((s) => s.aiPanelWidthPx);
+  const isAiPanelCollapsed = useLayoutStore((s) => s.isAiPanelCollapsed);
+  const setAiPanelWidthPx = useLayoutStore((s) => s.setAiPanelWidthPx);
+  const setAiPanelCollapsed = useLayoutStore((s) => s.setAiPanelCollapsed);
+  const toggleAiPanelCollapsed = useLayoutStore((s) => s.toggleAiPanelCollapsed);
+
+  useEffect(() => {
+    hydrateLayout();
+  }, [hydrateLayout]);
+
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const files = useFilesStore((s) => s.files);
   const filesHasLoaded = useFilesStore((s) => s.hasLoaded);
@@ -121,6 +146,33 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusMode]);
 
+  useEffect(() => {
+    if (focusMode) return;
+
+    const applyResponsiveCollapse = () => {
+      const width = window.innerWidth;
+      const collapseAi = width < 1100;
+      const collapseSidebar = width < 900;
+
+      if ((collapseAi || collapseSidebar) && !responsiveRestoreRef.current) {
+        responsiveRestoreRef.current = { sidebarCollapsed: isSidebarCollapsed, aiPanelCollapsed: isAiPanelCollapsed };
+      }
+
+      if (collapseAi && !isAiPanelCollapsed) setAiPanelCollapsed(true);
+      if (collapseSidebar && !isSidebarCollapsed) setSidebarCollapsed(true);
+
+      if (!collapseAi && !collapseSidebar && responsiveRestoreRef.current) {
+        setSidebarCollapsed(responsiveRestoreRef.current.sidebarCollapsed);
+        setAiPanelCollapsed(responsiveRestoreRef.current.aiPanelCollapsed);
+        responsiveRestoreRef.current = null;
+      }
+    };
+
+    applyResponsiveCollapse();
+    window.addEventListener('resize', applyResponsiveCollapse);
+    return () => window.removeEventListener('resize', applyResponsiveCollapse);
+  }, [focusMode, isAiPanelCollapsed, isSidebarCollapsed, setAiPanelCollapsed, setSidebarCollapsed]);
+
   // Global Ctrl/Cmd+K command palette (capture so it can safely override editor shortcuts)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -151,14 +203,17 @@ export default function App() {
       t,
       openStats: () => {
         setFocusMode(false);
+        setSidebarCollapsed(false);
         setSidebarView('stats');
       },
       openMemory: () => {
         setFocusMode(false);
+        setSidebarCollapsed(false);
         setSidebarView('memory');
       },
       openSettings: () => {
         setFocusMode(false);
+        setSidebarCollapsed(false);
         setSidebarView('settings');
       },
       toggleFocusMode: () => setFocusMode((v) => !v),
@@ -168,7 +223,7 @@ export default function App() {
       runSkill,
       skills: BUILTIN_SKILLS,
     });
-  }, [pausePomodoro, runSkill, startPomodoro, stopPomodoro, t]);
+  }, [pausePomodoro, runSkill, setSidebarCollapsed, startPomodoro, stopPomodoro, t]);
 
   useEffect(() => {
     bootstrapProjects().catch(() => undefined);
@@ -248,32 +303,69 @@ export default function App() {
     }
   };
 
+  const sidebarMinPx = 240;
+  const sidebarMaxPx = 520;
+  const effectiveSidebarWidthPx = Math.min(sidebarMaxPx, Math.max(sidebarMinPx, sidebarWidthPx));
+
+  const aiMinPx = 280;
+  const aiMaxPx = Math.max(aiMinPx, Math.floor(windowWidth * 0.5));
+  const effectiveAiPanelWidthPx = Math.min(aiMaxPx, Math.max(aiMinPx, aiPanelWidthPx));
+
+  useEffect(() => {
+    if (!isSidebarCollapsed && sidebarWidthPx !== effectiveSidebarWidthPx) setSidebarWidthPx(effectiveSidebarWidthPx);
+  }, [effectiveSidebarWidthPx, isSidebarCollapsed, setSidebarWidthPx, sidebarWidthPx]);
+
+  useEffect(() => {
+    if (!isAiPanelCollapsed && aiPanelWidthPx !== effectiveAiPanelWidthPx) setAiPanelWidthPx(effectiveAiPanelWidthPx);
+  }, [aiPanelWidthPx, effectiveAiPanelWidthPx, isAiPanelCollapsed, setAiPanelWidthPx]);
+
+  const openSidebarView = (next: SidebarView) => {
+    setSidebarView(next);
+    setSidebarCollapsed(false);
+  };
+
+  const handleActivityViewChange = (next: SidebarView) => {
+    openSidebarView(next);
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
       <TitleBar
         focusMode={focusMode}
-        aiPanelOpen={aiPanelOpen}
-        statsBarOpen={statsBarOpen}
-        onToggleAIPanel={() => setAiPanelOpen(!aiPanelOpen)}
-        onToggleStatsBar={() => setStatsBarOpen(!statsBarOpen)}
+        sidebarOpen={!isSidebarCollapsed}
+        aiPanelOpen={!isAiPanelCollapsed}
+        onToggleSidebar={toggleSidebarCollapsed}
+        onToggleAIPanel={toggleAiPanelCollapsed}
         onToggleFocusMode={() => setFocusMode(!focusMode)}
       />
-
-      {/* Stats Bar */}
-      {!focusMode && statsBarOpen && <StatsBar onOpenStats={() => setSidebarView('stats')} />}
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {!focusMode && (
           <>
-            <ActivityBar activeView={sidebarView} onViewChange={setSidebarView} />
-            <SidebarPanel 
-              view={sidebarView} 
-              onViewChange={setSidebarView}
-              selectedFile={selectedFile} 
-              onSelectFile={openFile}
-              editorContent={editorContent}
-            />
+            <ActivityBar activeView={sidebarView} onViewChange={handleActivityViewChange} />
+
+            {!isSidebarCollapsed && (
+              <>
+                <div className="flex-none overflow-hidden" style={{ width: effectiveSidebarWidthPx }} data-testid="layout-sidebar">
+                  <SidebarPanel
+                    view={sidebarView}
+                    onViewChange={openSidebarView}
+                    selectedFile={selectedFile}
+                    onSelectFile={openFile}
+                    editorContent={editorContent}
+                  />
+                </div>
+                <WnResizable
+                  direction="horizontal"
+                  sizePx={effectiveSidebarWidthPx}
+                  minPx={sidebarMinPx}
+                  maxPx={sidebarMaxPx}
+                  ariaLabel="Resize sidebar"
+                  onSizePxChange={setSidebarWidthPx}
+                />
+              </>
+            )}
           </>
         )}
         
@@ -281,11 +373,34 @@ export default function App() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           focusMode={focusMode}
-          onFocusModeToggle={() => setFocusMode(!focusMode)}
         />
         
-        {!focusMode && aiPanelOpen && <AIPanel />}
+        {!focusMode && !isAiPanelCollapsed && (
+          <>
+            <WnResizable
+              direction="horizontal"
+              invert
+              sizePx={effectiveAiPanelWidthPx}
+              minPx={aiMinPx}
+              maxPx={aiMaxPx}
+              ariaLabel="Resize AI panel"
+              onSizePxChange={setAiPanelWidthPx}
+            />
+            <div className="flex-none overflow-hidden" style={{ width: effectiveAiPanelWidthPx }} data-testid="layout-ai-panel">
+              <AIPanel />
+            </div>
+          </>
+        )}
       </div>
+
+      <StatusBar
+        focusMode={focusMode}
+        onOpenStats={() => {
+          setFocusMode(false);
+          setSidebarCollapsed(false);
+          setSidebarView('stats');
+        }}
+      />
 
       {/* Focus Mode Exit Hint */}
       {focusMode && (
@@ -301,7 +416,7 @@ export default function App() {
       )}
 
       {recoverySnapshot && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 wn-backdrop flex items-center justify-center z-50">
           <div className="wn-elevated p-6 w-[520px]">
             <div className="text-[15px] text-[var(--text-primary)] mb-2">检测到上次异常退出</div>
             <div className="text-[12px] text-[var(--text-tertiary)] mb-4 leading-relaxed">

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Minus, Square, X, PenLine, PanelRightOpen, PanelRightClose, BarChart3, Focus } from 'lucide-react';
+import { Minus, Square, X, PenLine, PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose, Focus } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
 
@@ -10,19 +10,19 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from './ui/drop
 
 interface TitleBarProps {
   focusMode: boolean;
+  sidebarOpen: boolean;
   aiPanelOpen: boolean;
-  statsBarOpen: boolean;
+  onToggleSidebar: () => void;
   onToggleAIPanel: () => void;
-  onToggleStatsBar: () => void;
   onToggleFocusMode: () => void;
 }
 
 export function TitleBar({
   focusMode,
+  sidebarOpen,
   aiPanelOpen,
-  statsBarOpen,
+  onToggleSidebar,
   onToggleAIPanel,
-  onToggleStatsBar,
   onToggleFocusMode,
 }: TitleBarProps) {
   const { t } = useTranslation();
@@ -191,21 +191,21 @@ export function TitleBar({
           <>
             <button
               type="button"
-              onClick={onToggleStatsBar}
-              className="wn-icon-btn"
-              aria-label={statsBarOpen ? 'Hide stats bar' : 'Show stats bar'}
-              title={statsBarOpen ? 'Hide stats' : 'Show stats'}
-            >
-              <BarChart3 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
               onClick={onToggleFocusMode}
               className="wn-icon-btn"
               aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
               title="Focus"
             >
               <Focus className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              className="wn-icon-btn"
+              aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+              title="Sidebar"
+            >
+              {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             </button>
             <button
               type="button"

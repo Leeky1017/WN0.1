@@ -1,5 +1,10 @@
 # FRONTEND-P0-001: 设计 Tokens SSOT + Light/Dark 映射
 
+Status: done
+Issue: #86
+PR: <fill-after-created>
+RUN_LOG: openspec/_ops/task_runs/ISSUE-86.md
+
 ## Goal
 
 建立 WriteNow 前端的 Design Tokens 单一事实源（Primitive → Semantic → Component），并完成 Light/Dark 主题映射，为后续 UI 迁移与主题扩展提供稳定底座。
@@ -18,11 +23,10 @@
 
 ## Acceptance Criteria
 
-- [ ] 所有“语义 token”统一使用 `--wn-*` 命名，并在 Light/Dark 下存在同构映射
-- [ ] 不新增硬编码颜色；新增/修改 UI 样式参数必须可追溯到 tokens SSOT
-- [ ] 关键界面在 Light/Dark 下无“亮灰色乱入块”（用视觉回归 + 手动矩阵验证）
+- [x] 所有“语义 token”统一使用 `--wn-*` 命名，并在 Light/Dark 下存在同构映射
+- [x] 不新增硬编码颜色；新增/修改 UI 样式参数必须可追溯到 tokens SSOT
+- [x] 关键界面在 Light/Dark 下无“亮灰色乱入块”（用视觉回归 + 手动矩阵验证）
 
 ## Tests
 
-- [ ] 新增视觉回归基线（主界面/编辑器/侧边栏/AI 面板/状态栏）覆盖 Light/Dark
-
+- [x] 新增视觉回归基线（主界面/编辑器/侧边栏/AI 面板/状态栏）覆盖 Light/Dark

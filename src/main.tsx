@@ -4,7 +4,9 @@ import App from './App.tsx';
 import { i18n } from './lib/i18n';
 import './index.css';
 import './styles/platform-fonts.css';
+import './styles/tokens.css';
 import './styles/theme.css';
+import './styles/markdown.css';
 
 const api = window.writenow;
 

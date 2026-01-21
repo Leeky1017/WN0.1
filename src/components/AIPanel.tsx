@@ -117,7 +117,7 @@ export function AIPanel() {
   }, [canRun, runSkill]);
 
   return (
-    <div className="w-[340px] bg-[var(--bg-secondary)] border-l border-[var(--border-subtle)] flex flex-col h-full">
+    <div className="w-full bg-[var(--bg-secondary)] flex flex-col h-full">
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] flex-shrink-0">
         <span className="text-[13px] text-[var(--text-primary)] font-medium">AI</span>
       </div>

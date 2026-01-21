@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, MoreHorizontal, Eye, Edit3, Columns } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { useTranslation } from 'react-i18next';
@@ -8,22 +8,19 @@ import { fileOps } from '../../lib/ipc';
 import { useEditorContextStore } from '../../stores/editorContextStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { Toolbar } from './Toolbar';
+import { MarkdownPreview } from './MarkdownPreview';
 import { createEditorExtensions } from './extensions/base';
 import { computeEditorContextFromMarkdown, computeEditorContextFromTipTap } from './editor-context-sync';
+import { WnResizable } from '../wn';
 
 interface EditorProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   focusMode: boolean;
-  onFocusModeToggle: () => void;
 }
 
 function getShortcutKeyLabel() {
   return window.writenow?.platform === 'darwin' ? '⌘' : 'Ctrl';
-}
-
-function formatSavedTime(ts: number) {
-  return new Date(ts).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 }
 
 function getOffsetForLine(content: string, line: number) {
@@ -39,7 +36,10 @@ function getOffsetForLine(content: string, line: number) {
   return content.length;
 }
 
-export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggle }: EditorProps) {
+const EDITOR_SPLIT_STORAGE_KEY = 'WN_EDITOR_SPLIT_LEFT_PX_V1';
+const EDITOR_SPLIT_MIN_PX = 360;
+
+export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   const { t } = useTranslation();
   const currentPath = useEditorStore((s) => s.currentPath);
   const content = useEditorStore((s) => s.content);
@@ -47,8 +47,6 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const isDirty = useEditorStore((s) => s.isDirty);
   const isLoading = useEditorStore((s) => s.isLoading);
   const loadError = useEditorStore((s) => s.loadError);
-  const saveStatus = useEditorStore((s) => s.saveStatus);
-  const lastSavedAt = useEditorStore((s) => s.lastSavedAt);
   const selection = useEditorStore((s) => s.selection);
 
   const setContent = useEditorStore((s) => s.setContent);
@@ -68,6 +66,21 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const markdownSyncTimerRef = useRef<number | null>(null);
   const tiptapSyncTimerRef = useRef<number | null>(null);
   const scheduleTipTapSyncRef = useRef<((editor: Parameters<typeof computeEditorContextFromTipTap>[0]) => void) | null>(null);
+  const splitRootRef = useRef<HTMLDivElement>(null);
+  const editorScrollRef = useRef<HTMLDivElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+
+  const [splitContainerWidth, setSplitContainerWidth] = useState<number | null>(null);
+  const [splitLeftPx, setSplitLeftPx] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(EDITOR_SPLIT_STORAGE_KEY);
+      const parsed = raw ? Number(raw) : Number.NaN;
+      if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+      return Math.floor(parsed);
+    } catch {
+      return 0;
+    }
+  });
 
   const editorContextDebounceMs = useEditorContextStore((s) => s.config.debounceMs);
   const editorContextWindowParagraphs = useEditorContextStore((s) => s.config.windowParagraphs);
@@ -75,16 +88,86 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const setEditorContextSyncError = useEditorContextStore((s) => s.setSyncError);
   const clearEditorContext = useEditorContextStore((s) => s.clear);
 
-  const saveLabel = useMemo(() => {
-    if (saveStatus === 'saving') return t('editor.save.saving');
-    if (saveStatus === 'error') return '保存失败';
-    if (isDirty) return '未保存';
-    return t('editor.save.saved');
-  }, [isDirty, saveStatus, t]);
-
   useEffect(() => {
     setLineCount(content.split('\n').length);
   }, [content]);
+
+  useEffect(() => {
+    if (viewMode !== 'split') return;
+    const el = splitRootRef.current;
+    if (!el) return;
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      const width = entry ? Math.floor(entry.contentRect.width) : 0;
+      setSplitContainerWidth(width > 0 ? width : null);
+    });
+
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (viewMode !== 'split') return;
+    const width = splitContainerWidth;
+    if (!width) return;
+
+    const min = EDITOR_SPLIT_MIN_PX;
+    const max = Math.max(min, width - EDITOR_SPLIT_MIN_PX);
+    setSplitLeftPx((prev) => {
+      const base = prev > 0 ? prev : Math.floor(width / 2);
+      return Math.min(max, Math.max(min, base));
+    });
+  }, [splitContainerWidth, viewMode]);
+
+  useEffect(() => {
+    if (!Number.isFinite(splitLeftPx) || splitLeftPx <= 0) return;
+    try {
+      localStorage.setItem(EDITOR_SPLIT_STORAGE_KEY, String(Math.floor(splitLeftPx)));
+    } catch {
+      // ignore (non-critical preference persistence)
+    }
+  }, [splitLeftPx]);
+
+  useEffect(() => {
+    if (viewMode !== 'split') return;
+    const editorEl = editorScrollRef.current;
+    const previewEl = previewScrollRef.current;
+    if (!editorEl || !previewEl) return;
+
+    let locked = false;
+    let rafId = 0;
+
+    const syncScroll = (from: HTMLElement, to: HTMLElement) => {
+      const fromMax = from.scrollHeight - from.clientHeight;
+      const toMax = to.scrollHeight - to.clientHeight;
+      if (fromMax <= 0 || toMax <= 0) return;
+      const ratio = from.scrollTop / fromMax;
+      to.scrollTop = ratio * toMax;
+    };
+
+    const withLock = (fn: () => void) => {
+      if (locked) return;
+      locked = true;
+      fn();
+      window.cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        locked = false;
+      });
+    };
+
+    const onEditorScroll = () => withLock(() => syncScroll(editorEl, previewEl));
+    const onPreviewScroll = () => withLock(() => syncScroll(previewEl, editorEl));
+
+    editorEl.addEventListener('scroll', onEditorScroll, { passive: true });
+    previewEl.addEventListener('scroll', onPreviewScroll, { passive: true });
+    return () => {
+      editorEl.removeEventListener('scroll', onEditorScroll);
+      previewEl.removeEventListener('scroll', onPreviewScroll);
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [editorMode, viewMode]);
 
   useEffect(() => {
     if (currentPath) return;
@@ -277,7 +360,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
 
   if (!currentPath) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]">
+      <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]" data-testid="editor-empty">
         <div className="text-center">
           <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('editor.noFileSelected.title')}</div>
           <div className="text-[11px] text-[var(--text-tertiary)]">{t('editor.noFileSelected.hint')}</div>
@@ -288,7 +371,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
 
   const renderPreview = () => (
     <div className="p-8 max-w-3xl mx-auto">
-      <div className="whitespace-pre-wrap text-[15px] text-[var(--text-secondary)] leading-[1.6]">{content}</div>
+      <MarkdownPreview markdown={content} />
     </div>
   );
 
@@ -301,7 +384,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
               <div key={i + 1}>{i + 1}</div>
             ))}
           </div>
-          <div className="flex-1 overflow-auto">
+          <div ref={editorScrollRef} className="flex-1 overflow-auto" data-testid="editor-scroll">
             <textarea
               ref={textareaRef}
               value={content}
@@ -331,7 +414,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
     }
 
     return (
-      <div className="flex-1 overflow-auto">
+      <div ref={editorScrollRef} className="flex-1 overflow-auto" data-testid="editor-scroll">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <EditorContent editor={tiptapEditor} />
         </div>
@@ -343,8 +426,15 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
     <div className="flex-1 flex flex-col bg-[var(--bg-primary)]">
       {!focusMode && (
         <div className="h-9 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] flex items-center">
-          <div className="flex items-center gap-2 px-3 h-full bg-[var(--bg-tertiary)] border-r border-[var(--border-subtle)]">
-            <span className="text-[13px] text-[var(--text-secondary)]">{currentPath}</span>
+          <div className="flex items-center gap-2 px-3 h-full bg-[var(--bg-tertiary)] border-r border-[var(--border-subtle)] min-w-0">
+            <span className="text-[13px] text-[var(--text-secondary)] truncate">{currentPath}</span>
+            {isDirty && (
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
+                title="未保存"
+                aria-label="Unsaved changes"
+              />
+            )}
             <button
               onClick={() => closeFile()}
               className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors"
@@ -354,25 +444,6 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
             </button>
           </div>
           <div className="flex-1" />
-          <div className="text-[11px] text-[var(--text-tertiary)] mr-3">
-            {saveLabel}
-            {!isDirty && lastSavedAt ? ` · ${formatSavedTime(lastSavedAt)}` : ''}
-            {saveStatus === 'error' && (
-              <button
-                type="button"
-                onClick={() => save().catch(() => undefined)}
-                className="ml-2 text-[11px] text-[var(--accent-primary)] hover:text-[var(--accent-hover)] transition-colors"
-              >
-                重试
-              </button>
-            )}
-          </div>
-          <button
-            onClick={onFocusModeToggle}
-            className="h-7 px-2 mr-1 rounded-md hover:bg-[var(--bg-hover)] text-xs text-[var(--text-tertiary)] transition-colors"
-          >
-            专注模式
-          </button>
           <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors mr-1">
             <MoreHorizontal className="w-4 h-4" />
           </button>
@@ -450,7 +521,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
         </div>
       )}
 
-      <div className="flex-1 flex overflow-hidden">
+      <div ref={splitRootRef} className="flex-1 flex overflow-hidden" data-testid="editor-split-root">
         {viewMode === 'edit' && (
           <>
             {isLoading && <div className="flex-1 flex items-center justify-center text-[13px] text-[var(--text-tertiary)]">正在加载...</div>}
@@ -472,26 +543,32 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
           </>
         )}
 
-        {viewMode === 'preview' && <div className="flex-1 overflow-auto">{renderPreview()}</div>}
+        {viewMode === 'preview' && (
+          <div ref={previewScrollRef} className="flex-1 overflow-auto" data-testid="preview-scroll">
+            {renderPreview()}
+          </div>
+        )}
 
         {viewMode === 'split' && (
           <>
-            <div className="flex-1 border-r border-[var(--border-subtle)] overflow-hidden">{renderEditorBody()}</div>
-            <div className="flex-1 overflow-auto">{renderPreview()}</div>
+            <div className="flex-none overflow-hidden" style={{ width: splitLeftPx > 0 ? splitLeftPx : EDITOR_SPLIT_MIN_PX }}>
+              {renderEditorBody()}
+            </div>
+            <WnResizable
+              direction="horizontal"
+              sizePx={splitLeftPx > 0 ? splitLeftPx : EDITOR_SPLIT_MIN_PX}
+              minPx={EDITOR_SPLIT_MIN_PX}
+              maxPx={
+                splitContainerWidth ? Math.max(EDITOR_SPLIT_MIN_PX, splitContainerWidth - EDITOR_SPLIT_MIN_PX) : 1600
+              }
+              ariaLabel="Resize editor/preview split"
+              onSizePxChange={setSplitLeftPx}
+            />
+            <div ref={previewScrollRef} className="flex-1 overflow-auto" data-testid="preview-scroll">
+              {renderPreview()}
+            </div>
           </>
         )}
-      </div>
-
-      <div className="h-6 bg-[var(--bg-secondary)] border-t border-[var(--border-subtle)] flex items-center justify-between px-3 text-[11px] text-[var(--text-tertiary)]">
-        <div className="flex gap-3">
-          <span>{editorMode === 'markdown' ? 'Markdown - 等宽字体, 显示行号' : 'Rich Text - TipTap'}</span>
-          <span>UTF-8</span>
-        </div>
-        <div className="flex gap-3">
-          <span>{saveLabel}</span>
-          <span>Ln {lineCount}</span>
-          <span>{content.length} chars</span>
-        </div>
       </div>
     </div>
   );
