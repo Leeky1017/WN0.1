@@ -65,6 +65,9 @@ export type IpcChannel =
   | 'file:snapshot:latest'
   | 'file:snapshot:write'
   | 'file:write'
+  | 'stats:getRange'
+  | 'stats:getToday'
+  | 'stats:increment'
   | 'project:bootstrap'
   | 'project:create'
   | 'project:delete'
@@ -212,6 +215,51 @@ export type FileSnapshotLatestRequest = {
 
 export type FileSnapshotLatestResponse = {
   snapshot: DocumentSnapshot | null;
+};
+
+export type WritingStatsRow = {
+  date: string; // YYYY-MM-DD
+  wordCount: number;
+  writingMinutes: number;
+  articlesCreated: number;
+  skillsUsed: number;
+};
+
+export type WritingStatsSummary = {
+  wordCount: number;
+  writingMinutes: number;
+  articlesCreated: number;
+  skillsUsed: number;
+};
+
+export type StatsGetTodayRequest = Record<string, never>;
+
+export type StatsGetTodayResponse = {
+  stats: WritingStatsRow;
+};
+
+export type StatsGetRangeRequest = {
+  startDate: string;
+  endDate: string;
+};
+
+export type StatsGetRangeResponse = {
+  items: WritingStatsRow[];
+  summary: WritingStatsSummary;
+};
+
+export type StatsIncrementRequest = {
+  date?: string;
+  increments: {
+    wordCount?: number;
+    writingMinutes?: number;
+    articlesCreated?: number;
+    skillsUsed?: number;
+  };
+};
+
+export type StatsIncrementResponse = {
+  stats: WritingStatsRow;
 };
 
 export type AiSkillRunRequest = {
@@ -1091,6 +1139,9 @@ export type IpcInvokePayloadMap = {
   'file:snapshot:latest': FileSnapshotLatestRequest;
   'file:snapshot:write': FileSnapshotWriteRequest;
   'file:write': FileWriteRequest;
+  'stats:getRange': StatsGetRangeRequest;
+  'stats:getToday': StatsGetTodayRequest;
+  'stats:increment': StatsIncrementRequest;
   'project:bootstrap': ProjectBootstrapRequest;
   'project:create': ProjectCreateRequest;
   'project:delete': ProjectDeleteRequest;
@@ -1161,6 +1212,9 @@ export type IpcInvokeDataMap = {
   'file:snapshot:latest': FileSnapshotLatestResponse;
   'file:snapshot:write': FileSnapshotWriteResponse;
   'file:write': FileWriteResponse;
+  'stats:getRange': StatsGetRangeResponse;
+  'stats:getToday': StatsGetTodayResponse;
+  'stats:increment': StatsIncrementResponse;
   'project:bootstrap': ProjectBootstrapResponse;
   'project:create': ProjectCreateResponse;
   'project:delete': ProjectDeleteResponse;

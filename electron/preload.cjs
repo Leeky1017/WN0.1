@@ -10,6 +10,9 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'file:snapshot:latest',
   'file:snapshot:write',
   'file:write',
+  'stats:getRange',
+  'stats:getToday',
+  'stats:increment',
   'project:bootstrap',
   'project:create',
   'project:delete',
@@ -94,6 +97,14 @@ function assertAllowed(channel, allowlist) {
 contextBridge.exposeInMainWorld('writenow', {
   platform: process.platform,
   isE2E: process.env.WN_E2E === '1',
+  pomodoroTimeScale: (() => {
+    if (process.env.WN_E2E !== '1') return undefined
+    const raw = typeof process.env.WN_POMODORO_TIME_SCALE === 'string' ? process.env.WN_POMODORO_TIME_SCALE.trim() : ''
+    if (!raw) return undefined
+    const value = Number(raw)
+    if (!Number.isFinite(value) || value <= 0) return undefined
+    return Math.min(1, Math.max(0.05, value))
+  })(),
   snapshotIntervalMs: (() => {
     const raw = typeof process.env.WN_SNAPSHOT_INTERVAL_MS === 'string' ? process.env.WN_SNAPSHOT_INTERVAL_MS.trim() : ''
     if (!raw) return undefined

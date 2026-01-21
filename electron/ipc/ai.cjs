@@ -1,4 +1,5 @@
 const Anthropic = require('@anthropic-ai/sdk')
+const { incrementWritingStats, toLocalDateKey } = require('../lib/writing-stats.cjs')
 
 const AI_STREAM_EVENT = 'ai:skill:stream'
 
@@ -287,6 +288,14 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
     })
 
     logger?.info?.('ai', 'run start', { runId, skillId, model, baseUrl: ai.baseUrl })
+
+    if (db) {
+      try {
+        incrementWritingStats(db, toLocalDateKey(), { skillsUsed: 1 })
+      } catch (error) {
+        logger?.error?.('stats', 'skills_used increment failed', { skillId, message: error?.message })
+      }
+    }
 
     void (async () => {
       try {

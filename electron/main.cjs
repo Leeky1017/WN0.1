@@ -24,6 +24,7 @@ const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
 const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
 const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
 const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
+const { registerStatsIpcHandlers } = require('./ipc/stats.cjs')
 const { registerJudgeIpcHandlers } = require('./ipc/judge.cjs')
 const { registerContextIpcHandlers } = require('./ipc/context.cjs')
 
@@ -210,10 +211,17 @@ function setupIpc() {
   registerFileIpcHandlers(ipcMain, {
     handleInvoke,
     db,
+    logger,
     log: (...args) => logger?.info?.('file', args.map((a) => String(a)).join(' ')),
     onDocumentCreated: (articleId) => ragIndexer?.enqueueArticle?.(articleId),
     onDocumentSaved: (articleId) => ragIndexer?.enqueueArticle?.(articleId),
     onDocumentDeleted: (articleId) => ragIndexer?.handleDeletedArticle?.(articleId),
+  })
+
+  registerStatsIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
   })
 
   registerSearchIpcHandlers(ipcMain, {

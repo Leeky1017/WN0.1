@@ -5,6 +5,7 @@ const { app } = require('electron')
 const { getSessionStatus } = require('../lib/session.cjs')
 const { writeSnapshot, readLatestSnapshot } = require('../lib/snapshots.cjs')
 const { deleteArticle, upsertArticle } = require('../lib/articles.cjs')
+const { incrementWritingStats, toLocalDateKey } = require('../lib/writing-stats.cjs')
 
 function getDocumentsDir() {
   return path.join(app.getPath('userData'), 'documents')
@@ -109,6 +110,7 @@ WriteNow 是一款本地优先的写作工具：文件保存在本机，可审�
 
 function registerFileIpcHandlers(ipcMain, options = {}) {
   const log = typeof options.log === 'function' ? options.log : null
+  const logger = options.logger ?? null
   const db = options.db ?? null
   const onDocumentCreated = typeof options.onDocumentCreated === 'function' ? options.onDocumentCreated : null
   const onDocumentSaved = typeof options.onDocumentSaved === 'function' ? options.onDocumentSaved : null
@@ -191,6 +193,17 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
     }
     await fs.writeFile(fullPath, content, 'utf8')
 
+    const nextWordCount = countWords(content)
+    let prevWordCount = 0
+    if (db) {
+      try {
+        const row = db.prepare('SELECT word_count FROM articles WHERE id = ?').get(payload.path)
+        prevWordCount = typeof row?.word_count === 'number' ? row.word_count : 0
+      } catch (e) {
+        logger?.warn?.('stats', 'read previous word_count failed', { path: payload.path, message: e?.message })
+      }
+    }
+
     if (db) {
       try {
         const projectId = assertValidProjectId(payload)
@@ -198,6 +211,17 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
       } catch (e) {
         log?.('[file:write] db index failed:', payload.path, e?.message)
         throw createIpcError('DB_ERROR', 'Saved to disk but failed to update search index', { path: payload.path, message: e?.message })
+      }
+    }
+
+    if (db) {
+      const delta = Math.max(0, nextWordCount - prevWordCount)
+      if (delta > 0) {
+        try {
+          incrementWritingStats(db, toLocalDateKey(), { wordCount: delta })
+        } catch (e) {
+          logger?.error?.('stats', 'word_count increment failed', { path: payload.path, delta, message: e?.message })
+        }
       }
     }
 
@@ -237,6 +261,14 @@ function registerFileIpcHandlers(ipcMain, options = {}) {
           // ignore
         }
         throw createIpcError('DB_ERROR', 'Failed to initialize search index for new file', { name: fileName, message: e?.message })
+      }
+    }
+
+    if (db) {
+      try {
+        incrementWritingStats(db, toLocalDateKey(), { articlesCreated: 1 })
+      } catch (e) {
+        logger?.error?.('stats', 'articles_created increment failed', { path: fileName, message: e?.message })
       }
     }
 

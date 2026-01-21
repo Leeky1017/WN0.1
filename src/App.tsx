@@ -6,6 +6,7 @@ import { SidebarPanel } from './components/SidebarPanel';
 import { Editor } from './components/Editor';
 import { AIPanel } from './components/AIPanel';
 import { StatsBar } from './components/StatsBar';
+import { PomodoroOverlay } from './components/PomodoroOverlay';
 
 import type { DocumentSnapshot } from './types/ipc';
 import { IpcError, fileOps } from './lib/ipc';
@@ -15,6 +16,7 @@ import { useConstraintsStore } from './stores/constraintsStore';
 import { useEditorStore } from './stores/editorStore';
 import { useProjectsStore } from './stores/projectsStore';
 import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
+import { usePomodoroRuntime } from './hooks/usePomodoroRuntime';
 
 export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView =
@@ -52,6 +54,7 @@ export default function App() {
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
 
   useContextEntityPrefetch();
+  usePomodoroRuntime();
 
   const files = useFilesStore((s) => s.files);
   const filesHasLoaded = useFilesStore((s) => s.hasLoaded);
@@ -269,6 +272,8 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <PomodoroOverlay />
     </div>
   );
 }

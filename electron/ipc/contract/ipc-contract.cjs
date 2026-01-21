@@ -144,6 +144,51 @@ export type FileSnapshotLatestResponse = {
   snapshot: DocumentSnapshot | null;
 };
 
+export type WritingStatsRow = {
+  date: string; // YYYY-MM-DD
+  wordCount: number;
+  writingMinutes: number;
+  articlesCreated: number;
+  skillsUsed: number;
+};
+
+export type WritingStatsSummary = {
+  wordCount: number;
+  writingMinutes: number;
+  articlesCreated: number;
+  skillsUsed: number;
+};
+
+export type StatsGetTodayRequest = Record<string, never>;
+
+export type StatsGetTodayResponse = {
+  stats: WritingStatsRow;
+};
+
+export type StatsGetRangeRequest = {
+  startDate: string;
+  endDate: string;
+};
+
+export type StatsGetRangeResponse = {
+  items: WritingStatsRow[];
+  summary: WritingStatsSummary;
+};
+
+export type StatsIncrementRequest = {
+  date?: string;
+  increments: {
+    wordCount?: number;
+    writingMinutes?: number;
+    articlesCreated?: number;
+    skillsUsed?: number;
+  };
+};
+
+export type StatsIncrementResponse = {
+  stats: WritingStatsRow;
+};
+
 export type AiSkillRunRequest = {
   skillId: string;
   input: {
