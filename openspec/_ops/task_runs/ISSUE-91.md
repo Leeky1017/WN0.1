@@ -1,7 +1,7 @@
 # ISSUE-91
 - Issue: #91
 - Branch: task/91-skill-system-v2
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/92
 
 ## Plan
 - Review current SKILL system + spec
@@ -53,6 +53,11 @@
 - Command: `rulebook task validate issue-91-skill-system-v2`
 - Key output: `✅ Task issue-91-skill-system-v2 is valid`
 - Evidence: `rulebook/tasks/issue-91-skill-system-v2/`
+
+### 2026-01-21 20:39 pr
+- Command: `gh pr create --title "chore(openspec): skill system v2 architecture (#91)" --body "Closes #91 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/92`
+- Evidence: `openspec/_ops/task_runs/ISSUE-91.md`
 
 ### 2026-01-21 20:35 docs+index
 - Command: `ls -la docs/README.md docs/reference/agent-skills/README.md && rg -n "skill-system-v2" openspec/project.md`

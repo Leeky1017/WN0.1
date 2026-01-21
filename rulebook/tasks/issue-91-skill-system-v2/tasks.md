@@ -13,4 +13,4 @@
 - [x] 3.1 确保新 spec 与 `writenow-spec`/Sprint specs 双向一致（引用关系清晰）
 - [x] 3.2 补齐 Docs 入口/参考材料（`docs/README.md` + `docs/reference/agent-skills/README.md`）
 - [x] 3.3 更新 OpenSpec 项目索引（`openspec/project.md`）包含 `skill-system-v2`
-- [ ] 3.4 创建 PR（Closes #91），并在 RUN_LOG 回填 PR 链接
+- [x] 3.4 创建 PR（Closes #91），并在 RUN_LOG 回填 PR 链接
