@@ -50,6 +50,16 @@ function listEqual(a: string[], b: string[]): boolean {
   return true;
 }
 
+function fnv1a32Hex(text: string): string {
+  const raw = typeof text === 'string' ? text : '';
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < raw.length; i += 1) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
 function buildImmediateFragments(input: { editorContext?: EditorContext; userInstruction: string }): ContextFragmentInput[] {
   const immediate: ContextFragmentInput[] = [];
 
@@ -135,12 +145,11 @@ export class ContextAssembler {
       loadSettings: deps?.loadSettings ?? loadWritenowSettings,
       loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
       getPrefetchedSettings: deps?.getPrefetchedSettings ?? getPrefetchedSettings,
-      loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
-      getPrefetchedSettings: deps?.getPrefetchedSettings ?? getPrefetchedSettings,
     };
   }
 
   async assemble(input: ContextAssemblerInput): Promise<AssembleResult> {
+    const startedAtMs = Date.now();
     const estimator = createDefaultTokenEstimator();
 
     const rulesLoaded = await this.deps.loadRules(input.projectId);
@@ -149,8 +158,9 @@ export class ContextAssembler {
     const desiredEntities = stableEntities(input.editorContext?.detectedEntities);
     const prefetched = desiredEntities.length > 0 ? this.deps.getPrefetchedSettings(input.projectId) : null;
     const canUsePrefetched = prefetched && listEqual(stableEntities(prefetched.entities), desiredEntities) && prefetched.fragments.length > 0;
-
     const hasExplicitSettings = Boolean(input.settings && (Array.isArray(input.settings.characters) || Array.isArray(input.settings.settings)));
+    const settingsPrefetchHit = !hasExplicitSettings && Boolean(canUsePrefetched);
+
     const settingsLoaded = hasExplicitSettings
       ? await this.deps.loadSettings(input.projectId, {
             ...(Array.isArray(input.settings.characters) ? { characters: input.settings.characters } : {}),
@@ -203,6 +213,7 @@ export class ContextAssembler {
       const totalPromptTokens = systemTokens + userTokens;
 
       if (totalPromptTokens <= input.budget.totalLimit) {
+        const assembleMs = Math.max(0, Date.now() - startedAtMs);
         return {
           systemPrompt: rendered.systemPrompt,
           userContent: rendered.userContent,
@@ -216,6 +227,11 @@ export class ContextAssembler {
             total: { used: totalPromptTokens, limit: input.budget.totalLimit },
           },
           budgetEvidence: enforced.budgetEvidence,
+          metrics: {
+            prefixHash: fnv1a32Hex(rendered.systemPrompt),
+            assembleMs,
+            settingsPrefetchHit,
+          },
         };
       }
 
