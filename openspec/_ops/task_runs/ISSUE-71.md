@@ -73,3 +73,23 @@
 - Command: `npm run test:e2e -- tests/e2e/sprint-6-memory-command-palette.spec.ts`
 - Key output: `2 passed (4.5s)`
 - Evidence: `tests/e2e/sprint-6-memory-command-palette.spec.ts`
+
+### 2026-01-21 14:26 PR checks + merge confirmed
+- Command: `gh pr checks 77`
+- Key output: `ci pass; merge-serial pass; openspec-log-guard pass`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/77`
+
+### 2026-01-21 14:26 PR mergedAt
+- Command: `gh pr view 77 --json state,mergedAt,url`
+- Key output: `state=MERGED mergedAt=2026-01-21T06:14:51Z`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/77`
+
+### 2026-01-21 14:27 Controlplane sync
+- Command: `git pull --ff-only`
+- Key output: `Already up to date.`
+- Evidence: `main`
+
+### 2026-01-21 14:28 Worktree cleanup verified
+- Command: `git worktree list && git branch --list "task/71-*"`
+- Key output: `no task/71-* branches; worktree removed`
+- Evidence: `scripts/agent_worktree_cleanup.sh`
