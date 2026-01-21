@@ -1,7 +1,7 @@
 # ISSUE-57
 - Issue: #57
 - Branch: task/57-governance-agents-workflow-spec
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/59
 
 ## Plan
 - Upgrade `AGENTS.md` governance rules (code principles, defensive programming, traceability).
@@ -40,3 +40,8 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
 - Evidence: `openspec/specs/**`
+
+### 2026-01-21 09:30 pr
+- Command: `git push -u origin HEAD && gh pr create --base main --head task/57-governance-agents-workflow-spec ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/59`
+- Evidence: `git log --oneline -1`, `openspec/_ops/task_runs/ISSUE-57.md`
