@@ -1,7 +1,7 @@
 # ISSUE-61
 - Issue: #61
 - Branch: task/61-p1a-context-sync
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/65
 
 ## Plan
 - Spec-first: align P1-A delta requirements
@@ -79,3 +79,23 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
 - Evidence: CLI output
+
+### 2026-01-21 11:40 Create PR
+- Command: `gh pr create --title "[SPRINT-2.5 P1-A] Context: editor sync + entity detection + prompt template system" --body "Closes #61 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/65`
+- Evidence: PR #65
+
+### 2026-01-21 11:41 Enable repo auto-merge setting
+- Command: `gh api -X PATCH repos/Leeky1017/WN0.1 -f allow_auto_merge=true`
+- Key output: `"allow_auto_merge": true`
+- Evidence: GitHub API response
+
+### 2026-01-21 11:43 Protect main branch (required checks)
+- Command: `gh api -X PUT repos/Leeky1017/WN0.1/branches/main/protection --input - (required_status_checks: ci/merge-serial/openspec-log-guard)`
+- Key output: `"contexts":["ci","merge-serial","openspec-log-guard"]`
+- Evidence: GitHub API response
+
+### 2026-01-21 11:44 Enable PR auto-merge
+- Command: `gh pr merge 65 --auto --squash`
+- Key output: `autoMergeRequest.enabledAt=2026-01-21T03:44:47Z`
+- Evidence: `gh pr view 65 --json autoMergeRequest`
