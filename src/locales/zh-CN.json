@@ -43,12 +43,16 @@
     "group": {
       "navigation": "导航",
       "ai": "AI",
-      "view": "视图"
+      "view": "视图",
+      "pomodoro": "番茄钟"
     },
     "openStats": "打开创作统计",
     "openMemory": "打开记忆",
     "openSettings": "打开设置",
-    "toggleFocusMode": "切换专注模式"
+    "toggleFocusMode": "切换专注模式",
+    "pomodoroStart": "开始番茄钟",
+    "pomodoroPause": "暂停番茄钟",
+    "pomodoroStop": "结束番茄钟"
   },
   "memory": {
     "title": "记忆",

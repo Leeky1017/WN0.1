@@ -8,6 +8,8 @@ type IpcErr = { ok: false; error: { code: string; message: string; details?: unk
 type IpcOk<T> = { ok: true; data: T };
 type IpcResponse<T> = IpcOk<T> | IpcErr;
 
+type PomodoroStatus = 'idle' | 'running' | 'paused';
+
 function commandPaletteShortcut(): string {
   return process.platform === 'darwin' ? 'Meta+K' : 'Control+K';
 }
@@ -50,6 +52,24 @@ async function getProjectId(page: Page) {
   return current.data.projectId;
 }
 
+async function getPersistedPomodoroStatus(page: Page): Promise<PomodoroStatus | null> {
+  const status = await page.evaluate(() => {
+    try {
+      const raw = localStorage.getItem('WN_POMODORO_STATE_V1');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== 'object') return null;
+      const obj = parsed as { status?: unknown };
+      return typeof obj.status === 'string' ? obj.status : null;
+    } catch {
+      return null;
+    }
+  });
+
+  if (status === 'idle' || status === 'running' || status === 'paused') return status;
+  return null;
+}
+
 async function openCommandPalette(page: Page) {
   await page.keyboard.press(commandPaletteShortcut());
   await expect(page.getByPlaceholder('搜索命令或 SKILL…')).toBeVisible();
@@ -75,6 +95,15 @@ test.describe('Sprint 6 (Memory + Command Palette)', () => {
       await page.getByTestId('memory-create-content').fill(content);
       await page.getByTestId('memory-create-submit').click();
       await expect(page.getByTestId('memory-item').filter({ hasText: content })).toBeVisible();
+
+      await runCommand(page, '开始番茄钟');
+      await expect.poll(() => getPersistedPomodoroStatus(page)).toBe('running');
+
+      await runCommand(page, '暂停番茄钟');
+      await expect.poll(() => getPersistedPomodoroStatus(page)).toBe('paused');
+
+      await runCommand(page, '结束番茄钟');
+      await expect.poll(() => getPersistedPomodoroStatus(page)).toBe('idle');
 
       await electronApp.close();
 

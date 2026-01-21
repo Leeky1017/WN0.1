@@ -1,7 +1,7 @@
 # ISSUE-71
 - Issue: #71
 - Branch: task/71-s6-memory-cmdk
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/77
 
 ## Plan
 - Add `user_memory` CRUD + settings
@@ -52,4 +52,24 @@
 ### 2026-01-21 13:52 E2E (memory + cmdk)
 - Command: `npm run test:e2e -- tests/e2e/sprint-6-memory-command-palette.spec.ts`
 - Key output: `2 passed (4.0s)`
+- Evidence: `tests/e2e/sprint-6-memory-command-palette.spec.ts`
+
+### 2026-01-21 14:06 Push branch
+- Command: `git push -u origin HEAD`
+- Key output: `HEAD -> task/71-s6-memory-cmdk`
+- Evidence: `task/71-s6-memory-cmdk`
+
+### 2026-01-21 14:07 Create PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/77`
+- Evidence: `openspec/_ops/task_runs/ISSUE-71.md`
+
+### 2026-01-21 14:10 E2E (post-PR)
+- Command: `npm run test:e2e -- tests/e2e/sprint-6-memory-command-palette.spec.ts`
+- Key output: `2 passed (3.8s)`
+- Evidence: `tests/e2e/sprint-6-memory-command-palette.spec.ts`
+
+### 2026-01-21 14:12 E2E (pomodoro commands)
+- Command: `npm run test:e2e -- tests/e2e/sprint-6-memory-command-palette.spec.ts`
+- Key output: `2 passed (4.5s)`
 - Evidence: `tests/e2e/sprint-6-memory-command-palette.spec.ts`

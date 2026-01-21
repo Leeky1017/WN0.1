@@ -1,5 +1,10 @@
 # 任务 005: 命令面板（Command Palette, Ctrl+K）
 
+Status: done
+Issue: #71
+PR: https://github.com/Leeky1017/WN0.1/pull/77
+RUN_LOG: openspec/_ops/task_runs/ISSUE-71.md
+
 ## 目标
 
 实现统一入口的命令面板：支持 `Ctrl/Cmd+K` 打开，模糊搜索命令并执行；覆盖核心动作（打开视图、切换专注模式、番茄钟控制、创作统计、记忆管理、AI 面板等），并具备可扩展的命令注册机制与快捷键冲突策略。
@@ -15,7 +20,7 @@
    - 定义 `Command`：`id` / `title` / `keywords` / `group` / `shortcut` / `run()`
    - 提供注册表（静态数组或可注入 registry），便于后续扩展新增命令
 2. 命令面板 UI：
-   - 使用现有 `src/components/ui/command.tsx`（cmdk + dialog）实现 `CommandPalette` 组件
+   - 使用 `cmdk` 实现 `CommandPalette` 组件（模糊搜索 + 键盘导航）
    - 支持：输入过滤、上下键选择、回车执行、`Esc` 关闭、分组展示、快捷键提示
 3. 全局快捷键：
    - 在应用层监听 `Ctrl/Cmd+K` 打开/关闭
@@ -38,10 +43,10 @@
 
 ## 验收标准
 
-- [ ] `Ctrl+K`（macOS `Cmd+K`）可打开命令面板，`Esc` 可关闭
-- [ ] 可通过键盘完成搜索、选择与执行命令
-- [ ] 至少支持打开统计视图、切换专注模式、番茄钟开始/暂停等核心命令
-- [ ] 命令注册机制可扩展：新增命令无需改动面板核心渲染逻辑
+- [x] `Ctrl+K`（macOS `Cmd+K`）可打开命令面板，`Esc` 可关闭
+- [x] 可通过键盘完成搜索、选择与执行命令
+- [x] 至少支持打开统计视图、切换专注模式、番茄钟开始/暂停等核心命令
+- [x] 命令注册机制可扩展：新增命令无需改动面板核心渲染逻辑
 
 ## 参考
 

@@ -43,12 +43,16 @@
     "group": {
       "navigation": "Navigation",
       "ai": "AI",
-      "view": "View"
+      "view": "View",
+      "pomodoro": "Pomodoro"
     },
     "openStats": "Open Stats",
     "openMemory": "Open Memory",
     "openSettings": "Open Settings",
-    "toggleFocusMode": "Toggle Focus Mode"
+    "toggleFocusMode": "Toggle Focus Mode",
+    "pomodoroStart": "Start Pomodoro",
+    "pomodoroPause": "Pause Pomodoro",
+    "pomodoroStop": "Stop Pomodoro"
   },
   "memory": {
     "title": "Memory",

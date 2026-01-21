@@ -14,6 +14,7 @@ import { toUserMessage } from './lib/errors';
 import { useFilesStore } from './stores/filesStore';
 import { useConstraintsStore } from './stores/constraintsStore';
 import { useEditorStore } from './stores/editorStore';
+import { usePomodoroStore } from './stores/pomodoroStore';
 import { useProjectsStore } from './stores/projectsStore';
 import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
 import { usePomodoroRuntime } from './hooks/usePomodoroRuntime';
@@ -79,6 +80,9 @@ export default function App() {
   const editorContent = useEditorStore((s) => s.content);
 
   const runSkill = useAiStore((s) => s.runSkill);
+  const startPomodoro = usePomodoroStore((s) => s.start);
+  const pausePomodoro = usePomodoroStore((s) => s.pause);
+  const stopPomodoro = usePomodoroStore((s) => s.stop);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,10 +162,13 @@ export default function App() {
         setSidebarView('settings');
       },
       toggleFocusMode: () => setFocusMode((v) => !v),
+      startPomodoro,
+      pausePomodoro,
+      stopPomodoro,
       runSkill,
       skills: BUILTIN_SKILLS,
     });
-  }, [runSkill, t]);
+  }, [pausePomodoro, runSkill, startPomodoro, stopPomodoro, t]);
 
   useEffect(() => {
     bootstrapProjects().catch(() => undefined);

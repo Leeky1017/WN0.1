@@ -19,6 +19,9 @@ type CreateCommandRegistryInput = {
   openMemory: () => void;
   openSettings: () => void;
   toggleFocusMode: () => void;
+  startPomodoro: () => void;
+  pausePomodoro: () => void;
+  stopPomodoro: () => void;
   runSkill: (skill: { id: string; name: string }) => Promise<void>;
   skills: readonly BuiltinSkill[];
 };
@@ -35,6 +38,7 @@ export function createCommandRegistry(input: CreateCommandRegistryInput): Comman
   const groupNav = input.t('commands.group.navigation');
   const groupAi = input.t('commands.group.ai');
   const groupView = input.t('commands.group.view');
+  const groupPomodoro = input.t('commands.group.pomodoro');
 
   const commands: CommandDefinition[] = [
     {
@@ -65,6 +69,27 @@ export function createCommandRegistry(input: CreateCommandRegistryInput): Comman
       group: groupView,
       shortcut: 'Ctrl+\\',
       run: input.toggleFocusMode,
+    },
+    {
+      id: 'pomodoro:start',
+      title: input.t('commands.pomodoroStart'),
+      keywords: uniqKeywords([input.t('commands.pomodoroStart'), 'pomodoro', 'timer', '番茄钟', '专注', 'focus']),
+      group: groupPomodoro,
+      run: input.startPomodoro,
+    },
+    {
+      id: 'pomodoro:pause',
+      title: input.t('commands.pomodoroPause'),
+      keywords: uniqKeywords([input.t('commands.pomodoroPause'), 'pomodoro', 'timer', '番茄钟', '暂停', 'pause']),
+      group: groupPomodoro,
+      run: input.pausePomodoro,
+    },
+    {
+      id: 'pomodoro:stop',
+      title: input.t('commands.pomodoroStop'),
+      keywords: uniqKeywords([input.t('commands.pomodoroStop'), 'pomodoro', 'timer', '番茄钟', '停止', '结束', 'stop']),
+      group: groupPomodoro,
+      run: input.stopPomodoro,
     },
   ];
 
