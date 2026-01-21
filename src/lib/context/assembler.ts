@@ -2,7 +2,7 @@ import type { AssembleResult, ContextFragment, ContextFragmentInput, EditorConte
 
 import { TokenBudgetError, TokenBudgetManager, type TokenBudget } from './budget';
 import { loadProjectRules } from './loaders/rules-loader';
-import { loadWritenowSettings } from './loaders/settings-loader';
+import { getPrefetchedSettings, loadWritenowSettings } from './loaders/settings-loader';
 import { loadPreviousReferenceFragments } from './previous-reference';
 import { renderPromptTemplate, type PromptTemplateSkill } from './prompt-template';
 import { createDefaultTokenEstimator } from './token-estimator';
@@ -26,6 +26,7 @@ export type ContextAssemblerDeps = {
   loadRules: typeof loadProjectRules;
   loadSettings: typeof loadWritenowSettings;
   loadPreviousReferences: typeof loadPreviousReferenceFragments;
+  getPrefetchedSettings: typeof getPrefetchedSettings;
 };
 
 function ensureLayer(
@@ -34,6 +35,19 @@ function ensureLayer(
 ): ContextFragmentInput[] {
   const list = Array.isArray(fragments) ? fragments : [];
   return list.map((f) => ({ ...f, layer }));
+}
+
+function stableEntities(input: string[] | undefined): string[] {
+  const list = Array.isArray(input) ? input : [];
+  return Array.from(new Set(list.map((e) => (typeof e === 'string' ? e.trim() : '')).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+}
+
+function listEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 
 function buildImmediateFragments(input: { editorContext?: EditorContext; userInstruction: string }): ContextFragmentInput[] {
@@ -120,6 +134,9 @@ export class ContextAssembler {
       loadRules: deps?.loadRules ?? loadProjectRules,
       loadSettings: deps?.loadSettings ?? loadWritenowSettings,
       loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
+      getPrefetchedSettings: deps?.getPrefetchedSettings ?? getPrefetchedSettings,
+      loadPreviousReferences: deps?.loadPreviousReferences ?? loadPreviousReferenceFragments,
+      getPrefetchedSettings: deps?.getPrefetchedSettings ?? getPrefetchedSettings,
     };
   }
 
@@ -129,14 +146,20 @@ export class ContextAssembler {
     const rulesLoaded = await this.deps.loadRules(input.projectId);
     const rules = ensureLayer(rulesLoaded.fragments, 'rules');
 
-    const settingsLoaded =
-      input.settings && (Array.isArray(input.settings.characters) || Array.isArray(input.settings.settings))
-        ? await this.deps.loadSettings(input.projectId, {
+    const desiredEntities = stableEntities(input.editorContext?.detectedEntities);
+    const prefetched = desiredEntities.length > 0 ? this.deps.getPrefetchedSettings(input.projectId) : null;
+    const canUsePrefetched = prefetched && listEqual(stableEntities(prefetched.entities), desiredEntities) && prefetched.fragments.length > 0;
+
+    const hasExplicitSettings = Boolean(input.settings && (Array.isArray(input.settings.characters) || Array.isArray(input.settings.settings)));
+    const settingsLoaded = hasExplicitSettings
+      ? await this.deps.loadSettings(input.projectId, {
             ...(Array.isArray(input.settings.characters) ? { characters: input.settings.characters } : {}),
             ...(Array.isArray(input.settings.settings) ? { settings: input.settings.settings } : {}),
           })
-        : null;
-    const settings = ensureLayer(settingsLoaded?.fragments, 'settings');
+      : null;
+
+    const settings =
+      !hasExplicitSettings && canUsePrefetched ? ensureLayer(prefetched.fragments, 'settings') : ensureLayer(settingsLoaded?.fragments, 'settings');
 
     const previousReferences = await this.deps.loadPreviousReferences({
       projectId: input.projectId,

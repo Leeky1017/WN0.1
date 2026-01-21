@@ -14,6 +14,7 @@ import { useFilesStore } from './stores/filesStore';
 import { useConstraintsStore } from './stores/constraintsStore';
 import { useEditorStore } from './stores/editorStore';
 import { useProjectsStore } from './stores/projectsStore';
+import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
 
 export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView =
@@ -49,6 +50,8 @@ export default function App() {
   const [recoverySnapshot, setRecoverySnapshot] = useState<DocumentSnapshot | null>(null);
   const [recoveryBusy, setRecoveryBusy] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
+
+  useContextEntityPrefetch();
 
   const files = useFilesStore((s) => s.files);
   const filesHasLoaded = useFilesStore((s) => s.hasLoaded);

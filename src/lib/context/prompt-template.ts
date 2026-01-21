@@ -5,11 +5,11 @@ export type PromptTemplateSkill = {
   name: string;
   description?: string;
   systemPrompt?: string;
+  outputConstraints?: string[];
+  outputFormat?: string;
 };
 
-function stableSortFragments(fragments: ContextFragment[]) {
-  return [...fragments].sort((a, b) => a.id.localeCompare(b.id));
-}
+const PROMPT_TEMPLATE_VERSION = '1' as const;
 
 function formatSource(source: ContextFragment['source']): string {
   if (source.kind === 'file') return source.path;
@@ -24,6 +24,28 @@ function formatLayerHeading(layer: ContextLayer): string {
   return 'Immediate';
 }
 
+function stableRuleSortKey(fragment: ContextFragment): { order: number; path: string; id: string } {
+  if (fragment.source.kind !== 'file') {
+    return { order: 99, path: formatSource(fragment.source), id: fragment.id };
+  }
+  const path = fragment.source.path.replaceAll('\\', '/');
+  if (path.endsWith('rules/style.md')) return { order: 1, path, id: fragment.id };
+  if (path.endsWith('rules/terminology.json')) return { order: 2, path, id: fragment.id };
+  if (path.endsWith('rules/constraints.json')) return { order: 3, path, id: fragment.id };
+  return { order: 50, path, id: fragment.id };
+}
+
+function stableSortRules(fragments: ContextFragment[]) {
+  const list = Array.isArray(fragments) ? fragments : [];
+  return [...list].sort((a, b) => {
+    const ak = stableRuleSortKey(a);
+    const bk = stableRuleSortKey(b);
+    if (ak.order !== bk.order) return ak.order - bk.order;
+    if (ak.path !== bk.path) return ak.path.localeCompare(bk.path);
+    return ak.id.localeCompare(bk.id);
+  });
+}
+
 function renderFragmentBlock(fragment: ContextFragment): string {
   const header = `- Source: ${formatSource(fragment.source)}`;
   const body = fragment.content.trim();
@@ -36,10 +58,14 @@ export function renderPromptTemplate(input: {
   settings: ContextFragment[];
   retrieved: ContextFragment[];
   immediate: ContextFragment[];
-}): { systemPrompt: string; userContent: string } {
-  const stableRules = stableSortFragments(input.rules);
+}): { systemPrompt: string; userContent: string; templateVersion: string } {
+  const stableRules = stableSortRules(input.rules);
 
   const systemParts: string[] = [];
+  systemParts.push('# PromptTemplate');
+  systemParts.push(`- version: ${PROMPT_TEMPLATE_VERSION}`);
+
+  systemParts.push('\n# Identity');
   systemParts.push('You are WriteNow, a careful writing assistant for creators.');
   systemParts.push('Follow the skill definition, output constraints, and project rules strictly.');
 
@@ -50,6 +76,22 @@ export function renderPromptTemplate(input: {
   if (input.skill.systemPrompt?.trim()) {
     systemParts.push('\n## System Prompt');
     systemParts.push(input.skill.systemPrompt.trim());
+  }
+
+  const constraints = Array.isArray(input.skill.outputConstraints)
+    ? Array.from(new Set(input.skill.outputConstraints.map((c) => (typeof c === 'string' ? c.trim() : '')).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b),
+      )
+    : [];
+  const outputFormat = typeof input.skill.outputFormat === 'string' ? input.skill.outputFormat.trim() : '';
+
+  systemParts.push('\n# Output');
+  if (outputFormat) systemParts.push(`- format: ${outputFormat}`);
+  if (constraints.length === 0) {
+    systemParts.push('- constraints: (none)');
+  } else {
+    systemParts.push('- constraints:');
+    for (const c of constraints) systemParts.push(`  - ${c}`);
   }
 
   systemParts.push(`\n# ${formatLayerHeading('rules')}`);
@@ -86,5 +128,6 @@ export function renderPromptTemplate(input: {
   return {
     systemPrompt: systemParts.join('\n').trimEnd(),
     userContent: userParts.join('\n').trimEnd(),
+    templateVersion: PROMPT_TEMPLATE_VERSION,
   };
 }
