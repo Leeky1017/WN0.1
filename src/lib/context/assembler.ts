@@ -163,9 +163,9 @@ export class ContextAssembler {
 
     const settingsLoaded = hasExplicitSettings
       ? await this.deps.loadSettings(input.projectId, {
-            ...(Array.isArray(input.settings.characters) ? { characters: input.settings.characters } : {}),
-            ...(Array.isArray(input.settings.settings) ? { settings: input.settings.settings } : {}),
-          })
+        ...(Array.isArray(input.settings?.characters) ? { characters: input.settings.characters } : {}),
+        ...(Array.isArray(input.settings?.settings) ? { settings: input.settings.settings } : {}),
+      })
       : null;
 
     const settings =
