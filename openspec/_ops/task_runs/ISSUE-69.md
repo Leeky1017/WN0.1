@@ -54,3 +54,22 @@
 ### 2026-01-21 13:36 OpenSpec validate
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
+
+### 2026-01-21 13:47 Rebase onto updated main
+- Command: `git fetch origin && git rebase origin/main`
+- Key output: `Successfully rebased and updated refs/heads/task/69-context-debug-panel.`
+- Command: `git push --force-with-lease`
+- Key output: `task/69-context-debug-panel (forced update)`
+
+### 2026-01-21 13:49 Merge (auto/squash)
+- Command: `gh pr checks --watch 72`
+- Key output: `ci pass`, `merge-serial pass`, `openspec-log-guard pass`
+- Command: `gh pr merge --auto --squash 72`
+- Key output: `state=MERGED mergedAt=2026-01-21T05:50:38Z`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/72`
+
+### 2026-01-21 13:55 Controlplane sync + cleanup
+- Command: `git pull --ff-only`
+- Key output: `Updating 3d5512c..9fea5d3 (fast-forward)`
+- Command: `scripts/agent_worktree_cleanup.sh 69 context-debug-panel --force-branches`
+- Key output: `Removing worktree: .worktrees/issue-69-context-debug-panel` / `Done.`
