@@ -811,6 +811,103 @@ export type ConstraintsSetResponse = {
   saved: true;
   config: ConstraintsConfig;
 };
+
+export type ContextWritenowEnsureRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowEnsureResponse = {
+  projectId: string;
+  rootPath: string;
+  ensured: true;
+};
+
+export type ContextWritenowStatusRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowStatusResponse = {
+  projectId: string;
+  rootPath: string;
+  exists: boolean;
+  watching: boolean;
+};
+
+export type ContextWritenowWatchStartRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowWatchStartResponse = {
+  watching: true;
+};
+
+export type ContextWritenowWatchStopRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowWatchStopResponse = {
+  watching: false;
+};
+
+export type WritenowLoaderError = {
+  path: string;
+  code: IpcErrorCode;
+  message: string;
+  details?: unknown;
+};
+
+export type WritenowRuleFragment = {
+  kind: 'style' | 'terminology' | 'constraints';
+  path: string;
+  content: string;
+  updatedAtMs: number | null;
+};
+
+export type ContextWritenowRulesGetRequest = {
+  projectId: string;
+  refresh?: boolean;
+};
+
+export type ContextWritenowRulesGetResponse = {
+  projectId: string;
+  rootPath: string;
+  loadedAtMs: number | null;
+  fragments: WritenowRuleFragment[];
+  errors: WritenowLoaderError[];
+};
+
+export type ContextWritenowSettingsListRequest = {
+  projectId: string;
+  refresh?: boolean;
+};
+
+export type ContextWritenowSettingsListResponse = {
+  projectId: string;
+  rootPath: string;
+  loadedAtMs: number | null;
+  characters: string[];
+  settings: string[];
+  errors: WritenowLoaderError[];
+};
+
+export type WritenowSettingsFile = {
+  path: string;
+  content: string;
+  updatedAtMs: number | null;
+};
+
+export type ContextWritenowSettingsReadRequest = {
+  projectId: string;
+  characters?: string[];
+  settings?: string[];
+};
+
+export type ContextWritenowSettingsReadResponse = {
+  projectId: string;
+  rootPath: string;
+  files: WritenowSettingsFile[];
+  errors: WritenowLoaderError[];
+};
 `;
 
 module.exports = {

@@ -127,3 +127,15 @@ export const constraintsOps = {
   getConfig: () => invoke('constraints:get', {}),
   setConfig: (payload: IpcInvokePayloadMap['constraints:set']) => invoke('constraints:set', payload),
 };
+
+export const contextOps = {
+  writenowEnsure: (projectId: string) => invoke('context:writenow:ensure', { projectId }),
+  writenowStatus: (projectId: string) => invoke('context:writenow:status', { projectId }),
+  writenowWatchStart: (projectId: string) => invoke('context:writenow:watch:start', { projectId }),
+  writenowWatchStop: (projectId: string) => invoke('context:writenow:watch:stop', { projectId }),
+  writenowRulesGet: (projectId: string, options?: { refresh?: boolean }) =>
+    invoke('context:writenow:rules:get', { projectId, ...(options?.refresh ? { refresh: true } : {}) }),
+  writenowSettingsList: (projectId: string, options?: { refresh?: boolean }) =>
+    invoke('context:writenow:settings:list', { projectId, ...(options?.refresh ? { refresh: true } : {}) }),
+  writenowSettingsRead: (payload: IpcInvokePayloadMap['context:writenow:settings:read']) => invoke('context:writenow:settings:read', payload),
+};

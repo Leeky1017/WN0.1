@@ -25,6 +25,7 @@ const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs'
 const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
 const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
 const { registerJudgeIpcHandlers } = require('./ipc/judge.cjs')
+const { registerContextIpcHandlers } = require('./ipc/context.cjs')
 
 let logger = null
 let db = null
@@ -75,7 +76,7 @@ function shouldShowDialogs() {
 
 function ensureAppDirs() {
   const baseDir = app.getPath('userData')
-  const dirNames = ['documents', 'data', 'snapshots', 'logs', 'models', 'cache']
+  const dirNames = ['documents', 'data', 'snapshots', 'logs', 'models', 'cache', 'projects']
   for (const dirName of dirNames) {
     fs.mkdirSync(path.join(baseDir, dirName), { recursive: true })
   }
@@ -258,6 +259,10 @@ function setupIpc() {
     db,
     logger,
     config,
+  })
+
+  registerContextIpcHandlers(ipcMain, {
+    handleInvoke,
   })
 
   registerVersionIpcHandlers(ipcMain, {

@@ -88,6 +88,13 @@ export type IpcChannel =
   | 'kg:relation:list'
   | 'ai:skill:cancel'
   | 'ai:skill:run'
+  | 'context:writenow:ensure'
+  | 'context:writenow:rules:get'
+  | 'context:writenow:settings:list'
+  | 'context:writenow:settings:read'
+  | 'context:writenow:status'
+  | 'context:writenow:watch:start'
+  | 'context:writenow:watch:stop'
   | 'constraints:get'
   | 'constraints:set'
   | 'judge:l2:prompt'
@@ -871,6 +878,103 @@ export type ConstraintsSetResponse = {
   config: ConstraintsConfig;
 };
 
+export type ContextWritenowEnsureRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowEnsureResponse = {
+  projectId: string;
+  rootPath: string;
+  ensured: true;
+};
+
+export type ContextWritenowStatusRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowStatusResponse = {
+  projectId: string;
+  rootPath: string;
+  exists: boolean;
+  watching: boolean;
+};
+
+export type ContextWritenowWatchStartRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowWatchStartResponse = {
+  watching: true;
+};
+
+export type ContextWritenowWatchStopRequest = {
+  projectId: string;
+};
+
+export type ContextWritenowWatchStopResponse = {
+  watching: false;
+};
+
+export type WritenowLoaderError = {
+  path: string;
+  code: IpcErrorCode;
+  message: string;
+  details?: unknown;
+};
+
+export type WritenowRuleFragment = {
+  kind: 'style' | 'terminology' | 'constraints';
+  path: string;
+  content: string;
+  updatedAtMs: number | null;
+};
+
+export type ContextWritenowRulesGetRequest = {
+  projectId: string;
+  refresh?: boolean;
+};
+
+export type ContextWritenowRulesGetResponse = {
+  projectId: string;
+  rootPath: string;
+  loadedAtMs: number | null;
+  fragments: WritenowRuleFragment[];
+  errors: WritenowLoaderError[];
+};
+
+export type ContextWritenowSettingsListRequest = {
+  projectId: string;
+  refresh?: boolean;
+};
+
+export type ContextWritenowSettingsListResponse = {
+  projectId: string;
+  rootPath: string;
+  loadedAtMs: number | null;
+  characters: string[];
+  settings: string[];
+  errors: WritenowLoaderError[];
+};
+
+export type WritenowSettingsFile = {
+  path: string;
+  content: string;
+  updatedAtMs: number | null;
+};
+
+export type ContextWritenowSettingsReadRequest = {
+  projectId: string;
+  characters?: string[];
+  settings?: string[];
+};
+
+export type ContextWritenowSettingsReadResponse = {
+  projectId: string;
+  rootPath: string;
+  files: WritenowSettingsFile[];
+  errors: WritenowLoaderError[];
+};
+
 export type IpcInvokePayloadMap = {
   'file:create': FileCreateRequest;
   'file:delete': FileDeleteRequest;
@@ -903,6 +1007,13 @@ export type IpcInvokePayloadMap = {
   'kg:relation:list': KgRelationListRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'ai:skill:run': AiSkillRunRequest;
+  'context:writenow:ensure': ContextWritenowEnsureRequest;
+  'context:writenow:rules:get': ContextWritenowRulesGetRequest;
+  'context:writenow:settings:list': ContextWritenowSettingsListRequest;
+  'context:writenow:settings:read': ContextWritenowSettingsReadRequest;
+  'context:writenow:status': ContextWritenowStatusRequest;
+  'context:writenow:watch:start': ContextWritenowWatchStartRequest;
+  'context:writenow:watch:stop': ContextWritenowWatchStopRequest;
   'constraints:get': ConstraintsGetRequest;
   'constraints:set': ConstraintsSetRequest;
   'judge:l2:prompt': JudgeL2PromptRequest;
@@ -962,6 +1073,13 @@ export type IpcInvokeDataMap = {
   'kg:relation:list': KgRelationListResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'ai:skill:run': AiSkillRunResponse;
+  'context:writenow:ensure': ContextWritenowEnsureResponse;
+  'context:writenow:rules:get': ContextWritenowRulesGetResponse;
+  'context:writenow:settings:list': ContextWritenowSettingsListResponse;
+  'context:writenow:settings:read': ContextWritenowSettingsReadResponse;
+  'context:writenow:status': ContextWritenowStatusResponse;
+  'context:writenow:watch:start': ContextWritenowWatchStartResponse;
+  'context:writenow:watch:stop': ContextWritenowWatchStopResponse;
   'constraints:get': ConstraintsGetResponse;
   'constraints:set': ConstraintsSetResponse;
   'judge:l2:prompt': JudgeL2PromptResponse;
