@@ -38,13 +38,25 @@ if (api?.isE2E) {
       suggestedText: string;
       messages: ConversationMessage[];
     }) => Promise<ConversationIndexItem>;
+    getEditorContext?: () => {
+      config: { debounceMs: number; windowParagraphs: number };
+      context: import('./types/context').EditorContext | null;
+      entityHits: import('./lib/context/entity-detect').DetectedEntityHit[];
+      settingsPrefetch: import('./stores/editorContextStore').SettingsPrefetchState;
+      syncError: string | null;
+      lastSyncedAtMs: number | null;
+    };
   };
 
   const w = window as unknown as { __WN_E2E__?: E2EDebugApi };
   w.__WN_E2E__ = { ready: false };
 
-  void Promise.all([import('./lib/context/ContextAssembler'), import('./lib/context/conversation-summary')])
-    .then(([{ ContextAssembler }, { generateAndPersistConversationSummary }]) => {
+  void Promise.all([
+    import('./lib/context/ContextAssembler'),
+    import('./lib/context/conversation-summary'),
+    import('./stores/editorContextStore'),
+  ])
+    .then(([{ ContextAssembler }, { generateAndPersistConversationSummary }, { useEditorContextStore }]) => {
       const assembler = new ContextAssembler();
       if (!w.__WN_E2E__) w.__WN_E2E__ = { ready: false };
       w.__WN_E2E__.assembleContext = async (input: AssembleInput) => assembler.assemble(input);
@@ -60,6 +72,17 @@ if (api?.isE2E) {
           suggestedText: input.suggestedText,
           messages: input.messages,
         });
+      w.__WN_E2E__.getEditorContext = () => {
+        const state = useEditorContextStore.getState();
+        return {
+          config: state.config,
+          context: state.context,
+          entityHits: state.entityHits,
+          settingsPrefetch: state.settingsPrefetch,
+          syncError: state.syncError,
+          lastSyncedAtMs: state.lastSyncedAtMs,
+        };
+      };
       w.__WN_E2E__.ready = true;
     })
     .catch(() => {

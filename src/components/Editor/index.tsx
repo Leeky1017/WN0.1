@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next';
 
 import type { ViewMode } from '../../App';
 import { fileOps } from '../../lib/ipc';
+import { useEditorContextStore } from '../../stores/editorContextStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { Toolbar } from './Toolbar';
 import { createEditorExtensions } from './extensions/base';
+import { computeEditorContextFromMarkdown, computeEditorContextFromTipTap } from './editor-context-sync';
 
 interface EditorProps {
   viewMode: ViewMode;
@@ -47,6 +49,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const loadError = useEditorStore((s) => s.loadError);
   const saveStatus = useEditorStore((s) => s.saveStatus);
   const lastSavedAt = useEditorStore((s) => s.lastSavedAt);
+  const selection = useEditorStore((s) => s.selection);
 
   const setContent = useEditorStore((s) => s.setContent);
   const setSelection = useEditorStore((s) => s.setSelection);
@@ -62,6 +65,15 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   const lastSnapshotPathRef = useRef<string>('');
   const isProgrammaticTipTapUpdateRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const markdownSyncTimerRef = useRef<number | null>(null);
+  const tiptapSyncTimerRef = useRef<number | null>(null);
+  const scheduleTipTapSyncRef = useRef<((editor: Parameters<typeof computeEditorContextFromTipTap>[0]) => void) | null>(null);
+
+  const editorContextDebounceMs = useEditorContextStore((s) => s.config.debounceMs);
+  const editorContextWindowParagraphs = useEditorContextStore((s) => s.config.windowParagraphs);
+  const setEditorContext = useEditorContextStore((s) => s.setContext);
+  const setEditorContextSyncError = useEditorContextStore((s) => s.setSyncError);
+  const clearEditorContext = useEditorContextStore((s) => s.clear);
 
   const saveLabel = useMemo(() => {
     if (saveStatus === 'saving') return t('editor.save.saving');
@@ -73,6 +85,68 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
   useEffect(() => {
     setLineCount(content.split('\n').length);
   }, [content]);
+
+  useEffect(() => {
+    if (currentPath) return;
+    clearEditorContext();
+  }, [clearEditorContext, currentPath]);
+
+  useEffect(() => {
+    if (!currentPath) return;
+    if (editorMode !== 'markdown') return;
+
+    if (markdownSyncTimerRef.current) window.clearTimeout(markdownSyncTimerRef.current);
+    markdownSyncTimerRef.current = window.setTimeout(() => {
+      try {
+        setEditorContext(
+          computeEditorContextFromMarkdown({
+            content,
+            selection,
+            windowParagraphs: editorContextWindowParagraphs,
+          }),
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setEditorContextSyncError(message);
+      }
+    }, editorContextDebounceMs);
+
+    return () => {
+      if (markdownSyncTimerRef.current) window.clearTimeout(markdownSyncTimerRef.current);
+      markdownSyncTimerRef.current = null;
+    };
+  }, [
+    content,
+    currentPath,
+    editorContextDebounceMs,
+    editorContextWindowParagraphs,
+    editorMode,
+    selection,
+    setEditorContext,
+    setEditorContextSyncError,
+  ]);
+
+  useEffect(() => {
+    scheduleTipTapSyncRef.current = (editor) => {
+      if (!currentPath) return;
+      if (editorMode !== 'richtext') return;
+
+      if (tiptapSyncTimerRef.current) window.clearTimeout(tiptapSyncTimerRef.current);
+      tiptapSyncTimerRef.current = window.setTimeout(() => {
+        try {
+          setEditorContext(computeEditorContextFromTipTap(editor, { windowParagraphs: editorContextWindowParagraphs }));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          setEditorContextSyncError(message);
+        }
+      }, editorContextDebounceMs);
+    };
+
+    return () => {
+      if (tiptapSyncTimerRef.current) window.clearTimeout(tiptapSyncTimerRef.current);
+      tiptapSyncTimerRef.current = null;
+    };
+  }, [currentPath, editorContextDebounceMs, editorContextWindowParagraphs, editorMode, setEditorContext, setEditorContextSyncError]);
 
   useEffect(() => {
     if (!currentPath) return;
@@ -173,6 +247,10 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
       if (markdown !== useEditorStore.getState().content) {
         setContent(markdown);
       }
+      scheduleTipTapSyncRef.current?.(editor);
+    },
+    onSelectionUpdate: ({ editor }) => {
+      scheduleTipTapSyncRef.current?.(editor);
     },
   });
 
@@ -188,6 +266,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode, onFocusModeToggl
     isProgrammaticTipTapUpdateRef.current = true;
     tiptapEditor.commands.setContent(nextContent, { emitUpdate: false, contentType: 'markdown' });
     isProgrammaticTipTapUpdateRef.current = false;
+    scheduleTipTapSyncRef.current?.(tiptapEditor);
   }, [content, currentPath, editorMode, tiptapEditor]);
 
   useEffect(() => {
