@@ -13,6 +13,7 @@ const DOMAIN_ORDER = [
   'outline',
   'kg',
   'ai',
+  'context',
   'constraints',
   'judge',
   'search',

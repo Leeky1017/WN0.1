@@ -33,6 +33,13 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'kg:relation:list',
   'ai:skill:cancel',
   'ai:skill:run',
+  'context:writenow:ensure',
+  'context:writenow:rules:get',
+  'context:writenow:settings:list',
+  'context:writenow:settings:read',
+  'context:writenow:status',
+  'context:writenow:watch:start',
+  'context:writenow:watch:stop',
   'constraints:get',
   'constraints:set',
   'judge:l2:prompt',
@@ -82,6 +89,7 @@ function assertAllowed(channel, allowlist) {
 
 contextBridge.exposeInMainWorld('writenow', {
   platform: process.platform,
+  isE2E: process.env.WN_E2E === '1',
   snapshotIntervalMs: (() => {
     const raw = typeof process.env.WN_SNAPSHOT_INTERVAL_MS === 'string' ? process.env.WN_SNAPSHOT_INTERVAL_MS.trim() : ''
     if (!raw) return undefined

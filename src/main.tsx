@@ -18,6 +18,31 @@ const safeSend = (channel: string, payload?: unknown) => {
 
 safeSend('app:renderer-boot', { href: window.location.href });
 
+if (api?.isE2E) {
+  type AssembleInput = import('./lib/context/assembler').ContextAssemblerInput;
+  type AssembleOutput = import('./types/context').AssembleResult;
+
+  type E2EDebugApi = {
+    ready: boolean;
+    assembleContext?: (input: AssembleInput) => Promise<AssembleOutput>;
+  };
+
+  const w = window as unknown as { __WN_E2E__?: E2EDebugApi };
+  w.__WN_E2E__ = { ready: false };
+
+  void import('./lib/context/ContextAssembler')
+    .then(({ ContextAssembler }) => {
+      const assembler = new ContextAssembler();
+      if (!w.__WN_E2E__) w.__WN_E2E__ = { ready: false };
+      w.__WN_E2E__.assembleContext = async (input: AssembleInput) => assembler.assemble(input);
+      w.__WN_E2E__.ready = true;
+    })
+    .catch(() => {
+      if (!w.__WN_E2E__) w.__WN_E2E__ = { ready: false };
+      w.__WN_E2E__.ready = false;
+    });
+}
+
 window.addEventListener('error', (event) => {
   safeSend('app:renderer-error', {
     message: event.message,
