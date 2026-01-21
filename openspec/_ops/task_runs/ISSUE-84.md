@@ -48,3 +48,8 @@
 - Command: `npm run lint`
 - Key output: `0 errors (warnings only)`
 - Evidence: `eslint.config.js`
+
+### 2026-01-21 16:15 Amend commit + push
+- Command: `git commit --amend -m "fix: TS narrowing in assembler + archive issue-79 task (#84)" && git push --force-with-lease`
+- Key output: `forced update: ed7e871...e29924f`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/85
