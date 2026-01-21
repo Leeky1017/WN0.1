@@ -66,12 +66,6 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
     refreshToday().catch(() => undefined);
   }, [lastCreditAt, refreshToday]);
 
-  useEffect(() => {
-    if (!showTimerSettings) return;
-    setFocusMinutesDraft(durations.focusMinutes);
-    setBreakMinutesDraft(durations.breakMinutes);
-  }, [durations.breakMinutes, durations.focusMinutes, showTimerSettings]);
-
   const wordCount = today?.wordCount ?? 0;
   const writingMinutes = today?.writingMinutes ?? 0;
   const articlesCreated = today?.articlesCreated ?? 0;
@@ -143,7 +137,15 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
             </span>
           </button>
           <button
-            onClick={() => setShowTimerSettings(!showTimerSettings)}
+            onClick={() => {
+              if (showTimerSettings) {
+                setShowTimerSettings(false);
+                return;
+              }
+              setFocusMinutesDraft(durations.focusMinutes);
+              setBreakMinutesDraft(durations.breakMinutes);
+              setShowTimerSettings(true);
+            }}
             className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] transition-colors"
             title="设置计时器"
           >

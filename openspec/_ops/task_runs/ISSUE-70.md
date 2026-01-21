@@ -56,3 +56,8 @@
 ### 2026-01-21 13:36 OpenSpec validate
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed (11 items)`
+
+### 2026-01-21 13:41 Lint (CI parity)
+- Command: `npm run lint`
+- Key output: `0 errors (warnings only)`
+- Evidence: `src/components/StatsBar.tsx`
