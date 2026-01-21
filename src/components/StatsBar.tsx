@@ -1,54 +1,90 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Clock, Target, TrendingUp, Coffee, Play, Pause, X, Settings } from 'lucide-react';
+
+import { useEditorStore } from '../stores/editorStore';
+import { usePomodoroStore } from '../stores/pomodoroStore';
+import { useStatsStore } from '../stores/statsStore';
 
 interface StatsBarProps {
   onOpenStats: () => void;
 }
 
+function formatNumber(value: number) {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)).toLocaleString('zh-CN') : '0';
+}
+
+function formatMinutes(value: number) {
+  const minutes = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  if (minutes < 60) return `${minutes} 分钟`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours} 小时 ${rest} 分钟` : `${hours} 小时`;
+}
+
+function formatTimer(remainingMs: number) {
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
 export function StatsBar({ onOpenStats }: StatsBarProps) {
-  const [pomodoroActive, setPomodoroActive] = useState(false);
-  const [pomodoroTime, setPomodoroTime] = useState(25 * 60); // 25 minutes in seconds
-  const [showBreakReminder, setShowBreakReminder] = useState(false);
   const [showTimerSettings, setShowTimerSettings] = useState(false);
-  const [customMinutes, setCustomMinutes] = useState(25);
+  const [focusMinutesDraft, setFocusMinutesDraft] = useState(25);
+  const [breakMinutesDraft, setBreakMinutesDraft] = useState(5);
+
+  const today = useStatsStore((s) => s.today);
+  const dailyGoal = useStatsStore((s) => s.dailyWordGoal);
+  const refreshToday = useStatsStore((s) => s.refreshToday);
+
+  const lastSavedAt = useEditorStore((s) => s.lastSavedAt);
+
+  const status = usePomodoroStore((s) => s.status);
+  const phase = usePomodoroStore((s) => s.phase);
+  const remainingMs = usePomodoroStore((s) => s.remainingMs);
+  const durations = usePomodoroStore((s) => s.durations);
+  const start = usePomodoroStore((s) => s.start);
+  const pause = usePomodoroStore((s) => s.pause);
+  const stop = usePomodoroStore((s) => s.stop);
+  const setDurations = usePomodoroStore((s) => s.setDurations);
+  const pendingCredits = usePomodoroStore((s) => s.pendingCredits);
+  const pomodoroError = usePomodoroStore((s) => s.error);
+  const lastCreditAt = usePomodoroStore((s) => s.lastCreditAt);
+  const flushPendingCredit = usePomodoroStore((s) => s.flushPendingCredit);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (pomodoroActive && pomodoroTime > 0) {
-      interval = setInterval(() => {
-        setPomodoroTime((prev) => {
-          if (prev <= 1) {
-            setPomodoroActive(false);
-            setShowBreakReminder(true);
-            return customMinutes * 60;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [pomodoroActive, pomodoroTime, customMinutes]);
+    refreshToday().catch(() => undefined);
+  }, [refreshToday]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    refreshToday().catch(() => undefined);
+  }, [lastSavedAt, refreshToday]);
 
-  const togglePomodoro = () => {
-    setPomodoroActive(!pomodoroActive);
-  };
+  useEffect(() => {
+    if (!lastCreditAt) return;
+    refreshToday().catch(() => undefined);
+  }, [lastCreditAt, refreshToday]);
 
-  const resetPomodoro = () => {
-    setPomodoroActive(false);
-    setPomodoroTime(customMinutes * 60);
-  };
+  useEffect(() => {
+    if (!showTimerSettings) return;
+    setFocusMinutesDraft(durations.focusMinutes);
+    setBreakMinutesDraft(durations.breakMinutes);
+  }, [durations.breakMinutes, durations.focusMinutes, showTimerSettings]);
 
-  const applyTimerSettings = () => {
-    setPomodoroTime(customMinutes * 60);
-    setShowTimerSettings(false);
-    setPomodoroActive(false);
-  };
+  const wordCount = today?.wordCount ?? 0;
+  const writingMinutes = today?.writingMinutes ?? 0;
+  const articlesCreated = today?.articlesCreated ?? 0;
+
+  const goalProgress = useMemo(() => {
+    const goal = Math.max(1, dailyGoal);
+    const ratio = Math.min(1, Math.max(0, wordCount / goal));
+    return Math.round(ratio * 100);
+  }, [dailyGoal, wordCount]);
+
+  const phaseLabel = phase === 'break' ? '休息' : '专注';
+  const phaseAccent = phase === 'break' ? 'text-emerald-400' : 'text-[var(--accent-primary)]';
+  const timerLabel = formatTimer(remainingMs);
 
   return (
     <>
@@ -59,29 +95,29 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
           className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2 py-1 -mx-2 rounded-md transition-colors"
         >
           <Target className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-          <span className="text-[11px] text-[var(--text-secondary)]">1,234 字</span>
+          <span className="text-[11px] text-[var(--text-secondary)]">{formatNumber(wordCount)} 字</span>
           <div className="w-20 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
-            <div className="h-full bg-[var(--accent-primary)] rounded-full" style={{ width: '41%' }} />
+            <div className="h-full bg-[var(--accent-primary)] rounded-full" style={{ width: `${goalProgress}%` }} />
           </div>
-          <span className="text-[10px] text-[var(--text-tertiary)]">/ 3,000</span>
+          <span className="text-[10px] text-[var(--text-tertiary)]">/ {formatNumber(dailyGoal)}</span>
         </button>
 
-        {/* Reading Time - Clickable */}
+        {/* Focus Minutes - Clickable */}
         <button
           onClick={onOpenStats}
           className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2 py-1 -mx-2 rounded-md transition-colors"
         >
           <Clock className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-          <span className="text-[11px] text-[var(--text-secondary)]">约 5 分钟</span>
+          <span className="text-[11px] text-[var(--text-secondary)]">专注 {formatMinutes(writingMinutes)}</span>
         </button>
 
-        {/* Today's Progress - Clickable */}
+        {/* Articles Created - Clickable */}
         <button
           onClick={onOpenStats}
           className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2 py-1 -mx-2 rounded-md transition-colors"
         >
           <TrendingUp className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-          <span className="text-[11px] text-[var(--text-secondary)]">今日 2,456 字</span>
+          <span className="text-[11px] text-[var(--text-secondary)]">今日 {formatNumber(articlesCreated)} 篇</span>
         </button>
 
         <div className="flex-1" />
@@ -90,16 +126,20 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
         <div className="flex items-center gap-2">
           <Coffee className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
           <button
-            onClick={togglePomodoro}
+            onClick={() => {
+              if (status === 'running') pause();
+              else start();
+            }}
             className="flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors"
           >
-            {pomodoroActive ? (
+            {status === 'running' ? (
               <Pause className="w-3 h-3 text-[var(--text-secondary)]" />
             ) : (
               <Play className="w-3 h-3 text-[var(--text-secondary)]" />
             )}
-            <span className={`text-[11px] font-mono ${pomodoroActive ? 'text-[var(--accent-primary)]' : 'text-[var(--text-secondary)]'}`}>
-              {formatTime(pomodoroTime)}
+            <span className={`text-[10px] ${phaseAccent}`}>{phaseLabel}</span>
+            <span className={`text-[11px] font-mono ${status === 'running' ? phaseAccent : 'text-[var(--text-secondary)]'}`}>
+              {timerLabel}
             </span>
           </button>
           <button
@@ -109,12 +149,22 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
           >
             <Settings className="w-3 h-3 text-[var(--text-tertiary)]" />
           </button>
-          {pomodoroActive && (
+          {status !== 'idle' && (
             <button
-              onClick={resetPomodoro}
+              onClick={stop}
               className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] transition-colors"
+              title="结束"
             >
               <X className="w-3 h-3 text-[var(--text-tertiary)]" />
+            </button>
+          )}
+          {pendingCredits.length > 0 && (
+            <button
+              onClick={() => flushPendingCredit().catch(() => undefined)}
+              className="text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+              title={pomodoroError ?? '专注分钟待同步'}
+            >
+              待同步
             </button>
           )}
         </div>
@@ -135,22 +185,45 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="wn-elevated p-6 max-w-sm">
             <h3 className="text-[15px] text-[var(--text-primary)] mb-4">设置计时器</h3>
-            <div className="mb-4">
-              <label className="text-[13px] text-[var(--text-secondary)] mb-2 block">
-                工作时长（分钟）
-              </label>
-              <input
-                type="number"
-                value={customMinutes}
-                onChange={(e) => setCustomMinutes(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
-                min="1"
-                max="120"
-              />
+            <div className="space-y-4 mb-4">
+              <div>
+                <label htmlFor="wn-pomodoro-focus-minutes" className="text-[13px] text-[var(--text-secondary)] mb-2 block">
+                  专注时长（分钟）
+                </label>
+                <input
+                  id="wn-pomodoro-focus-minutes"
+                  type="number"
+                  value={focusMinutesDraft}
+                  onChange={(e) => setFocusMinutesDraft(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
+                  min="1"
+                  max="120"
+                />
+              </div>
+              <div>
+                <label htmlFor="wn-pomodoro-break-minutes" className="text-[13px] text-[var(--text-secondary)] mb-2 block">
+                  休息时长（分钟）
+                </label>
+                <input
+                  id="wn-pomodoro-break-minutes"
+                  type="number"
+                  value={breakMinutesDraft}
+                  onChange={(e) => setBreakMinutesDraft(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
+                  min="1"
+                  max="60"
+                />
+              </div>
+              <div className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+                修改时长会对下一轮生效；进行中的计时不会被重置。
+              </div>
             </div>
             <div className="flex gap-2">
               <button
-                onClick={applyTimerSettings}
+                onClick={() => {
+                  setDurations({ focusMinutes: focusMinutesDraft, breakMinutes: breakMinutesDraft });
+                  setShowTimerSettings(false);
+                }}
                 className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors"
               >
                 应用
@@ -160,44 +233,6 @@ export function StatsBar({ onOpenStats }: StatsBarProps) {
                 className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
               >
                 取消
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Break Reminder Modal */}
-      {showBreakReminder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="wn-elevated p-6 max-w-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <Coffee className="w-8 h-8 text-[var(--accent-primary)]" />
-              <div>
-                <h3 className="text-[15px] text-[var(--text-primary)] mb-1">该休息了！</h3>
-                <p className="text-[13px] text-[var(--text-secondary)]">您已经专注工作了 25 分钟</p>
-              </div>
-            </div>
-            <p className="text-[13px] text-[var(--text-tertiary)] mb-4 leading-relaxed">
-              建议休息 5-10 分钟，活动一下身体，眺望远方放松眼睛。
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowBreakReminder(false);
-                  resetPomodoro();
-                }}
-                className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors"
-              >
-                开始休息
-              </button>
-              <button
-                onClick={() => {
-                  setShowBreakReminder(false);
-                  setPomodoroActive(true);
-                }}
-                className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
-              >
-                继续工作
               </button>
             </div>
           </div>

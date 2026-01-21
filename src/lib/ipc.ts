@@ -52,6 +52,12 @@ export const fileOps = {
   snapshotLatest: (path?: string) => invoke('file:snapshot:latest', path ? { path } : {}),
 };
 
+export const statsOps = {
+  getToday: () => invoke('stats:getToday', {}),
+  getRange: (payload: IpcInvokePayloadMap['stats:getRange']) => invoke('stats:getRange', payload),
+  increment: (payload: IpcInvokePayloadMap['stats:increment']) => invoke('stats:increment', payload),
+};
+
 export const projectOps = {
   bootstrap: () => invoke('project:bootstrap', {}),
   list: () => invoke('project:list', {}),

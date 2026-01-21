@@ -15,6 +15,7 @@ declare global {
       send?: (channel: string, payload?: unknown) => void;
       platform?: string;
       isE2E?: boolean;
+      pomodoroTimeScale?: number;
       snapshotIntervalMs?: number;
     };
   }

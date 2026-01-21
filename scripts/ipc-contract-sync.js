@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const DOMAIN_ORDER = [
   'file',
+  'stats',
   'project',
   'character',
   'outline',
