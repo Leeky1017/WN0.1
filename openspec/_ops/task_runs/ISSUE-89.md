@@ -1,7 +1,7 @@
 # ISSUE-89
 - Issue: #89
 - Branch: task/89-editor-tabs-flow
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/99
 
 ## Plan
 - Implement multi-tab TabToolbar + editorStore
@@ -53,3 +53,18 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 11 passed, 0 failed`
 - Evidence: `.worktrees/issue-89-editor-tabs-flow/openspec/`
+
+### 2026-01-21 23: Sync origin/main + resolve conflicts
+- Command: `git fetch origin && git stash push -u -m "WIP issue-89" && git merge --ff-only origin/main && git stash pop`
+- Key output: `Fast-forward to origin/main; conflicts resolved (editorStore/editor + snapshots)`
+- Evidence: `.worktrees/issue-89-editor-tabs-flow/`
+
+### 2026-01-21 23: Final gates after sync
+- Command: `npm run contract:check && npm run lint && npm test && npm run build && npx playwright test && npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `playwright 34 passed (3 skipped); openspec Totals: 12 passed, 0 failed`
+- Evidence: `.worktrees/issue-89-editor-tabs-flow/test-results/`
+
+### 2026-01-21 23: Create PR
+- Command: `git push -u origin HEAD && gh pr create --title "[WN-FRONTEND] P2: Editor multi-tabs + flow modes (#89)" --body "Closes #89 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/99`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/99`

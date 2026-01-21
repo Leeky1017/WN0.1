@@ -1,5 +1,10 @@
 # FRONTEND-P2-003: 心流保护（Typewriter / Paragraph Focus / Zen）
 
+Status: done
+Issue: #89
+PR: https://github.com/Leeky1017/WN0.1/pull/99
+RUN_LOG: openspec/_ops/task_runs/ISSUE-89.md
+
 ## Goal
 
 提供写作心流保护模式：打字机滚动、段落聚焦、Zen 模式，降低 UI 干扰，让用户更容易进入沉浸写作状态。
