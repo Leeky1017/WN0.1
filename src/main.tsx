@@ -21,20 +21,45 @@ safeSend('app:renderer-boot', { href: window.location.href });
 if (api?.isE2E) {
   type AssembleInput = import('./lib/context/assembler').ContextAssemblerInput;
   type AssembleOutput = import('./types/context').AssembleResult;
+  type ConversationMessage = import('./types/ipc').WritenowConversationMessage;
+  type ConversationIndexItem = import('./types/ipc').WritenowConversationIndexItem;
 
   type E2EDebugApi = {
     ready: boolean;
     assembleContext?: (input: AssembleInput) => Promise<AssembleOutput>;
+    generateConversationSummary?: (input: {
+      projectId: string;
+      conversationId: string;
+      articleId: string;
+      skillId: string;
+      skillName: string;
+      outcome: 'accepted' | 'rejected' | 'canceled' | 'error';
+      originalText: string;
+      suggestedText: string;
+      messages: ConversationMessage[];
+    }) => Promise<ConversationIndexItem>;
   };
 
   const w = window as unknown as { __WN_E2E__?: E2EDebugApi };
   w.__WN_E2E__ = { ready: false };
 
-  void import('./lib/context/ContextAssembler')
-    .then(({ ContextAssembler }) => {
+  void Promise.all([import('./lib/context/ContextAssembler'), import('./lib/context/conversation-summary')])
+    .then(([{ ContextAssembler }, { generateAndPersistConversationSummary }]) => {
       const assembler = new ContextAssembler();
       if (!w.__WN_E2E__) w.__WN_E2E__ = { ready: false };
       w.__WN_E2E__.assembleContext = async (input: AssembleInput) => assembler.assemble(input);
+      w.__WN_E2E__.generateConversationSummary = async (input) =>
+        generateAndPersistConversationSummary({
+          projectId: input.projectId,
+          conversationId: input.conversationId,
+          articleId: input.articleId,
+          skillId: input.skillId,
+          skillName: input.skillName,
+          outcome: input.outcome,
+          originalText: input.originalText,
+          suggestedText: input.suggestedText,
+          messages: input.messages,
+        });
       w.__WN_E2E__.ready = true;
     })
     .catch(() => {

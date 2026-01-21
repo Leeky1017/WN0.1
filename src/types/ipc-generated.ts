@@ -88,6 +88,10 @@ export type IpcChannel =
   | 'kg:relation:list'
   | 'ai:skill:cancel'
   | 'ai:skill:run'
+  | 'context:writenow:conversations:analysis:update'
+  | 'context:writenow:conversations:list'
+  | 'context:writenow:conversations:read'
+  | 'context:writenow:conversations:save'
   | 'context:writenow:ensure'
   | 'context:writenow:rules:get'
   | 'context:writenow:settings:list'
@@ -975,6 +979,109 @@ export type ContextWritenowSettingsReadResponse = {
   errors: WritenowLoaderError[];
 };
 
+export type WritenowConversationSummaryQuality = 'placeholder' | 'l2' | 'heuristic';
+
+export type WritenowConversationMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+};
+
+export type WritenowConversationAnalysis = {
+  summary: string;
+  summaryQuality: WritenowConversationSummaryQuality;
+  keyTopics: string[];
+  skillsUsed: string[];
+  userPreferences: {
+    accepted: string[];
+    rejected: string[];
+  };
+};
+
+export type WritenowConversationRecord = {
+  version: 1;
+  id: string;
+  articleId: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: WritenowConversationMessage[];
+  analysis: WritenowConversationAnalysis;
+};
+
+export type WritenowConversationIndexItem = {
+  id: string;
+  articleId: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+  summary: string;
+  summaryQuality: WritenowConversationSummaryQuality;
+  keyTopics: string[];
+  skillsUsed: string[];
+  userPreferences: {
+    accepted: string[];
+    rejected: string[];
+  };
+  fullPath: string;
+};
+
+export type ContextWritenowConversationsSaveRequest = {
+  projectId: string;
+  conversation: {
+    id?: string;
+    articleId: string;
+    createdAt?: string;
+    updatedAt?: string;
+    messages: WritenowConversationMessage[];
+    skillsUsed?: string[];
+    userPreferences?: {
+      accepted?: string[];
+      rejected?: string[];
+    };
+  };
+};
+
+export type ContextWritenowConversationsSaveResponse = {
+  saved: true;
+  index: WritenowConversationIndexItem;
+};
+
+export type ContextWritenowConversationsListRequest = {
+  projectId: string;
+  articleId?: string;
+  limit?: number;
+};
+
+export type ContextWritenowConversationsListResponse = {
+  projectId: string;
+  rootPath: string;
+  loadedAtMs: number | null;
+  items: WritenowConversationIndexItem[];
+  errors: WritenowLoaderError[];
+};
+
+export type ContextWritenowConversationsReadRequest = {
+  projectId: string;
+  conversationId: string;
+};
+
+export type ContextWritenowConversationsReadResponse = {
+  projectId: string;
+  rootPath: string;
+  conversation: WritenowConversationRecord;
+};
+
+export type ContextWritenowConversationsAnalysisUpdateRequest = {
+  projectId: string;
+  conversationId: string;
+  analysis: WritenowConversationAnalysis;
+};
+
+export type ContextWritenowConversationsAnalysisUpdateResponse = {
+  updated: true;
+  index: WritenowConversationIndexItem;
+};
+
 export type IpcInvokePayloadMap = {
   'file:create': FileCreateRequest;
   'file:delete': FileDeleteRequest;
@@ -1007,6 +1114,10 @@ export type IpcInvokePayloadMap = {
   'kg:relation:list': KgRelationListRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'ai:skill:run': AiSkillRunRequest;
+  'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateRequest;
+  'context:writenow:conversations:list': ContextWritenowConversationsListRequest;
+  'context:writenow:conversations:read': ContextWritenowConversationsReadRequest;
+  'context:writenow:conversations:save': ContextWritenowConversationsSaveRequest;
   'context:writenow:ensure': ContextWritenowEnsureRequest;
   'context:writenow:rules:get': ContextWritenowRulesGetRequest;
   'context:writenow:settings:list': ContextWritenowSettingsListRequest;
@@ -1073,6 +1184,10 @@ export type IpcInvokeDataMap = {
   'kg:relation:list': KgRelationListResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'ai:skill:run': AiSkillRunResponse;
+  'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateResponse;
+  'context:writenow:conversations:list': ContextWritenowConversationsListResponse;
+  'context:writenow:conversations:read': ContextWritenowConversationsReadResponse;
+  'context:writenow:conversations:save': ContextWritenowConversationsSaveResponse;
   'context:writenow:ensure': ContextWritenowEnsureResponse;
   'context:writenow:rules:get': ContextWritenowRulesGetResponse;
   'context:writenow:settings:list': ContextWritenowSettingsListResponse;

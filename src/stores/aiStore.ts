@@ -2,9 +2,12 @@ import { create } from 'zustand';
 
 import { IpcError, aiOps, versionOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
+import { buildAiConversationMessages, saveAiConversation } from '../lib/context/conversation';
+import { generateAndPersistConversationSummary } from '../lib/context/conversation-summary';
 import { createJudge } from '../lib/judge';
 import { useConstraintsStore } from './constraintsStore';
 import { useEditorStore } from './editorStore';
+import { useProjectsStore } from './projectsStore';
 
 import type { AiStreamEvent } from '../types/ai';
 import type { JudgeResult } from '../types/constraints';
@@ -55,7 +58,7 @@ type AiState = {
 
   runSkill: (skill: { id: string; name: string }) => Promise<void>;
   cancelRun: () => Promise<void>;
-  rejectSuggestion: () => void;
+  rejectSuggestion: () => Promise<void>;
   acceptSuggestion: () => Promise<void>;
 
   loadVersions: (articleId: string) => Promise<void>;
@@ -261,7 +264,58 @@ export const useAiStore = create<AiState>((set, get) => ({
     }
   },
 
-  rejectSuggestion: () => {
+  rejectSuggestion: async () => {
+    const run = get().run;
+    if (!run || run.status !== 'done') {
+      set({ run: null, historyPreview: null });
+      return;
+    }
+
+    const projectId = useProjectsStore.getState().currentProjectId;
+    const articleId = useEditorStore.getState().currentPath;
+    if (!projectId || !articleId) {
+      set({ run: null, historyPreview: null });
+      return;
+    }
+
+    try {
+      const convoInput = {
+        projectId,
+        articleId,
+        skillId: run.skillId,
+        skillName: run.skillName,
+        outcome: 'rejected',
+        originalText: run.originalText,
+        suggestedText: run.suggestedText,
+      } as const;
+      const index = await saveAiConversation(convoInput);
+      const messages = buildAiConversationMessages(convoInput);
+      void generateAndPersistConversationSummary({
+        projectId,
+        conversationId: index.id,
+        articleId,
+        skillId: run.skillId,
+        skillName: run.skillName,
+        outcome: 'rejected',
+        originalText: run.originalText,
+        suggestedText: run.suggestedText,
+        messages,
+      }).catch((error) => {
+        console.warn('conversation summary generation failed', error);
+      });
+    } catch (error) {
+      set((state) => ({
+        run: state.run
+          ? {
+              ...state.run,
+              status: 'done',
+              errorMessage: `对话保存失败：${toErrorMessage(error)}`,
+            }
+          : null,
+      }));
+      return;
+    }
+
     set({ run: null, historyPreview: null });
   },
 
@@ -275,6 +329,47 @@ export const useAiStore = create<AiState>((set, get) => ({
 
     const suggested = run.suggestedText;
     if (!suggested.trim()) return;
+
+    const projectId = useProjectsStore.getState().currentProjectId;
+    if (projectId) {
+      try {
+        const convoInput = {
+          projectId,
+          articleId,
+          skillId: run.skillId,
+          skillName: run.skillName,
+          outcome: 'accepted',
+          originalText: run.originalText,
+          suggestedText: suggested,
+        } as const;
+        const index = await saveAiConversation(convoInput);
+        const messages = buildAiConversationMessages(convoInput);
+        void generateAndPersistConversationSummary({
+          projectId,
+          conversationId: index.id,
+          articleId,
+          skillId: run.skillId,
+          skillName: run.skillName,
+          outcome: 'accepted',
+          originalText: run.originalText,
+          suggestedText: suggested,
+          messages,
+        }).catch((error) => {
+          console.warn('conversation summary generation failed', error);
+        });
+      } catch (error) {
+        set((state) => ({
+          run: state.run
+            ? {
+                ...state.run,
+                status: 'done',
+                errorMessage: `对话保存失败：${toErrorMessage(error)}`,
+              }
+            : null,
+        }));
+        return;
+      }
+    }
 
     let nextContent = editor.content;
 
