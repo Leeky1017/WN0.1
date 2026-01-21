@@ -1,7 +1,7 @@
 # ISSUE-97
 - Issue: #97
 - Branch: task/97-issue-90-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/98
 
 ## Plan
 - Archive issue-90 Rulebook task
@@ -23,3 +23,13 @@
 - Command: `rulebook task archive issue-90-p3-search-kanban`
 - Key output: `✅ Task issue-90-p3-search-kanban archived successfully`
 - Evidence: `rulebook/tasks/archive/2026-01-21-issue-90-p3-search-kanban/`
+
+### 2026-01-21 22:44 push branch
+- Command: `git push -u origin HEAD`
+- Key output: `HEAD -> task/97-issue-90-closeout`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/new/task/97-issue-90-closeout
+
+### 2026-01-21 22:45 open PR
+- Command: `gh pr create --title \"[GOV] Closeout ISSUE-90: archive rulebook task (#97)\" --body \"Closes #97 ...\"`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/98`
+- Evidence: `openspec/_ops/task_runs/ISSUE-97.md`
