@@ -69,6 +69,12 @@ export type BudgetEvidence = {
   compressed: BudgetCompressedEvidence[];
 };
 
+export type AssembleMetrics = {
+  prefixHash: string;
+  assembleMs: number;
+  settingsPrefetchHit: boolean;
+};
+
 export type PromptMessageRole = 'system' | 'user' | 'assistant';
 
 export type PromptMessage = {
@@ -83,6 +89,7 @@ export type AssembleResult = {
   fragments: ContextFragment[];
   tokenStats: TokenStats;
   budgetEvidence: BudgetEvidence | null;
+  metrics: AssembleMetrics;
 };
 
 export type EditorContext = {

@@ -67,6 +67,7 @@ export function ContextDebugPanel({ value }: ContextDebugPanelProps) {
 
   const assembled = value.assembled;
   const tokenSummary = useMemo(() => (assembled ? summarizeTokenStats(assembled.tokenStats) : null), [assembled]);
+  const metrics = assembled?.metrics ?? null;
 
   const byLayer = useMemo(() => {
     const fragments = assembled?.fragments ?? [];
@@ -169,6 +170,14 @@ export function ContextDebugPanel({ value }: ContextDebugPanelProps) {
                         {tokenSummary.estimated ? ' (estimate)' : ''}
                       </div>
                     </div>
+                    {metrics && (
+                      <div>
+                        <div className="text-[var(--text-secondary)]">Prefix Hash</div>
+                        <div data-testid="ai-context-prefix-hash" className="font-mono">
+                          {metrics.prefixHash}
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <div className="text-[var(--text-secondary)]">Rules</div>
                       <div>{tokenSummary.layers.rules}</div>
@@ -185,6 +194,20 @@ export function ContextDebugPanel({ value }: ContextDebugPanelProps) {
                       <div className="text-[var(--text-secondary)]">Immediate</div>
                       <div>{tokenSummary.layers.immediate}</div>
                     </div>
+                    {metrics && (
+                      <div>
+                        <div className="text-[var(--text-secondary)]">Assemble</div>
+                        <div data-testid="ai-context-assemble-ms" className="tabular-nums">
+                          {metrics.assembleMs}ms
+                        </div>
+                      </div>
+                    )}
+                    {metrics && (
+                      <div>
+                        <div className="text-[var(--text-secondary)]">Settings Cache</div>
+                        <div className="tabular-nums">{metrics.settingsPrefetchHit ? 'hit' : 'miss'}</div>
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { IpcError, aiOps, versionOps } from '../lib/ipc';
+import { IpcError, aiOps, projectOps, versionOps } from '../lib/ipc';
 import { toUserMessage } from '../lib/errors';
 import { ContextAssembler } from '../lib/context/ContextAssembler';
 import type { TokenBudget } from '../lib/context/TokenBudgetManager';
@@ -94,6 +94,33 @@ function clampRange(value: number, max: number): number {
   if (!Number.isFinite(value) || value < 0) return 0;
   if (value > max) return max;
   return value;
+}
+
+/**
+ * Resolves a usable `projectId` for context assembly even during early app boot.
+ * Why: users can trigger SKILL before the Projects store finishes bootstrapping; context debug should still be available.
+ */
+async function resolveProjectId(): Promise<string | null> {
+  const fromStore = useProjectsStore.getState().currentProjectId;
+  if (fromStore) return fromStore;
+
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    await useProjectsStore.getState().bootstrap().catch(() => undefined);
+    const afterBootstrap = useProjectsStore.getState().currentProjectId;
+    if (afterBootstrap) return afterBootstrap;
+
+    try {
+      const current = await projectOps.getCurrent();
+      if (current.projectId) return current.projectId;
+    } catch {
+      // ignore and retry
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 120));
+  }
+
+  return null;
 }
 
 /**
@@ -252,7 +279,7 @@ export const useAiStore = create<AiState>((set, get) => ({
     });
 
     try {
-      const projectId = useProjectsStore.getState().currentProjectId;
+      const projectId = await resolveProjectId();
       const builtin = BUILTIN_SKILLS.find((s) => s.id === skillId) ?? null;
       if (!projectId) {
         set((state) => ({

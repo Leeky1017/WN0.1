@@ -1,7 +1,7 @@
 # ISSUE-69
 - Issue: #69
 - Branch: task/69-context-debug-panel
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/72
 
 ## Plan
 - Read Sprint 2.5 P2 specs + existing context assembly pipeline
@@ -42,3 +42,15 @@
 - Key output: `✓ built in 2.92s`
 - Command: `npx playwright test tests/e2e/sprint-2.5-context-engineering-context-viewer.spec.ts`
 - Key output: `1 passed (2.5s)`
+
+### 2026-01-21 13:32 Metrics (prefix hash + latency)
+- Command: `npm test`
+- Key output: `13 passed (13) / 34 passed (34)`
+- Command: `npm run build`
+- Key output: `✓ built in 2.98s`
+- Command: `npx playwright test tests/e2e/sprint-2.5-context-engineering-context-viewer.spec.ts tests/e2e/sprint-2.5-context-engineering-metrics.spec.ts`
+- Key output: `2 passed (5.1s)`
+
+### 2026-01-21 13:36 OpenSpec validate
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 11 passed, 0 failed (11 items)`
