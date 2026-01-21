@@ -43,3 +43,8 @@
 - Command: `gh pr create --base main --head task/90-p3-search-kanban ...`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/95`
 - Evidence: https://github.com/Leeky1017/WN0.1/pull/95
+
+### 2026-01-21 22:08 rulebook archive
+- Command: `git mv rulebook/tasks/issue-90-p3-search-kanban rulebook/tasks/archive/2026-01-21-issue-90-p3-search-kanban`
+- Key output: `issue-90-p3-search-kanban archived`
+- Evidence: `rulebook/tasks/archive/2026-01-21-issue-90-p3-search-kanban/`
