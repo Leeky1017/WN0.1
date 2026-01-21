@@ -2,6 +2,12 @@
 
 WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命创作者的写作体验。
 
+## Status
+
+- 本规范：Active（持续更新的权威基线）
+- 治理与交付规范：`AGENTS.md`
+- 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
+
 ## Purpose
 
 本规范用于描述 WriteNow 的愿景、核心概念、系统架构与实施路线图，作为后续 Sprint 分支规范与实现的上游来源与一致性基线。
@@ -15,6 +21,14 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 #### Scenario: Sprint 规范派生一致
 - **WHEN** 团队创建 Sprint 分支规范与任务卡片
 - **THEN** 其内容 MUST 与本规范在技术栈、术语与范围定义上保持一致，并以本规范作为引用来源
+
+### Requirement: 工程治理与交付流程 MUST 以 `AGENTS.md` 为准
+
+`AGENTS.md` 定义了本仓库的治理硬约束（代码原则/异常与防御性编程/工作留痕/禁止事项）。任何变更都 MUST 遵循该规范，否则不得合并。
+
+#### Scenario: PR 可交付且可追溯
+- **WHEN** 团队提交 PR 交付任意变更
+- **THEN** PR MUST 满足 `AGENTS.md` 中的交付流程（Issue/Branch/Run log/验证证据），并保证变更可追溯、可复现、可验证
 
 ---
 
@@ -597,6 +611,9 @@ MVP 阶段采用"格式模板导出 + 剪贴板适配"方案。
 | 编辑器 | TipTap (ProseMirror) | 双模式：Markdown / 富文本 |
 | 组件库 | shadcn/ui 自定义组件 | Cursor/Linear 风格 |
 | 桌面框架 | Electron | 无边框窗口 |
+| 构建工具 | Vite | Renderer 构建与开发服务器 |
+| 测试 | Vitest + Playwright | 单测 + E2E（用户路径） |
+| 质量门禁 | ESLint + TypeScript | lint + 严格类型 |
 | 本地数据 | SQLite (better-sqlite3) | 含 FTS5 全文索引 |
 | 向量存储 | sqlite-vec | 语义搜索支持 |
 | 状态管理 | Zustand | 轻量级 |
@@ -909,16 +926,25 @@ CREATE TABLE settings (
 - [x] 双模式编辑
 - [x] Zustand 状态管理接入
 
-### Sprint 2：AI 能力（2-3周）🔄 进行中
-- [ ] Claude API 集成
-- [ ] 3 个基础 SKILL
-- [ ] Diff 展示与确认机制
-- [ ] 版本历史记录
-- [ ] Judge Layer 元语言约束系统 (新增)
+### Sprint 2A：AI 基础链路（2 周）✅ 已完成
+- [x] Claude API 集成（流式 + 可取消）
+- [x] SKILL 系统核心（选中 → 执行 → diff → 应用）
+- [x] 基础 SKILL（内置示例）
+- [x] Diff 展示与确认机制
+- [x] 版本历史记录（创建/列表/回退/对比）
 
-### Sprint 2.5：上下文工程 (新增)
-- [ ] Manus 上下文方法论应用
-- [ ] 智能上下文组装
+### Sprint 2B：Judge Layer + 写作约束（1–2 周）✅ 已完成
+- [x] Judge Layer 架构（L1/L2 约束）
+- [x] L1 禁用词与扩展约束
+- [x] L2 模型集成（本地 judge）
+- [x] 模型下载与就绪状态机
+- [x] 违规 diff 展示与交互闭环
+- [x] 写作约束配置 UI（读取/保存/启用）
+
+### Sprint 2.5：上下文工程（新增）🔄 进行中
+- [ ] Manus 上下文方法论落地（分层/压缩/注入规则）
+- [ ] Context Assembler（可解释、可调试、可复现）
+- [ ] Token Budget 管理（超长降级策略）
 
 ### Sprint 3：智能上下文（2周）✅ 已完成
 - [x] 本地 Embedding 模型打包
@@ -932,11 +958,15 @@ CREATE TABLE settings (
 - [x] 基础 i18n
 - [x] 多平台发布格式适配
 
-### Sprint 5：项目管理（2周）
-- [ ] 项目/文件夹结构
-- [ ] 人物设定卡片
-- [ ] 大纲视图
-- [ ] 知识图谱基础
+### Sprint 5：项目管理（2周）✅ 已完成
+- [x] 项目/文件夹结构
+- [x] 人物设定卡片
+- [x] 大纲视图
+- [x] 知识图谱基础
+
+### IPC 契约自动化（跨 Sprint 基建）✅ 已完成
+- [x] IPC SSOT：`electron/ipc/*` → 自动生成 `src/types/ipc-generated.ts`
+- [x] 漂移护栏：`npm run contract:check`（CI 门禁，禁止手改生成文件）
 
 ### Sprint 6：增强体验（2周）
 - [ ] 创作统计
