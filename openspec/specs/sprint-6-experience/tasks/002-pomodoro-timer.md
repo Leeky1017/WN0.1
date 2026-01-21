@@ -1,5 +1,10 @@
 # 任务 002: 番茄钟实现（Pomodoro Timer）
 
+Status: done
+Issue: #70
+PR: https://github.com/Leeky1017/WN0.1/pull/73
+RUN_LOG: openspec/_ops/task_runs/ISSUE-70.md
+
 ## 目标
 
 实现稳定的番茄钟能力：支持专注/休息阶段、开始/暂停/继续/结束、可配置时长、跨重启恢复，并与创作统计联动（专注分钟计入 `writing_stats.writing_minutes`）。
@@ -38,11 +43,11 @@
 
 ## 验收标准
 
-- [ ] 番茄钟支持开始/暂停/继续/结束，倒计时显示准确
-- [ ] 应用重启后番茄钟可恢复到正确状态（或给出明确恢复提示）
-- [ ] 专注阶段完成后，`writing_stats.writing_minutes` 会增量入账
-- [ ] 调整专注时长后，下一次番茄钟按新配置运行
-- [ ] 阶段结束有明确提示（至少 in-app）
+- [x] 番茄钟支持开始/暂停/继续/结束，倒计时显示准确
+- [x] 应用重启后番茄钟可恢复到正确状态（或给出明确恢复提示）
+- [x] 专注阶段完成后，`writing_stats.writing_minutes` 会增量入账
+- [x] 调整专注时长后，下一次番茄钟按新配置运行
+- [x] 阶段结束有明确提示（至少 in-app）
 
 ## 参考
 

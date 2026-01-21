@@ -1,5 +1,10 @@
 # 任务 001: 创作统计功能（Writing Stats）
 
+Status: done
+Issue: #70
+PR: https://github.com/Leeky1017/WN0.1/pull/73
+RUN_LOG: openspec/_ops/task_runs/ISSUE-70.md
+
 ## 目标
 
 实现可落地、可恢复的创作统计闭环：自动记录每日字数、写作时长（分钟）、创建文章数、使用 SKILL 次数，并在侧边栏统计视图与顶部状态栏中展示趋势与目标进度。
@@ -47,11 +52,11 @@
 
 ## 验收标准
 
-- [ ] `writing_stats` 可持久化落盘，应用重启后统计不丢失
-- [ ] 保存文档后，当日 `word_count` 会按统一口径更新
-- [ ] 完成番茄钟专注阶段后，当日 `writing_minutes` 增量入账
-- [ ] 创建新文档后，当日 `articles_created` 增量入账
-- [ ] 统计视图展示今日与最近趋势（至少最近 7 天）
+- [x] `writing_stats` 可持久化落盘，应用重启后统计不丢失
+- [x] 保存文档后，当日 `word_count` 会按统一口径更新
+- [x] 完成番茄钟专注阶段后，当日 `writing_minutes` 增量入账
+- [x] 创建新文档后，当日 `articles_created` 增量入账
+- [x] 统计视图展示今日与最近趋势（至少最近 7 天）
 
 ## 参考
 

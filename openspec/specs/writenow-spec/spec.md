@@ -969,8 +969,8 @@ CREATE TABLE settings (
 - [x] 漂移护栏：`npm run contract:check`（CI 门禁，禁止手改生成文件）
 
 ### Sprint 6：增强体验（2周）
-- [ ] 创作统计
-- [ ] 番茄钟
+- [x] 创作统计
+- [x] 番茄钟
 - [ ] 外挂记忆（用户偏好学习）
 - [ ] 命令面板 (Cmd+K)
 
