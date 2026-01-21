@@ -158,14 +158,16 @@ export class ContextAssembler {
     const desiredEntities = stableEntities(input.editorContext?.detectedEntities);
     const prefetched = desiredEntities.length > 0 ? this.deps.getPrefetchedSettings(input.projectId) : null;
     const canUsePrefetched = prefetched && listEqual(stableEntities(prefetched.entities), desiredEntities) && prefetched.fragments.length > 0;
-    const hasExplicitSettings = Boolean(input.settings && (Array.isArray(input.settings.characters) || Array.isArray(input.settings.settings)));
+    const explicitCharacters = input.settings?.characters;
+    const explicitSettingFiles = input.settings?.settings;
+    const hasExplicitSettings = Boolean(input.settings && (explicitCharacters || explicitSettingFiles));
     const settingsPrefetchHit = !hasExplicitSettings && Boolean(canUsePrefetched);
 
     const settingsLoaded = hasExplicitSettings
       ? await this.deps.loadSettings(input.projectId, {
-            ...(Array.isArray(input.settings.characters) ? { characters: input.settings.characters } : {}),
-            ...(Array.isArray(input.settings.settings) ? { settings: input.settings.settings } : {}),
-          })
+          ...(explicitCharacters ? { characters: explicitCharacters } : {}),
+          ...(explicitSettingFiles ? { settings: explicitSettingFiles } : {}),
+        })
       : null;
 
     const settings =
