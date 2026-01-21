@@ -1,7 +1,7 @@
 # ISSUE-56
 - Issue: #56
 - Branch: task/56-context-p0-core
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/58
 
 ## Plan
 - Implement Sprint 2.5 P0 core context engineering (types, .writenow loaders/watch, token budget, assembler)
