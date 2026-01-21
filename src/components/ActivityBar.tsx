@@ -1,5 +1,5 @@
 import React from 'react';
-import { Files, Users, ListTree, Network, Workflow, Image, Share2, BarChart3, Settings } from 'lucide-react';
+import { Files, Users, ListTree, Network, Workflow, Image, Share2, BarChart3, Brain, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SidebarView } from '../App';
 
@@ -19,6 +19,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
     { id: 'materials' as SidebarView, icon: Image, label: t('nav.materials') },
     { id: 'publish' as SidebarView, icon: Share2, label: t('nav.publish') },
     { id: 'stats' as SidebarView, icon: BarChart3, label: t('nav.stats') },
+    { id: 'memory' as SidebarView, icon: Brain, label: t('nav.memory') },
     { id: 'settings' as SidebarView, icon: Settings, label: t('nav.settings') },
   ];
 

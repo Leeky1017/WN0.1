@@ -19,6 +19,7 @@ import type { JudgeResult } from '../types/constraints';
 import type { ArticleSnapshot } from '../types/models';
 import type { AssembleResult, EditorContext } from '../types/context';
 import type { ContextDebugState } from '../types/context-debug';
+import type { UserMemory } from '../types/ipc';
 
 export type AiRunStatus = 'idle' | 'streaming' | 'done' | 'error' | 'canceled';
 
@@ -39,6 +40,7 @@ export type AiRunState = {
   status: AiRunStatus;
   runId: string | null;
   localId: number;
+  injectedMemory: UserMemory[];
   target: AiApplyTarget;
   originalText: string;
   suggestedText: string;
@@ -217,6 +219,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           status: 'error',
           runId: null,
           localId,
+          injectedMemory: [],
           target: { kind: 'document' },
           originalText: '',
           suggestedText: '',
@@ -245,6 +248,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           status: 'error',
           runId: null,
           localId,
+          injectedMemory: [],
           target,
           originalText,
           suggestedText: '',
@@ -268,6 +272,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         status: 'streaming',
         runId: null,
         localId,
+        injectedMemory: [],
         target,
         originalText,
         suggestedText: '',
@@ -345,6 +350,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           ? {
               ...state.run,
               runId: res.runId,
+              injectedMemory: res.injected?.memory ?? [],
             }
           : null,
       }));

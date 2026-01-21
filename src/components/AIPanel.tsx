@@ -139,22 +139,45 @@ export function AIPanel() {
         )}
 
         {run && (
-          <DiffView
-            title={run.skillName}
-            originalText={run.originalText}
-            suggestedText={run.suggestedText}
-            status={run.status}
-            contextDebug={run.contextDebug ?? undefined}
-            errorMessage={run.errorMessage}
-            violations={run.judge.result?.violations ?? []}
-            violationStatus={run.judge.status}
-            violationErrorMessage={run.judge.errorMessage}
-            onCancel={() => cancelRun().catch(() => undefined)}
-            onAccept={() => acceptSuggestion().catch(() => undefined)}
-            onReject={() => rejectSuggestion().catch(() => undefined)}
-            acceptLabel="接受并应用"
-            rejectLabel="拒绝"
-          />
+          <>
+            <DiffView
+              title={run.skillName}
+              originalText={run.originalText}
+              suggestedText={run.suggestedText}
+              status={run.status}
+              contextDebug={run.contextDebug ?? undefined}
+              errorMessage={run.errorMessage}
+              violations={run.judge.result?.violations ?? []}
+              violationStatus={run.judge.status}
+              violationErrorMessage={run.judge.errorMessage}
+              onCancel={() => cancelRun().catch(() => undefined)}
+              onAccept={() => acceptSuggestion().catch(() => undefined)}
+              onReject={() => rejectSuggestion().catch(() => undefined)}
+              acceptLabel="接受并应用"
+              rejectLabel="拒绝"
+            />
+
+            {run.injectedMemory.length > 0 && (
+              <div
+                data-testid="ai-injected-memory"
+                className="wn-elevated rounded-md border border-[var(--border-subtle)] px-3 py-2"
+              >
+                <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)] mb-1">
+                  Injected Memory
+                </div>
+                <div className="space-y-1">
+                  {run.injectedMemory.map((item) => (
+                    <div key={item.id} className="text-[12px] text-[var(--text-secondary)] break-words">
+                      <span className="text-[11px] text-[var(--text-tertiary)] mr-2">
+                        {item.type}/{item.projectId ? 'project' : 'global'}/{item.origin}
+                      </span>
+                      {item.content}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         <div className="border border-[var(--border-subtle)] rounded-md overflow-hidden">

@@ -22,6 +22,7 @@ const { registerProjectsIpcHandlers } = require('./ipc/projects.cjs')
 const { registerCharactersIpcHandlers } = require('./ipc/characters.cjs')
 const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
 const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
+const { registerMemoryIpcHandlers } = require('./ipc/memory.cjs')
 const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
 const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
 const { registerStatsIpcHandlers } = require('./ipc/stats.cjs')
@@ -254,6 +255,13 @@ function setupIpc() {
     handleInvoke,
     db,
     logger,
+  })
+
+  registerMemoryIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+    config,
   })
 
   registerEmbeddingIpcHandlers(ipcMain, {

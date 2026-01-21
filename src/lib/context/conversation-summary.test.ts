@@ -31,13 +31,13 @@ describe('conversation-summary', () => {
       skillId: 'builtin:polish',
       skillName: 'Polish',
       outcome: 'accepted',
-      originalText: '原文'.repeat(50),
-      suggestedText: '建议'.repeat(50),
+      originalText: '我我我非常非常喜欢喜欢这个故事，但表达有点重复。',
+      suggestedText: '我非常喜欢这个故事，但表达更自然。',
     });
 
     expect(result.quality).toBe('heuristic');
     expect(result.summary.length).toBeGreaterThan(0);
     expect(result.skillsUsed).toContain('builtin:polish');
+    expect(result.userPreferences.accepted.length).toBeGreaterThan(0);
   });
 });
-
