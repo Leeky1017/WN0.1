@@ -941,10 +941,10 @@ CREATE TABLE settings (
 - [x] 违规 diff 展示与交互闭环
 - [x] 写作约束配置 UI（读取/保存/启用）
 
-### Sprint 2.5：上下文工程（新增）🔄 进行中
-- [ ] Manus 上下文方法论落地（分层/压缩/注入规则）
-- [ ] Context Assembler（可解释、可调试、可复现）
-- [ ] Token Budget 管理（超长降级策略）
+### Sprint 2.5：上下文工程（新增）✅ 已完成
+- [x] Manus 上下文方法论落地（分层/压缩/注入规则）
+- [x] Context Assembler（可解释、可调试、可复现）
+- [x] Token Budget 管理（超长降级策略）
 
 ### Sprint 3：智能上下文（2周）✅ 已完成
 - [x] 本地 Embedding 模型打包
