@@ -25,6 +25,8 @@
     "export": "导出"
   },
   "nav": {
+    "search": "搜索",
+    "cards": "卡片",
     "files": "文件浏览器",
     "characters": "人物设定",
     "outline": "文档大纲",
@@ -35,6 +37,33 @@
     "stats": "创作统计",
     "memory": "记忆",
     "settings": "设置"
+  },
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索文件名或正文…",
+    "mode": {
+      "fulltext": "全文",
+      "semantic": "语义"
+    },
+    "loading": "搜索中...",
+    "empty": "暂无结果",
+    "loadMore": "加载更多",
+    "prevMatch": "上一处命中",
+    "nextMatch": "下一处命中",
+    "failed": "搜索失败：{{error}}"
+  },
+  "cards": {
+    "title": "卡片",
+    "empty": "暂无章节卡片",
+    "loadFailed": "加载失败：{{error}}",
+    "wordCount": "{{count}}字",
+    "dragHandle": "拖拽排序",
+    "status": {
+      "title": "状态",
+      "draft": "草稿",
+      "review": "润色",
+      "done": "完成"
+    }
   },
   "commands": {
     "title": "命令面板",

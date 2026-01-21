@@ -27,6 +27,8 @@ import { createCommandRegistry } from './lib/commands/registry';
 
 export type ViewMode = 'edit' | 'preview' | 'split';
 export type SidebarView =
+  | 'search'
+  | 'cards'
   | 'files'
   | 'characters'
   | 'outline'

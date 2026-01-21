@@ -13,3 +13,5 @@ export type { WnPanelPadding, WnPanelProps, WnPanelVariant } from './WnPanel';
 export { WnResizable } from './WnResizable';
 export type { WnResizableDirection, WnResizableProps } from './WnResizable';
 
+export { WnCard } from './WnCard';
+export type { WnCardProps } from './WnCard';

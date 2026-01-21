@@ -158,3 +158,8 @@ export const contextOps = {
     invoke('context:writenow:settings:list', { projectId, ...(options?.refresh ? { refresh: true } : {}) }),
   writenowSettingsRead: (payload: IpcInvokePayloadMap['context:writenow:settings:read']) => invoke('context:writenow:settings:read', payload),
 };
+
+export const searchOps = {
+  fulltext: (payload: IpcInvokePayloadMap['search:fulltext']) => invoke('search:fulltext', payload),
+  semantic: (payload: IpcInvokePayloadMap['search:semantic']) => invoke('search:semantic', payload),
+};

@@ -18,6 +18,7 @@ type EditorState = {
   saveStatus: SaveStatus;
   lastSavedAt: number | null;
   pendingJumpLine: number | null;
+  pendingJumpRange: { start: number; end: number } | null;
   openFile: (path: string) => Promise<void>;
   setContent: (content: string) => void;
   setSelection: (selection: { start: number; end: number } | null) => void;
@@ -26,6 +27,8 @@ type EditorState = {
   save: () => Promise<void>;
   requestJumpToLine: (line: number) => void;
   consumeJumpToLine: () => void;
+  requestJumpToRange: (range: { start: number; end: number }) => void;
+  consumeJumpToRange: () => void;
   closeFile: () => void;
 };
 
@@ -69,6 +72,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   saveStatus: 'saved',
   lastSavedAt: null,
   pendingJumpLine: null,
+  pendingJumpRange: null,
 
   openFile: async (path: string) => {
     const nextPath = typeof path === 'string' ? path : '';
@@ -188,6 +192,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ pendingJumpLine: null });
   },
 
+  /**
+   * Why: search/outline navigation needs a deterministic way to focus and highlight a text match without coupling to UI refs.
+   */
+  requestJumpToRange: (range) => {
+    const startRaw = typeof range?.start === 'number' ? range.start : Number(range?.start);
+    const endRaw = typeof range?.end === 'number' ? range.end : Number(range?.end);
+    if (!Number.isFinite(startRaw) || !Number.isFinite(endRaw)) return;
+    const start = Math.max(0, Math.floor(startRaw));
+    const end = Math.max(0, Math.floor(endRaw));
+    set({ pendingJumpRange: { start, end } });
+  },
+
+  consumeJumpToRange: () => {
+    set({ pendingJumpRange: null });
+  },
+
   closeFile: () => {
     set({
       currentPath: null,
@@ -200,6 +220,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       saveStatus: 'saved',
       lastSavedAt: null,
       pendingJumpLine: null,
+      pendingJumpRange: null,
     });
   },
 }));

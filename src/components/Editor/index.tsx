@@ -36,6 +36,24 @@ function getOffsetForLine(content: string, line: number) {
   return content.length;
 }
 
+function getLineForOffset(content: string, offset: number) {
+  const max = content.length;
+  const safeOffset = Number.isFinite(offset) ? Math.min(max, Math.max(0, Math.floor(offset))) : 0;
+  let line = 1;
+  for (let i = 0; i < safeOffset; i += 1) {
+    if (content[i] === '\n') line += 1;
+  }
+  return line;
+}
+
+function normalizeJumpRange(range: { start: number; end: number }, contentLength: number) {
+  const startRaw = Number.isFinite(range.start) ? range.start : 0;
+  const endRaw = Number.isFinite(range.end) ? range.end : startRaw;
+  const start = Math.min(contentLength, Math.max(0, Math.floor(startRaw)));
+  const end = Math.min(contentLength, Math.max(0, Math.floor(endRaw)));
+  return end >= start ? { start, end } : { start: end, end: start };
+}
+
 const EDITOR_SPLIT_STORAGE_KEY = 'WN_EDITOR_SPLIT_LEFT_PX_V1';
 const EDITOR_SPLIT_MIN_PX = 360;
 
@@ -56,6 +74,8 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   const closeFile = useEditorStore((s) => s.closeFile);
   const pendingJumpLine = useEditorStore((s) => s.pendingJumpLine);
   const consumeJumpToLine = useEditorStore((s) => s.consumeJumpToLine);
+  const pendingJumpRange = useEditorStore((s) => s.pendingJumpRange);
+  const consumeJumpToRange = useEditorStore((s) => s.consumeJumpToRange);
 
   const [lineCount, setLineCount] = useState(1);
   const autosaveTimerRef = useRef<number | null>(null);
@@ -273,6 +293,33 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
 
     consumeJumpToLine();
   }, [consumeJumpToLine, currentPath, editorMode, pendingJumpLine, setEditorMode]);
+
+  useEffect(() => {
+    if (!currentPath) return;
+    if (!pendingJumpRange) return;
+
+    if (editorMode !== 'markdown') {
+      setEditorMode('markdown');
+      return;
+    }
+
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const { start, end } = normalizeJumpRange(pendingJumpRange, useEditorStore.getState().content.length);
+    textarea.focus();
+    textarea.setSelectionRange(start, end);
+    setSelection({ start, end });
+
+    const line = getLineForOffset(useEditorStore.getState().content, start);
+    const lineHeightRaw = window.getComputedStyle(textarea).lineHeight;
+    const lineHeight = Number.parseFloat(lineHeightRaw);
+    if (Number.isFinite(lineHeight) && lineHeight > 0) {
+      textarea.scrollTop = Math.max(0, (line - 1) * lineHeight);
+    }
+
+    consumeJumpToRange();
+  }, [consumeJumpToRange, currentPath, editorMode, pendingJumpRange, setEditorMode, setSelection]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
