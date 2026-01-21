@@ -1,5 +1,7 @@
 import React from 'react';
 import type { SidebarView } from '../App';
+import { SearchView } from './sidebar-views/SearchView';
+import { WnCardView } from './sidebar-views/WnCardView';
 import { FilesView } from './sidebar-views/FilesView';
 import { OutlineView } from './sidebar-views/OutlineView';
 import { WorkflowView } from './sidebar-views/WorkflowView';
@@ -25,6 +27,8 @@ export function SidebarPanel({ view, onViewChange, selectedFile, onSelectFile, e
     <div className="w-full bg-[var(--bg-secondary)] flex flex-col">
       <ProjectSidebar activeView={view} onViewChange={onViewChange} />
       <div className="flex-1 flex flex-col overflow-hidden">
+        {view === 'search' && <SearchView selectedFile={selectedFile} onSelectFile={onSelectFile} />}
+        {view === 'cards' && <WnCardView selectedFile={selectedFile} onSelectFile={onSelectFile} />}
         {view === 'files' && <FilesView selectedFile={selectedFile} onSelectFile={onSelectFile} />}
         {view === 'characters' && <CharactersView />}
         {view === 'outline' && <OutlineView editorContent={editorContent} selectedFile={selectedFile} />}

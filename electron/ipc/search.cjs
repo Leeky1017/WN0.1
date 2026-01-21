@@ -6,6 +6,21 @@ function createIpcError(code, message, details) {
   return error
 }
 
+function parseProjectId(raw) {
+  if (typeof raw === 'undefined') return null
+  if (typeof raw !== 'string') return null
+  const trimmed = raw.trim()
+  return trimmed ? trimmed : null
+}
+
+function assertValidProjectId(payload) {
+  if (!payload || typeof payload !== 'object') return null
+  if (!('projectId' in payload)) return null
+  const value = parseProjectId(payload.projectId)
+  if (!value) throw createIpcError('INVALID_ARGUMENT', 'Invalid projectId', { projectId: payload.projectId })
+  return value
+}
+
 function parseLimit(input) {
   if (typeof input === 'undefined') return 20
   const parsed = Number.parseInt(String(input), 10)
@@ -37,6 +52,7 @@ function registerSearchIpcHandlers(ipcMain, options = {}) {
     if (!db) throw createIpcError('DB_ERROR', 'Database is not ready')
     const query = typeof payload?.query === 'string' ? payload.query.trim() : ''
     if (!query) throw createIpcError('INVALID_ARGUMENT', 'Query is required')
+    const projectId = assertValidProjectId(payload)
 
     const limit = parseLimit(payload?.limit)
     if (limit === null) throw createIpcError('INVALID_ARGUMENT', 'Invalid limit', { limit: payload?.limit })
@@ -44,22 +60,31 @@ function registerSearchIpcHandlers(ipcMain, options = {}) {
     if (offset === null) throw createIpcError('INVALID_ARGUMENT', 'Invalid cursor', { cursor: payload?.cursor })
 
     try {
-      const totalRow = db.prepare('SELECT COUNT(*) AS total FROM articles_fts WHERE articles_fts MATCH ?').get(query)
+      const totalRow = db
+        .prepare(
+          `SELECT COUNT(*) AS total
+           FROM articles_fts
+           JOIN articles a ON a.rowid = articles_fts.rowid
+           WHERE articles_fts MATCH ?
+             ${projectId ? 'AND a.project_id = ?' : ''}`
+        )
+        .get(...(projectId ? [query, projectId] : [query]))
       const total = typeof totalRow?.total === 'number' ? totalRow.total : Number(totalRow?.total ?? 0)
 
       const rows = db
         .prepare(
           `SELECT a.id AS id,
                   a.title AS title,
-                  snippet(articles_fts, 1, '', '', '…', 10) AS snippet,
+                  snippet(articles_fts, 1, char(1), char(2), '…', 12) AS snippet,
                   bm25(articles_fts) AS bm25
            FROM articles_fts
            JOIN articles a ON a.rowid = articles_fts.rowid
            WHERE articles_fts MATCH ?
+             ${projectId ? 'AND a.project_id = ?' : ''}
            ORDER BY bm25(articles_fts)
            LIMIT ? OFFSET ?`
         )
-        .all(query, limit, offset)
+        .all(...(projectId ? [query, projectId, limit, offset] : [query, limit, offset]))
 
       const items = rows
         .map((row) => {
@@ -102,6 +127,7 @@ function registerSearchIpcHandlers(ipcMain, options = {}) {
 
     const query = typeof payload?.query === 'string' ? payload.query.trim() : ''
     if (!query) throw createIpcError('INVALID_ARGUMENT', 'Query is required')
+    const projectId = assertValidProjectId(payload)
 
     const limit = parseLimit(payload?.limit)
     if (limit === null) throw createIpcError('INVALID_ARGUMENT', 'Invalid limit', { limit: payload?.limit })
@@ -123,33 +149,48 @@ function registerSearchIpcHandlers(ipcMain, options = {}) {
       const encoded = await embeddingService.encode([query], { model: DEFAULT_MODEL })
       vectorStore.ensureReady(encoded.dimension)
 
-      const hits = vectorStore.querySimilarArticles(encoded.vectors[0], { topK: limit, offset, maxDistance })
-      const ids = hits.map((h) => h.id)
+      const batchSize = 50
+      const items = []
+      let scanOffset = offset
 
-      const articleById = new Map()
-      if (ids.length > 0) {
-        const placeholders = ids.map(() => '?').join(',')
-        const rows = db.prepare(`SELECT id, title, content FROM articles WHERE id IN (${placeholders})`).all(...ids)
-        for (const row of rows) {
-          if (!row || typeof row.id !== 'string') continue
-          articleById.set(row.id, row)
+      while (items.length < limit) {
+        const hits = vectorStore.querySimilarArticles(encoded.vectors[0], { topK: batchSize, offset: scanOffset, maxDistance })
+        if (hits.length === 0) break
+        scanOffset += hits.length
+
+        const ids = hits.map((h) => h.id)
+        const articleById = new Map()
+        if (ids.length > 0) {
+          const placeholders = ids.map(() => '?').join(',')
+          const rows = projectId
+            ? db
+                .prepare(`SELECT id, title, content FROM articles WHERE id IN (${placeholders}) AND project_id = ?`)
+                .all(...ids, projectId)
+            : db.prepare(`SELECT id, title, content FROM articles WHERE id IN (${placeholders})`).all(...ids)
+
+          for (const row of rows) {
+            if (!row || typeof row.id !== 'string') continue
+            articleById.set(row.id, row)
+          }
         }
-      }
 
-      const items = hits
-        .map((hit) => {
+        for (const hit of hits) {
           const row = articleById.get(hit.id)
+          if (!row) continue
           const title = typeof row?.title === 'string' ? row.title : hit.id
           const content = typeof row?.content === 'string' ? row.content : ''
           const snippetBase = content.replace(/\s+/g, ' ').trim()
           const snippet = snippetBase.length > 160 ? `${snippetBase.slice(0, 160)}…` : snippetBase
           const distance = hit.distance
           const score = Number.isFinite(distance) ? 1 / (1 + Math.max(0, distance)) : 0
-          return { id: hit.id, title, snippet, score }
-        })
-        .filter((hit) => hit.id && hit.title)
+          items.push({ id: hit.id, title, snippet, score })
+          if (items.length >= limit) break
+        }
 
-      const nextCursor = items.length === limit ? String(offset + items.length) : undefined
+        if (hits.length < batchSize) break
+      }
+
+      const nextCursor = items.length === limit ? String(scanOffset) : undefined
 
       return {
         items,

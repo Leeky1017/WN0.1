@@ -25,6 +25,8 @@
     "export": "Export"
   },
   "nav": {
+    "search": "Search",
+    "cards": "Cards",
     "files": "File Explorer",
     "characters": "Characters",
     "outline": "Outline",
@@ -35,6 +37,33 @@
     "stats": "Stats",
     "memory": "Memory",
     "settings": "Settings"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search filename or content…",
+    "mode": {
+      "fulltext": "Fulltext",
+      "semantic": "Semantic"
+    },
+    "loading": "Searching…",
+    "empty": "No results",
+    "loadMore": "Load more",
+    "prevMatch": "Previous match",
+    "nextMatch": "Next match",
+    "failed": "Search failed: {{error}}"
+  },
+  "cards": {
+    "title": "Cards",
+    "empty": "No cards",
+    "loadFailed": "Load failed: {{error}}",
+    "wordCount": "{{count}} words",
+    "dragHandle": "Drag to reorder",
+    "status": {
+      "title": "Status",
+      "draft": "Draft",
+      "review": "Review",
+      "done": "Done"
+    }
   },
   "commands": {
     "title": "Command Palette",
