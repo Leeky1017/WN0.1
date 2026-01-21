@@ -53,6 +53,87 @@ jobs:
               return;
             }
 
+            const expectedPrUrl = `https://github.com/${owner}/${repo}/pull/${pull_number}`;
+            const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+            const runLogRes = await github.rest.repos.getContent({
+              owner,
+              repo,
+              path: expectedRunLog,
+              ref: pr.head.sha,
+            });
+
+            if (Array.isArray(runLogRes.data) || !("content" in runLogRes.data)) {
+              core.setFailed(`Run log must be a file (not a directory): ${expectedRunLog}`);
+              return;
+            }
+
+            const runLogContent = Buffer.from(
+              runLogRes.data.content,
+              runLogRes.data.encoding || "base64"
+            ).toString("utf8");
+
+            const requiredRunLogPatterns = [
+              {
+                name: `header '# ISSUE-${issueNumber}'`,
+                re: new RegExp(`^#\\s+ISSUE-${issueNumber}\\s*$`, "m"),
+              },
+              {
+                name: `issue line '- Issue: #${issueNumber}'`,
+                re: new RegExp(`^\\-\\s+Issue:\\s+#${issueNumber}\\s*$`, "m"),
+              },
+              {
+                name: `branch line '- Branch: ${headRef}'`,
+                re: new RegExp(`^\\-\\s+Branch:\\s+${escapeRegExp(headRef)}\\s*$`, "m"),
+              },
+              { name: "section '## Plan'", re: /##\s+Plan\b/ },
+              { name: "section '## Runs'", re: /##\s+Runs\b/ },
+              { name: "at least one '- Command: `...`'", re: /- Command:\s+`[^`]+`/ },
+              { name: "at least one '- Key output:'", re: /- Key output:\s+.+/ },
+              { name: "at least one '- Evidence:'", re: /- Evidence:\s+.+/ },
+            ];
+
+            const missingRunLog = requiredRunLogPatterns
+              .filter((p) => !p.re.test(runLogContent))
+              .map((p) => p.name);
+
+            if (missingRunLog.length > 0) {
+              core.setFailed(
+                `Run log ${expectedRunLog} is incomplete. Missing: ${missingRunLog.join(", ")}`
+              );
+              return;
+            }
+
+            const prLineMatch = runLogContent.match(/^- PR:\s*(.+)\s*$/m);
+            if (!prLineMatch) {
+              core.setFailed(`Run log ${expectedRunLog} must include '- PR: <url>'`);
+              return;
+            }
+
+            const prValue = prLineMatch[1].trim();
+            if (prValue === "" || prValue.includes("<fill")) {
+              core.setFailed(
+                `Run log ${expectedRunLog} must have PR link filled (expected: ${expectedPrUrl})`
+              );
+              return;
+            }
+
+            if (prValue !== expectedPrUrl) {
+              core.setFailed(
+                `Run log ${expectedRunLog} PR link must match this PR (expected: ${expectedPrUrl}, got: ${prValue})`
+              );
+              return;
+            }
+
+            const planBodyMatch = runLogContent.match(
+              /##\s+Plan\s*\n([\s\S]*?)\n##\s+Runs\b/
+            );
+
+            if (!planBodyMatch || !/^- /.test(planBodyMatch[1].trim())) {
+              core.setFailed(`Run log ${expectedRunLog} must include a non-empty '## Plan' list`);
+              return;
+            }
+
             const commits = await github.paginate(github.rest.pulls.listCommits, {
               owner,
               repo,
