@@ -33,6 +33,13 @@ release/
 # Git worktrees
 .worktrees/
 
+# Theia PoC (generated artifacts + local sysdeps)
+theia-poc/.sysdeps/
+theia-poc/.poc-workspace/
+theia-poc/src-gen/
+theia-poc/**/lib/
+theia-poc/**/src-gen/
+
 # OS / editors
 .DS_Store
 Thumbs.db
