@@ -971,6 +971,8 @@ CREATE TABLE settings (
 ### Sprint 6：增强体验（2周）
 - [x] 创作统计
 - [x] 番茄钟
+- [x] 编辑器多标签（多文档 TabBar + Toolbar 单行合并）
+- [x] 心流保护（Typewriter / Paragraph Focus / Zen）
 - [ ] 外挂记忆（用户偏好学习）
 - [ ] 命令面板 (Cmd+K)
 
