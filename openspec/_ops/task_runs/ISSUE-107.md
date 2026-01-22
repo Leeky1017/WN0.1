@@ -1,7 +1,7 @@
 # ISSUE-107
 - Issue: #107
 - Branch: task/107-theia-migration-design
-- PR: <fill>
+- PR: https://github.com/Leeky1017/WN0.1/pull/108
 
 ## Plan
 - Review existing sprint specs/design patterns
@@ -48,3 +48,7 @@
 - Command: `update rulebook/tasks/issue-107-theia-migration-design/tasks.md`
 - Key output: `marked acceptance items complete`
 - Evidence: `rulebook/tasks/issue-107-theia-migration-design/tasks.md`
+### 2026-01-22 16:57 pr-create
+- Command: `gh pr create --fill --title "Docs: draft Theia migration design set (#107)" --body "Closes #107 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/108`
+- Evidence: `gh pr view 108`
