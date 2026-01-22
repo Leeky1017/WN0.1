@@ -119,7 +119,7 @@ references:
   slots:
     platform:
       directory: references
-      pattern: \"*.md\"
+      pattern: "*.md"
       required: true
       load: on_demand
       maxTokens: 1200
@@ -144,7 +144,7 @@ references:
   slots:
     platform:
       directory: ../escape
-      pattern: \"*.md\"
+      pattern: "*.md"
       load: on_demand
 ---
 `
