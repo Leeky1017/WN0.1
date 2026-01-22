@@ -1,5 +1,7 @@
 # 任务 005: AI 辅助创建 SKILL（自然语言 → `SKILL.md`）
 
+Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## 目标
 
 允许用户用自然语言描述需求，由 AI 生成候选 `SKILL.md`（含元数据/约束/上下文规则/变体建议），用户确认后才落盘并可立即运行；全流程支持取消/超时/重试，并记录必要证据（不落正文内容）。
@@ -40,4 +42,3 @@
 - [ ] 生成全流程支持取消/超时/错误码，且 pending 状态会被清理
 - [ ] 保存前必须通过校验器；不允许写入无效 skill
 - [ ] E2E 覆盖成功与取消/超时/失败分支
-

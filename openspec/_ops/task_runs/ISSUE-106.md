@@ -19,3 +19,23 @@
 - Key output: `✅ Task issue-106-theia-migration-spec is valid` (warning: no spec files yet)
 - Evidence: `rulebook/tasks/issue-106-theia-migration-spec/`
 
+### 2026-01-22 16:50 commits
+- Command: `git commit -m "chore: start sprint-theia-migration spec task (#106)" && git commit -m "docs: add codebase reusability evaluation for Theia migration (#106)"`
+- Key output: `a33baec` + `dc75daf`
+- Evidence: `openspec/_ops/task_runs/ISSUE-106.md`, `CODEBASE_REUSABILITY_VIEWPOINT.md`, `rulebook/tasks/archive/2026-01-22-issue-88-p2-004-autosave-i18n/`
+
+### 2026-01-22 17:10 openspec + rulebook
+- Command: `openspec validate --specs --strict --no-interactive && rulebook task validate issue-106-theia-migration-spec`
+- Key output: `Totals: 14 passed, 0 failed` + `✅ Task issue-106-theia-migration-spec is valid`
+- Evidence: `openspec/specs/sprint-theia-migration/**`, `rulebook/tasks/issue-106-theia-migration-spec/`
+
+
+### 2026-01-22 16:48 draft sprint spec
+- Command: `mkdir -p openspec/specs/sprint-theia-migration && cat <<'EOF' > openspec/specs/sprint-theia-migration/spec.md`
+- Key output: `created sprint-theia-migration spec outline`
+- Evidence: `openspec/specs/sprint-theia-migration/spec.md`
+
+### 2026-01-22 16:49 openspec validate
+- Command: `openspec validate --strict --no-interactive --type spec sprint-theia-migration`
+- Key output: `Specification 'sprint-theia-migration' is valid`
+- Evidence: `openspec/specs/sprint-theia-migration/spec.md`

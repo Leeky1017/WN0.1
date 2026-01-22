@@ -1,5 +1,7 @@
 # SKILL System V2（可复用 / 可升级 / 可组合）
 
+Status: partially delivered; remaining tasks paused (2026-01-22; see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## Purpose
 
 在不改变现有 3 个内置写作 SKILL（润色/扩写/精简）行为与 UX 闭环（选中 → SKILL → Diff → 确认 → 应用 → 版本）的前提下，交付 SKILL System V2 的架构规范，使 SKILL 成为可工程化管理的能力载体：

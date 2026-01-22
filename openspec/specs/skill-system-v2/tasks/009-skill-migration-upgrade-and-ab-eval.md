@@ -1,5 +1,7 @@
 # 任务 009: 迁移/升级助手 + A/B 评估（P3）
 
+Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## 目标
 
 提供 SKILL 的演化能力：从 V1（DB-only/硬编码）迁移到 V2（`SKILL.md` SSOT），并为用户提供升级助手（格式/字段/变体建议）与可选 A/B 评估机制（对比新旧版本效果信号，不上传正文）。
@@ -45,4 +47,3 @@
 - [ ] 升级助手可生成新版本 `SKILL.md` 并支持回滚
 - [ ] A/B 评估不上传正文，仅采集可解释元信息，且可一键关闭与清空
 - [ ] E2E 覆盖迁移、升级、回滚与 A/B 开关/清空
-

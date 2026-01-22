@@ -1,5 +1,7 @@
 # 任务 010: 平台适配改写（`references/` 按需引用示例包）
 
+Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## 目标
 
 交付一个用户可直接使用的“平台适配改写” SKILL（示例 package），并以此端到端验证 V2 的 `references/` progressive disclosure 机制：
@@ -48,4 +50,3 @@
 - [ ] 用户新增 ref 文件后平台列表自动更新，无需重启
 - [ ] 超预算分支失败可观测且可恢复（错误码明确、loading 状态清理）
 - [ ] E2E 覆盖成功路径 + 新增 ref + 超预算/取消等关键边界
-

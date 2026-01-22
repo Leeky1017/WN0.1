@@ -1,5 +1,7 @@
 # Sprint 6：体验增强（2 周）
 
+Status: partially delivered; remaining scope paused (2026-01-22; blocked by `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## Purpose
 
 在 Sprint 6 内交付 WriteNow 的「体验增强」闭环：提供可观测的创作统计、内置番茄钟、外挂记忆（含用户偏好学习）、以及统一入口的命令面板（`Ctrl/Cmd+K`）。这些能力应以**低打扰**方式融入日常写作流程，并与现有编辑器/AI 能力形成一致的交互与数据闭环。

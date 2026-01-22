@@ -1,5 +1,7 @@
 # Sprint IDE-Advanced：客观创作工具（时间线 / 出场追踪 / 大纲同步 / 风格样本）
 
+Status: paused (2026-01-22; wait for Theia framework baseline in `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## Purpose
 
 交付 WriteNow 的 IDE-Advanced 能力：以“**客观工具赋能，不做主动判断**”为原则，为创作者提供可回溯证据的项目洞察能力（时间线可视化、人物出场追踪、大纲-正文双向同步、风格样本库），增强掌控感而非被指点感。

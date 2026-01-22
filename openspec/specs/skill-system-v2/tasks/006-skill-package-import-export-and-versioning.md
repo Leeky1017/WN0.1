@@ -1,5 +1,7 @@
 # 任务 006: Skill Package 导入/导出与版本切换（P2）
 
+Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## 目标
 
 落地 Skill Package 的本地安装器：支持导入目录/压缩包、写入安装位置、索引更新、启用/禁用、版本切换与回滚；并在 UI 中提供“技能包库”管理视图。

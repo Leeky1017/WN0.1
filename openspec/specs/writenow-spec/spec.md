@@ -973,8 +973,17 @@ CREATE TABLE settings (
 - [x] 番茄钟
 - [x] 编辑器多标签（多文档 TabBar + Toolbar 单行合并）
 - [x] 心流保护（Typewriter / Paragraph Focus / Zen）
-- [ ] 外挂记忆（用户偏好学习）
-- [ ] 命令面板 (Cmd+K)
+- [ ] 外挂记忆（用户偏好学习）（Paused: 2026-01-22; blocked by Theia migration）
+- [ ] 命令面板 (Cmd+K)（Paused: 2026-01-22; blocked by Theia migration）
+
+### Sprint：Theia Migration（优先，阻塞后续框架相关工作）
+- [ ] PoC：Theia + TipTap（输入/焦点/快捷键）
+- [ ] PoC：Theia backend + better-sqlite3 + sqlite-vec
+- [ ] PoC：存储语义决策（userData-first vs workspace-first）
+- [ ] Theia 应用壳体（脚手架 + 模块裁剪 + 基础布局/品牌）
+- [ ] 迁移核心链路：RPC/IPC、SQLite、RAG、Embedding
+- [ ] 迁移面板：AI/版本历史/知识图谱（复用实现）
+- [ ] 规范：`openspec/specs/sprint-theia-migration/spec.md`
 
 ### Sprint 7：云服务（3周）
 - [ ] Supabase 用户认证

@@ -1,5 +1,7 @@
 # 任务 008: 风格学习（作品 → 风格 SKILL，隐私优先）（P3）
 
+Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## 目标
 
 实现“从作品学习风格”的能力：在用户明确授权范围的前提下，从历史文章/版本中提取可审计的风格摘要与约束，生成一个风格类 SKILL（或 package 内子 skill），并支持一键撤销（删除生成物与中间产物）。默认本地优先，必要时才允许云端辅助且需再次确认。
@@ -46,4 +48,3 @@
 - [ ] 默认本地优先；任何云端上传都需二次确认且可解释上传内容
 - [ ] 一键撤销可删除生成物与中间产物，并同步更新索引
 - [ ] E2E 覆盖成功/撤销/取消/超时与极限数据分支
-

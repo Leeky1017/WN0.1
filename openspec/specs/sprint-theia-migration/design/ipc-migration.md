@@ -1,61 +1,68 @@
-# IPC Migration: handleInvoke to Theia RPC
+# IPC → Theia RPC Migration Strategy
+
+> Why: WriteNow 现有 IPC 已经具备“契约 SSOT + 注入式注册（handleInvoke）+ ok/err 边界（IpcResponse）”的工程化资产。迁移到 Theia 的关键是 **更换 transport**，而不是推翻契约与错误语义。
 
 ## Goals
-- Replace Electron `ipcMain.handle` usage with Theia RPC while preserving existing contracts.
-- Keep `IpcResponse<T>` semantics and stable error codes (including TIMEOUT and CANCELED).
-- Make migration mechanical: every `handleInvoke("channel", ...)` maps to a typed RPC method.
+
+- 将 Electron IPC（`ipcMain.handle` / preload allowlist / renderer invoke）迁移为 Theia JSON-RPC（frontend ↔ backend）。
+- 迁移期最大化复用：保留 `handleInvoke(channel, handler)` 注册模式，确保 handler 平移是机械化的。
+- 保留 `IpcResponse<T>` 语义：`ok: true|false` + 稳定错误码（含 `TIMEOUT` / `CANCELED`）+ 可读 message；禁止堆栈穿透。
+- 迁移期避免双栈：禁止同时保留 Electron IPC 与 Theia RPC 两条业务调用路径。
+
+## Current Assets (to reuse)
+
+- `handleInvoke` 注入式注册模式：现有 handler 多数支持传入 `options.handleInvoke`（迁移成本显著下降）。
+- IPC contract pipeline：`electron/ipc/*` → 生成 `src/types/ipc-generated.ts`（channel + payload/response map）并提供漂移检测（CI 门禁）。
 
 ## Target RPC Pattern
 
-### Frontend
-- Use Theia JSON-RPC proxy factories to obtain typed service proxies.
-- All calls return `Promise<IpcResponse<T>>` and never throw across the boundary.
+### Option A (recommended for migration): single generic invoke over RPC
 
-### Backend
-- Implement RPC services that mirror existing IPC handlers.
-- Register services via `RpcConnectionHandler` with stable service paths.
-- Wrap failures into `IpcResponse` with `error.code` and `error.message`.
+在 Theia backend 暴露一个统一入口：
 
-## Mapping Rules
+- `invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>>`
 
-1. **Channel -> Service + Method**
-   - `domain:action` becomes `DomainService.action`.
-   - Maintain the existing payload schema from `src/types/ipc-generated.ts`.
+并在 backend 内部维护 `channel -> handler` 的 map：
 
-2. **Response**
-   - Do not throw across the boundary; always return `IpcResponse<T>`.
-   - Convert internal exceptions to `IpcResponse` with stable error codes.
+- `handleInvoke(channel, handler)`：仅做注册（保持 contract extractor 可识别）
+- `invoke()`：统一错误边界包装（始终返回 `IpcResponse`，不 throw 过边界）
 
-3. **Timeout / Cancel**
-   - Use Theia cancellation tokens or explicit timeout wrappers.
-   - Map cancellations to `CANCELED`, timeouts to `TIMEOUT`.
+Why:
+- 将迁移降维为 “transport 替换”，最大化复用现有 handler 与 contract pipeline；
+- 不强迫在迁移初期把 channel 重构为多 service/method（避免双契约/双路径）。
 
-4. **Events / Watchers**
-   - Use Theia RPC event interfaces for watch streams.
-   - `start` returns a watch id; updates are emitted via `onDidChange` style events.
+### Option B (post-migration evolution): per-service / per-method typed RPC
 
-## Example Mapping Table
+将 channel 拆为多个服务接口（例如 `FileService.list/read/write`），更符合 Theia 的 DI/扩展习惯。
 
-| Existing Channel | RPC Service | Method | Notes |
-| --- | --- | --- | --- |
-| `file:list` | `FileService` | `list` | list documents under userData/workspace |
-| `file:read` | `FileService` | `read` | preserve payload contract |
-| `file:write` | `FileService` | `write` | returns `IpcResponse<void>` |
-| `project:list` | `ProjectService` | `list` | workspace aware |
-| `project:setCurrent` | `ProjectService` | `setCurrent` | updates active project |
-| `ai:skill:run` | `AiService` | `runSkill` | returns run id + status |
-| `ai:skill:cancel` | `AiService` | `cancelSkill` | maps to CANCELED |
-| `search:fulltext` | `SearchService` | `fulltext` | SQLite FTS5 |
-| `search:semantic` | `SearchService` | `semantic` | sqlite-vec |
-| `update:check` | `UpdateService` | `check` | keep state machine |
+Trade-off:
+- 迁移成本更高；容易在迁移期形成“双栈并存”；建议在迁移稳定后再评估。
 
-## Migration Checklist
-- Create shared RPC interface definitions (mirror `ipc-generated.ts`).
-- Implement backend services and register them under stable paths.
-- Replace renderer `ipcRenderer.invoke` calls with RPC proxy calls.
-- Add contract validation to ensure method names match existing IPC channels.
-- Update E2E tests to exercise RPC paths through Theia.
+## Mapping Rules (must)
 
-## Notes
-- The IPC contract remains the source of truth; changes must update `src/types/ipc-generated.ts` first.
-- Avoid hidden globals: inject RPC proxies and service dependencies explicitly.
+1) **No throw across boundary**
+   - backend 内部异常必须被捕获并转换为 `IpcResponse<{...}>` 的 `ok: false`。
+2) **Stable error codes**
+   - Timeout → `TIMEOUT`
+   - Cancel → `CANCELED`
+   - 其他业务错误码必须稳定且可判定（`NOT_FOUND` / `INVALID_ARGUMENT` / `UPSTREAM_ERROR` 等）
+3) **Events / streams**
+   - 现有 `ai:skill:stream` 等事件流应迁移为 JSON-RPC notifications（或 Theia 支持的事件接口）。
+   - frontend 必须能区分取消/超时/失败，并保证 pending 状态清理。
+
+## Example (informative)
+
+| Existing Channel | Option A（invoke） | Option B（typed） |
+| --- | --- | --- |
+| `file:read` | `invoke('file:read', payload)` | `FileService.read(payload)` |
+| `file:write` | `invoke('file:write', payload)` | `FileService.write(payload)` |
+| `project:list` | `invoke('project:list', payload)` | `ProjectService.list(payload)` |
+| `ai:skill:run` | `invoke('ai:skill:run', payload)` | `AiService.runSkill(payload)` |
+
+## Migration Steps (high level)
+
+1) 实现 Option A 的 `invoke(channel, payload)` 适配层（保证 handler 平移）。
+2) 在 Theia frontend 提供类型化 wrapper（对齐 `src/types/ipc-generated.ts` 的 payload/response map）。
+3) 迁移核心链路（files/projects/context/ai/rag）并复用 drift guard。
+4) 迁移稳定后，再评估是否逐步演进到 Option B（如确有必要）。
+
