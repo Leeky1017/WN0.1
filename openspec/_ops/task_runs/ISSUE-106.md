@@ -1,7 +1,7 @@
 # ISSUE-106
 - Issue: #106
 - Branch: task/106-theia-migration-spec
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/109
 
 ## Plan
 - Clean up control-plane changes and publish Theia migration reusability viewpoint.
@@ -33,6 +33,11 @@
 - Command: `git fetch origin && git rebase origin/main && openspec validate --specs --strict --no-interactive && rulebook task validate issue-106-theia-migration-spec`
 - Key output: `Successfully rebased and updated refs/heads/task/106-theia-migration-spec.` + `Totals: 14 passed, 0 failed`
 - Evidence: `openspec/specs/sprint-theia-migration/design/*`, `git log --oneline -5`
+
+### 2026-01-22 17:35 PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/109`
+- Evidence: `openspec/_ops/task_runs/ISSUE-106.md`
 
 
 ### 2026-01-22 16:48 draft sprint spec
