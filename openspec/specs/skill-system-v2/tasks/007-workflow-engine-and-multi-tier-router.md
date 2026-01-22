@@ -1,5 +1,7 @@
 # 任务 007: workflow 执行引擎 + 多 tier 路由（P2）
 
+Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## 目标
 
 实现可组合的 workflow SKILL 与多模型兼容路由：支持多步串联执行、逐步可取消与可恢复，并在 high/mid/low 模型 tier 下分别采用语义/混合/规则策略，且结果可解释。

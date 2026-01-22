@@ -1,5 +1,7 @@
 # FRONTEND 深度修复规范（UX/DX + 设计系统）
 
+Status: paused (2026-01-22; blocked by `openspec/specs/sprint-theia-migration/spec.md`)
+
 ## Purpose
 
 基于 `CODEX_TASK前端探讨.md` 与 `docs/WN前端探讨.md` 的审计反馈，本规范定义 WriteNow 前端的“深度修复（Deep Remediation）”目标：让产品具备专业软件质感（Linear/Cursor/Notion 风格的克制与精密），消除“AI 糖果味”，并以可维护、可测试、可渐进迁移的方式优化现有功能的**形态与位置**（不砍功能）。
