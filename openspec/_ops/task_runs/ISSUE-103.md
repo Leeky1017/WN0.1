@@ -1,7 +1,7 @@
 # ISSUE-103
 - Issue: #103
 - Branch: task/103-sprint-ide-advanced
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/104
 
 ## Plan
 - Draft `sprint-ide-advanced` OpenSpec
@@ -38,3 +38,13 @@
 - Command: `rulebook task validate issue-103-sprint-ide-advanced`
 - Key output: `✅ Task issue-103-sprint-ide-advanced is valid`
 - Evidence: `rulebook/tasks/issue-103-sprint-ide-advanced/`
+
+### 2026-01-22 11:38 pr
+- Command: `gh pr create --base main --head task/103-sprint-ide-advanced --title "docs(openspec): add sprint-ide-advanced spec (#103)" --body "Closes #103 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/104`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/104`
+
+### 2026-01-22 11:38 automerge
+- Command: `gh pr merge --auto --squash 104`
+- Key output: `auto-merge enabled (squash)`
+- Evidence: `gh pr view 104 --json autoMergeRequest`
