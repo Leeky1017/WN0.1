@@ -202,8 +202,8 @@ test('knowledge graph: nodes/edges CRUD persists', async () => {
     await expect(first.page.getByText('新增节点', { exact: true })).toBeHidden({ timeout: 15_000 });
 
     await first.page.locator('button[title="新增关系"]').click();
-    await first.page.getByRole('combobox', { name: 'From' }).selectOption({ label: 'Alice' });
-    await first.page.getByRole('combobox', { name: 'To' }).selectOption({ label: 'Bob' });
+    await first.page.getByRole('combobox', { name: /From|从/ }).selectOption({ label: 'Alice' });
+    await first.page.getByRole('combobox', { name: /To|到/ }).selectOption({ label: 'Bob' });
     await first.page.getByPlaceholder('关系类型').fill('朋友');
     await first.page.getByRole('button', { name: '创建', exact: true }).click();
     await expect(first.page.getByText('新增关系', { exact: true })).toBeHidden({ timeout: 15_000 });

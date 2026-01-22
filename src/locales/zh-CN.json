@@ -11,12 +11,32 @@
       "enter": "专注模式",
       "exitHint": "按 ESC 退出专注模式",
       "exit": "退出"
+    },
+    "layout": {
+      "resizeSidebarAria": "调整侧边栏宽度",
+      "resizeAIPanelAria": "调整 AI 面板宽度"
+    },
+    "recovery": {
+      "title": "检测到上次异常退出",
+      "description": "是否恢复最近一次快照？",
+      "fileLabel": "文件：",
+      "timeLabel": "时间：",
+      "restore": "恢复快照",
+      "ignore": "忽略"
     }
   },
   "common": {
     "cancel": "取消",
     "close": "关闭",
     "create": "创建",
+    "save": "保存",
+    "delete": "删除",
+    "add": "添加",
+    "remove": "移除",
+    "apply": "应用",
+    "later": "稍后",
+    "more": "更多",
+    "listSeparator": "，",
     "retry": "重试",
     "refresh": "刷新",
     "loading": "加载中...",
@@ -169,17 +189,386 @@
       "title": "暂无文章",
       "hint": "点击右上角「+」创建第一篇"
     },
-    "loadFailed": "加载失败：{{error}}"
+    "loadFailed": "加载失败：{{error}}",
+    "deleteFileTitle": "删除文件",
+    "deleteDialog": {
+      "title": "删除文章",
+      "permanentDeletePrefix": "将永久删除："
+    }
   },
   "editor": {
     "noFileSelected": {
       "title": "未选择文件",
       "hint": "请从左侧选择文件"
     },
+    "mode": {
+      "markdown": "Markdown",
+      "richText": "富文本",
+      "markdownShortcut": "Markdown（{{shortcut}}+S 保存）"
+    },
     "placeholderMarkdown": "开始用 Markdown 写作…",
+    "loadFailed": "加载失败",
+    "view": {
+      "edit": "编辑",
+      "preview": "预览",
+      "split": "分栏"
+    },
+    "split": {
+      "resizeAria": "调整编辑器/预览分栏"
+    },
+    "preview": {
+      "liteModeHint": "文档较大：预览处于精简模式（公式/Mermaid/代码高亮会被降级以保证流畅）。",
+      "mermaidFailed": "Mermaid 渲染失败：{{error}}",
+      "mermaidRendering": "正在渲染 Mermaid…"
+    },
+    "toolbar": {
+      "undo": "撤销",
+      "redo": "重做",
+      "heading1": "标题 1",
+      "heading2": "标题 2",
+      "heading3": "标题 3",
+      "bold": "加粗",
+      "italic": "斜体",
+      "bulletList": "无序列表",
+      "orderedList": "有序列表"
+    },
     "save": {
       "saved": "已保存",
-      "saving": "保存中..."
+      "saving": "保存中...",
+      "unsaved": "未保存",
+      "error": "保存失败"
+    }
+  },
+  "characters": {
+    "actions": {
+      "createTitle": "新建人物",
+      "deleteTitle": "删除人物"
+    },
+    "create": {
+      "defaultName": "未命名",
+      "dialogTitle": "新建人物",
+      "dialogDescription": "为人物卡片输入名称"
+    },
+    "delete": {
+      "dialogTitle": "删除人物",
+      "confirm": "确定删除人物「{{name}}」？"
+    },
+    "errors": {
+      "loadFailed": "加载失败：{{error}}",
+      "createFailed": "创建失败"
+    },
+    "list": {
+      "searchPlaceholder": "搜索人物...",
+      "empty": {
+        "title": "暂无人物",
+        "hint": "点击右上角「+」创建"
+      }
+    },
+    "detail": {
+      "empty": {
+        "title": "未选择人物",
+        "hint": "从左侧列表选择一个人物，或新建人物卡片"
+      },
+      "fields": {
+        "nameLabel": "姓名",
+        "namePlaceholder": "人物名称",
+        "descriptionLabel": "描述",
+        "descriptionPlaceholder": "人物背景/外貌/动机..."
+      },
+      "traits": {
+        "label": "性格特点 (traits)",
+        "placeholder": "输入 trait 后回车",
+        "addTitle": "添加 trait"
+      },
+      "relationships": {
+        "label": "人物关系 (relationships)",
+        "empty": "暂无关系条目",
+        "targetPlaceholder": "对象（如：李四）",
+        "typePlaceholder": "关系类型",
+        "notePlaceholder": "备注（可选）"
+      }
+    }
+  },
+  "knowledgeGraph": {
+    "actions": {
+      "addRelationTitle": "新增关系",
+      "addNodeTitle": "新增节点"
+    },
+    "canvas": {
+      "ariaLabel": "知识图谱"
+    },
+    "empty": {
+      "title": "暂无节点",
+      "hint": "点击右上角「+」新增节点"
+    },
+    "sidebar": {
+      "emptyHint": "选择节点或关系查看详情"
+    },
+    "entityEditor": {
+      "title": "节点"
+    },
+    "fields": {
+      "type": "类型",
+      "name": "名称",
+      "description": "描述",
+      "relationType": "关系类型"
+    },
+    "entityType": {
+      "Character": "人物",
+      "Location": "地点",
+      "Event": "事件",
+      "TimePoint": "时间点",
+      "Item": "物品",
+      "Unknown": "未知"
+    },
+    "relation": {
+      "title": "关系",
+      "defaultType": "关系"
+    },
+    "createNode": {
+      "title": "新增节点",
+      "namePlaceholder": "节点名称"
+    },
+    "createRelation": {
+      "title": "新增关系",
+      "fromLabel": "从",
+      "toLabel": "到",
+      "fromAria": "从",
+      "toAria": "到",
+      "selectNode": "选择节点"
+    },
+    "errors": {
+      "nameRequired": "请输入名称",
+      "relationFieldsRequired": "请填写完整关系信息",
+      "createFailed": "创建失败"
+    }
+  },
+  "outline": {
+    "title": "大纲",
+    "noFile": {
+      "title": "未打开文件",
+      "hint": "打开文件后管理大纲"
+    },
+    "empty": {
+      "title": "暂无大纲",
+      "hint": "点击右上角「+」新增节点"
+    },
+    "node": {
+      "defaultTitle": "新节点",
+      "headingLabel": "H{{level}}"
+    },
+    "actions": {
+      "addNodeTitle": "新增节点",
+      "saveOutlineTitle": "保存大纲",
+      "jumpToEditorTitle": "定位到编辑器",
+      "moveUpTitle": "上移",
+      "moveDownTitle": "下移"
+    }
+  },
+  "extensions": {
+    "title": "扩展",
+    "actions": {
+      "disable": "禁用",
+      "install": "安装"
+    }
+  },
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索文件...",
+    "empty": "暂无结果"
+  },
+  "materials": {
+    "type": {
+      "link": "链接"
+    }
+  },
+  "workflow": {
+    "sections": {
+      "ideas": "灵感收集",
+      "outline": "大纲规划",
+      "draft": "草稿写作",
+      "reviewed": "待发布",
+      "published": "已发布"
+    }
+  },
+  "stats": {
+    "view": {
+      "day": "日",
+      "week": "周",
+      "month": "月"
+    },
+    "range": {
+      "day": "最近 7 天",
+      "week": "本周",
+      "month": "本月"
+    },
+    "loadFailed": "加载统计失败：{{error}}",
+    "todayWordLabel": "字（今日）",
+    "goalProgress": "目标进度",
+    "dailyGoalLabel": "每日目标（字）",
+    "today": "今日",
+    "metrics": {
+      "writingDuration": "专注时长",
+      "articlesCreated": "新建文章",
+      "skillsUsed": "SKILL 次数",
+      "wordCount": "字数"
+    },
+    "trend": {
+      "summary": "合计 {{words}} 字 · {{duration}}",
+      "barTitle": "{{date}} · {{words}} 字"
+    },
+    "summary": {
+      "title": "区间汇总",
+      "totalWords": "总字数"
+    },
+    "duration": {
+      "minutes": "{{minutes}} 分钟",
+      "hours": "{{hours}} 小时",
+      "hoursAndMinutes": "{{hours}} 小时 {{minutes}} 分钟"
+    }
+  },
+  "ui": {
+    "breadcrumb": {
+      "ariaLabel": "面包屑导航"
+    },
+    "carousel": {
+      "previousSlide": "上一张幻灯片",
+      "nextSlide": "下一张幻灯片"
+    },
+    "pagination": {
+      "ariaLabel": "分页",
+      "previousAria": "转到上一页",
+      "previous": "上一页",
+      "nextAria": "转到下一页",
+      "next": "下一页",
+      "morePages": "更多页"
+    },
+    "sidebar": {
+      "mobileDescription": "显示移动端侧边栏。",
+      "toggle": "切换侧边栏"
+    }
+  },
+  "statusBar": {
+    "today": "今日",
+    "wordCount": "{{count}} 字",
+    "timerSettingsAria": "计时器设置",
+    "stopTimerAria": "停止计时",
+    "lineAndChars": "行 {{lines}} · {{chars}} 字符",
+    "openStatsTitle": "打开创作统计",
+    "wordsAndProgress": "{{words}} 字 · {{progress}}%",
+    "expandAria": "展开状态详情",
+    "collapseAria": "收起状态详情",
+    "expandTitle": "展开",
+    "collapseTitle": "收起"
+  },
+  "pomodoro": {
+    "phase": {
+      "focus": "专注",
+      "break": "休息"
+    },
+    "settings": {
+      "title": "设置计时器",
+      "description": "修改时长会对下一轮生效；进行中的计时不会被重置。",
+      "focusMinutesLabel": "专注时长（分钟）",
+      "breakMinutesLabel": "休息时长（分钟）"
+    },
+    "overlay": {
+      "breakTimeTitle": "该休息了！",
+      "breakTimeDescription": "您已经专注工作了 {{minutes}} 分钟",
+      "breakTimeHint": "建议休息 5-10 分钟，活动一下身体，眺望远方放松眼睛。",
+      "startBreak": "开始休息",
+      "continueFocus": "继续专注",
+      "breakOverTitle": "休息结束",
+      "breakOverDescription": "准备开始下一轮专注？",
+      "startFocus": "开始专注"
+    }
+  },
+  "ai": {
+    "title": "AI",
+    "noDocumentHint": "请选择一个文档后再使用 AI。",
+    "actions": {
+      "acceptApply": "接受并应用",
+      "reject": "拒绝"
+    },
+    "history": {
+      "restoreToThisVersion": "回退到此版本",
+      "title": "版本历史",
+      "empty": "暂无版本",
+      "untitledVersion": "未命名版本",
+      "actor": {
+        "user": "用户",
+        "ai": "AI",
+        "auto": "自动"
+      }
+    },
+    "injectedMemory": {
+      "title": "注入的记忆"
+    },
+    "sections": {
+      "skills": "SKILL",
+      "history": "HISTORY"
+    },
+    "diff": {
+      "streaming": "正在生成…（支持流式）",
+      "checkingConstraints": "正在检查写作约束…",
+      "constraintsFailed": "约束检查失败：{{error}}",
+      "showWarnings": "显示警告",
+      "ignoreWarnings": "忽略警告",
+      "original": "原文",
+      "suggested": "建议稿",
+      "violations": {
+        "errors": "{{count}} 个错误",
+        "warnings": "{{count}} 个警告",
+        "infos": "{{count}} 个提示"
+      }
+    },
+    "contextDebug": {
+      "toggle": "查看上下文",
+      "assemblingShort": "正在组装上下文…",
+      "assemblingHint": "正在组装上下文…（读取 规则/设置/历史/即时）",
+      "total": "总计",
+      "estimateShortSuffix": "（估）",
+      "estimateSuffix": "（估算）",
+      "assembleFailed": "上下文组装失败：{{error}}",
+      "tokenStatsTitle": "Token 统计",
+      "copyFullPrompt": "复制完整 Prompt",
+      "prefixHash": "前缀 Hash",
+      "promptHash": "Prompt Hash",
+      "sentHash": "Sent Hash",
+      "hash": {
+        "match": "匹配",
+        "mismatch": "不匹配"
+      },
+      "layer": {
+        "rules": "规则",
+        "settings": "设置",
+        "retrieved": "检索",
+        "immediate": "即时"
+      },
+      "assemble": "组装",
+      "msValue": "{{ms}}ms",
+      "settingsCache": "设置缓存",
+      "cache": {
+        "hit": "命中",
+        "miss": "未命中"
+      },
+      "trim": {
+        "title": "裁剪摘要",
+        "summary": "删除 {{removed}} 段，压缩 {{compressed}} 段，节省 {{savedTokens}} tokens"
+      },
+      "prompt": {
+        "title": "Prompt",
+        "system": "System Prompt",
+        "user": "User Content"
+      },
+      "copy": {
+        "system": "复制 System",
+        "user": "复制 User"
+      },
+      "chunks": {
+        "title": "Chunks"
+      },
+      "empty": "（空）"
     }
   },
   "export": {
@@ -289,6 +678,29 @@
     "preview": "预览",
     "copyFor": "复制用于 {{platform}}",
     "copyFailed": "复制失败：{{error}}"
+  },
+  "titleBar": {
+    "window": {
+      "minimize": "最小化",
+      "minimizeAria": "最小化窗口",
+      "maximize": "最大化",
+      "maximizeAria": "最大化窗口",
+      "closeAria": "关闭窗口"
+    },
+    "focus": {
+      "enterAria": "进入专注模式",
+      "exitAria": "退出专注模式"
+    },
+    "sidebar": {
+      "title": "侧边栏",
+      "showAria": "显示侧边栏",
+      "hideAria": "隐藏侧边栏"
+    },
+    "aiPanel": {
+      "title": "AI",
+      "showAria": "显示 AI 面板",
+      "hideAria": "隐藏 AI 面板"
+    }
   },
   "errors": {
     "INVALID_ARGUMENT": "参数错误",

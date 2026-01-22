@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Check, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { clipboardOps } from '../../lib/ipc';
 
@@ -13,13 +14,6 @@ type ContextDebugPanelProps = {
     promptHash: string | null;
   };
 };
-
-function formatLayer(layer: ContextLayer): string {
-  if (layer === 'rules') return 'Rules';
-  if (layer === 'settings') return 'Settings';
-  if (layer === 'retrieved') return 'Retrieved';
-  return 'Immediate';
-}
 
 function formatSource(source: ContextFragment['source']): string {
   if (source.kind === 'file') return source.path;
@@ -77,6 +71,7 @@ function fnv1a32Hex(text: string): string {
  * Why: provide explainable prompt structure + token usage + trimming evidence to debug context engineering.
  */
 export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [copyState, setCopyState] = React.useState<{ key: 'system' | 'user' | 'full' | null; status: 'idle' | 'ok' | 'error' }>({
     key: null,
@@ -130,7 +125,11 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
   };
 
   const canToggle = value.status !== 'assembling' || Boolean(assembled);
-  const toggleLabel = assembled ? '查看上下文' : value.status === 'assembling' ? '正在组装上下文…' : '查看上下文';
+  const toggleLabel = assembled
+    ? t('ai.contextDebug.toggle')
+    : value.status === 'assembling'
+      ? t('ai.contextDebug.assemblingShort')
+      : t('ai.contextDebug.toggle');
 
   return (
     <div data-testid="ai-context-debug" className="border-t border-[var(--border-subtle)]">
@@ -145,8 +144,8 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
           <span className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">{toggleLabel}</span>
           {tokenSummary && (
             <span className="text-[11px] text-[var(--text-tertiary)]">
-              Total {tokenSummary.total}
-              {tokenSummary.estimated ? ' (est)' : ''}
+              {t('ai.contextDebug.total')} {tokenSummary.total}
+              {tokenSummary.estimated ? t('ai.contextDebug.estimateShortSuffix') : ''}
             </span>
           )}
         </div>
@@ -157,15 +156,15 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
         <div data-testid="ai-context-panel" className="px-3 pb-3 space-y-3">
           {value.status === 'error' && value.errorMessage && (
             <div className="px-3 py-2 rounded-md border border-[var(--border-subtle)] bg-red-500/10 text-[12px] text-red-200">
-              上下文组装失败：{value.errorMessage}
+              {t('ai.contextDebug.assembleFailed', { error: value.errorMessage })}
             </div>
           )}
 
           {assembled && (
             <>
-              <div className="rounded-md border border-[var(--border-subtle)] overflow-hidden">
-                <div className="px-3 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
-                  <div className="text-[12px] text-[var(--text-secondary)] font-medium">Token 统计</div>
+                <div className="rounded-md border border-[var(--border-subtle)] overflow-hidden">
+                  <div className="px-3 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                  <div className="text-[12px] text-[var(--text-secondary)] font-medium">{t('ai.contextDebug.tokenStatsTitle')}</div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -175,12 +174,12 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                       {copyState.key === 'full' && copyState.status === 'ok' ? (
                         <span className="inline-flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" />
-                          已复制
+                          {t('common.copied')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1">
                           <Copy className="w-3.5 h-3.5" />
-                          复制完整 Prompt
+                          {t('ai.contextDebug.copyFullPrompt')}
                         </span>
                       )}
                     </button>
@@ -189,15 +188,15 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                 {tokenSummary && (
                   <div className="px-3 py-2 text-[11px] text-[var(--text-tertiary)] grid grid-cols-2 gap-2">
                     <div>
-                      <div className="text-[var(--text-secondary)]">Total</div>
+                      <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.total')}</div>
                       <div>
                         {tokenSummary.total}
-                        {tokenSummary.estimated ? ' (estimate)' : ''}
+                        {tokenSummary.estimated ? t('ai.contextDebug.estimateSuffix') : ''}
                       </div>
                     </div>
                     {metrics && (
                       <div>
-                        <div className="text-[var(--text-secondary)]">Prefix Hash</div>
+                        <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.prefixHash')}</div>
                         <div data-testid="ai-context-prefix-hash" className="font-mono">
                           {metrics.prefixHash}
                         </div>
@@ -205,7 +204,7 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                     )}
                     {viewerPromptHash && (
                       <div>
-                        <div className="text-[var(--text-secondary)]">Prompt Hash</div>
+                        <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.promptHash')}</div>
                         <div data-testid="ai-context-prompt-hash" className="font-mono">
                           {viewerPromptHash}
                         </div>
@@ -213,7 +212,7 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                     )}
                     {(sentPromptHash || sentPrefixHash) && (
                       <div>
-                        <div className="text-[var(--text-secondary)]">Sent Hash</div>
+                        <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.sentHash')}</div>
                         <div data-testid="ai-context-sent-prompt-hash" className="font-mono">
                           {sentPromptHash ?? sentPrefixHash ?? ''}
                         </div>
@@ -222,39 +221,41 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                             data-testid="ai-context-prompt-hash-match"
                             className={`mt-0.5 ${hashMatches ? 'text-emerald-300' : 'text-amber-300'}`}
                           >
-                            {hashMatches ? 'match' : 'mismatch'}
+                            {hashMatches ? t('ai.contextDebug.hash.match') : t('ai.contextDebug.hash.mismatch')}
                           </div>
                         )}
                       </div>
                     )}
                     <div>
-                      <div className="text-[var(--text-secondary)]">Rules</div>
+                      <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.layer.rules')}</div>
                       <div>{tokenSummary.layers.rules}</div>
                     </div>
                     <div>
-                      <div className="text-[var(--text-secondary)]">Settings</div>
+                      <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.layer.settings')}</div>
                       <div>{tokenSummary.layers.settings}</div>
                     </div>
                     <div>
-                      <div className="text-[var(--text-secondary)]">Retrieved</div>
+                      <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.layer.retrieved')}</div>
                       <div>{tokenSummary.layers.retrieved}</div>
                     </div>
                     <div>
-                      <div className="text-[var(--text-secondary)]">Immediate</div>
+                      <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.layer.immediate')}</div>
                       <div>{tokenSummary.layers.immediate}</div>
                     </div>
                     {metrics && (
                       <div>
-                        <div className="text-[var(--text-secondary)]">Assemble</div>
+                        <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.assemble')}</div>
                         <div data-testid="ai-context-assemble-ms" className="tabular-nums">
-                          {metrics.assembleMs}ms
+                          {t('ai.contextDebug.msValue', { ms: metrics.assembleMs })}
                         </div>
                       </div>
                     )}
                     {metrics && (
                       <div>
-                        <div className="text-[var(--text-secondary)]">Settings Cache</div>
-                        <div className="tabular-nums">{metrics.settingsPrefetchHit ? 'hit' : 'miss'}</div>
+                        <div className="text-[var(--text-secondary)]">{t('ai.contextDebug.settingsCache')}</div>
+                        <div className="tabular-nums">
+                          {metrics.settingsPrefetchHit ? t('ai.contextDebug.cache.hit') : t('ai.contextDebug.cache.miss')}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -262,9 +263,9 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
 
                 {(removed.length > 0 || compressed.length > 0) && (
                   <div data-testid="ai-context-trim" className="px-3 py-2 border-t border-[var(--border-subtle)]">
-                    <div className="text-[12px] text-[var(--text-secondary)] font-medium mb-1">裁剪摘要</div>
+                    <div className="text-[12px] text-[var(--text-secondary)] font-medium mb-1">{t('ai.contextDebug.trim.title')}</div>
                     <div className="text-[11px] text-[var(--text-tertiary)]">
-                      删除 {removed.length} 段，压缩 {compressed.length} 段，节省 {savedTokens} tokens
+                      {t('ai.contextDebug.trim.summary', { removed: removed.length, compressed: compressed.length, savedTokens })}
                     </div>
                     <div className="mt-2 space-y-1">
                       {removed.map((r) => (
@@ -273,7 +274,7 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                           className="text-[11px] text-[var(--text-tertiary)] flex items-start justify-between gap-2"
                         >
                           <div className="min-w-0">
-                            <span className="text-[var(--text-secondary)]">{formatLayer(r.layer)}</span>
+                            <span className="text-[var(--text-secondary)]">{t(`ai.contextDebug.layer.${r.layer}`)}</span>
                             <span className="text-[var(--text-tertiary)]"> · {formatSource(r.source)}</span>
                             <span className="text-[var(--text-tertiary)]"> · {r.reason}</span>
                           </div>
@@ -285,7 +286,7 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                           <div className="min-w-0">
                             {(() => {
                               const frag = fragmentById.get(c.toFragmentId) ?? null;
-                              const label = frag ? `${formatLayer(frag.layer)} · ${formatSource(frag.source)}` : c.toFragmentId;
+                              const label = frag ? `${t(`ai.contextDebug.layer.${frag.layer}`)} · ${formatSource(frag.source)}` : c.toFragmentId;
                               return (
                                 <>
                                   <span className="text-[var(--text-secondary)]">{label}</span>
@@ -304,7 +305,7 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
 
               <div className="rounded-md border border-[var(--border-subtle)] overflow-hidden">
                 <div className="px-3 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
-                  <div className="text-[12px] text-[var(--text-secondary)] font-medium">Prompt</div>
+                  <div className="text-[12px] text-[var(--text-secondary)] font-medium">{t('ai.contextDebug.prompt.title')}</div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -314,12 +315,12 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                       {copyState.key === 'system' && copyState.status === 'ok' ? (
                         <span className="inline-flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" />
-                          已复制
+                          {t('common.copied')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1">
                           <Copy className="w-3.5 h-3.5" />
-                          复制 System
+                          {t('ai.contextDebug.copy.system')}
                         </span>
                       )}
                     </button>
@@ -331,12 +332,12 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                       {copyState.key === 'user' && copyState.status === 'ok' ? (
                         <span className="inline-flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" />
-                          已复制
+                          {t('common.copied')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1">
                           <Copy className="w-3.5 h-3.5" />
-                          复制 User
+                          {t('ai.contextDebug.copy.user')}
                         </span>
                       )}
                     </button>
@@ -344,13 +345,13 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
                 </div>
                 <div className="grid grid-cols-1 gap-0">
                   <div className="p-3 border-b border-[var(--border-subtle)]">
-                    <div className="text-[11px] text-[var(--text-tertiary)] mb-2">System Prompt</div>
+                    <div className="text-[11px] text-[var(--text-tertiary)] mb-2">{t('ai.contextDebug.prompt.system')}</div>
                     <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-[var(--text-secondary)] font-mono">
                       {redactSensitive(assembled.systemPrompt)}
                     </pre>
                   </div>
                   <div className="p-3">
-                    <div className="text-[11px] text-[var(--text-tertiary)] mb-2">User Content</div>
+                    <div className="text-[11px] text-[var(--text-tertiary)] mb-2">{t('ai.contextDebug.prompt.user')}</div>
                     <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-[var(--text-secondary)] font-mono">
                       {redactSensitive(assembled.userContent)}
                     </pre>
@@ -360,14 +361,14 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
 
               <div className="rounded-md border border-[var(--border-subtle)] overflow-hidden">
                 <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
-                  <div className="text-[12px] text-[var(--text-secondary)] font-medium">Chunks</div>
+                  <div className="text-[12px] text-[var(--text-secondary)] font-medium">{t('ai.contextDebug.chunks.title')}</div>
                 </div>
                 <div className="divide-y divide-[var(--border-subtle)]">
                   {(['rules', 'settings', 'retrieved', 'immediate'] as const).map((layer) => (
                     <div key={layer} data-testid={`ai-context-layer-${layer}`} className="px-3 py-2">
-                      <div className="text-[12px] text-[var(--text-secondary)] font-medium mb-2">{formatLayer(layer)}</div>
+                      <div className="text-[12px] text-[var(--text-secondary)] font-medium mb-2">{t(`ai.contextDebug.layer.${layer}`)}</div>
                       {byLayer[layer].length === 0 ? (
-                        <div className="text-[11px] text-[var(--text-tertiary)]">(empty)</div>
+                        <div className="text-[11px] text-[var(--text-tertiary)]">{t('ai.contextDebug.empty')}</div>
                       ) : (
                         <div className="space-y-1">
                           {byLayer[layer].map((frag) => (
@@ -394,7 +395,7 @@ export function ContextDebugPanel({ value, sentPrompt }: ContextDebugPanelProps)
 
           {value.status === 'assembling' && (
             <div className="px-3 py-2 rounded-md border border-[var(--border-subtle)] text-[12px] text-[var(--text-tertiary)]">
-              正在组装上下文…（读取 Rules/Settings/History/Immediate）
+              {t('ai.contextDebug.assemblingHint')}
             </div>
           )}
         </div>

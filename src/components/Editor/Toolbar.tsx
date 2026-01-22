@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3, Undo, Redo } from 'lucide-react';
 import { useEditorState, type Editor as TipTapEditor } from '@tiptap/react';
+import { useTranslation } from 'react-i18next';
 
 type ToolbarProps = {
   editor: TipTapEditor | null;
@@ -39,6 +40,7 @@ function ToolbarButton({
 }
 
 export function Toolbar({ editor }: ToolbarProps) {
+  const { t } = useTranslation();
   useEditorState({
     editor,
     selector: (snapshot) => {
@@ -60,14 +62,14 @@ export function Toolbar({ editor }: ToolbarProps) {
   return (
     <div className="flex items-center gap-1">
       <ToolbarButton
-        title="撤销"
+        title={t('editor.toolbar.undo')}
         onClick={() => editor?.chain().focus().undo().run()}
         disabled={!editor || !canUndo}
       >
         <Undo className="w-4 h-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="重做"
+        title={t('editor.toolbar.redo')}
         onClick={() => editor?.chain().focus().redo().run()}
         disabled={!editor || !canRedo}
       >
@@ -77,7 +79,7 @@ export function Toolbar({ editor }: ToolbarProps) {
       <div className="w-px h-4 bg-[var(--border-default)] mx-1" />
 
       <ToolbarButton
-        title="标题 1"
+        title={t('editor.toolbar.heading1')}
         active={!!editor?.isActive('heading', { level: 1 })}
         onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
         disabled={!editor}
@@ -85,7 +87,7 @@ export function Toolbar({ editor }: ToolbarProps) {
         <Heading1 className="w-4 h-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="标题 2"
+        title={t('editor.toolbar.heading2')}
         active={!!editor?.isActive('heading', { level: 2 })}
         onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
         disabled={!editor}
@@ -93,7 +95,7 @@ export function Toolbar({ editor }: ToolbarProps) {
         <Heading2 className="w-4 h-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="标题 3"
+        title={t('editor.toolbar.heading3')}
         active={!!editor?.isActive('heading', { level: 3 })}
         onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
         disabled={!editor}
@@ -104,7 +106,7 @@ export function Toolbar({ editor }: ToolbarProps) {
       <div className="w-px h-4 bg-[var(--border-default)] mx-1" />
 
       <ToolbarButton
-        title="加粗"
+        title={t('editor.toolbar.bold')}
         active={!!editor?.isActive('bold')}
         onClick={() => editor?.chain().focus().toggleBold().run()}
         disabled={!editor}
@@ -112,7 +114,7 @@ export function Toolbar({ editor }: ToolbarProps) {
         <Bold className="w-4 h-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="斜体"
+        title={t('editor.toolbar.italic')}
         active={!!editor?.isActive('italic')}
         onClick={() => editor?.chain().focus().toggleItalic().run()}
         disabled={!editor}
@@ -123,7 +125,7 @@ export function Toolbar({ editor }: ToolbarProps) {
       <div className="w-px h-4 bg-[var(--border-default)] mx-1" />
 
       <ToolbarButton
-        title="无序列表"
+        title={t('editor.toolbar.bulletList')}
         active={!!editor?.isActive('bulletList')}
         onClick={() => editor?.chain().focus().toggleBulletList().run()}
         disabled={!editor}
@@ -131,7 +133,7 @@ export function Toolbar({ editor }: ToolbarProps) {
         <List className="w-4 h-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="有序列表"
+        title={t('editor.toolbar.orderedList')}
         active={!!editor?.isActive('orderedList')}
         onClick={() => editor?.chain().focus().toggleOrderedList().run()}
         disabled={!editor}

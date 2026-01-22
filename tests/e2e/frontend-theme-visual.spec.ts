@@ -11,6 +11,14 @@ async function setTheme(page: import('@playwright/test').Page, theme: 'dark' | '
   await page.waitForTimeout(50);
 }
 
+async function forceLanguage(page: import('@playwright/test').Page, language: 'zh-CN' | 'en') {
+  await page.evaluate((next) => {
+    localStorage.setItem('wn.language', next);
+  }, language);
+  await page.reload();
+  await expect(page.getByText('WriteNow')).toBeVisible();
+}
+
 test('Frontend P0: theme mapping is visually stable (dark/light baseline)', async () => {
   const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-'));
 
@@ -25,13 +33,19 @@ test('Frontend P0: theme mapping is visually stable (dark/light baseline)', asyn
   const page = await electronApp.firstWindow();
   await expect(page.getByText('WriteNow')).toBeVisible();
 
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill('ThemeBaseline');
-  await page.getByPlaceholder('未命名').press('Enter');
+  // Why: Keep visual baselines stable by pinning the locale for screenshots.
+  await forceLanguage(page, 'zh-CN');
+
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill('ThemeBaseline');
+  await nameInput.press('Enter');
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^ThemeBaseline\.md/ })).toBeVisible();
 
-  await page.getByPlaceholder('开始用 Markdown 写作…').fill('# Theme Baseline\n\nHello world.\n');
-  await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await page
+    .getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/)
+    .fill('# Theme Baseline\n\nHello world.\n');
+  await expect(page.getByText(/Saved|已保存/, { exact: true })).toBeVisible({ timeout: 15_000 });
 
   const statusBar = page.getByTestId('statusbar');
   await expect(statusBar).toContainText('ThemeBaseline.md');

@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { useTranslation } from 'react-i18next';
 
 import 'katex/dist/katex.min.css';
 
@@ -28,6 +29,7 @@ function asText(children: React.ReactNode): string {
  * while staying responsive for large documents (debounce + lite-mode strategy).
  */
 export function MarkdownPreview({ markdown }: MarkdownPreviewProps) {
+  const { t } = useTranslation();
   const [debounced, setDebounced] = useState(markdown);
   const isLarge = markdown.length >= LARGE_DOC_THRESHOLD;
 
@@ -51,7 +53,7 @@ export function MarkdownPreview({ markdown }: MarkdownPreviewProps) {
     <div className="wn-markdown">
       {isLarge && (
         <div className="text-[11px] text-[var(--text-tertiary)] mb-3">
-          Large document: preview is in lite mode (math, Mermaid, and code highlight are reduced for responsiveness).
+          {t('editor.preview.liteModeHint')}
         </div>
       )}
       <ReactMarkdown
@@ -74,4 +76,3 @@ export function MarkdownPreview({ markdown }: MarkdownPreviewProps) {
     </div>
   );
 }
-

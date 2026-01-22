@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { diffChars } from '../../lib/textDiff';
 import { ViolationMarker } from '../Diff/ViolationMarker';
@@ -110,10 +111,11 @@ export function DiffView({
   onAccept,
   onReject,
   onCancel,
-  acceptLabel = '接受',
-  rejectLabel = '拒绝',
-  cancelLabel = '取消',
+  acceptLabel,
+  rejectLabel,
+  cancelLabel,
 }: DiffViewProps) {
+  const { t } = useTranslation();
   const segments = useMemo(() => diffChars(originalText, suggestedText), [originalText, suggestedText]);
   const [ignoreWarnings, setIgnoreWarnings] = React.useState(false);
 
@@ -138,6 +140,16 @@ export function DiffView({
 
   const canCancel = status === 'streaming' && typeof onCancel === 'function';
   const canDecide = status === 'done' && typeof onAccept === 'function' && typeof onReject === 'function';
+  const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
+  const resolvedRejectLabel = rejectLabel ?? t('ai.actions.reject');
+  const resolvedAcceptLabel = acceptLabel ?? t('ai.actions.acceptApply');
+  const violationSummary = useMemo(() => {
+    const parts: string[] = [];
+    if (counts.errors > 0) parts.push(t('ai.diff.violations.errors', { count: counts.errors }));
+    if (counts.warnings > 0) parts.push(t('ai.diff.violations.warnings', { count: counts.warnings }));
+    if (counts.infos > 0) parts.push(t('ai.diff.violations.infos', { count: counts.infos }));
+    return parts.join(t('common.listSeparator'));
+  }, [counts.errors, counts.infos, counts.warnings, t]);
 
   const renderOriginal = () => (
     <pre
@@ -193,7 +205,7 @@ export function DiffView({
               data-testid="ai-diff-cancel"
               className="h-7 px-2.5 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
             >
-              {cancelLabel}
+              {resolvedCancelLabel}
             </button>
           )}
           {canDecide && (
@@ -204,7 +216,7 @@ export function DiffView({
                 data-testid="ai-diff-reject"
                 className="h-7 px-2.5 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
               >
-                {rejectLabel}
+                {resolvedRejectLabel}
               </button>
               <button
                 type="button"
@@ -212,7 +224,7 @@ export function DiffView({
                 data-testid="ai-diff-accept"
                 className="h-7 px-2.5 rounded-md bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-[12px] text-white transition-colors"
               >
-                {acceptLabel}
+                {resolvedAcceptLabel}
               </button>
             </>
           )}
@@ -235,48 +247,44 @@ export function DiffView({
           data-testid="ai-diff-streaming"
           className="px-3 py-2 border-b border-[var(--border-subtle)] text-[11px] text-[var(--text-tertiary)]"
         >
-          正在生成…（支持流式）
+          {t('ai.diff.streaming')}
         </div>
       )}
 
       {status !== 'streaming' && violationStatus === 'checking' && (
         <div className="px-3 py-2 border-b border-[var(--border-subtle)] text-[11px] text-[var(--text-tertiary)]">
-          正在检查写作约束…
+          {t('ai.diff.checkingConstraints')}
         </div>
       )}
 
       {status !== 'streaming' && violationStatus === 'error' && violationErrorMessage && (
         <div className="px-3 py-2 border-b border-[var(--border-subtle)] text-[11px] text-red-300">
-          约束检查失败：{violationErrorMessage}
+          {t('ai.diff.constraintsFailed', { error: violationErrorMessage })}
         </div>
       )}
 
       {status !== 'streaming' && counts.total > 0 && (
         <div className="px-3 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
           <div data-testid="ai-diff-violations" className="text-[11px] text-[var(--text-tertiary)]">
-            {counts.errors > 0 ? `${counts.errors} 个错误` : ''}
-            {counts.errors > 0 && (counts.warnings > 0 || counts.infos > 0) ? '，' : ''}
-            {counts.warnings > 0 ? `${counts.warnings} 个警告` : ''}
-            {counts.warnings > 0 && counts.infos > 0 ? '，' : ''}
-            {counts.infos > 0 ? `${counts.infos} 个提示` : ''}
+            {violationSummary}
           </div>
           <button
             type="button"
             onClick={() => setIgnoreWarnings((v) => !v)}
             className="h-7 px-2.5 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[11px] text-[var(--text-secondary)] transition-colors"
           >
-            {ignoreWarnings ? '显示警告' : '忽略警告'}
+            {ignoreWarnings ? t('ai.diff.showWarnings') : t('ai.diff.ignoreWarnings')}
           </button>
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-0">
         <div className="p-3 border-r border-[var(--border-subtle)]">
-          <div className="text-[11px] text-[var(--text-tertiary)] mb-2">原文</div>
+          <div className="text-[11px] text-[var(--text-tertiary)] mb-2">{t('ai.diff.original')}</div>
           {renderOriginal()}
         </div>
         <div className="p-3">
-          <div className="text-[11px] text-[var(--text-tertiary)] mb-2">建议稿</div>
+          <div className="text-[11px] text-[var(--text-tertiary)] mb-2">{t('ai.diff.suggested')}</div>
           {renderSuggested()}
         </div>
       </div>

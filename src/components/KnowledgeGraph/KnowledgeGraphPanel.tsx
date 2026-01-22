@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link2, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useKnowledgeGraphStore } from '../../stores/knowledgeGraphStore';
 import { useProjectsStore } from '../../stores/projectsStore';
@@ -53,6 +54,10 @@ function entityColor(type: KnowledgeGraphEntityType) {
   return 'var(--wn-kg-entity-unknown)';
 }
 
+function entityTypeLabel(t: (key: string) => string, type: KnowledgeGraphEntityType) {
+  return t(`knowledgeGraph.entityType.${type}`);
+}
+
 function buildEntityLabel(entity: KnowledgeGraphEntity) {
   const name = entity.name.trim();
   return name.length > 12 ? `${name.slice(0, 12)}…` : name;
@@ -75,6 +80,7 @@ function useSelectedRelation(relations: KnowledgeGraphRelation[], selectedId: st
 const ENTITY_TYPES: KnowledgeGraphEntityType[] = ['Character', 'Location', 'Event', 'TimePoint', 'Item'];
 
 export function KnowledgeGraphPanel() {
+  const { t } = useTranslation();
   const currentProjectId = useProjectsStore((s) => s.currentProjectId);
 
   const entities = useKnowledgeGraphStore((s) => s.entities);
@@ -163,12 +169,12 @@ export function KnowledgeGraphPanel() {
     setCreateNodeError(null);
     const name = createNodeName.trim();
     if (!name) {
-      setCreateNodeError('请输入名称');
+      setCreateNodeError(t('knowledgeGraph.errors.nameRequired'));
       return;
     }
     const created = await createEntity({ type: createNodeType, name, description: createNodeDescription.trim() || undefined });
     if (!created) {
-      setCreateNodeError(useKnowledgeGraphStore.getState().error ?? '创建失败');
+      setCreateNodeError(useKnowledgeGraphStore.getState().error ?? t('knowledgeGraph.errors.createFailed'));
       return;
     }
     setCreateNodeOpen(false);
@@ -179,7 +185,7 @@ export function KnowledgeGraphPanel() {
   const [createRelOpen, setCreateRelOpen] = useState(false);
   const [createRelFrom, setCreateRelFrom] = useState('');
   const [createRelTo, setCreateRelTo] = useState('');
-  const [createRelType, setCreateRelType] = useState('关系');
+  const [createRelType, setCreateRelType] = useState(() => t('knowledgeGraph.relation.defaultType'));
   const [createRelError, setCreateRelError] = useState<string | null>(null);
 
   const submitCreateRelation = async () => {
@@ -188,12 +194,12 @@ export function KnowledgeGraphPanel() {
     const toId = createRelTo.trim();
     const type = createRelType.trim();
     if (!fromId || !toId || !type) {
-      setCreateRelError('请填写完整关系信息');
+      setCreateRelError(t('knowledgeGraph.errors.relationFieldsRequired'));
       return;
     }
     const created = await createRelation({ fromEntityId: fromId, toEntityId: toId, type });
     if (!created) {
-      setCreateRelError(useKnowledgeGraphStore.getState().error ?? '创建失败');
+      setCreateRelError(useKnowledgeGraphStore.getState().error ?? t('knowledgeGraph.errors.createFailed'));
       return;
     }
     setCreateRelOpen(false);
@@ -207,13 +213,13 @@ export function KnowledgeGraphPanel() {
   return (
     <>
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">知识图谱</span>
+        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('nav.knowledgeGraph')}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setCreateRelOpen(true)}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
-            title="新增关系"
+            title={t('knowledgeGraph.actions.addRelationTitle')}
             disabled={!currentProjectId || isLoading || entities.length < 2}
           >
             <Link2 className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -222,7 +228,7 @@ export function KnowledgeGraphPanel() {
             type="button"
             onClick={() => setCreateNodeOpen(true)}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
-            title="新增节点"
+            title={t('knowledgeGraph.actions.addNodeTitle')}
             disabled={!currentProjectId || isLoading}
           >
             <Plus className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -231,7 +237,7 @@ export function KnowledgeGraphPanel() {
             type="button"
             onClick={() => refresh().catch(() => undefined)}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
-            title="刷新"
+            title={t('common.refresh')}
           >
             <RefreshCw className="w-4 h-4 text-[var(--text-tertiary)]" />
           </button>
@@ -253,7 +259,7 @@ export function KnowledgeGraphPanel() {
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <svg className="absolute inset-0 w-full h-full select-none" role="img" aria-label="Knowledge graph">
+          <svg className="absolute inset-0 w-full h-full select-none" role="img" aria-label={t('knowledgeGraph.canvas.ariaLabel')}>
             <defs>
               <marker id="wn-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
                 <path d="M0,0 L8,4 L0,8 z" fill="var(--wn-text-tertiary)" fillOpacity={0.8} />
@@ -340,8 +346,8 @@ export function KnowledgeGraphPanel() {
           {entities.length === 0 && !isLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-[13px] text-[var(--text-tertiary)] mb-1">暂无节点</div>
-                <div className="text-[11px] text-[var(--text-tertiary)]">点击右上角「+」新增节点</div>
+                <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('knowledgeGraph.empty.title')}</div>
+                <div className="text-[11px] text-[var(--text-tertiary)]">{t('knowledgeGraph.empty.hint')}</div>
               </div>
             </div>
           )}
@@ -349,7 +355,7 @@ export function KnowledgeGraphPanel() {
 
         <div className="w-[170px] border-l border-[var(--border-subtle)] p-3 overflow-y-auto">
           {!selectedEntity && !selectedRelation && (
-            <div className="text-[12px] text-[var(--text-tertiary)]">选择节点或关系查看详情</div>
+            <div className="text-[12px] text-[var(--text-tertiary)]">{t('knowledgeGraph.sidebar.emptyHint')}</div>
           )}
 
           {selectedEntity && (
@@ -359,7 +365,7 @@ export function KnowledgeGraphPanel() {
               isLoading={isLoading}
               onSave={async (input) => {
                 const updated = await updateEntity({ id: input.id, name: input.name, description: input.description });
-                if (!updated) throw new Error(useKnowledgeGraphStore.getState().error ?? '保存失败');
+                if (!updated) throw new Error(useKnowledgeGraphStore.getState().error ?? t('editor.save.error'));
               }}
               onDelete={async (id) => {
                 await deleteEntity(id);
@@ -371,7 +377,7 @@ export function KnowledgeGraphPanel() {
 
           {selectedRelation && (
             <div className="space-y-3">
-              <div className="text-[12px] text-[var(--text-tertiary)]">关系</div>
+              <div className="text-[12px] text-[var(--text-tertiary)]">{t('knowledgeGraph.relation.title')}</div>
               <div className="text-[13px] text-[var(--text-secondary)]">{selectedRelation.type}</div>
               <div className="text-[11px] text-[var(--text-tertiary)] break-words">
                 {selectedRelation.fromEntityId} → {selectedRelation.toEntityId}
@@ -383,7 +389,7 @@ export function KnowledgeGraphPanel() {
                 disabled={isLoading}
               >
                 <Trash2 className="w-4 h-4" />
-                删除
+                {t('common.delete')}
               </button>
             </div>
           )}
@@ -393,35 +399,35 @@ export function KnowledgeGraphPanel() {
       {createNodeOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={() => setCreateNodeOpen(false)}>
           <div className="wn-elevated p-5 w-[420px]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="text-[15px] text-[var(--text-primary)] mb-3">新增节点</div>
+            <div className="text-[15px] text-[var(--text-primary)] mb-3">{t('knowledgeGraph.createNode.title')}</div>
             <div className="space-y-3">
               <div>
-                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">类型</div>
+                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('knowledgeGraph.fields.type')}</div>
                 <select
-                  aria-label="Type"
+                  aria-label={t('knowledgeGraph.fields.type')}
                   value={createNodeType}
                   onChange={(e) => setCreateNodeType(e.target.value as KnowledgeGraphEntityType)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
                 >
-                  {ENTITY_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
+                  {ENTITY_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {entityTypeLabel(t, type)}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">名称</div>
+                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('knowledgeGraph.fields.name')}</div>
                 <input
                   value={createNodeName}
                   onChange={(e) => setCreateNodeName(e.target.value)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
-                  placeholder="节点名称"
+                  placeholder={t('knowledgeGraph.createNode.namePlaceholder')}
                   spellCheck={false}
                 />
               </div>
               <div>
-                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">描述</div>
+                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('knowledgeGraph.fields.description')}</div>
                 <textarea
                   value={createNodeDescription}
                   onChange={(e) => setCreateNodeDescription(e.target.value)}
@@ -440,14 +446,14 @@ export function KnowledgeGraphPanel() {
                 className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
                 disabled={isLoading}
               >
-                创建
+                {t('common.create')}
               </button>
               <button
                 type="button"
                 onClick={() => setCreateNodeOpen(false)}
                 className="flex-1 h-8 px-3 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
               >
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </div>
@@ -457,17 +463,17 @@ export function KnowledgeGraphPanel() {
       {createRelOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={() => setCreateRelOpen(false)}>
           <div className="wn-elevated p-5 w-[420px]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="text-[15px] text-[var(--text-primary)] mb-3">新增关系</div>
+            <div className="text-[15px] text-[var(--text-primary)] mb-3">{t('knowledgeGraph.createRelation.title')}</div>
             <div className="space-y-3">
               <div>
-                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">From</div>
+                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('knowledgeGraph.createRelation.fromLabel')}</div>
                 <select
-                  aria-label="From"
+                  aria-label={t('knowledgeGraph.createRelation.fromAria')}
                   value={createRelFrom}
                   onChange={(e) => setCreateRelFrom(e.target.value)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
                 >
-                  <option value="">选择节点</option>
+                  <option value="">{t('knowledgeGraph.createRelation.selectNode')}</option>
                   {entities.map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.name}
@@ -476,14 +482,14 @@ export function KnowledgeGraphPanel() {
                 </select>
               </div>
               <div>
-                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">To</div>
+                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('knowledgeGraph.createRelation.toLabel')}</div>
                 <select
-                  aria-label="To"
+                  aria-label={t('knowledgeGraph.createRelation.toAria')}
                   value={createRelTo}
                   onChange={(e) => setCreateRelTo(e.target.value)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
                 >
-                  <option value="">选择节点</option>
+                  <option value="">{t('knowledgeGraph.createRelation.selectNode')}</option>
                   {entities.map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.name}
@@ -492,12 +498,12 @@ export function KnowledgeGraphPanel() {
                 </select>
               </div>
               <div>
-                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">关系类型</div>
+                <div className="text-[12px] text-[var(--text-tertiary)] mb-2">{t('knowledgeGraph.fields.relationType')}</div>
                 <input
                   value={createRelType}
                   onChange={(e) => setCreateRelType(e.target.value)}
                   className="w-full h-8 px-3 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
-                  placeholder="关系类型"
+                  placeholder={t('knowledgeGraph.fields.relationType')}
                   spellCheck={false}
                 />
               </div>
@@ -512,14 +518,14 @@ export function KnowledgeGraphPanel() {
                 className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
                 disabled={isLoading}
               >
-                创建
+                {t('common.create')}
               </button>
               <button
                 type="button"
                 onClick={() => setCreateRelOpen(false)}
                 className="flex-1 h-8 px-3 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
               >
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </div>

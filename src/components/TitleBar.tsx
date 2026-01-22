@@ -63,7 +63,7 @@ export function TitleBar({
 
     setExporting(format);
     try {
-      const title = getTitle() || 'Untitled';
+      const title = getTitle() || t('files.untitled');
       const result =
         format === 'markdown'
           ? await exportOps.markdown(title, content)
@@ -90,8 +90,8 @@ export function TitleBar({
         type="button"
         onClick={() => api?.minimize?.()}
         className="wn-titlebar-btn"
-        aria-label="Minimize window"
-        title="Minimize"
+        aria-label={t('titleBar.window.minimizeAria')}
+        title={t('titleBar.window.minimize')}
       >
         <Minus className="w-4 h-4" />
       </button>
@@ -99,8 +99,8 @@ export function TitleBar({
         type="button"
         onClick={() => api?.maximize?.()}
         className="wn-titlebar-btn"
-        aria-label="Maximize window"
-        title="Maximize"
+        aria-label={t('titleBar.window.maximizeAria')}
+        title={t('titleBar.window.maximize')}
       >
         <Square className="w-4 h-4" />
       </button>
@@ -108,8 +108,8 @@ export function TitleBar({
         type="button"
         onClick={() => api?.close?.()}
         className="wn-titlebar-btn wn-titlebar-close"
-        aria-label="Close window"
-        title="Close"
+        aria-label={t('titleBar.window.closeAria')}
+        title={t('common.close')}
       >
         <X className="w-4 h-4" />
       </button>
@@ -198,8 +198,8 @@ export function TitleBar({
               type="button"
               onClick={onToggleFocusMode}
               className="wn-icon-btn"
-              aria-label={zenEnabled ? 'Exit zen mode' : 'Enter zen mode'}
-              title={zenEnabled ? 'Exit Zen' : 'Zen'}
+              aria-label={zenEnabled ? t('titleBar.zen.exitAria') : t('titleBar.zen.enterAria')}
+              title={zenEnabled ? t('titleBar.zen.exitTitle') : t('titleBar.zen.enterTitle')}
             >
               <Focus className="w-4 h-4" />
             </button>
@@ -207,8 +207,8 @@ export function TitleBar({
               type="button"
               onClick={onToggleSidebar}
               className="wn-icon-btn"
-              aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-              title="Sidebar"
+              aria-label={sidebarOpen ? t('titleBar.sidebar.hideAria') : t('titleBar.sidebar.showAria')}
+              title={t('titleBar.sidebar.title')}
             >
               {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             </button>
@@ -216,8 +216,8 @@ export function TitleBar({
               type="button"
               onClick={onToggleAIPanel}
               className="wn-icon-btn"
-              aria-label={aiPanelOpen ? 'Hide AI panel' : 'Show AI panel'}
-              title="AI"
+              aria-label={aiPanelOpen ? t('titleBar.aiPanel.hideAria') : t('titleBar.aiPanel.showAria')}
+              title={t('titleBar.aiPanel.title')}
             >
               {aiPanelOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
             </button>

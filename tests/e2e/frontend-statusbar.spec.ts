@@ -19,12 +19,15 @@ test('Frontend P1: StatusBar is unified (≤24px) and supports progressive discl
   const page = await electronApp.firstWindow();
   await expect(page.getByText('WriteNow')).toBeVisible();
 
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill('StatusBar');
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill('StatusBar');
+  await nameInput.press('Enter');
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^StatusBar\.md/ })).toBeVisible();
 
-  await page.getByPlaceholder('开始用 Markdown 写作…').fill('# StatusBar\n\nHello\n\n' + 'line\n'.repeat(40));
+  await page
+    .getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/)
+    .fill('# StatusBar\n\nHello\n\n' + 'line\n'.repeat(40));
 
   const statusBar = page.getByTestId('statusbar');
   await expect(statusBar).toBeVisible();
@@ -34,13 +37,13 @@ test('Frontend P1: StatusBar is unified (≤24px) and supports progressive discl
   expect(box).not.toBeNull();
   expect((box as NonNullable<typeof box>).height).toBeLessThanOrEqual(24);
 
-  await expect(statusBar.getByText(/Ln\s+\d+/)).toBeVisible();
+  await expect(statusBar.getByText(/Ln\s+\d+|行\s+\d+/)).toBeVisible();
 
   const timerLabel = statusBar.getByText(/\d{2}:\d{2}/);
   const timerBefore = await timerLabel.innerText();
 
-  await page.getByRole('button', { name: 'Expand status details' }).click();
-  await expect(page.getByText('今日')).toBeVisible();
+  await page.getByRole('button', { name: /Expand status details|展开状态详情/ }).click();
+  await expect(page.getByText(/Today|今日/)).toBeVisible();
 
   const timerToggle = page.getByRole('button', { name: /\d{2}:\d{2}/ }).first();
   await timerToggle.click();
@@ -48,7 +51,7 @@ test('Frontend P1: StatusBar is unified (≤24px) and supports progressive discl
   await expect.poll(async () => timerLabel.innerText()).not.toBe(timerBefore);
 
   await page.keyboard.press('Escape');
-  await expect(page.getByText('今日')).toBeHidden();
+  await expect(page.getByText(/Today|今日/)).toBeHidden();
 
   await electronApp.close();
 });

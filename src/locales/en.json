@@ -11,12 +11,32 @@
       "enter": "Focus",
       "exitHint": "Press ESC to exit focus mode",
       "exit": "Exit"
+    },
+    "layout": {
+      "resizeSidebarAria": "Resize sidebar",
+      "resizeAIPanelAria": "Resize AI panel"
+    },
+    "recovery": {
+      "title": "Unexpected shutdown detected",
+      "description": "Restore the latest snapshot?",
+      "fileLabel": "File: ",
+      "timeLabel": "Time: ",
+      "restore": "Restore snapshot",
+      "ignore": "Ignore"
     }
   },
   "common": {
     "cancel": "Cancel",
     "close": "Close",
     "create": "Create",
+    "save": "Save",
+    "delete": "Delete",
+    "add": "Add",
+    "remove": "Remove",
+    "apply": "Apply",
+    "later": "Later",
+    "more": "More",
+    "listSeparator": ", ",
     "retry": "Retry",
     "refresh": "Refresh",
     "loading": "Loading…",
@@ -169,17 +189,386 @@
       "title": "No documents yet",
       "hint": "Click “+” to create your first one"
     },
-    "loadFailed": "Load failed: {{error}}"
+    "loadFailed": "Load failed: {{error}}",
+    "deleteFileTitle": "Delete file",
+    "deleteDialog": {
+      "title": "Delete article",
+      "permanentDeletePrefix": "Will permanently delete: "
+    }
   },
   "editor": {
     "noFileSelected": {
       "title": "No file selected",
       "hint": "Select a file from the sidebar"
     },
+    "mode": {
+      "markdown": "Markdown",
+      "richText": "Rich Text",
+      "markdownShortcut": "Markdown ({{shortcut}}+S to save)"
+    },
     "placeholderMarkdown": "Start typing in Markdown…",
+    "loadFailed": "Load failed",
+    "view": {
+      "edit": "Edit",
+      "preview": "Preview",
+      "split": "Split"
+    },
+    "split": {
+      "resizeAria": "Resize editor/preview split"
+    },
+    "preview": {
+      "liteModeHint": "Large document: preview is in lite mode (math, Mermaid, and code highlight are reduced for responsiveness).",
+      "mermaidFailed": "Mermaid render failed: {{error}}",
+      "mermaidRendering": "Rendering Mermaid…"
+    },
+    "toolbar": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "heading1": "Heading 1",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "bold": "Bold",
+      "italic": "Italic",
+      "bulletList": "Bullet list",
+      "orderedList": "Ordered list"
+    },
     "save": {
       "saved": "Saved",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "unsaved": "Unsaved changes",
+      "error": "Save failed"
+    }
+  },
+  "characters": {
+    "actions": {
+      "createTitle": "New character",
+      "deleteTitle": "Delete character"
+    },
+    "create": {
+      "defaultName": "Untitled",
+      "dialogTitle": "New character",
+      "dialogDescription": "Enter a name for the character card"
+    },
+    "delete": {
+      "dialogTitle": "Delete character",
+      "confirm": "Delete character “{{name}}”?"
+    },
+    "errors": {
+      "loadFailed": "Load failed: {{error}}",
+      "createFailed": "Create failed"
+    },
+    "list": {
+      "searchPlaceholder": "Search characters…",
+      "empty": {
+        "title": "No characters",
+        "hint": "Click “+” to create"
+      }
+    },
+    "detail": {
+      "empty": {
+        "title": "No character selected",
+        "hint": "Select a character from the list, or create a new character card"
+      },
+      "fields": {
+        "nameLabel": "Name",
+        "namePlaceholder": "Character name",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Background / appearance / motivation…"
+      },
+      "traits": {
+        "label": "Traits",
+        "placeholder": "Type a trait and press Enter",
+        "addTitle": "Add trait"
+      },
+      "relationships": {
+        "label": "Relationships",
+        "empty": "No relationships",
+        "targetPlaceholder": "Target (e.g. Alex)",
+        "typePlaceholder": "Relationship type",
+        "notePlaceholder": "Note (optional)"
+      }
+    }
+  },
+  "knowledgeGraph": {
+    "actions": {
+      "addRelationTitle": "Add relation",
+      "addNodeTitle": "Add node"
+    },
+    "canvas": {
+      "ariaLabel": "Knowledge graph"
+    },
+    "empty": {
+      "title": "No nodes",
+      "hint": "Click “+” to add a node"
+    },
+    "sidebar": {
+      "emptyHint": "Select a node or relation to view details"
+    },
+    "entityEditor": {
+      "title": "Node"
+    },
+    "fields": {
+      "type": "Type",
+      "name": "Name",
+      "description": "Description",
+      "relationType": "Relation type"
+    },
+    "entityType": {
+      "Character": "Character",
+      "Location": "Location",
+      "Event": "Event",
+      "TimePoint": "Time point",
+      "Item": "Item",
+      "Unknown": "Unknown"
+    },
+    "relation": {
+      "title": "Relation",
+      "defaultType": "Relation"
+    },
+    "createNode": {
+      "title": "Add node",
+      "namePlaceholder": "Node name"
+    },
+    "createRelation": {
+      "title": "Add relation",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "fromAria": "From",
+      "toAria": "To",
+      "selectNode": "Select a node"
+    },
+    "errors": {
+      "nameRequired": "Name is required",
+      "relationFieldsRequired": "Please fill in relation details",
+      "createFailed": "Create failed"
+    }
+  },
+  "outline": {
+    "title": "Outline",
+    "noFile": {
+      "title": "No file opened",
+      "hint": "Open a file to manage the outline"
+    },
+    "empty": {
+      "title": "No outline",
+      "hint": "Click “+” to add a node"
+    },
+    "node": {
+      "defaultTitle": "New node",
+      "headingLabel": "H{{level}}"
+    },
+    "actions": {
+      "addNodeTitle": "Add node",
+      "saveOutlineTitle": "Save outline",
+      "jumpToEditorTitle": "Jump to editor",
+      "moveUpTitle": "Move up",
+      "moveDownTitle": "Move down"
+    }
+  },
+  "extensions": {
+    "title": "Extensions",
+    "actions": {
+      "disable": "Disable",
+      "install": "Install"
+    }
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search files…",
+    "empty": "No results"
+  },
+  "materials": {
+    "type": {
+      "link": "Link"
+    }
+  },
+  "workflow": {
+    "sections": {
+      "ideas": "Idea capture",
+      "outline": "Outline",
+      "draft": "Draft writing",
+      "reviewed": "Ready to publish",
+      "published": "Published"
+    }
+  },
+  "stats": {
+    "view": {
+      "day": "7d",
+      "week": "W",
+      "month": "M"
+    },
+    "range": {
+      "day": "Last 7 days",
+      "week": "This week",
+      "month": "This month"
+    },
+    "loadFailed": "Failed to load stats: {{error}}",
+    "todayWordLabel": "words (today)",
+    "goalProgress": "Goal progress",
+    "dailyGoalLabel": "Daily goal (words)",
+    "today": "Today",
+    "metrics": {
+      "writingDuration": "Focus time",
+      "articlesCreated": "New docs",
+      "skillsUsed": "Skills used",
+      "wordCount": "Words"
+    },
+    "trend": {
+      "summary": "Total {{words}} words · {{duration}}",
+      "barTitle": "{{date}} · {{words}} words"
+    },
+    "summary": {
+      "title": "Summary",
+      "totalWords": "Total words"
+    },
+    "duration": {
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} hr",
+      "hoursAndMinutes": "{{hours}} hr {{minutes}} min"
+    }
+  },
+  "ui": {
+    "breadcrumb": {
+      "ariaLabel": "Breadcrumb"
+    },
+    "carousel": {
+      "previousSlide": "Previous slide",
+      "nextSlide": "Next slide"
+    },
+    "pagination": {
+      "ariaLabel": "Pagination",
+      "previousAria": "Go to previous page",
+      "previous": "Previous",
+      "nextAria": "Go to next page",
+      "next": "Next",
+      "morePages": "More pages"
+    },
+    "sidebar": {
+      "mobileDescription": "Displays the mobile sidebar.",
+      "toggle": "Toggle sidebar"
+    }
+  },
+  "statusBar": {
+    "today": "Today",
+    "wordCount": "{{count}} words",
+    "timerSettingsAria": "Timer settings",
+    "stopTimerAria": "Stop timer",
+    "lineAndChars": "Ln {{lines}} · {{chars}} chars",
+    "openStatsTitle": "Open stats",
+    "wordsAndProgress": "{{words}} words · {{progress}}%",
+    "expandAria": "Expand status details",
+    "collapseAria": "Collapse status details",
+    "expandTitle": "Expand",
+    "collapseTitle": "Collapse"
+  },
+  "pomodoro": {
+    "phase": {
+      "focus": "Focus",
+      "break": "Break"
+    },
+    "settings": {
+      "title": "Timer settings",
+      "description": "Duration changes apply next round; ongoing timer won't be reset.",
+      "focusMinutesLabel": "Focus minutes",
+      "breakMinutesLabel": "Break minutes"
+    },
+    "overlay": {
+      "breakTimeTitle": "Time for a break!",
+      "breakTimeDescription": "You've focused for {{minutes}} minutes",
+      "breakTimeHint": "Take a 5–10 minute break: stretch, move around, and rest your eyes.",
+      "startBreak": "Start break",
+      "continueFocus": "Keep focusing",
+      "breakOverTitle": "Break finished",
+      "breakOverDescription": "Ready for the next focus session?",
+      "startFocus": "Start focus"
+    }
+  },
+  "ai": {
+    "title": "AI",
+    "noDocumentHint": "Select a document to use AI.",
+    "actions": {
+      "acceptApply": "Accept & apply",
+      "reject": "Reject"
+    },
+    "history": {
+      "restoreToThisVersion": "Restore to this version",
+      "title": "Version history",
+      "empty": "No versions",
+      "untitledVersion": "Untitled version",
+      "actor": {
+        "user": "User",
+        "ai": "AI",
+        "auto": "Auto"
+      }
+    },
+    "injectedMemory": {
+      "title": "Injected memory"
+    },
+    "sections": {
+      "skills": "Skill",
+      "history": "History"
+    },
+    "diff": {
+      "streaming": "Generating… (streaming)",
+      "checkingConstraints": "Checking writing constraints…",
+      "constraintsFailed": "Constraint check failed: {{error}}",
+      "showWarnings": "Show warnings",
+      "ignoreWarnings": "Ignore warnings",
+      "original": "Original",
+      "suggested": "Suggested",
+      "violations": {
+        "errors": "{{count}} errors",
+        "warnings": "{{count}} warnings",
+        "infos": "{{count}} notes"
+      }
+    },
+    "contextDebug": {
+      "toggle": "Context",
+      "assemblingShort": "Assembling…",
+      "assemblingHint": "Assembling context… (Rules/Settings/History/Immediate)",
+      "total": "Total",
+      "estimateShortSuffix": " (est)",
+      "estimateSuffix": " (estimate)",
+      "assembleFailed": "Context assembly failed: {{error}}",
+      "tokenStatsTitle": "Token stats",
+      "copyFullPrompt": "Copy full prompt",
+      "prefixHash": "Prefix hash",
+      "promptHash": "Prompt hash",
+      "sentHash": "Sent hash",
+      "hash": {
+        "match": "match",
+        "mismatch": "mismatch"
+      },
+      "layer": {
+        "rules": "Rules",
+        "settings": "Settings",
+        "retrieved": "Retrieved",
+        "immediate": "Immediate"
+      },
+      "assemble": "Assemble",
+      "msValue": "{{ms}}ms",
+      "settingsCache": "Settings cache",
+      "cache": {
+        "hit": "hit",
+        "miss": "miss"
+      },
+      "trim": {
+        "title": "Trim summary",
+        "summary": "Removed {{removed}} chunks, compressed {{compressed}} chunks, saved {{savedTokens}} tokens"
+      },
+      "prompt": {
+        "title": "Prompt",
+        "system": "System prompt",
+        "user": "User content"
+      },
+      "copy": {
+        "system": "Copy system",
+        "user": "Copy user"
+      },
+      "chunks": {
+        "title": "Chunks"
+      },
+      "empty": "(empty)"
     }
   },
   "export": {
@@ -289,6 +678,29 @@
     "preview": "Preview",
     "copyFor": "Copy for {{platform}}",
     "copyFailed": "Copy failed: {{error}}"
+  },
+  "titleBar": {
+    "window": {
+      "minimize": "Minimize",
+      "minimizeAria": "Minimize window",
+      "maximize": "Maximize",
+      "maximizeAria": "Maximize window",
+      "closeAria": "Close window"
+    },
+    "focus": {
+      "enterAria": "Enter focus mode",
+      "exitAria": "Exit focus mode"
+    },
+    "sidebar": {
+      "title": "Sidebar",
+      "showAria": "Show sidebar",
+      "hideAria": "Hide sidebar"
+    },
+    "aiPanel": {
+      "title": "AI",
+      "showAria": "Show AI panel",
+      "hideAria": "Hide AI panel"
+    }
   },
   "errors": {
     "INVALID_ARGUMENT": "Invalid argument",

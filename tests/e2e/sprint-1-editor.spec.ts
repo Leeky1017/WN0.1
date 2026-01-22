@@ -28,9 +28,10 @@ function escapeRegExp(text: string) {
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
   await expect(
     page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
   ).toBeVisible();
@@ -63,29 +64,29 @@ test('dual-mode: richtext edits roundtrip back to markdown', async () => {
 
   await createFile(page, 'Mode Switch');
 
-  await page.getByRole('button', { name: 'Rich Text' }).click();
+  await page.getByRole('button', { name: /Rich Text|富文本/ }).click();
   const richText = page.locator('.ProseMirror');
   await expect(richText).toBeVisible();
 
   await richText.click();
-  await page.locator('button[title="标题 1"]').click();
+  await page.getByTitle(/Heading 1|标题 1/).click();
   await richText.type('Title');
   await richText.press('Enter');
   await richText.press('Enter');
 
-  await page.locator('button[title="加粗"]').click();
+  await page.getByTitle(/Bold|加粗/).click();
   await richText.type('Bold');
-  await page.locator('button[title="加粗"]').click();
+  await page.getByTitle(/Bold|加粗/).click();
   await richText.type(' Normal');
   await richText.press('Enter');
 
-  await page.locator('button[title="无序列表"]').click();
+  await page.getByTitle(/Bullet list|无序列表/).click();
   await richText.type('item1');
   await richText.press('Enter');
   await richText.type('item2');
 
-  await page.getByRole('button', { name: 'Markdown' }).click();
-  const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+  await page.getByRole('button', { name: /Markdown/ }).click();
+  const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
   await expect(textarea).toBeVisible();
   const markdown = await textarea.inputValue();
 
@@ -102,9 +103,9 @@ test('file delete removes file and closes editor', async () => {
 
   await createFile(page, 'Delete Me');
 
-  await page.locator('button[title="删除文件"]').click();
-  await expect(page.getByText('删除文章')).toBeVisible();
-  await page.getByRole('button', { name: '删除', exact: true }).click();
+  await page.getByTitle(/Delete file|删除文件/).click();
+  await expect(page.getByText(/Delete article|删除文章/)).toBeVisible();
+  await page.getByRole('button', { name: /^(Delete|删除)$/ }).click();
 
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Delete Me\.md/ })).toBeHidden();
 
@@ -123,7 +124,7 @@ test('crash recovery restores latest snapshot on next launch', async () => {
   const first = await launchApp(userDataDir, { WN_SNAPSHOT_INTERVAL_MS: '200' });
   await createFile(first.page, 'Crash');
 
-  const textarea = first.page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+  const textarea = first.page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
   await textarea.fill(`# Crash\n\n${unique}`);
   await waitForSnapshot(userDataDir, { contains: unique });
 
@@ -131,15 +132,15 @@ test('crash recovery restores latest snapshot on next launch', async () => {
   await new Promise((r) => setTimeout(r, 500));
 
   const second = await launchApp(userDataDir, { WN_SNAPSHOT_INTERVAL_MS: '200' });
-  await expect(second.page.getByText('检测到上次异常退出')).toBeVisible();
-  await second.page.getByRole('button', { name: '恢复快照' }).click();
+  await expect(second.page.getByText(/Unexpected shutdown detected|检测到上次异常退出/)).toBeVisible();
+  await second.page.getByRole('button', { name: /Restore snapshot|恢复快照/ }).click();
 
-  const textarea2 = second.page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+  const textarea2 = second.page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
   await expect(textarea2).toBeVisible();
   const restored = await textarea2.inputValue();
   expect(restored).toContain(unique);
 
-  await expect(second.page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(second.page.getByText(/Saved|已保存/, { exact: true })).toBeVisible({ timeout: 15_000 });
 
   const docPath = path.join(userDataDir, 'documents', 'Crash.md');
   const diskContent = await readFile(docPath, 'utf8');

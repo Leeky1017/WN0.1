@@ -180,7 +180,7 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
           <button
             onClick={openDelete}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
-            title="删除文件"
+            title={t('files.deleteFileTitle')}
             disabled={!selectedFile || isLoading}
           >
             <Trash2 className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -275,9 +275,10 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
           onMouseDown={closeDelete}
         >
           <div className="wn-elevated p-5 w-[420px]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="text-[15px] text-[var(--text-primary)] mb-3">删除文章</div>
+            <div className="text-[15px] text-[var(--text-primary)] mb-3">{t('files.deleteDialog.title')}</div>
             <div className="text-[12px] text-[var(--text-tertiary)] mb-3 leading-relaxed">
-              将永久删除：<span className="text-[var(--text-secondary)]">{deleteTargetPath}</span>
+              {t('files.deleteDialog.permanentDeletePrefix')}
+              <span className="text-[var(--text-secondary)]">{deleteTargetPath}</span>
             </div>
             {deleteError && <div className="mt-2 text-[12px] text-red-400">{deleteError}</div>}
             <div className="flex gap-2 mt-4">
@@ -286,14 +287,14 @@ export function FilesView({ selectedFile, onSelectFile }: FilesViewProps) {
                 className="flex-1 h-8 px-3 bg-red-600 hover:bg-red-500 rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
                 disabled={isLoading}
               >
-                删除
+                {t('common.delete')}
               </button>
               <button
                 onClick={closeDelete}
                 className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
                 disabled={isLoading}
               >
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </div>

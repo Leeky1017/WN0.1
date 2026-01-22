@@ -73,14 +73,15 @@ test('editor context sync: selection + paragraph window updates within debounce'
   try {
     await waitForE2EReady(page);
 
-    await page.locator('button[title="新建文件"]').click();
-    await page.getByPlaceholder('未命名').fill('Context Sync');
-    await page.getByPlaceholder('未命名').press('Enter');
+    await page.getByTitle(/New file|新建文件/).click();
+    const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+    await nameInput.fill('Context Sync');
+    await nameInput.press('Enter');
     await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^Context Sync\.md/ })).toBeVisible();
 
-    await page.getByPlaceholder('开始用 Markdown 写作…').fill('');
+    await page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/).fill('');
 
-    await page.getByRole('button', { name: 'Rich Text' }).click();
+    await page.getByRole('button', { name: /Rich Text|富文本/ }).click();
     const editor = page.locator('.ProseMirror');
     await expect(editor).toBeVisible();
     await editor.click();

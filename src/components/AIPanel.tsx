@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useAiStore } from '../stores/aiStore';
 import { useEditorStore } from '../stores/editorStore';
@@ -34,6 +35,7 @@ function isAiStreamEvent(value: unknown): value is AiStreamEvent {
 }
 
 export function AIPanel() {
+  const { t } = useTranslation();
   const activeTab = useEditorStore((s) => (s.activeTabId ? s.tabStateById[s.activeTabId] ?? null : null));
   const currentPath = activeTab?.path ?? null;
   const editorContent = activeTab?.content ?? '';
@@ -99,11 +101,11 @@ export function AIPanel() {
   return (
     <div className="w-full bg-[var(--bg-secondary)] flex flex-col h-full">
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] flex-shrink-0">
-        <span className="text-[13px] text-[var(--text-primary)] font-medium">AI</span>
+        <span className="text-[13px] text-[var(--text-primary)] font-medium">{t('ai.title')}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-        {!currentPath && <div className="text-[12px] text-[var(--text-tertiary)]">请选择一个文档后再使用 AI。</div>}
+        {!currentPath && <div className="text-[12px] text-[var(--text-tertiary)]">{t('ai.noDocumentHint')}</div>}
 
         {historyPreview && (
           <DiffView
@@ -113,8 +115,8 @@ export function AIPanel() {
             status="done"
             onAccept={() => restorePreviewed().catch(() => undefined)}
             onReject={clearPreview}
-            acceptLabel="回退到此版本"
-            rejectLabel="取消"
+            acceptLabel={t('ai.history.restoreToThisVersion')}
+            rejectLabel={t('common.cancel')}
           />
         )}
 
@@ -134,8 +136,8 @@ export function AIPanel() {
               onCancel={() => cancelRun().catch(() => undefined)}
               onAccept={() => acceptSuggestion().catch(() => undefined)}
               onReject={() => rejectSuggestion().catch(() => undefined)}
-              acceptLabel="接受并应用"
-              rejectLabel="拒绝"
+              acceptLabel={t('ai.actions.acceptApply')}
+              rejectLabel={t('ai.actions.reject')}
             />
 
             {run.injectedMemory.length > 0 && (
@@ -144,13 +146,13 @@ export function AIPanel() {
                 className="wn-elevated rounded-md border border-[var(--border-subtle)] px-3 py-2"
               >
                 <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)] mb-1">
-                  Injected Memory
+                  {t('ai.injectedMemory.title')}
                 </div>
                 <div className="space-y-1">
                   {run.injectedMemory.map((item) => (
                     <div key={item.id} className="text-[12px] text-[var(--text-secondary)] break-words">
                       <span className="text-[11px] text-[var(--text-tertiary)] mr-2">
-                        {item.type}/{item.projectId ? 'project' : 'global'}/{item.origin}
+                        {item.type}/{item.projectId ? t('memory.scope.project') : t('memory.scope.global')}/{item.origin}
                       </span>
                       {item.content}
                     </div>
@@ -169,7 +171,7 @@ export function AIPanel() {
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
-              <span className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">SKILL</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">{t('ai.sections.skills')}</span>
             </div>
             {showSkills ? (
               <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -192,7 +194,7 @@ export function AIPanel() {
             className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">HISTORY</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">{t('ai.sections.history')}</span>
             </div>
             {showHistory ? (
               <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />

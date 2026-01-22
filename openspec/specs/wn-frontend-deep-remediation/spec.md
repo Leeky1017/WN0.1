@@ -222,7 +222,7 @@ AI 请求 MUST 自动携带编辑上下文（选区文本、光标位置、当�
 
 ### Requirement: FROTNEND-TECH-001 MUST 优化自动保存与 i18n 完整性
 
-自动保存 MUST 使用 debounce + 脏标记批量写入，避免长文档频繁 IPC；全量 UI 文本 MUST 通过 i18n 系统提供（至少 zh-CN/en-US），并通过 lint/CI 禁止硬编码文本。
+自动保存 MUST 使用 debounce + 脏标记批量写入，避免长文档频繁 IPC；全量 UI 文本 MUST 通过 i18n 系统提供（至少 zh-CN/en），并通过 lint/CI 禁止硬编码文本。
 
 #### Scenario: 长文档下保存不会频繁触发 IPC
 - **WHEN** 用户在长文档中持续输入
@@ -230,7 +230,7 @@ AI 请求 MUST 自动携带编辑上下文（选区文本、光标位置、当�
 
 #### Scenario: i18n 覆盖率被 CI 约束
 - **WHEN** 代码中出现硬编码可见 UI 文本（非日志/调试）
-- **THEN** lint/CI MUST 失败并提示改用 `t()`；语言包必须覆盖 zh-CN/en-US 的同构 key
+- **THEN** lint/CI MUST 失败并提示改用 `t()`；语言包必须覆盖 zh-CN/en 的同构 key
 
 ---
 
@@ -254,4 +254,3 @@ AI 请求 MUST 自动携带编辑上下文（选区文本、光标位置、当�
 - 审计对话记录：`docs/WN前端探讨.md`
 - 产品上游规范：`openspec/specs/writenow-spec/spec.md`
 - 相关 Sprint 规范：`openspec/specs/sprint-1-editor/spec.md`、`openspec/specs/sprint-2-ai/spec.md`、`openspec/specs/sprint-6-experience/spec.md`
-

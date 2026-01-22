@@ -53,7 +53,7 @@ function toErrorMessage(error: unknown) {
 }
 
 export default function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [sidebarView, setSidebarView] = useState<SidebarView>('files');
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [windowWidth, setWindowWidth] = useState(() => window.innerWidth);
@@ -389,7 +389,7 @@ export default function App() {
                   sizePx={effectiveSidebarWidthPx}
                   minPx={sidebarMinPx}
                   maxPx={sidebarMaxPx}
-                  ariaLabel="Resize sidebar"
+                  ariaLabel={t('app.layout.resizeSidebarAria')}
                   onSizePxChange={setSidebarWidthPx}
                 />
               </>
@@ -411,7 +411,7 @@ export default function App() {
               sizePx={effectiveAiPanelWidthPx}
               minPx={aiMinPx}
               maxPx={aiMaxPx}
-              ariaLabel="Resize AI panel"
+              ariaLabel={t('app.layout.resizeAIPanelAria')}
               onSizePxChange={setAiPanelWidthPx}
             />
             <div
@@ -440,12 +440,18 @@ export default function App() {
       {recoverySnapshot && (
         <div className="fixed inset-0 wn-backdrop flex items-center justify-center z-50">
           <div className="wn-elevated p-6 w-[520px]">
-            <div className="text-[15px] text-[var(--text-primary)] mb-2">检测到上次异常退出</div>
+            <div className="text-[15px] text-[var(--text-primary)] mb-2">{t('app.recovery.title')}</div>
             <div className="text-[12px] text-[var(--text-tertiary)] mb-4 leading-relaxed">
-              是否恢复最近一次快照？
+              {t('app.recovery.description')}
               <div className="mt-2 text-[12px] text-[var(--text-secondary)]">
-                <div>文件：{recoverySnapshot.path}</div>
-                <div>时间：{new Date(recoverySnapshot.createdAt).toLocaleString('zh-CN')}</div>
+                <div>
+                  {t('app.recovery.fileLabel')}
+                  {recoverySnapshot.path}
+                </div>
+                <div>
+                  {t('app.recovery.timeLabel')}
+                  {new Date(recoverySnapshot.createdAt).toLocaleString(i18n.language)}
+                </div>
               </div>
             </div>
 
@@ -457,14 +463,14 @@ export default function App() {
                 className="flex-1 h-8 px-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[13px] text-white transition-colors disabled:opacity-60"
                 disabled={recoveryBusy}
               >
-                恢复快照
+                {t('app.recovery.restore')}
               </button>
               <button
                 onClick={() => setRecoverySnapshot(null)}
                 className="flex-1 h-8 px-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[13px] text-[var(--text-secondary)] transition-colors"
                 disabled={recoveryBusy}
               >
-                忽略
+                {t('app.recovery.ignore')}
               </button>
             </div>
           </div>

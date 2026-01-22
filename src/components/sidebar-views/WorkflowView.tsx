@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Plus, Lightbulb, Edit, CheckCircle, Send } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WorkflowViewProps {
   selectedFile: string | null;
   onSelectFile: (file: string) => void | Promise<void>;
 }
 
+type WorkflowSectionId = 'ideas' | 'outline' | 'draft' | 'reviewed' | 'published';
+
 export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['草稿写作']));
+  const { t } = useTranslation();
+  const [expandedSections, setExpandedSections] = useState<Set<WorkflowSectionId>>(new Set(['draft']));
 
   const workflow = [
     {
-      title: '灵感收集',
+      id: 'ideas' as const,
       icon: Lightbulb,
       color: 'text-yellow-500',
       items: [
@@ -20,7 +24,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
       ]
     },
     {
-      title: '大纲规划',
+      id: 'outline' as const,
       icon: Edit,
       color: 'text-blue-500',
       items: [
@@ -28,7 +32,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
       ]
     },
     {
-      title: '草稿写作',
+      id: 'draft' as const,
       icon: FileText,
       color: 'text-purple-500',
       items: [
@@ -38,7 +42,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
       ]
     },
     {
-      title: '待发布',
+      id: 'reviewed' as const,
       icon: CheckCircle,
       color: 'text-green-500',
       items: [
@@ -46,7 +50,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
       ]
     },
     {
-      title: '已发布',
+      id: 'published' as const,
       icon: Send,
       color: 'text-gray-500',
       items: [
@@ -55,12 +59,12 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
     },
   ];
 
-  const toggleSection = (title: string) => {
+  const toggleSection = (id: WorkflowSectionId) => {
     const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(title)) {
-      newExpanded.delete(title);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
     } else {
-      newExpanded.add(title);
+      newExpanded.add(id);
     }
     setExpandedSections(newExpanded);
   };
@@ -68,7 +72,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
   return (
     <>
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">创作工作流</span>
+        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('nav.workflow')}</span>
         <button className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors">
           <Plus className="w-4 h-4" />
         </button>
@@ -77,12 +81,14 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
       <div className="flex-1 overflow-y-auto py-2">
         {workflow.map((section) => {
           const Icon = section.icon;
-          const isExpanded = expandedSections.has(section.title);
+          const isExpanded = expandedSections.has(section.id);
+          const sectionTitle = t(`workflow.sections.${section.id}`);
           
           return (
-            <div key={section.title} className="mb-1">
+            <div key={section.id} className="mb-1">
               <button
-                onClick={() => toggleSection(section.title)}
+                type="button"
+                onClick={() => toggleSection(section.id)}
                 className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-hover)] transition-colors text-left"
               >
                 {isExpanded ? (
@@ -91,7 +97,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
                   <ChevronRight className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
                 )}
                 <Icon className={`w-4 h-4 ${section.color}`} />
-                <span className="text-[13px] text-[var(--text-secondary)] flex-1">{section.title}</span>
+                <span className="text-[13px] text-[var(--text-secondary)] flex-1">{sectionTitle}</span>
                 <span className="text-[11px] text-[var(--text-tertiary)]">{section.items.length}</span>
               </button>
               
@@ -102,6 +108,7 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
                     return (
                       <button
                         key={item.name}
+                        type="button"
                         onClick={() => onSelectFile(item.name)}
                         className={`w-full flex items-center justify-between px-3 py-1 pl-10 hover:bg-[var(--bg-hover)] transition-colors text-left ${
                           isSelected ? 'bg-[var(--bg-active)]' : ''
@@ -116,7 +123,10 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
                           </span>
                         </div>
                         <div className="flex flex-col items-end gap-0.5 ml-2">
-                          <span className="text-[11px] text-[var(--text-tertiary)]">{item.wordCount}字</span>
+                          <span className="text-[11px] text-[var(--text-tertiary)]">
+                            {item.wordCount}
+                            {t('files.wordCountSuffix')}
+                          </span>
                           {item.status && (
                             <span className="text-[11px] text-[var(--accent-primary)]">{item.status}</span>
                           )}

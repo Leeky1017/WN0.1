@@ -12,8 +12,8 @@ export type StatusBarProps = {
   onOpenStats?: () => void;
 };
 
-function formatNumber(value: number) {
-  return Number.isFinite(value) ? Math.max(0, Math.floor(value)).toLocaleString('zh-CN') : '0';
+function formatNumber(value: number, locale: string) {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)).toLocaleString(locale) : '0';
 }
 
 function formatTimer(remainingMs: number) {
@@ -28,8 +28,9 @@ function formatTimer(remainingMs: number) {
  * with progressive disclosure, so the main layout can stay vertically continuous.
  */
 export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const numberLocale = i18n.language;
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [timerDialogOpen, setTimerDialogOpen] = useState(false);
@@ -91,18 +92,18 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
   const saveLabel = useMemo(() => {
     if (!currentPath) return '—';
     if (saveStatus === 'saving') return t('editor.save.saving');
-    if (saveStatus === 'error') return '保存失败';
-    if (isDirty) return '未保存';
+    if (saveStatus === 'error') return t('editor.save.error');
+    if (isDirty) return t('editor.save.unsaved');
     return t('editor.save.saved');
   }, [currentPath, isDirty, saveStatus, t]);
 
   const lineCount = useMemo(() => content.split('\n').length, [content]);
   const charCount = content.length;
   const fileLabel = useMemo(() => {
-    if (!currentPath) return '未选择文件';
+    if (!currentPath) return t('editor.noFileSelected.title');
     const base = currentPath.split(/[/\\\\]/).pop();
     return base || currentPath;
-  }, [currentPath]);
+  }, [currentPath, t]);
 
   const wordCount = today?.wordCount ?? 0;
   const goalProgress = useMemo(() => {
@@ -111,7 +112,7 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
   }, [dailyGoal, wordCount]);
 
   const timerLabel = formatTimer(remainingMs);
-  const phaseLabel = pomodoroPhase === 'break' ? '休息' : '专注';
+  const phaseLabel = pomodoroPhase === 'break' ? t('pomodoro.phase.break') : t('pomodoro.phase.focus');
   const phaseColor = pomodoroPhase === 'break' ? 'var(--wn-color-teal-500)' : 'var(--wn-accent-primary)';
 
   const canExpand = !focusMode;
@@ -122,7 +123,7 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
         <div className="absolute bottom-6 left-3 right-3 z-40">
           <WnPanel padding="sm" className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] text-[var(--text-tertiary)] mb-2">今日</div>
+              <div className="text-[11px] text-[var(--text-tertiary)] mb-2">{t('statusBar.today')}</div>
               <div className="flex items-center gap-3 flex-wrap">
                 <button
                   type="button"
@@ -130,7 +131,9 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
                   className="flex items-center gap-2 h-7 px-2 rounded-md hover:bg-[var(--bg-hover)] transition-colors"
                 >
                   <BarChart3 className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-                  <span className="text-[12px] text-[var(--text-secondary)]">{formatNumber(wordCount)} 字</span>
+                  <span className="text-[12px] text-[var(--text-secondary)]">
+                    {t('statusBar.wordCount', { count: formatNumber(wordCount, numberLocale) })}
+                  </span>
                   <span className="text-[10px] text-[var(--text-tertiary)]">({goalProgress}%)</span>
                 </button>
               </div>
@@ -164,7 +167,7 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
               <WnButton
                 size="icon"
                 variant="ghost"
-                aria-label="Timer settings"
+                aria-label={t('statusBar.timerSettingsAria')}
                 onClick={() => {
                   setFocusMinutesDraft(durations.focusMinutes);
                   setBreakMinutesDraft(durations.breakMinutes);
@@ -174,7 +177,13 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
                 <Settings className="w-4 h-4" />
               </WnButton>
 
-              <WnButton size="icon" variant="ghost" aria-label="Stop timer" onClick={() => stop()} isDisabled={pomodoroStatus === 'idle'}>
+              <WnButton
+                size="icon"
+                variant="ghost"
+                aria-label={t('statusBar.stopTimerAria')}
+                onClick={() => stop()}
+                isDisabled={pomodoroStatus === 'idle'}
+              >
                 <Clock className="w-4 h-4" />
               </WnButton>
             </div>
@@ -203,15 +212,15 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
 
             <div className="flex items-center gap-3">
               <span className="tabular-nums">
-                Ln {lineCount} · {charCount} chars
+                {t('statusBar.lineAndChars', { lines: lineCount, chars: formatNumber(charCount, numberLocale) })}
               </span>
               <button
                 type="button"
                 onClick={() => onOpenStats?.()}
                 className="tabular-nums hover:text-[var(--text-secondary)] transition-colors"
-                title="Open stats"
+                title={t('statusBar.openStatsTitle')}
               >
-                {formatNumber(wordCount)} 字 · {goalProgress}%
+                {t('statusBar.wordsAndProgress', { words: formatNumber(wordCount, numberLocale), progress: goalProgress })}
               </button>
               <span className="tabular-nums" style={{ color: phaseColor }}>
                 {timerLabel}
@@ -223,8 +232,8 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
                   if (!canExpand) return;
                   setIsExpanded((v) => !v);
                 }}
-                aria-label={isExpanded ? 'Collapse status details' : 'Expand status details'}
-                title={isExpanded ? 'Collapse' : 'Expand'}
+                aria-label={isExpanded ? t('statusBar.collapseAria') : t('statusBar.expandAria')}
+                title={isExpanded ? t('statusBar.collapseTitle') : t('statusBar.expandTitle')}
               >
                 {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
               </button>
@@ -236,8 +245,8 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
       <WnDialog
         isOpen={timerDialogOpen}
         onOpenChange={setTimerDialogOpen}
-        title="设置计时器"
-        description="修改时长会对下一轮生效；进行中的计时不会被重置。"
+        title={t('pomodoro.settings.title')}
+        description={t('pomodoro.settings.description')}
         footer={
           <div className="flex gap-2">
             <WnButton
@@ -248,10 +257,10 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
                 setTimerDialogOpen(false);
               }}
             >
-              应用
+              {t('common.apply')}
             </WnButton>
             <WnButton variant="secondary" className="flex-1" onClick={() => setTimerDialogOpen(false)}>
-              取消
+              {t('common.cancel')}
             </WnButton>
           </div>
         }
@@ -259,7 +268,7 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
         <div className="space-y-3">
           <div>
             <label htmlFor="wn-timer-focus" className="text-[12px] text-[var(--text-secondary)] block mb-1">
-              专注时长（分钟）
+              {t('pomodoro.settings.focusMinutesLabel')}
             </label>
             <WnInput
               id="wn-timer-focus"
@@ -272,7 +281,7 @@ export function StatusBar({ focusMode, onOpenStats }: StatusBarProps) {
           </div>
           <div>
             <label htmlFor="wn-timer-break" className="text-[12px] text-[var(--text-secondary)] block mb-1">
-              休息时长（分钟）
+              {t('pomodoro.settings.breakMinutesLabel')}
             </label>
             <WnInput
               id="wn-timer-break"
