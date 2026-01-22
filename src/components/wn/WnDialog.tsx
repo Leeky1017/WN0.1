@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export type WnDialogProps = {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export function WnDialog({
   isDismissable = true,
   className,
 }: WnDialogProps) {
+  const { t } = useTranslation();
   const titleId = useId();
   const descriptionId = useId();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -132,7 +134,7 @@ export function WnDialog({
             type="button"
             onClick={() => onOpenChange(false)}
             className="wn-icon-btn absolute right-2 top-2"
-            aria-label="Close dialog"
+            aria-label={t('common.close')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -161,4 +163,3 @@ export function WnDialog({
     document.body,
   );
 }
-

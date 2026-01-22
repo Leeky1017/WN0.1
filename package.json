@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint src && node scripts/style-guard.js",
+    "lint": "eslint src && node scripts/style-guard.js && node scripts/i18n-guard.mjs",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:e2e": "npm run electron:rebuild && npm run build && playwright test",

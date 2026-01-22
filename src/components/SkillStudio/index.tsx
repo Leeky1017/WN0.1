@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { stringify as stringifyYaml } from 'yaml';
+import { useTranslation } from 'react-i18next';
 
 import { IpcError, skillOps } from '../../lib/ipc';
 import { toUserMessage } from '../../lib/errors';
@@ -174,6 +175,7 @@ function toPromptTemplateSkill(def: SkillDefinitionV2) {
  * Why: `SKILL.md` is SSOT; users need a safe UI to create/edit without writing YAML by hand.
  */
 export function SkillStudio(props: SkillStudioProps) {
+  const { t } = useTranslation();
   const currentProjectId = useProjectsStore((s) => s.currentProjectId);
   const refreshSkills = useSkillsStore((s) => s.refresh);
   const readSkill = useSkillsStore((s) => s.read);
@@ -206,7 +208,7 @@ export function SkillStudio(props: SkillStudioProps) {
     let cancelled = false;
     if (props.mode !== 'edit') return () => undefined;
     if (!props.skillId) {
-      setError('Missing skillId');
+      setError(t('skills.studio.errors.missingSkillId'));
       setLoading(false);
       return () => undefined;
     }
@@ -268,7 +270,7 @@ export function SkillStudio(props: SkillStudioProps) {
     return () => {
       cancelled = true;
     };
-  }, [props.mode, props.skillId, readSkill]);
+  }, [props.mode, props.skillId, readSkill, t]);
 
   useEffect(() => {
     if (props.mode !== 'create') return;
@@ -366,7 +368,7 @@ export function SkillStudio(props: SkillStudioProps) {
     }
   };
 
-  const title = props.mode === 'edit' ? 'Edit SKILL' : 'New SKILL';
+  const title = props.mode === 'edit' ? t('skills.studio.title.edit') : t('skills.studio.title.new');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="dialog" aria-modal="true">
@@ -374,25 +376,25 @@ export function SkillStudio(props: SkillStudioProps) {
         style={{ width: 980, maxWidth: '95vw', maxHeight: '92vh' }}
         className="overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-secondary)] shadow-xl flex flex-col"
       >
-        <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] flex-shrink-0">
-          <div className="text-[13px] text-[var(--text-primary)] font-medium">{title}</div>
-          <button type="button" onClick={props.onClose} className="p-1 rounded hover:bg-[var(--bg-hover)]">
-            <X className="w-4 h-4 text-[var(--text-tertiary)]" />
-          </button>
-        </div>
+	        <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] flex-shrink-0">
+	          <div className="text-[13px] text-[var(--text-primary)] font-medium">{title}</div>
+	          <button type="button" onClick={props.onClose} className="p-1 rounded hover:bg-[var(--bg-hover)]" aria-label={t('common.close')}>
+	            <X className="w-4 h-4 text-[var(--text-tertiary)]" />
+	          </button>
+	        </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-2 gap-3 p-3">
           <div className="space-y-3">
-            {loading && <div className="text-[12px] text-[var(--text-tertiary)]">Loading…</div>}
+	            {loading && <div className="text-[12px] text-[var(--text-tertiary)]">{t('common.loading')}</div>}
             {error && <div className="text-[12px] text-[var(--danger)]">{error}</div>}
 
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">Metadata</div>
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.metadata')}</div>
 
               <div className="grid grid-cols-2 gap-2">
-                <label className="space-y-1">
-                  <div className="text-xs text-[var(--text-tertiary)]">Scope</div>
-                  <select
+	                <label className="space-y-1">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.scope')}</div>
+	                  <select
                     value={form.scope}
                     disabled={props.mode === 'edit'}
                     onChange={(e) =>
@@ -402,16 +404,16 @@ export function SkillStudio(props: SkillStudioProps) {
                         return { ...prev, scope, packageId: inferPackageId(scope), id: nextId, skillSlug: inferSkillSlugFromId(nextId) };
                       })
                     }
-                    className="w-full text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1"
-                  >
-                    <option value="global">Global</option>
-                    <option value="project">Project</option>
-                  </select>
-                </label>
+	                    className="w-full text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1"
+	                  >
+	                    <option value="global">{t('skills.scope.global')}</option>
+	                    <option value="project">{t('skills.scope.project')}</option>
+	                  </select>
+	                </label>
 
-                <label className="space-y-1">
-                  <div className="text-xs text-[var(--text-tertiary)]">Version</div>
-                  <input
+	                <label className="space-y-1">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.version')}</div>
+	                  <input
                     value={form.version}
                     disabled={props.mode === 'edit'}
                     onChange={(e) => setForm((prev) => ({ ...prev, version: e.target.value }))}
@@ -419,9 +421,9 @@ export function SkillStudio(props: SkillStudioProps) {
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Skill ID</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.skillId')}</div>
+	                  <input
                     value={form.id}
                     disabled={props.mode === 'edit'}
                     onChange={(e) =>
@@ -434,9 +436,9 @@ export function SkillStudio(props: SkillStudioProps) {
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Name</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.name')}</div>
+	                  <input
                     value={form.name}
                     onChange={(e) =>
                       setForm((prev) => ({
@@ -449,27 +451,27 @@ export function SkillStudio(props: SkillStudioProps) {
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Description</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.description')}</div>
+	                  <input
                     value={form.description}
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                     className="w-full text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1"
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Tags (comma separated)</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.tags')}</div>
+	                  <input
                     value={form.tags}
                     onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))}
                     className="w-full text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1 font-mono"
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Package ID</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.packageId')}</div>
+	                  <input
                     value={form.packageId}
                     disabled={props.mode === 'edit'}
                     onChange={(e) => setForm((prev) => ({ ...prev, packageId: e.target.value }))}
@@ -477,18 +479,18 @@ export function SkillStudio(props: SkillStudioProps) {
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Model</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.model')}</div>
+	                  <input
                     value={form.modelPreferred}
                     onChange={(e) => setForm((prev) => ({ ...prev, modelPreferred: e.target.value }))}
                     className="w-full text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1 font-mono"
                   />
                 </label>
 
-                <label className="space-y-1 col-span-2">
-                  <div className="text-xs text-[var(--text-tertiary)]">Max instruction tokens</div>
-                  <input
+	                <label className="space-y-1 col-span-2">
+	                  <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.maxInstructionTokens')}</div>
+	                  <input
                     type="number"
                     value={form.maxInstructionTokens}
                     onChange={(e) => setForm((prev) => ({ ...prev, maxInstructionTokens: Number(e.target.value) }))}
@@ -498,20 +500,20 @@ export function SkillStudio(props: SkillStudioProps) {
               </div>
             </div>
 
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">Prompt</div>
-              <label className="space-y-1 block">
-                <div className="text-xs text-[var(--text-tertiary)]">System prompt</div>
-                <textarea
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.prompt')}</div>
+	              <label className="space-y-1 block">
+	                <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.systemPrompt')}</div>
+	                <textarea
                   value={form.systemPrompt}
                   onChange={(e) => setForm((prev) => ({ ...prev, systemPrompt: e.target.value }))}
                   rows={5}
                   className="w-full text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1 font-mono"
                 />
-              </label>
-              <label className="space-y-1 block">
-                <div className="text-xs text-[var(--text-tertiary)]">User template</div>
-                <textarea
+	              </label>
+	              <label className="space-y-1 block">
+	                <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.userPrompt')}</div>
+	                <textarea
                   value={form.userPrompt}
                   onChange={(e) => setForm((prev) => ({ ...prev, userPrompt: e.target.value }))}
                   rows={8}
@@ -520,27 +522,27 @@ export function SkillStudio(props: SkillStudioProps) {
               </label>
             </div>
 
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">Output</div>
-              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <input type="checkbox" checked={form.outputOnlyResult} onChange={(e) => setForm((p) => ({ ...p, outputOnlyResult: e.target.checked }))} />
-                Output only result
-              </label>
-              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <input type="checkbox" checked={form.noExplanations} onChange={(e) => setForm((p) => ({ ...p, noExplanations: e.target.checked }))} />
-                No explanations
-              </label>
-              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <input type="checkbox" checked={form.noCodeBlocks} onChange={(e) => setForm((p) => ({ ...p, noCodeBlocks: e.target.checked }))} />
-                No code blocks
-              </label>
-            </div>
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.output')}</div>
+	              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+	                <input type="checkbox" checked={form.outputOnlyResult} onChange={(e) => setForm((p) => ({ ...p, outputOnlyResult: e.target.checked }))} />
+	                {t('skills.studio.output.outputOnlyResult')}
+	              </label>
+	              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+	                <input type="checkbox" checked={form.noExplanations} onChange={(e) => setForm((p) => ({ ...p, noExplanations: e.target.checked }))} />
+	                {t('skills.studio.output.noExplanations')}
+	              </label>
+	              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+	                <input type="checkbox" checked={form.noCodeBlocks} onChange={(e) => setForm((p) => ({ ...p, noCodeBlocks: e.target.checked }))} />
+	                {t('skills.studio.output.noCodeBlocks')}
+	              </label>
+	            </div>
 
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">Notes</div>
-              <label className="space-y-1 block">
-                <div className="text-xs text-[var(--text-tertiary)]">Intent (Markdown)</div>
-                <textarea
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.notes')}</div>
+	              <label className="space-y-1 block">
+	                <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.fields.intent')}</div>
+	                <textarea
                   value={form.intent}
                   onChange={(e) => setForm((prev) => ({ ...prev, intent: e.target.value }))}
                   rows={4}
@@ -551,60 +553,61 @@ export function SkillStudio(props: SkillStudioProps) {
           </div>
 
           <div className="space-y-3">
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">Validation</div>
-                <div className="text-xs text-[var(--text-tertiary)]">~{tokenStats.tokens} tokens</div>
-              </div>
-              {validation.ok ? (
-                <div className="text-[12px] text-[var(--text-secondary)]">OK</div>
-              ) : (
-                <div className="text-[12px] text-[var(--danger)]">{validation.error}</div>
-              )}
-              <div className="text-[11px] text-[var(--text-tertiary)]">
-                Budget: {form.maxInstructionTokens} tokens {tokenStats.tokens > form.maxInstructionTokens ? '(exceeds)' : ''}
-              </div>
-            </div>
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="flex items-center justify-between gap-2">
+	                <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.validation')}</div>
+	                <div className="text-xs text-[var(--text-tertiary)]">{t('skills.studio.validation.tokenEstimate', { count: tokenStats.tokens })}</div>
+	              </div>
+	              {validation.ok ? (
+	                <div className="text-[12px] text-[var(--text-secondary)]">{t('skills.studio.validation.ok')}</div>
+	              ) : (
+	                <div className="text-[12px] text-[var(--danger)]">{validation.error}</div>
+	              )}
+	              <div className="text-[11px] text-[var(--text-tertiary)]">
+	                {t('skills.studio.validation.budgetLabel')}: {form.maxInstructionTokens} {t('skills.studio.validation.tokensLabel')}{' '}
+	                {tokenStats.tokens > form.maxInstructionTokens ? `(${t('skills.studio.validation.exceeds')})` : ''}
+	              </div>
+	            </div>
 
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">Preview Prompt</div>
-              {preview ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)] mb-1">System</div>
-                    <pre className="text-xs whitespace-pre-wrap bg-[var(--bg-tertiary)] rounded p-2 max-h-[260px] overflow-auto">{preview.systemPrompt}</pre>
-                  </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)] mb-1">User</div>
-                    <pre className="text-xs whitespace-pre-wrap bg-[var(--bg-tertiary)] rounded p-2 max-h-[260px] overflow-auto">{preview.userContent}</pre>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-[12px] text-[var(--text-tertiary)]">Fix validation errors to see preview.</div>
-              )}
-            </div>
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.previewPrompt')}</div>
+	              {preview ? (
+	                <div className="grid grid-cols-2 gap-2">
+	                  <div>
+	                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)] mb-1">{t('skills.studio.preview.system')}</div>
+	                    <pre className="text-xs whitespace-pre-wrap bg-[var(--bg-tertiary)] rounded p-2 max-h-[260px] overflow-auto">{preview.systemPrompt}</pre>
+	                  </div>
+	                  <div>
+	                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)] mb-1">{t('skills.studio.preview.user')}</div>
+	                    <pre className="text-xs whitespace-pre-wrap bg-[var(--bg-tertiary)] rounded p-2 max-h-[260px] overflow-auto">{preview.userContent}</pre>
+	                  </div>
+	                </div>
+	              ) : (
+	                <div className="text-[12px] text-[var(--text-tertiary)]">{t('skills.studio.preview.fixErrorsHint')}</div>
+	              )}
+	            </div>
 
-            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">SKILL.md</div>
-              <pre className="text-xs whitespace-pre-wrap bg-[var(--bg-tertiary)] rounded p-2 max-h-[420px] overflow-auto">{generated.text}</pre>
-            </div>
+	            <div className="wn-elevated rounded-md border border-[var(--border-subtle)] p-3 space-y-2">
+	              <div className="text-[11px] uppercase tracking-wide text-[var(--text-tertiary)]">{t('skills.studio.sections.skillMd')}</div>
+	              <pre className="text-xs whitespace-pre-wrap bg-[var(--bg-tertiary)] rounded p-2 max-h-[420px] overflow-auto">{generated.text}</pre>
+	            </div>
           </div>
         </div>
 
-        <div className="h-12 flex items-center justify-end gap-2 px-3 border-t border-[var(--border-subtle)] flex-shrink-0">
-          <button type="button" onClick={props.onClose} className="px-3 py-1.5 rounded border border-[var(--border-subtle)] text-sm">
-            Cancel
-          </button>
+	        <div className="h-12 flex items-center justify-end gap-2 px-3 border-t border-[var(--border-subtle)] flex-shrink-0">
+	          <button type="button" onClick={props.onClose} className="px-3 py-1.5 rounded border border-[var(--border-subtle)] text-sm">
+	            {t('common.cancel')}
+	          </button>
           <button
             type="button"
             disabled={saveDisabled}
             onClick={() => onSave().catch(() => undefined)}
-            className="px-3 py-1.5 rounded bg-[var(--accent-primary)] text-white text-sm disabled:opacity-50 disabled:pointer-events-none"
-            data-testid="skill-studio-save"
-          >
-            {saveBusy ? 'Saving…' : 'Save'}
-          </button>
-        </div>
+	            className="px-3 py-1.5 rounded bg-[var(--accent-primary)] text-white text-sm disabled:opacity-50 disabled:pointer-events-none"
+	            data-testid="skill-studio-save"
+	          >
+	            {saveBusy ? t('common.saving') : t('common.save')}
+	          </button>
+	        </div>
       </div>
     </div>
   );

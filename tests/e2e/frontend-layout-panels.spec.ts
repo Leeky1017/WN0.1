@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { expect, test, _electron as electron } from '@playwright/test';
 
-async function dragSeparatorBy(page: import('@playwright/test').Page, ariaLabel: string, deltaX: number) {
+async function dragSeparatorBy(page: import('@playwright/test').Page, ariaLabel: string | RegExp, deltaX: number) {
   const handle = page.getByRole('separator', { name: ariaLabel });
   await expect(handle).toBeVisible();
   const box = await handle.boundingBox();
@@ -45,8 +45,8 @@ test('Frontend P1: resizable panels persist across restart', async () => {
   const sidebarBeforeWidth = (sidebarBefore as NonNullable<typeof sidebarBefore>).width;
   const aiBeforeWidth = (aiBefore as NonNullable<typeof aiBefore>).width;
 
-  await dragSeparatorBy(page, 'Resize sidebar', 120);
-  await dragSeparatorBy(page, 'Resize AI panel', -120);
+  await dragSeparatorBy(page, /Resize sidebar|调整侧边栏宽度/, 120);
+  await dragSeparatorBy(page, /Resize AI panel|调整 AI 面板宽度/, -120);
 
   const sidebarAfter = await sidebar.boundingBox();
   const aiAfter = await aiPanel.boundingBox();

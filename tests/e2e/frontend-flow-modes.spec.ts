@@ -76,9 +76,10 @@ async function launchApp(userDataDir: string) {
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${name}\\.md`) })).toBeVisible();
 }
 
@@ -148,7 +149,7 @@ test('P2-003: flow modes toggle + persist (typewriter/focus/zen)', async () => {
   await second.page.keyboard.press('Escape');
   await expect(second.page.getByTestId('editor-tabbar')).toBeVisible();
 
-  await second.page.getByRole('button', { name: 'Rich Text', exact: true }).click();
+  await second.page.getByRole('button', { name: /^(Rich Text|富文本)$/, exact: true }).click();
   await expect(second.page.locator('.ProseMirror.wn-focus-mode')).toBeVisible();
 
   await second.electronApp.close();

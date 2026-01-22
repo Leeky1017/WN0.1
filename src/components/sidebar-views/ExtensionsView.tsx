@@ -1,5 +1,6 @@
 import React from 'react';
 import { Download, Star, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Extension {
   id: string;
@@ -10,6 +11,7 @@ interface Extension {
 }
 
 export function ExtensionsView() {
+  const { t } = useTranslation();
   const extensions: Extension[] = [
     {
       id: '1',
@@ -37,7 +39,7 @@ export function ExtensionsView() {
   return (
     <>
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">Extensions</span>
+        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('extensions.title')}</span>
       </div>
 
       <div className="overflow-y-auto">
@@ -61,16 +63,16 @@ export function ExtensionsView() {
                 <>
                   <button className="h-6 px-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[11px] text-[var(--text-secondary)] transition-colors flex items-center gap-1">
                     <Settings className="w-3 h-3" />
-                    Settings
+                    {t('nav.settings')}
                   </button>
                   <button className="h-6 px-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-md text-[11px] text-[var(--text-secondary)] transition-colors">
-                    Disable
+                    {t('extensions.actions.disable')}
                   </button>
                 </>
               ) : (
                 <button className="h-6 px-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded-md text-[11px] text-white transition-colors flex items-center gap-1">
                   <Download className="w-3 h-3" />
-                  Install
+                  {t('extensions.actions.install')}
                 </button>
               )}
             </div>

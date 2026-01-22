@@ -19,9 +19,10 @@ test('Frontend P0: Markdown preview is full-fidelity and scroll-sync works', asy
 
   await expect(page.getByText('WriteNow')).toBeVisible();
 
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill('MarkdownPreview');
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill('MarkdownPreview');
+  await nameInput.press('Enter');
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^MarkdownPreview\.md/ })).toBeVisible();
 
   const longTail = Array.from({ length: 220 }, (_, i) => `Line ${i + 1}: lorem ipsum dolor sit amet.`).join('\n');
@@ -55,10 +56,10 @@ flowchart LR
 ${longTail}
 `;
 
-  await page.getByPlaceholder('开始用 Markdown 写作…').fill(markdown);
-  await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/).fill(markdown);
+  await expect(page.getByText(/Saved|已保存/, { exact: true })).toBeVisible({ timeout: 15_000 });
 
-  await page.getByRole('button', { name: 'Preview', exact: true }).click();
+  await page.getByRole('button', { name: /^(Preview|预览)$/ }).click();
 
   await expect(page.locator('.wn-markdown table')).toBeVisible();
   await expect(page.locator('.wn-markdown input[type="checkbox"]')).toHaveCount(2);
@@ -66,7 +67,7 @@ ${longTail}
   await expect(page.locator('.wn-markdown .shiki')).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('.wn-markdown .wn-mermaid svg')).toBeVisible({ timeout: 30_000 });
 
-  await page.getByRole('button', { name: 'Split', exact: true }).click();
+  await page.getByRole('button', { name: /^(Split|分栏)$/ }).click();
 
   const editorScroll = page.getByTestId('editor-scroll');
   const previewScroll = page.getByTestId('preview-scroll');

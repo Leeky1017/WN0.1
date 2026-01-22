@@ -11,7 +11,7 @@ __pycache__/
 backend/.venv/
 
 # Node
-node_modules/
+node_modules
 dist/
 dist-electron/
 frontend/node_modules/

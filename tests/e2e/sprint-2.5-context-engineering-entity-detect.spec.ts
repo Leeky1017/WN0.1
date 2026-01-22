@@ -61,7 +61,7 @@ test('entity detection triggers settings prefetch and assembler injects prefetch
 
     await writeFile(path.join(ensured.data.rootPath, 'characters', 'Alice.md'), 'ALICE_PROFILE\n', 'utf8');
 
-    await page.getByRole('button', { name: 'Rich Text' }).click();
+    await page.getByRole('button', { name: /Rich Text|富文本/ }).click();
     const editor = page.locator('.ProseMirror');
     await expect(editor).toBeVisible();
     await editor.click();
@@ -119,4 +119,3 @@ test('entity detection triggers settings prefetch and assembler injects prefetch
     await electronApp.close().catch(() => undefined);
   }
 });
-

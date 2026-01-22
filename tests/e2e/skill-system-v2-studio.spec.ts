@@ -26,14 +26,15 @@ function escapeRegExp(text: string) {
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
   await expect(page.getByTestId(`editor-tab-${name}.md`)).toBeVisible();
 }
 
 async function setTextareaSelection(page: Page, start: number, end: number) {
-  await page.locator('textarea[placeholder="开始用 Markdown 写作…"]').evaluate(
+  await page.locator('textarea[data-testid="editor-scroll"]').evaluate(
     (el, arg) => {
       const input = arg as { start: number; end: number };
       el.focus();
@@ -51,20 +52,17 @@ test.describe('Skill System V2 (Skill Studio)', () => {
 
     try {
       await createFile(page, 'Studio Create');
-      const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+      const textarea = page.locator('textarea[data-testid="editor-scroll"]');
       const original = '这是一段需要改写的文本。';
       await textarea.fill(original);
-      await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
-
-      const content = await textarea.inputValue();
-      const start = content.indexOf(original);
-      expect(start).toBeGreaterThanOrEqual(0);
-      await setTextareaSelection(page, start, start + original.length);
+      await expect(textarea).toHaveValue(original);
+      await expect(page.getByText(/^(Saved|已保存)$/)).toBeVisible({ timeout: 15_000 });
+      await setTextareaSelection(page, 0, original.length);
 
       await page.getByTestId('skill-studio-new').click();
       await expect(page.getByRole('dialog')).toBeVisible();
 
-      await page.getByLabel('Name').fill('My Studio Skill');
+      await page.getByLabel(/^(Name|名称)$/).fill('My Studio Skill');
       await page.getByLabel('Skill ID').fill('global:my-studio-skill');
       await expect(page.getByTestId('skill-studio-save')).toBeEnabled({ timeout: 10_000 });
       await page.getByTestId('skill-studio-save').click();
@@ -92,10 +90,10 @@ test.describe('Skill System V2 (Skill Studio)', () => {
       await page.getByTestId('skill-studio-new').click();
       await expect(page.getByRole('dialog')).toBeVisible();
 
-      await page.getByLabel('Name').fill('Bad Version Skill');
-      await page.getByLabel('Version').fill('1.0');
+      await page.getByLabel(/^(Name|名称)$/).fill('Bad Version Skill');
+      await page.getByLabel(/^(Version|版本)$/).fill('1.0');
 
-      await expect(page.getByText('version must be valid SemVer')).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByText(/version must be valid SemVer|SemVer/)).toBeVisible({ timeout: 10_000 });
       await expect(page.getByTestId('skill-studio-save')).toBeDisabled();
     } finally {
       await electronApp.close().catch(() => undefined);

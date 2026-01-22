@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Search, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import type { Character } from '../../types/models';
 
@@ -16,6 +17,7 @@ function summarize(text: string, max = 36) {
 }
 
 export function CharacterList({ characters, selectedId, onSelect }: CharacterListProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
@@ -32,7 +34,7 @@ export function CharacterList({ characters, selectedId, onSelect }: CharacterLis
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索人物..."
+            placeholder={t('characters.list.searchPlaceholder')}
             className="bg-transparent outline-none text-[12px] flex-1 text-[var(--text-secondary)] placeholder-[var(--text-tertiary)]"
             spellCheck={false}
           />
@@ -42,8 +44,8 @@ export function CharacterList({ characters, selectedId, onSelect }: CharacterLis
       <div className="flex-1 overflow-y-auto py-1">
         {filtered.length === 0 ? (
           <div className="px-3 py-6 text-center">
-            <div className="text-[12px] text-[var(--text-tertiary)] mb-1">暂无人物</div>
-            <div className="text-[11px] text-[var(--text-tertiary)]">点击右上角「+」创建</div>
+            <div className="text-[12px] text-[var(--text-tertiary)] mb-1">{t('characters.list.empty.title')}</div>
+            <div className="text-[11px] text-[var(--text-tertiary)]">{t('characters.list.empty.hint')}</div>
           </div>
         ) : (
           filtered.map((c) => {
@@ -72,4 +74,3 @@ export function CharacterList({ characters, selectedId, onSelect }: CharacterLis
     </div>
   );
 }
-

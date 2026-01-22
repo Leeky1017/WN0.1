@@ -3,6 +3,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import { useTranslation } from 'react-i18next';
 
 import type { ViewMode } from '../../App';
+import { useDebouncedSave } from '../../hooks/useDebouncedSave';
 import { fileOps } from '../../lib/ipc';
 import { useEditorContextStore } from '../../stores/editorContextStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -74,6 +75,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   const setSelection = useEditorStore((s) => s.setSelection);
   const setEditorMode = useEditorStore((s) => s.setEditorMode);
   const save = useEditorStore((s) => s.save);
+  const requestSave = useEditorStore((s) => s.requestSave);
   const closeFile = useEditorStore((s) => s.closeFile);
   const consumeJumpToLine = useEditorStore((s) => s.consumeJumpToLine);
   const consumeJumpToRange = useEditorStore((s) => s.consumeJumpToRange);
@@ -85,7 +87,6 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   const paragraphFocusDimOpacity = usePreferencesStore((s) => s.flow.paragraphFocusDimOpacity);
 
   const [lineCount, setLineCount] = useState(1);
-  const autosaveTimerRef = useRef<number | null>(null);
   const lastSnapshotContentRef = useRef<string>('');
   const lastSnapshotPathRef = useRef<string>('');
   const isProgrammaticTipTapUpdateRef = useRef(false);
@@ -119,6 +120,14 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
   useEffect(() => {
     setLineCount(content.split('\n').length);
   }, [content]);
+
+  useDebouncedSave({
+    enabled: Boolean(currentPath),
+    isDirty,
+    debounceMs: 2000,
+    trigger: content,
+    requestSave,
+  });
 
   useEffect(() => {
     if (viewMode !== 'split') return;
@@ -295,24 +304,6 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
       tiptapSyncTimerRef.current = null;
     };
   }, [currentPath, editorContextDebounceMs, editorContextWindowParagraphs, editorMode, setEditorContext, setEditorContextSyncError]);
-
-  useEffect(() => {
-    if (!currentPath) return;
-    if (!isDirty) return;
-
-    if (autosaveTimerRef.current) {
-      window.clearTimeout(autosaveTimerRef.current);
-    }
-
-    autosaveTimerRef.current = window.setTimeout(() => {
-      save().catch(() => undefined);
-    }, 2000);
-
-    return () => {
-      if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current);
-      autosaveTimerRef.current = null;
-    };
-  }, [content, isDirty, save, currentPath]);
 
   useEffect(() => {
     if (!currentPath) return;
@@ -598,17 +589,21 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
       <div ref={splitRootRef} className="flex-1 flex overflow-hidden" data-testid="editor-split-root">
         {viewMode === 'edit' && (
           <>
-            {isLoading && <div className="flex-1 flex items-center justify-center text-[13px] text-[var(--text-tertiary)]">正在加载...</div>}
+            {isLoading && (
+              <div className="flex-1 flex items-center justify-center text-[13px] text-[var(--text-tertiary)]">
+                {t('common.loading')}
+              </div>
+            )}
             {!isLoading && loadError && (
               <div className="flex-1 flex items-center justify-center p-6">
                 <div className="text-center">
-                  <div className="text-[13px] text-[var(--text-tertiary)] mb-2">加载失败</div>
+                  <div className="text-[13px] text-[var(--text-tertiary)] mb-2">{t('editor.loadFailed')}</div>
                   <div className="text-[11px] text-[var(--text-tertiary)] mb-3">{loadError}</div>
                   <button
                     onClick={() => closeFile()}
                     className="h-7 px-2 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
                   >
-                    关闭
+                    {t('common.close')}
                   </button>
                 </div>
               </div>
@@ -635,7 +630,7 @@ export function Editor({ viewMode, onViewModeChange, focusMode }: EditorProps) {
               maxPx={
                 splitContainerWidth ? Math.max(EDITOR_SPLIT_MIN_PX, splitContainerWidth - EDITOR_SPLIT_MIN_PX) : 1600
               }
-              ariaLabel="Resize editor/preview split"
+              ariaLabel={t('editor.split.resizeAria')}
               onSizePxChange={setSplitLeftPx}
             />
             <div ref={previewScrollRef} className="flex-1 overflow-auto" data-testid="preview-scroll">

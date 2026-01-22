@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { getWnPreviewTheme } from './theme';
 
@@ -19,6 +20,7 @@ let mermaidInit = { done: false, theme: null as MermaidTheme | null };
  * Why: Mermaid render must be safe-by-default (securityLevel=strict) and theme-aware.
  */
 export function MermaidDiagram({ code, isLite = false }: MermaidDiagramProps) {
+  const { t } = useTranslation();
   const id = useId();
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export function MermaidDiagram({ code, isLite = false }: MermaidDiagramProps) {
   if (error) {
     return (
       <div className="wn-mermaid">
-        <div className="text-[11px] text-[var(--text-tertiary)] mb-2">Mermaid render failed: {error}</div>
+        <div className="text-[11px] text-[var(--text-tertiary)] mb-2">{t('editor.preview.mermaidFailed', { error })}</div>
         <pre className="overflow-x-auto">
           <code className="font-mono text-[13px] leading-[1.6]">{trimmed}</code>
         </pre>
@@ -86,7 +88,7 @@ export function MermaidDiagram({ code, isLite = false }: MermaidDiagramProps) {
   if (!svg) {
     return (
       <div className="wn-mermaid text-[12px] text-[var(--text-tertiary)]">
-        Rendering Mermaid…
+        {t('editor.preview.mermaidRendering')}
       </div>
     );
   }

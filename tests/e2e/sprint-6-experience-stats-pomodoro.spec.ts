@@ -54,9 +54,10 @@ async function waitForBootstrap(page: Page) {
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
   await expect(
     page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
   ).toBeVisible({ timeout: 15_000 });
@@ -64,7 +65,7 @@ async function createFile(page: Page, name: string) {
 
 async function saveNow(page: Page) {
   await page.keyboard.press('Control+S');
-  await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/Saved|已保存/, { exact: true })).toBeVisible({ timeout: 15_000 });
 }
 
 async function waitForWritingMinutes(page: Page, expectedMin: number) {
@@ -99,7 +100,7 @@ test('stats: create + save updates writing_stats and UI', async () => {
 
     expect(afterCreate.articlesCreated).toBe(baseline.articlesCreated + 1);
 
-    const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+    const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
     await expect(textarea).toBeVisible();
     const existing = await textarea.inputValue();
 
@@ -138,16 +139,16 @@ test('pomodoro: focus credits writing_minutes and recovers after restart', async
     if (!baselineResp.ok) throw new Error('stats:getToday failed');
     baselineWritingMinutes = baselineResp.data.stats.writingMinutes;
 
-    await first.page.getByRole('button', { name: 'Expand status details' }).click();
-    await expect(first.page.getByText('今日')).toBeVisible();
-    await first.page.getByRole('button', { name: 'Timer settings' }).click();
-    await expect(first.page.getByText('设置计时器')).toBeVisible();
-    await first.page.getByLabel('专注时长（分钟）').fill('2');
-    await first.page.getByLabel('休息时长（分钟）').fill('1');
-    await first.page.getByRole('button', { name: '应用', exact: true }).click();
-    await expect(first.page.getByText('设置计时器')).toBeHidden();
+    await first.page.getByRole('button', { name: /Expand status details|展开状态详情/ }).click();
+    await expect(first.page.getByText(/Today|今日/)).toBeVisible();
+    await first.page.getByRole('button', { name: /Timer settings|计时器设置/ }).click();
+    await expect(first.page.getByText(/Timer settings|设置计时器/)).toBeVisible();
+    await first.page.getByLabel(/Focus minutes|专注时长（分钟）/).fill('2');
+    await first.page.getByLabel(/Break minutes|休息时长（分钟）/).fill('1');
+    await first.page.getByRole('button', { name: /Apply|应用/, exact: true }).click();
+    await expect(first.page.getByText(/Timer settings|设置计时器/)).toBeHidden();
 
-    await first.page.getByRole('button', { name: /专注.*\d{2}:\d{2}/ }).click();
+    await first.page.getByRole('button', { name: /(Focus|专注).*\d{2}:\d{2}/ }).click();
     await new Promise((r) => setTimeout(r, 200));
     await first.electronApp.close();
   } catch (error) {
@@ -157,8 +158,8 @@ test('pomodoro: focus credits writing_minutes and recovers after restart', async
 
   const second = await launchApp(userDataDir, scaleEnv);
   try {
-    await expect(second.page.getByText('该休息了！')).toBeVisible({ timeout: 20_000 });
-    await second.page.getByRole('button', { name: '开始休息', exact: true }).click();
+    await expect(second.page.getByText(/Time for a break!|该休息了！/)).toBeVisible({ timeout: 20_000 });
+    await second.page.getByRole('button', { name: /Start break|开始休息/, exact: true }).click();
 
     const minutes = await waitForWritingMinutes(second.page, baselineWritingMinutes + 2);
     expect(minutes).toBeGreaterThanOrEqual(baselineWritingMinutes + 2);

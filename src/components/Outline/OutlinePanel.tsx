@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { ChevronDown, ChevronUp, Plus, Save, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useOutlineStore } from '../../stores/outlineStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -118,6 +119,7 @@ function findHeadingLine(editorContent: string, node: OutlineNode) {
 }
 
 export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
+  const { t, i18n } = useTranslation();
   const outline = useOutlineStore((s) => s.outline);
   const isLoading = useOutlineStore((s) => s.isLoading);
   const isDirty = useOutlineStore((s) => s.isDirty);
@@ -156,7 +158,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
       ...outline,
       {
         id: crypto.randomUUID(),
-        title: '新节点',
+        title: t('outline.node.defaultTitle'),
         level,
       },
     ]);
@@ -185,23 +187,22 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
   };
 
   const saveLabel = useMemo(() => {
-    if (saveStatus === 'saving') return '保存中...';
-    if (saveStatus === 'error') return '保存失败';
-    if (isDirty) return '未保存';
-    if (saveStatus === 'saved') return '已保存';
-    return '已保存';
-  }, [isDirty, saveStatus]);
+    if (saveStatus === 'saving') return t('editor.save.saving');
+    if (saveStatus === 'error') return t('editor.save.error');
+    if (isDirty) return t('editor.save.unsaved');
+    return t('editor.save.saved');
+  }, [isDirty, saveStatus, t]);
 
   if (!articleId) {
     return (
       <>
         <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
-          <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">大纲</span>
+          <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('outline.title')}</span>
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
-            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">未打开文件</div>
-            <div className="text-[11px] text-[var(--text-tertiary)]">打开文件后管理大纲</div>
+            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('outline.noFile.title')}</div>
+            <div className="text-[11px] text-[var(--text-tertiary)]">{t('outline.noFile.hint')}</div>
           </div>
         </div>
       </>
@@ -211,17 +212,19 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
   return (
     <>
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">大纲</span>
+        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">{t('outline.title')}</span>
         <div className="flex items-center gap-1">
           <div className="text-[11px] text-[var(--text-tertiary)] mr-1">
             {saveLabel}
-            {lastSavedAt && !isDirty ? ` · ${new Date(lastSavedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}` : ''}
+            {lastSavedAt && !isDirty
+              ? ` · ${new Date(lastSavedAt).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}`
+              : ''}
           </div>
           <button
             type="button"
             onClick={addNode}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
-            title="新增节点"
+            title={t('outline.actions.addNodeTitle')}
             disabled={isLoading}
           >
             <Plus className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -230,7 +233,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
             type="button"
             onClick={() => save().catch(() => undefined)}
             className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
-            title="保存大纲"
+            title={t('outline.actions.saveOutlineTitle')}
             disabled={!canSave || saveStatus === 'saving'}
           >
             <Save className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -247,8 +250,8 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
 
         {outline.length === 0 && !isLoading && (
           <div className="px-3 py-6 text-center">
-            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">暂无大纲</div>
-            <div className="text-[11px] text-[var(--text-tertiary)]">点击右上角「+」新增节点</div>
+            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">{t('outline.empty.title')}</div>
+            <div className="text-[11px] text-[var(--text-tertiary)]">{t('outline.empty.hint')}</div>
           </div>
         )}
 
@@ -260,9 +263,9 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
               data-testid={`outline-node-${index}`}
               className="flex-1 min-w-0 flex items-center gap-2 rounded hover:bg-[var(--bg-hover)] transition-colors px-2 py-1"
               style={{ paddingLeft: `${8 + (Math.max(1, node.level) - 1) * 12}px` }}
-              title="定位到编辑器"
+              title={t('outline.actions.jumpToEditorTitle')}
             >
-              <span className="text-[11px] text-[var(--text-tertiary)]">H{node.level}</span>
+              <span className="text-[11px] text-[var(--text-tertiary)]">{t('outline.node.headingLabel', { level: node.level })}</span>
               <input
                 value={node.title}
                 onChange={(e) => updateNode(node.id, { title: e.target.value })}
@@ -276,7 +279,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
               type="button"
               onClick={() => onMoveUp(index)}
               className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-40"
-              title="上移"
+              title={t('outline.actions.moveUpTitle')}
               disabled={index === 0}
             >
               <ChevronUp className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -285,7 +288,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
               type="button"
               onClick={() => onMoveDown(index)}
               className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-40"
-              title="下移"
+              title={t('outline.actions.moveDownTitle')}
               disabled={index === outline.length - 1}
             >
               <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -294,7 +297,7 @@ export function OutlinePanel({ articleId, editorContent }: OutlinePanelProps) {
               type="button"
               onClick={() => onDelete(index)}
               className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
-              title="删除"
+              title={t('common.delete')}
             >
               <Trash2 className="w-4 h-4 text-[var(--text-tertiary)]" />
             </button>

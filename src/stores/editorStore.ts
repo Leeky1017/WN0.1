@@ -70,6 +70,7 @@ type EditorState = {
   replaceRange: (range: { start: number; end: number }, replacement: string) => string;
   setEditorMode: (mode: EditorMode) => void;
   save: (tabId?: EditorTabId) => Promise<void>;
+  requestSave: (tabId?: EditorTabId) => void;
   requestJumpToLine: (line: number) => void;
   consumeJumpToLine: () => void;
   requestJumpToRange: (range: { start: number; end: number }) => void;
@@ -109,7 +110,104 @@ function normalizeRange(range: { start: number; end: number }, contentLength: nu
   return end >= start ? { start, end } : { start: end, end: start };
 }
 
-export const useEditorStore = create<EditorState>((set, get) => ({
+export const useEditorStore = create<EditorState>((set, get) => {
+  const saveInFlightByTabId = new Map<EditorTabId, Promise<void>>();
+  const queuedSaveByTabId = new Set<EditorTabId>();
+
+  /**
+   * Why: Autosave can request saves frequently; coalescing avoids concurrent writes
+   * and prevents clearing dirty state when content changes during an in-flight save.
+   */
+  const runSaveOnce = async (tabId: EditorTabId): Promise<void> => {
+    const before = get();
+    const tab = before.tabStateById[tabId];
+    if (!tab) return;
+    if (!tab.isDirty) return;
+
+    const path = tab.path;
+    const contentSnapshot = tab.content;
+    const requestId = (saveSeq += 1);
+
+    set((state) => {
+      const current = state.tabStateById[tabId];
+      if (!current) return {};
+      return {
+        tabStateById: {
+          ...state.tabStateById,
+          [tabId]: { ...current, saveStatus: 'saving', saveRequestId: requestId },
+        },
+      };
+    });
+
+    try {
+      const projectId = useProjectsStore.getState().currentProjectId;
+      await getFilesApi().write(path, contentSnapshot, projectId ? { projectId } : undefined);
+
+      set((state) => {
+        const current = state.tabStateById[tabId];
+        if (!current) return {};
+        if (current.path !== path) return {};
+
+        const unchanged = current.content === contentSnapshot;
+
+        return {
+          tabStateById: {
+            ...state.tabStateById,
+            [tabId]: {
+              ...current,
+              isDirty: unchanged ? false : current.isDirty,
+              saveStatus: 'saved',
+              lastSavedAt: Date.now(),
+            },
+          },
+          dirtyMap: { ...state.dirtyMap, [tabId]: unchanged ? false : Boolean(state.dirtyMap[tabId]) },
+        };
+      });
+
+      useFilesStore.getState().refresh().catch(() => undefined);
+    } catch (error) {
+      set((state) => {
+        const current = state.tabStateById[tabId];
+        if (!current) return {};
+        if (current.path !== path) return {};
+
+        return {
+          tabStateById: {
+            ...state.tabStateById,
+            [tabId]: { ...current, saveStatus: 'error' },
+          },
+        };
+      });
+      throw error;
+    }
+  };
+
+  const enqueueSave = (tabId: EditorTabId): Promise<void> => {
+    const inFlight = saveInFlightByTabId.get(tabId);
+    if (inFlight) {
+      queuedSaveByTabId.add(tabId);
+      return inFlight;
+    }
+
+    queuedSaveByTabId.delete(tabId);
+
+    const promise = (async () => {
+      await runSaveOnce(tabId);
+
+      while (queuedSaveByTabId.has(tabId)) {
+        queuedSaveByTabId.delete(tabId);
+        await runSaveOnce(tabId);
+      }
+    })().finally(() => {
+      saveInFlightByTabId.delete(tabId);
+      queuedSaveByTabId.delete(tabId);
+    });
+
+    saveInFlightByTabId.set(tabId, promise);
+    return promise;
+  };
+
+  return {
   openTabs: [],
   activeTabId: null,
   dirtyMap: {},
@@ -449,65 +547,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   save: async (tabId?: EditorTabId) => {
     const id = tabId ? normalizeTabId(tabId) : get().activeTabId;
     if (!id) return;
+    await enqueueSave(id);
+  },
 
-    const tab = get().tabStateById[id];
-    if (!tab) return;
-
-    const requestId = (saveSeq += 1);
-    set((state) => {
-      const current = state.tabStateById[id];
-      if (!current) return {};
-      return {
-        tabStateById: {
-          ...state.tabStateById,
-          [id]: {
-            ...current,
-            saveStatus: 'saving',
-            saveRequestId: requestId,
-          },
-        },
-      };
-    });
-
-    try {
-      const projectId = useProjectsStore.getState().currentProjectId;
-      await getFilesApi().write(tab.path, tab.content, projectId ? { projectId } : undefined);
-
-      set((state) => {
-        const current = state.tabStateById[id];
-        if (!current) return {};
-        if (current.saveRequestId !== requestId) return {};
-        return {
-          tabStateById: {
-            ...state.tabStateById,
-            [id]: {
-              ...current,
-              isDirty: false,
-              saveStatus: 'saved',
-              lastSavedAt: Date.now(),
-            },
-          },
-          dirtyMap: { ...state.dirtyMap, [id]: false },
-        };
-      });
-      useFilesStore.getState().refresh().catch(() => undefined);
-    } catch (error) {
-      set((state) => {
-        const current = state.tabStateById[id];
-        if (!current) return {};
-        if (current.saveRequestId !== requestId) return {};
-        return {
-          tabStateById: {
-            ...state.tabStateById,
-            [id]: {
-              ...current,
-              saveStatus: 'error',
-            },
-          },
-        };
-      });
-      throw error;
-    }
+  requestSave: (tabId?: EditorTabId) => {
+    const id = tabId ? normalizeTabId(tabId) : get().activeTabId;
+    if (!id) return;
+    void enqueueSave(id).catch(() => undefined);
   },
 
   requestJumpToLine: (line: number) => {
@@ -578,4 +624,5 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       };
     });
   },
-}));
+  };
+});

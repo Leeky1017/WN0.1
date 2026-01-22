@@ -26,9 +26,10 @@ function escapeRegExp(text: string) {
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible();
 }
 
@@ -50,7 +51,7 @@ test('P2-002: multi-tabs keep dirty state and prompt on unsaved close', async ()
   const tabB = getTabButton(tabbar, 'Tab B.md');
 
   await tabA.click();
-  const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+  const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
   await expect(textarea).toBeVisible();
 
   const unique = `UNSAVED_${Date.now()}`;
@@ -63,20 +64,20 @@ test('P2-002: multi-tabs keep dirty state and prompt on unsaved close', async ()
   await tabA.click();
   await expect(textarea).toHaveValue(new RegExp(escapeRegExp(unique)));
 
-  const dirtyDot = tabA.locator('[aria-label="Unsaved changes"]');
+  const dirtyDot = tabA.locator('[aria-label="Unsaved changes"], [aria-label="未保存"]');
   await expect(dirtyDot).toBeVisible();
 
-  await tabA.getByRole('button', { name: 'Close Tab A.md' }).click();
+  await tabA.getByRole('button', { name: /^(Close|关闭) Tab A\.md$/ }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('关闭未保存的文档？');
+  await expect(dialog).toContainText(/Close unsaved document\?|关闭未保存的文档？/);
 
-  await page.getByRole('button', { name: '取消', exact: true }).click();
+  await page.getByRole('button', { name: /^(Cancel|取消)$/ }).click();
   await expect(tabA).toBeVisible();
 
-  await tabA.getByRole('button', { name: 'Close Tab A.md' }).click();
+  await tabA.getByRole('button', { name: /^(Close|关闭) Tab A\.md$/ }).click();
   await expect(dialog).toBeVisible();
-  await page.getByRole('button', { name: '直接关闭', exact: true }).click();
+  await page.getByRole('button', { name: /^(Close without saving|直接关闭)$/ }).click();
   await expect(tabbar.getByRole('button', { name: 'Tab A.md', exact: true })).toHaveCount(0);
 
   await electronApp.close();

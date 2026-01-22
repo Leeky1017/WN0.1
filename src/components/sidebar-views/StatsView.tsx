@@ -1,18 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { StatsViewRange } from '../../stores/statsStore';
 import { useStatsStore } from '../../stores/statsStore';
 
-function formatNumber(value: number) {
-  return Number.isFinite(value) ? Math.max(0, Math.floor(value)).toLocaleString('zh-CN') : '0';
+function formatNumber(value: number, locale: string) {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)).toLocaleString(locale) : '0';
 }
 
-function formatMinutes(value: number) {
+function formatMinutes(
+  value: number,
+  locale: string,
+  t: (key: string, options?: Record<string, string | number>) => string,
+) {
   const minutes = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
-  if (minutes < 60) return `${minutes} 分钟`;
+  if (minutes < 60) return t('stats.duration.minutes', { minutes: formatNumber(minutes, locale) });
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest ? `${hours} 小时 ${rest} 分钟` : `${hours} 小时`;
+  if (!rest) return t('stats.duration.hours', { hours: formatNumber(hours, locale) });
+  return t('stats.duration.hoursAndMinutes', { hours: formatNumber(hours, locale), minutes: formatNumber(rest, locale) });
 }
 
 function parseDateKey(dateKey: string): Date | null {
@@ -28,9 +34,13 @@ function parseDateKey(dateKey: string): Date | null {
   return d;
 }
 
-function toWeekdayLabel(date: Date) {
-  const labels = ['日', '一', '二', '三', '四', '五', '六'];
-  return labels[date.getDay()] ?? '';
+function toWeekdayLabel(date: Date, locale: string) {
+  try {
+    return new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(date);
+  } catch {
+    const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    return labels[date.getDay()] ?? '';
+  }
 }
 
 function enumerateDateKeys(startDate: string, endDate: string) {
@@ -54,13 +64,15 @@ function enumerateDateKeys(startDate: string, endDate: string) {
   return keys;
 }
 
-function rangeTitle(view: StatsViewRange) {
-  if (view === 'day') return '最近 7 天';
-  if (view === 'week') return '本周';
-  return '本月';
+function rangeTitle(view: StatsViewRange, t: (key: string) => string) {
+  if (view === 'day') return t('stats.range.day');
+  if (view === 'week') return t('stats.range.week');
+  return t('stats.range.month');
 }
 
 export function StatsView() {
+  const { t, i18n } = useTranslation();
+  const numberLocale = i18n.language;
   const today = useStatsStore((s) => s.today);
   const range = useStatsStore((s) => s.range);
   const summary = useStatsStore((s) => s.summary);
@@ -118,7 +130,7 @@ export function StatsView() {
     <>
       <div className="h-11 flex items-center justify-between px-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] text-[var(--text-primary)]">创作统计</span>
+          <span className="text-[13px] text-[var(--text-primary)]">{t('nav.stats')}</span>
           {rangeStartDate && rangeEndDate && (
             <span className="text-[11px] text-[var(--text-tertiary)] tabular-nums">
               {rangeStartDate} ~ {rangeEndDate}
@@ -139,7 +151,7 @@ export function StatsView() {
                     : 'bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]'
                 }`}
               >
-                {key === 'day' ? '日' : key === 'week' ? '周' : '月'}
+                {t(`stats.view.${key}`)}
               </button>
             );
           })}
@@ -147,7 +159,7 @@ export function StatsView() {
             onClick={() => refresh().catch(() => undefined)}
             className="h-7 px-2 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
           >
-            刷新
+            {t('common.refresh')}
           </button>
         </div>
       </div>
@@ -155,18 +167,18 @@ export function StatsView() {
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {error && (
           <div className="wn-elevated p-4 text-[12px] text-[var(--text-tertiary)]">
-            <div className="mb-3">加载统计失败：{error}</div>
+            <div className="mb-3">{t('stats.loadFailed', { error })}</div>
             <button
               onClick={() => refresh().catch(() => undefined)}
               className="h-7 px-2 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
             >
-              重试
+              {t('common.retry')}
             </button>
           </div>
         )}
 
         {!error && isLoading && !today && (
-          <div className="text-[12px] text-[var(--text-tertiary)]">加载中…</div>
+          <div className="text-[12px] text-[var(--text-tertiary)]">{t('common.loading')}</div>
         )}
 
         {!error && (
@@ -175,13 +187,13 @@ export function StatsView() {
             <div className="space-y-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-[32px] font-light text-[var(--text-primary)] tabular-nums">
-                  {formatNumber(todayWordCount)}
+                  {formatNumber(todayWordCount, numberLocale)}
                 </span>
-                <span className="text-[13px] text-[var(--text-tertiary)]">字（今日）</span>
+                <span className="text-[13px] text-[var(--text-tertiary)]">{t('stats.todayWordLabel')}</span>
               </div>
               <div className="h-px bg-[var(--border-default)]" />
               <div className="flex items-center justify-between text-[13px]">
-                <span className="text-[var(--text-tertiary)]">目标进度</span>
+                <span className="text-[var(--text-tertiary)]">{t('stats.goalProgress')}</span>
                 <span className="text-[var(--text-secondary)] tabular-nums">{goalProgress}%</span>
               </div>
               <div className="h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
@@ -189,7 +201,7 @@ export function StatsView() {
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-1">
-                <div className="text-[11px] text-[var(--text-tertiary)]">每日目标（字）</div>
+                <div className="text-[11px] text-[var(--text-tertiary)]">{t('stats.dailyGoalLabel')}</div>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -203,7 +215,7 @@ export function StatsView() {
                     onClick={() => setDailyWordGoal(goalDraft)}
                     className="h-7 px-2 rounded-md bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)] transition-colors"
                   >
-                    保存
+                    {t('common.save')}
                   </button>
                 </div>
               </div>
@@ -211,23 +223,31 @@ export function StatsView() {
 
             {/* Today metrics */}
             <div className="space-y-2">
-              <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">今日</div>
+              <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">{t('stats.today')}</div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">{formatMinutes(today?.writingMinutes ?? 0)}</div>
-                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">专注时长</div>
+                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">
+                    {formatMinutes(today?.writingMinutes ?? 0, numberLocale, t)}
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">{t('stats.metrics.writingDuration')}</div>
                 </div>
                 <div>
-                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">{formatNumber(today?.articlesCreated ?? 0)}</div>
-                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">新建文章</div>
+                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">
+                    {formatNumber(today?.articlesCreated ?? 0, numberLocale)}
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">{t('stats.metrics.articlesCreated')}</div>
                 </div>
                 <div>
-                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">{formatNumber(today?.skillsUsed ?? 0)}</div>
-                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">SKILL 次数</div>
+                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">
+                    {formatNumber(today?.skillsUsed ?? 0, numberLocale)}
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">{t('stats.metrics.skillsUsed')}</div>
                 </div>
                 <div>
-                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">{formatNumber(todayWordCount)}</div>
-                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">字数</div>
+                  <div className="text-[20px] font-light text-[var(--text-primary)] tabular-nums">
+                    {formatNumber(todayWordCount, numberLocale)}
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">{t('stats.metrics.wordCount')}</div>
                 </div>
               </div>
             </div>
@@ -235,10 +255,13 @@ export function StatsView() {
             {/* Trend */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">{rangeTitle(view)}</div>
+                <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">{rangeTitle(view, t)}</div>
                 <div className="text-[11px] text-[var(--text-tertiary)]">
                   {summary
-                    ? `合计 ${formatNumber(summary.wordCount)} 字 · ${formatMinutes(summary.writingMinutes)}`
+                    ? t('stats.trend.summary', {
+                        words: formatNumber(summary.wordCount, numberLocale),
+                        duration: formatMinutes(summary.writingMinutes, numberLocale, t),
+                      })
                     : '—'}
                 </div>
               </div>
@@ -252,14 +275,14 @@ export function StatsView() {
                         ? String(date.getDate())
                         : ''
                       : date
-                        ? toWeekdayLabel(date)
+                        ? toWeekdayLabel(date, numberLocale)
                         : '';
                   const heightPct = Math.round((row.wordCount / maxWordCount) * 100);
                   return (
                     <div key={row.date} className="flex-1 flex flex-col gap-1.5 min-w-0">
                       <div
                         className="flex-1 bg-[var(--bg-secondary)] rounded-sm relative overflow-hidden"
-                        title={`${row.date} · ${formatNumber(row.wordCount)} 字`}
+                        title={t('stats.trend.barTitle', { date: row.date, words: formatNumber(row.wordCount, numberLocale) })}
                       >
                         <div
                           className="absolute bottom-0 left-0 right-0 bg-[var(--accent-primary)] opacity-80 transition-all"
@@ -275,23 +298,31 @@ export function StatsView() {
 
             {/* Summary */}
             <div className="space-y-3 pb-4">
-              <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">区间汇总</div>
+              <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">{t('stats.summary.title')}</div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
-                  <span className="text-[13px] text-[var(--text-secondary)]">总字数</span>
-                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">{formatNumber(summary?.wordCount ?? 0)}</span>
+                  <span className="text-[13px] text-[var(--text-secondary)]">{t('stats.summary.totalWords')}</span>
+                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">
+                    {formatNumber(summary?.wordCount ?? 0, numberLocale)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
-                  <span className="text-[13px] text-[var(--text-secondary)]">专注时长</span>
-                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">{formatMinutes(summary?.writingMinutes ?? 0)}</span>
+                  <span className="text-[13px] text-[var(--text-secondary)]">{t('stats.metrics.writingDuration')}</span>
+                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">
+                    {formatMinutes(summary?.writingMinutes ?? 0, numberLocale, t)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
-                  <span className="text-[13px] text-[var(--text-secondary)]">新建文章</span>
-                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">{formatNumber(summary?.articlesCreated ?? 0)}</span>
+                  <span className="text-[13px] text-[var(--text-secondary)]">{t('stats.metrics.articlesCreated')}</span>
+                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">
+                    {formatNumber(summary?.articlesCreated ?? 0, numberLocale)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-[13px] text-[var(--text-secondary)]">SKILL 次数</span>
-                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">{formatNumber(summary?.skillsUsed ?? 0)}</span>
+                  <span className="text-[13px] text-[var(--text-secondary)]">{t('stats.metrics.skillsUsed')}</span>
+                  <span className="text-[15px] text-[var(--text-primary)] tabular-nums">
+                    {formatNumber(summary?.skillsUsed ?? 0, numberLocale)}
+                  </span>
                 </div>
               </div>
             </div>
