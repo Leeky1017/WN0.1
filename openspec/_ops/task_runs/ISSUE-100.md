@@ -1,7 +1,7 @@
 # ISSUE-100
 - Issue: #100
 - Branch: task/100-issue-89-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/102
 
 ## Plan
 - Archive rulebook task for #89
@@ -43,3 +43,18 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive && npm run contract:check && npm run lint && npm test && npm run build`
 - Key output: `openspec Totals: 12 passed, 0 failed; contract:check OK; lint 0 errors; vitest 34 passed; vite build OK`
 - Evidence: `.worktrees/issue-100-issue-89-closeout/dist/`
+
+### 2026-01-22 10:32 Commit closeout changes
+- Command: `git commit -m "chore(gov): closeout issue-89 artifacts (#100)"`
+- Key output: `9d235ba chore(gov): closeout issue-89 artifacts (#100)`
+- Evidence: `git show 9d235ba`
+
+### 2026-01-22 10:33 Push branch
+- Command: `git push -u origin HEAD`
+- Key output: `HEAD -> task/100-issue-89-closeout`
+- Evidence: `origin/task/100-issue-89-closeout`
+
+### 2026-01-22 10:33 Create PR
+- Command: `gh pr create --base main --head task/100-issue-89-closeout ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/102`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/102`
