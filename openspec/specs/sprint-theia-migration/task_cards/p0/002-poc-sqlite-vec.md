@@ -1,5 +1,10 @@
 # 002: PoC — Theia backend + better-sqlite3 + sqlite-vec
 
+Status: done  
+Issue: #111  
+PR: https://github.com/Leeky1017/WN0.1/pull/112  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-111.md
+
 ## Context
 
 WriteNow 的全文搜索与语义搜索依赖 SQLite（`better-sqlite3`）与向量扩展（`sqlite-vec`）。迁移到 Theia 后，backend 仍是 Node，但分发/打包方式与 native 模块加载路径会变化；必须先验证“能否加载 + 能否查询 + 能否打包”。
@@ -12,10 +17,10 @@ WriteNow 的全文搜索与语义搜索依赖 SQLite（`better-sqlite3`）与向
 
 ## Acceptance Criteria
 
-- [ ] PoC 在 Theia backend 启动时成功加载 `better-sqlite3`，可创建数据库文件并执行基本 SQL。
-- [ ] 成功加载 `sqlite-vec` 扩展并创建 `vec0` 表，能插入向量并完成一次查询（TopK 或 distance 过滤）。
-- [ ] 失败路径可观测：加载失败时有明确错误信息与定位线索（不是 silent failure）。
-- [ ] 输出 PoC 记录：结论（可行/不可行/有条件可行）、限制（平台/打包/CPU）、以及对后续任务的影响（是否需要替代方案）。
+- [x] PoC 在 Theia backend 启动时成功加载 `better-sqlite3`，可创建数据库文件并执行基本 SQL。
+- [x] 成功加载 `sqlite-vec` 扩展并创建 `vec0` 表，能插入向量并完成一次查询（TopK 或 distance 过滤）。
+- [x] 失败路径可观测：加载失败时有明确错误信息与定位线索（不是 silent failure）。
+- [x] 输出 PoC 记录：结论（可行/不可行/有条件可行）、限制（平台/打包/CPU）、以及对后续任务的影响（是否需要替代方案）。
 
 ## Dependencies
 
@@ -24,4 +29,3 @@ WriteNow 的全文搜索与语义搜索依赖 SQLite（`better-sqlite3`）与向
 ## Estimated Effort
 
 - M（2–3 天；若涉及打包验证与 native 二进制问题，可能上升到 L）
-
