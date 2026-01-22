@@ -81,3 +81,14 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 12 passed, 0 failed (12 items)`
 - Evidence: `openspec/specs/skill-system-v2/spec.md`
+
+### 2026-01-22 01:30 Rebase + E2E refresh (mergeable)
+- Command: `git fetch origin && git rebase origin/main`
+- Key output: `CONFLICT (content): src/App.tsx`
+- Evidence: `src/App.tsx`
+- Command: `npm test && npm run build`
+- Key output: `Tests 40 passed (40)`, `✓ built`
+- Evidence: `dist/`
+- Command: `npx playwright test tests/e2e/skill-system-v2-*.spec.ts tests/e2e/frontend-theme-visual.spec.ts`
+- Key output: `8 passed`
+- Evidence: `tests/e2e/skill-system-v2-studio.spec.ts`, `tests/e2e/skill-system-v2-ui-list.spec.ts`

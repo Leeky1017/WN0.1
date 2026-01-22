@@ -29,7 +29,7 @@ async function createFile(page: Page, name: string) {
   await page.locator('button[title="新建文件"]').click();
   await page.getByPlaceholder('未命名').fill(name);
   await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible();
+  await expect(page.getByTestId(`editor-tab-${name}.md`)).toBeVisible();
 }
 
 async function setTextareaSelection(page: Page, start: number, end: number) {
