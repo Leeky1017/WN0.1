@@ -144,6 +144,15 @@ CREATE TABLE IF NOT EXISTS skills (
   context_rules TEXT,                -- JSON: 上下文注入规则
   model TEXT DEFAULT 'claude-sonnet',
   is_builtin INTEGER DEFAULT 0,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  is_valid INTEGER NOT NULL DEFAULT 1,
+  error_code TEXT,
+  error_message TEXT,
+  source_uri TEXT,
+  source_hash TEXT,
+  version TEXT,
+  scope TEXT,
+  package_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

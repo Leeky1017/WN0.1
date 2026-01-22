@@ -22,8 +22,8 @@ import { usePreferencesStore } from './stores/preferencesStore';
 import { useContextEntityPrefetch } from './hooks/useContextEntityPrefetch';
 import { usePomodoroRuntime } from './hooks/usePomodoroRuntime';
 import { useAiStore } from './stores/aiStore';
+import { useSkillsStore } from './stores/skillsStore';
 import { CommandPalette } from './components/CommandPalette';
-import { BUILTIN_SKILLS } from './lib/skills';
 import { createCommandRegistry } from './lib/commands/registry';
 import { useZenChrome } from './components/Editor/modes/zen';
 
@@ -122,6 +122,12 @@ export default function App() {
   const startPomodoro = usePomodoroStore((s) => s.start);
   const pausePomodoro = usePomodoroStore((s) => s.pause);
   const stopPomodoro = usePomodoroStore((s) => s.stop);
+  const skills = useSkillsStore((s) => s.items);
+  const refreshSkills = useSkillsStore((s) => s.refresh);
+
+  useEffect(() => {
+    refreshSkills({ includeDisabled: true }).catch(() => undefined);
+  }, [refreshSkills]);
 
   useEffect(() => {
     let cancelled = false;
@@ -235,9 +241,9 @@ export default function App() {
       pausePomodoro,
       stopPomodoro,
       runSkill,
-      skills: BUILTIN_SKILLS,
+      skills: skills.filter((s) => s.enabled && s.valid).map((s) => ({ id: s.id, name: s.name, description: s.description })),
     });
-  }, [pausePomodoro, runSkill, setSidebarCollapsed, setZenEnabled, startPomodoro, stopPomodoro, t, toggleZen]);
+  }, [pausePomodoro, runSkill, setSidebarCollapsed, setZenEnabled, skills, startPomodoro, stopPomodoro, t, toggleZen]);
 
   useEffect(() => {
     bootstrapProjects().catch(() => undefined);

@@ -1,5 +1,10 @@
 # 任务 003: SKILL 管理 IPC + UI 列表（移除前端硬编码）
 
+Status: done
+Issue: #94
+PR: https://github.com/Leeky1017/WN0.1/pull/101
+RUN_LOG: openspec/_ops/task_runs/ISSUE-94.md
+
 ## 目标
 
 提供技能列表与管理能力的 IPC 契约与实现：渲染进程通过 IPC 获取技能列表/详情/状态，并在 UI 中展示与触发；同时移除 `src/lib/skills.ts` 的硬编码内置列表，消除双源。
@@ -41,10 +46,10 @@
 
 ## 验收标准
 
-- [ ] IPC 提供 skill:list/read/toggle，且所有失败分支有稳定错误码与可理解 message
-- [ ] AI 面板技能列表不再依赖硬编码常量，且内置 3 技能仍可触发
-- [ ] invalid skill 不可运行并在 UI 有明确提示（不影响其他技能）
-- [ ] E2E 覆盖列表展示、运行、错误分支
+- [x] IPC 提供 skill:list/read/toggle，且所有失败分支有稳定错误码与可理解 message
+- [x] AI 面板技能列表不再依赖硬编码常量，且内置 3 技能仍可触发
+- [x] invalid skill 不可运行并在 UI 有明确提示（不影响其他技能）
+- [x] E2E 覆盖列表展示、运行、错误分支
 
 ## 参考
 

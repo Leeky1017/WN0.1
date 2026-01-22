@@ -1,5 +1,10 @@
 # 任务 001: `SKILL.md` 格式与校验器（V2）
 
+Status: done
+Issue: #94
+PR: https://github.com/Leeky1017/WN0.1/pull/101
+RUN_LOG: openspec/_ops/task_runs/ISSUE-94.md
+
 ## 目标
 
 定义并落地 WriteNow V2 的 `SKILL.md` 解析与校验能力：支持 YAML frontmatter + Markdown 正文，输出结构化 SkillDefinitionV2，并能在失败时给出稳定错误码与可恢复提示，为后续索引/安装/UI 编辑提供统一底座。
@@ -36,11 +41,11 @@
 
 ## 验收标准
 
-- [ ] 给定任意合法 `SKILL.md`，可解析为结构化 SkillDefinitionV2（字段完整、类型安全）
-- [ ] 对缺字段/非法版本/超长等输入，校验失败可恢复且有稳定错误码
-- [ ] 校验器具备明确的长度控制策略与拆分建议（references/package/variants）
-- [ ] refs slot 定义可被解析与校验（无效 slot 会被拒绝并给出可恢复错误原因）
-- [ ] 单元测试覆盖关键边界分支并可重复运行
+- [x] 给定任意合法 `SKILL.md`，可解析为结构化 SkillDefinitionV2（字段完整、类型安全）
+- [x] 对缺字段/非法版本/超长等输入，校验失败可恢复且有稳定错误码
+- [x] 校验器具备明确的长度控制策略与拆分建议（references/package/variants）
+- [x] refs slot 定义可被解析与校验（无效 slot 会被拒绝并给出可恢复错误原因）
+- [x] 单元测试覆盖关键边界分支并可重复运行
 
 ## 参考
 

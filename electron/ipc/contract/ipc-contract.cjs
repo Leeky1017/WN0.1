@@ -189,6 +189,78 @@ export type StatsIncrementResponse = {
   stats: WritingStatsRow;
 };
 
+export type SkillScope = 'builtin' | 'global' | 'project';
+
+export type SkillListItem = {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  scope: SkillScope;
+  packageId?: string;
+  enabled: boolean;
+  valid: boolean;
+  error?: { code: IpcErrorCode; message: string };
+};
+
+export type SkillListRequest = {
+  includeDisabled?: boolean;
+};
+
+export type SkillListResponse = {
+  skills: SkillListItem[];
+};
+
+export type SkillReadRequest = {
+  id: string;
+};
+
+export type SkillFileDefinition = {
+  frontmatter: Record<string, unknown>;
+  markdown: string;
+};
+
+export type SkillParseError = {
+  code: IpcErrorCode;
+  message: string;
+  details?: unknown;
+};
+
+export type SkillReadResponse = {
+  skill: SkillListItem & {
+    sourceUri: string;
+    sourceHash?: string;
+    definition?: SkillFileDefinition;
+    parseError?: SkillParseError;
+    rawText: string;
+  };
+};
+
+export type SkillToggleRequest = {
+  id: string;
+  enabled: boolean;
+};
+
+export type SkillToggleResponse = {
+  id: string;
+  enabled: boolean;
+};
+
+export type SkillWriteRequest = {
+  scope: SkillScope;
+  projectId?: string;
+  packageId: string;
+  packageVersion: string;
+  skillSlug: string;
+  content: string;
+  overwrite?: boolean;
+};
+
+export type SkillWriteResponse = {
+  written: true;
+  sourceUri: string;
+};
+
 export type AiPromptPayload = {
   systemPrompt: string;
   userContent: string;

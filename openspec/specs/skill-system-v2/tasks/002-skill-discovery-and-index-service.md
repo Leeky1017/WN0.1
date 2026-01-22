@@ -1,5 +1,10 @@
 # 任务 002: SKILL 发现与索引服务（file → DB index）
 
+Status: done
+Issue: #94
+PR: https://github.com/Leeky1017/WN0.1/pull/101
+RUN_LOG: openspec/_ops/task_runs/ISSUE-94.md
+
 ## 目标
 
 实现 SkillIndexService：扫描 builtin/global/project 三层目录，解析 `SKILL.md` 并将索引写入数据库；支持增量更新与可观测错误状态，确保 “文件为源、DB 为索引” 可落地且不引入双源漂移。
@@ -37,12 +42,12 @@
 
 ## 验收标准
 
-- [ ] builtin/global/project 三层目录的技能可被发现并写入 DB 索引（幂等）
-- [ ] 同 `id` 冲突时按优先级覆盖且可解释（包含来源与 hash）
-- [ ] 文件变更可触发增量索引更新（无需重启）
-- [ ] refs 目录可增量发现并更新可选项（仅索引元数据，不默认注入正文）
-- [ ] 解析失败可恢复：技能被标记 invalid，UI 可见错误原因，系统可继续运行
-- [ ] E2E 覆盖：新增/修改/删除 skill 文件后的列表变化与错误分支
+- [x] builtin/global/project 三层目录的技能可被发现并写入 DB 索引（幂等）
+- [x] 同 `id` 冲突时按优先级覆盖且可解释（包含来源与 hash）
+- [x] 文件变更可触发增量索引更新（无需重启）
+- [x] refs 目录可增量发现并更新可选项（仅索引元数据，不默认注入正文）
+- [x] 解析失败可恢复：技能被标记 invalid，UI 可见错误原因，系统可继续运行
+- [x] E2E 覆盖：新增/修改/删除 skill 文件后的列表变化与错误分支
 
 ## 参考
 

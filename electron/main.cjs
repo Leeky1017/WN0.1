@@ -8,8 +8,8 @@ const config = require('./lib/config.cjs')
 const { syncDocumentsToDatabase } = require('./lib/documents-indexer.cjs')
 const { EmbeddingService } = require('./lib/embedding-service.cjs')
 const { VectorStore } = require('./lib/vector-store.cjs')
-const { ensureBuiltinSkills } = require('./lib/skills.cjs')
 const { RagIndexer } = require('./lib/rag/indexer.cjs')
+const { SkillIndexService } = require('./services/skills/SkillIndexService.cjs')
 const { registerFileIpcHandlers } = require('./ipc/files.cjs')
 const { registerUpdateIpcHandlers } = require('./ipc/update.cjs')
 const { registerExportIpcHandlers } = require('./ipc/export.cjs')
@@ -23,6 +23,7 @@ const { registerCharactersIpcHandlers } = require('./ipc/characters.cjs')
 const { registerOutlineIpcHandlers } = require('./ipc/outline.cjs')
 const { registerKnowledgeGraphIpcHandlers } = require('./ipc/knowledgeGraph.cjs')
 const { registerMemoryIpcHandlers } = require('./ipc/memory.cjs')
+const { registerSkillsIpcHandlers } = require('./ipc/skills.cjs')
 const { registerAiIpcHandlers } = require('./ipc/ai.cjs')
 const { registerVersionIpcHandlers } = require('./ipc/version.cjs')
 const { registerStatsIpcHandlers } = require('./ipc/stats.cjs')
@@ -34,6 +35,7 @@ let db = null
 let embeddingService = null
 let vectorStore = null
 let ragIndexer = null
+let skillIndexService = null
 let shuttingDown = false
 let updateService = null
 let judgeService = null
@@ -209,6 +211,15 @@ function setupIpc() {
   })
 
   const handleInvoke = createInvokeHandler()
+  const broadcast = (event, payload) => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      try {
+        win.webContents.send(event, payload)
+      } catch {
+        // ignore
+      }
+    }
+  }
   registerFileIpcHandlers(ipcMain, {
     handleInvoke,
     db,
@@ -237,6 +248,21 @@ function setupIpc() {
     handleInvoke,
     db,
     logger,
+    onCurrentProjectId: async (projectId) => {
+      try {
+        await skillIndexService?.setActiveProject?.(projectId)
+      } catch (error) {
+        logger?.warn?.('skills', 'setActiveProject failed', { message: error?.message })
+      }
+    },
+  })
+
+  registerSkillsIpcHandlers(ipcMain, {
+    handleInvoke,
+    db,
+    logger,
+    userDataDir: app.getPath('userData'),
+    broadcast,
   })
 
   registerCharactersIpcHandlers(ipcMain, {
@@ -424,7 +450,24 @@ app.whenReady().then(async () => {
     await initSessionLock({ log: (message, details) => logger?.info?.('session', message, details) })
     db = initDatabase({ userDataPath: app.getPath('userData') })
     config.initConfig({ db, logger, safeStorage })
-    ensureBuiltinSkills(db, logger)
+    skillIndexService = new SkillIndexService({
+      db,
+      logger,
+      userDataDir: app.getPath('userData'),
+      builtinPackagesDir: path.join(__dirname, 'skills', 'packages'),
+      onIndexChanged: ({ skillIds, reason }) => {
+        const ids = Array.isArray(skillIds) ? skillIds.filter((id) => typeof id === 'string' && id.trim()) : []
+        const payload = { skillIds: ids, reason: typeof reason === 'string' ? reason : 'update', atMs: Date.now() }
+        for (const win of BrowserWindow.getAllWindows()) {
+          try {
+            win.webContents.send('skills:changed', payload)
+          } catch {
+            // ignore
+          }
+        }
+      },
+    })
+    await skillIndexService.start()
     embeddingService = new EmbeddingService({ userDataDir: app.getPath('userData'), logger })
     vectorStore = new VectorStore({ db, logger })
     ragIndexer = new RagIndexer({ db, logger, embeddingService, vectorStore })
@@ -448,6 +491,12 @@ async function gracefulShutdown(exitCode) {
   shuttingDown = true
 
   try {
+    try {
+      skillIndexService?.stop?.()
+    } catch {
+      // ignore
+    }
+
     await embeddingService?.close?.()
   } catch {
     // ignore

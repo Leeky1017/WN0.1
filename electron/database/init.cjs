@@ -3,7 +3,7 @@ const path = require('path')
 
 const Database = require('better-sqlite3')
 
-const SCHEMA_VERSION = 6
+const SCHEMA_VERSION = 7
 
 function resolveUserDataPath(userDataPath) {
   if (typeof userDataPath === 'string' && userDataPath.trim()) return userDataPath
@@ -101,6 +101,40 @@ function migrateToV6(_db) {
   // V6 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
 }
 
+function migrateToV7(db) {
+  const tx = db.transaction(() => {
+    if (!hasColumn(db, 'skills', 'enabled')) {
+      db.exec('ALTER TABLE skills ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1')
+    }
+    if (!hasColumn(db, 'skills', 'is_valid')) {
+      db.exec('ALTER TABLE skills ADD COLUMN is_valid INTEGER NOT NULL DEFAULT 1')
+    }
+    if (!hasColumn(db, 'skills', 'error_code')) {
+      db.exec('ALTER TABLE skills ADD COLUMN error_code TEXT')
+    }
+    if (!hasColumn(db, 'skills', 'error_message')) {
+      db.exec('ALTER TABLE skills ADD COLUMN error_message TEXT')
+    }
+    if (!hasColumn(db, 'skills', 'source_uri')) {
+      db.exec('ALTER TABLE skills ADD COLUMN source_uri TEXT')
+    }
+    if (!hasColumn(db, 'skills', 'source_hash')) {
+      db.exec('ALTER TABLE skills ADD COLUMN source_hash TEXT')
+    }
+    if (!hasColumn(db, 'skills', 'version')) {
+      db.exec('ALTER TABLE skills ADD COLUMN version TEXT')
+    }
+    if (!hasColumn(db, 'skills', 'scope')) {
+      db.exec('ALTER TABLE skills ADD COLUMN scope TEXT')
+    }
+    if (!hasColumn(db, 'skills', 'package_id')) {
+      db.exec('ALTER TABLE skills ADD COLUMN package_id TEXT')
+    }
+  })
+
+  tx()
+}
+
 function runMigrations(db) {
   const current = getStoredSchemaVersion(db)
   if (current >= SCHEMA_VERSION) return
@@ -109,6 +143,7 @@ function runMigrations(db) {
   if (current < 4) migrateToV4(db)
   if (current < 5) migrateToV5(db)
   if (current < 6) migrateToV6(db)
+  if (current < 7) migrateToV7(db)
   setStoredSchemaVersion(db, SCHEMA_VERSION)
 }
 

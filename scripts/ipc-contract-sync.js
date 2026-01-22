@@ -14,6 +14,7 @@ const DOMAIN_ORDER = [
   'outline',
   'kg',
   'memory',
+  'skill',
   'ai',
   'context',
   'constraints',

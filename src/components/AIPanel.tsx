@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 
-import { BUILTIN_SKILLS } from '../lib/skills';
 import { useAiStore } from '../stores/aiStore';
 import { useEditorStore } from '../stores/editorStore';
 import { DiffView } from './AI/DiffView';
+import { SkillList } from './AI/SkillList';
 import { VersionHistory } from './AI/VersionHistory';
 
 import type { AiStreamEvent } from '../types/ai';
@@ -96,27 +96,6 @@ export function AIPanel() {
 
   const canRun = Boolean(currentPath) && run?.status !== 'streaming' && !historyPreview;
 
-  const skillButtons = useMemo(() => {
-    return BUILTIN_SKILLS.map((skill) => (
-      <button
-        key={skill.id}
-        onClick={() => runSkill({ id: skill.id, name: skill.name }).catch(() => undefined)}
-        disabled={!canRun}
-        data-testid={`ai-skill-${skill.id}`}
-        className="flex items-center gap-2 p-2 rounded-md hover:bg-[var(--bg-hover)] transition-colors text-left group disabled:opacity-50 disabled:pointer-events-none"
-        title={skill.description}
-      >
-        <div className="w-7 h-7 rounded-md bg-[var(--bg-tertiary)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-tertiary)] group-hover:text-[var(--accent-primary)] transition-colors">
-          <Sparkles className="w-4 h-4" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-[13px] text-[var(--text-secondary)] leading-tight">{skill.name}</div>
-          <div className="text-xs text-[var(--text-tertiary)] truncate">{skill.description}</div>
-        </div>
-      </button>
-    ));
-  }, [canRun, runSkill]);
-
   return (
     <div className="w-full bg-[var(--bg-secondary)] flex flex-col h-full">
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] flex-shrink-0">
@@ -199,7 +178,11 @@ export function AIPanel() {
             )}
           </button>
 
-          {showSkills && <div className="p-2 flex flex-col gap-1">{skillButtons}</div>}
+          {showSkills && (
+            <div className="p-2">
+              <SkillList canRun={canRun} onRun={runSkill} />
+            </div>
+          )}
         </div>
 
         <div className="border border-[var(--border-subtle)] rounded-md overflow-hidden">
