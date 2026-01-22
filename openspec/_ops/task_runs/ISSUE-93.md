@@ -1,7 +1,7 @@
 # ISSUE-93
 - Issue: #93
 - Branch: task/93-issue-91-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/110
 
 ## Plan
 - Archive ISSUE-91 Rulebook task
@@ -43,3 +43,8 @@
 - Command: `openspec validate --specs --strict --no-interactive && rulebook task validate issue-93-issue-91-closeout`
 - Key output: `Totals: 14 passed, 0 failed` + `✅ Task issue-93-issue-91-closeout is valid`
 - Evidence: `openspec/specs/`, `rulebook/tasks/issue-93-issue-91-closeout/`
+
+### 2026-01-22 17:50 PR
+- Command: `gh pr create ... && gh pr merge --auto --squash`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/110`
+- Evidence: `openspec/_ops/task_runs/ISSUE-93.md`
