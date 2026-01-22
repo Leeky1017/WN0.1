@@ -1,7 +1,7 @@
 # ISSUE-111
 - Issue: #111
 - Branch: task/111-theia-p0-poc
-- PR: (pending)
+- PR: https://github.com/Leeky1017/WN0.1/pull/112
 
 ## Plan
 - Inspect theia-poc frontend structure and existing Theia editor wiring
@@ -13,8 +13,8 @@
 
 ## Next Actions
 - [x] Run `rulebook task validate issue-111-theia-p0-poc` + `npx openspec validate --specs --strict --no-interactive` 并记录证据
-- [ ] Commit + push + create PR（Closes #111）并开启 auto-merge
-- [ ] 回填 RUN_LOG 的 `PR:` 与 P0 task cards 的 `PR:` 链接
+- [x] Commit + push + create PR（Closes #111）并开启 auto-merge
+- [x] 回填 P0 task cards 的 `PR:` 链接
 
 ## Decisions Made
 - 2026-01-22: Run PoC via BackendApplicationContribution `initialize`/`onStart` to surface native module failures early at backend startup.
@@ -114,3 +114,8 @@
 - Command: `npx openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 14 passed, 0 failed (14 items)`
 - Evidence: `openspec/specs/sprint-theia-migration/spec.md`, `openspec/specs/sprint-theia-migration/poc-results/*.md`
+
+### 2026-01-22 22:25 create PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/112`
+- Evidence: PR + `openspec/_ops/task_runs/ISSUE-111.md` header updated

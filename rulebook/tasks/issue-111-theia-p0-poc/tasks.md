@@ -10,9 +10,10 @@
 
 ## 3. Documentation
 - [x] 3.1 Write PoC result docs: `openspec/specs/sprint-theia-migration/poc-results/001|002|003-*.md`
-- [ ] 3.2 Update P0 task cards acceptance + completion metadata (Issue/PR/RUN_LOG)
+- [x] 3.2 Update P0 task cards acceptance + completion metadata (Issue/PR/RUN_LOG)
 
 ## Evidence
+- PR: https://github.com/Leeky1017/WN0.1/pull/112
 - PoC 001 smoke: `node theia-poc/scripts/poc001-browser-smoke.cjs` → `[poc001] PASS`
 - PoC 001 result doc: `openspec/specs/sprint-theia-migration/poc-results/001-poc-tiptap-theia.md`
 - PoC 002 result doc: `openspec/specs/sprint-theia-migration/poc-results/002-poc-sqlite-vec.md`

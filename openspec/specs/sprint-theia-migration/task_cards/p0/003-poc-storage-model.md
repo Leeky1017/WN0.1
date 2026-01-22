@@ -2,7 +2,7 @@
 
 Status: done  
 Issue: #111  
-PR: (pending)  
+PR: https://github.com/Leeky1017/WN0.1/pull/112  
 RUN_LOG: openspec/_ops/task_runs/ISSUE-111.md
 
 ## Context
