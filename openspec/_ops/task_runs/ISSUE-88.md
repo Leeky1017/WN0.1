@@ -1,7 +1,7 @@
 # ISSUE-88
 - Issue: #88
 - Branch: task/88-p2-004-autosave-i18n
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/105
 
 ## Plan
 - Debounce/merge autosave saves
@@ -63,3 +63,8 @@
 - Command: `npm run test:e2e`
 - Key output: `42 passed (2.1m), 3 skipped`
 - Evidence: `.worktrees/issue-88-p2-004-autosave-i18n/tests/e2e/skill-system-v2-studio.spec.ts`
+
+### 2026-01-22 04: PR
+- Command: `gh pr create --title "[FRONTEND-P2-004] Autosave debounce + i18n guard (#88)" --body "Closes #88 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/105`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/105`

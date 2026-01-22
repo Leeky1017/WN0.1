@@ -9,5 +9,5 @@
 - [x] 2.2 Run `npm run lint`, `npm run build`, `npm run test:e2e`
 
 ## 3. Documentation
-- [ ] 3.1 Update task card acceptance checkboxes + completion metadata
-- [ ] 3.2 Update RUN_LOG with evidence and PR link
+- [x] 3.1 Update task card acceptance checkboxes + completion metadata
+- [x] 3.2 Update RUN_LOG with evidence and PR link

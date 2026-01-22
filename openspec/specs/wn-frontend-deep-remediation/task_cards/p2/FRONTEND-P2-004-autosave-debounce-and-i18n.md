@@ -2,7 +2,7 @@
 
 Status: done
 Issue: #88
-PR: <fill-after-created>
+PR: https://github.com/Leeky1017/WN0.1/pull/105
 RUN_LOG: openspec/_ops/task_runs/ISSUE-88.md
 
 ## Goal
