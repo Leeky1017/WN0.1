@@ -29,6 +29,11 @@
 - Key output: `Totals: 14 passed, 0 failed` + `✅ Task issue-106-theia-migration-spec is valid`
 - Evidence: `openspec/specs/sprint-theia-migration/**`, `rulebook/tasks/issue-106-theia-migration-spec/`
 
+### 2026-01-22 17:25 rebase + re-validate
+- Command: `git fetch origin && git rebase origin/main && openspec validate --specs --strict --no-interactive && rulebook task validate issue-106-theia-migration-spec`
+- Key output: `Successfully rebased and updated refs/heads/task/106-theia-migration-spec.` + `Totals: 14 passed, 0 failed`
+- Evidence: `openspec/specs/sprint-theia-migration/design/*`, `git log --oneline -5`
+
 
 ### 2026-01-22 16:48 draft sprint spec
 - Command: `mkdir -p openspec/specs/sprint-theia-migration && cat <<'EOF' > openspec/specs/sprint-theia-migration/spec.md`
