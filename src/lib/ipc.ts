@@ -68,6 +68,13 @@ export const projectOps = {
   delete: (payload: { id: string; reassignProjectId?: string }) => invoke('project:delete', payload),
 };
 
+export const skillOps = {
+  list: (payload?: IpcInvokePayloadMap['skill:list']) => invoke('skill:list', payload ?? {}),
+  read: (id: string) => invoke('skill:read', { id }),
+  toggle: (payload: IpcInvokePayloadMap['skill:toggle']) => invoke('skill:toggle', payload),
+  write: (payload: IpcInvokePayloadMap['skill:write']) => invoke('skill:write', payload),
+};
+
 export const characterOps = {
   list: (projectId: string) => invoke('character:list', { projectId }),
   create: (payload: IpcInvokePayloadMap['character:create']) => invoke('character:create', payload),

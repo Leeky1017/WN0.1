@@ -104,13 +104,20 @@ function bootstrapProjects(db) {
 function registerProjectsIpcHandlers(ipcMain, options = {}) {
   const db = options.db ?? null
   const logger = options.logger ?? null
+  const onCurrentProjectId = typeof options.onCurrentProjectId === 'function' ? options.onCurrentProjectId : null
   const handleInvoke =
     typeof options.handleInvoke === 'function' ? options.handleInvoke : (channel, handler) => ipcMain.handle(channel, handler)
 
   handleInvoke('project:bootstrap', async () => {
     if (!db) throw createIpcError('DB_ERROR', 'Database is not ready')
     try {
-      return bootstrapProjects(db)
+      const result = bootstrapProjects(db)
+      try {
+        await onCurrentProjectId?.(result.currentProjectId)
+      } catch (error) {
+        logger?.warn?.('projects', 'project bootstrap hook failed', { message: error?.message })
+      }
+      return result
     } catch (error) {
       if (error?.ipcError?.code) throw error
       logger?.error?.('projects', 'bootstrap failed', { message: error?.message })
@@ -137,6 +144,11 @@ function registerProjectsIpcHandlers(ipcMain, options = {}) {
     const exists = db.prepare('SELECT 1 FROM projects WHERE id = ?').get(projectId)
     if (!exists) throw createIpcError('NOT_FOUND', 'Project not found', { projectId })
     setSetting(db, 'current_project_id', projectId)
+    try {
+      await onCurrentProjectId?.(projectId)
+    } catch (error) {
+      logger?.warn?.('projects', 'project setCurrent hook failed', { message: error?.message })
+    }
     return { projectId }
   })
 
@@ -160,6 +172,11 @@ function registerProjectsIpcHandlers(ipcMain, options = {}) {
     )
 
     setSetting(db, 'current_project_id', id)
+    try {
+      await onCurrentProjectId?.(id)
+    } catch (error) {
+      logger?.warn?.('projects', 'project create hook failed', { message: error?.message })
+    }
     const row = db
       .prepare('SELECT id, name, description, style_guide, created_at, updated_at FROM projects WHERE id = ?')
       .get(id)
@@ -242,6 +259,11 @@ function registerProjectsIpcHandlers(ipcMain, options = {}) {
       setSetting(db, 'current_project_id', fallbackProjectId)
     }
 
+    try {
+      await onCurrentProjectId?.(fallbackProjectId)
+    } catch (error) {
+      logger?.warn?.('projects', 'project delete hook failed', { message: error?.message })
+    }
     return { deleted: true, currentProjectId: fallbackProjectId }
   })
 }

@@ -1,5 +1,10 @@
 # 任务 004: Skill Studio（手动创建/编辑/校验）
 
+Status: done
+Issue: #94
+PR: https://github.com/Leeky1017/WN0.1/pull/101
+RUN_LOG: openspec/_ops/task_runs/ISSUE-94.md
+
 ## 目标
 
 为写作者提供足够简单的 UI 来创建与编辑自定义 SKILL：表单化编辑（默认），可切换为源码视图（高级），并提供即时校验、Prompt 预览与 token 估算，最终以 `SKILL.md` 落盘并触发索引更新。
@@ -42,8 +47,8 @@
 
 ## 验收标准
 
-- [ ] 用户可在 UI 中创建/编辑自定义 SKILL，并以 `SKILL.md` 形式落盘
-- [ ] 保存前有明确校验与 token 估算；失败可恢复且不会写入无效文件
-- [ ] 变更后索引自动更新，列表与运行立即生效
-- [ ] refs slots 与 ref 文件可在 UI 中管理，并遵循 progressive disclosure（只按需注入正文）
-- [ ] E2E 覆盖创建/编辑/校验失败分支
+- [x] 用户可在 UI 中创建/编辑自定义 SKILL，并以 `SKILL.md` 形式落盘
+- [x] 保存前有明确校验与 token 估算；失败可恢复且不会写入无效文件
+- [x] 变更后索引自动更新，列表与运行立即生效
+- [x] refs slots 与 ref 文件可在 UI 中管理，并遵循 progressive disclosure（只按需注入正文）
+- [x] E2E 覆盖创建/编辑/校验失败分支
