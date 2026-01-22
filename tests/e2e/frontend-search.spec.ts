@@ -26,37 +26,36 @@ function escapeRegExp(text: string) {
 }
 
 async function openProjectManager(page: Page) {
-  await page.locator('button[title="项目管理"]').first().click();
-  await expect(page.getByText('项目管理')).toBeVisible();
+  await page.getByTitle(/Projects|项目管理/).first().click();
+  await expect(page.getByText(/Projects|项目管理/)).toBeVisible();
 }
 
 async function createProject(page: Page, name: string) {
   await openProjectManager(page);
-  await page.getByPlaceholder('项目名称').fill(name);
-  await page.getByPlaceholder('项目名称').press('Enter');
-  await expect(page.locator('button[title="项目管理"]').first()).toContainText(name);
+  const nameInput = page.getByPlaceholder(/Project name|项目名称/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
+  await expect(page.getByTitle(/Projects|项目管理/).first()).toContainText(name);
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
   await expect(
     page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
   ).toBeVisible({ timeout: 15_000 });
 }
 
 async function readEditorSelection(page: Page) {
-  const result = await page.evaluate(() => {
-    const textarea = document.querySelector('textarea[placeholder="开始用 Markdown 写作…"]') as HTMLTextAreaElement | null;
-    if (!textarea) return null;
-    return {
-      value: textarea.value,
-      start: textarea.selectionStart,
-      end: textarea.selectionEnd,
-    };
-  });
-  return result as null | { value: string; start: number; end: number };
+  const textarea = page.locator('textarea[data-testid="editor-scroll"]');
+  if ((await textarea.count()) === 0) return null;
+  return textarea.evaluate((el) => ({
+    value: el.value,
+    start: el.selectionStart ?? 0,
+    end: el.selectionEnd ?? 0,
+  })) as Promise<null | { value: string; start: number; end: number }>;
 }
 
 test('sidebar search: fulltext highlight + match navigation', async () => {
@@ -69,20 +68,21 @@ test('sidebar search: fulltext highlight + match navigation', async () => {
 
     const needle = '独角鲸';
     const content = `# Search Doc\n\n这里有一个词：${needle}。\n下一行还有${needle}。\n最后再来一个${needle}。\n`;
-    await page.locator('textarea[placeholder="开始用 Markdown 写作…"]').fill(content);
+    await page.locator('textarea[data-testid="editor-scroll"]').fill(content);
     await page.keyboard.press('Control+S');
-    await expect(page.getByTestId('statusbar')).toContainText('已保存');
+    await expect(page.getByTestId('statusbar')).toContainText(/已保存|Saved/);
 
-    await page.locator('button[title="搜索"]').click();
+    await page.getByTitle(/^(Search|搜索)$/).click();
     await expect(page.getByTestId('search-input')).toBeVisible();
 
     await page.getByTestId('search-mode-fulltext').click();
     await page.getByTestId('search-input').fill(needle);
 
-    await expect(page.getByTestId('layout-sidebar').getByTitle('Search Doc')).toBeVisible({ timeout: 15_000 });
+    const resultRow = page.getByTestId('layout-sidebar').getByTitle(/Search Doc/);
+    await expect(resultRow).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('mark')).toContainText(needle);
 
-    await page.getByTestId('layout-sidebar').getByTitle('Search Doc').click();
+    await resultRow.click();
 
     const first = content.indexOf(needle);
     const second = content.indexOf(needle, first + needle.length);

@@ -48,3 +48,18 @@
 - Command: `npm run test:e2e`
 - Key output: `31 passed (1.9m), 3 skipped`
 - Evidence: `.worktrees/issue-88-p2-004-autosave-i18n/tests/e2e/frontend-autosave.spec.ts`
+
+### 2026-01-22 01: IPC contract check
+- Command: `npm run contract:check`
+- Key output: `node scripts/ipc-contract-sync.js check`
+- Evidence: `.worktrees/issue-88-p2-004-autosave-i18n/src/types/ipc-generated.ts`
+
+### 2026-01-22 02: OpenSpec validate (strict)
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 12 passed, 0 failed (12 items)`
+- Evidence: `.worktrees/issue-88-p2-004-autosave-i18n/openspec/specs/wn-frontend-deep-remediation/task_cards/p2/FRONTEND-P2-004-autosave-debounce-and-i18n.md`
+
+### 2026-01-22 03: E2E (post-fix)
+- Command: `npm run test:e2e`
+- Key output: `42 passed (2.1m), 3 skipped`
+- Evidence: `.worktrees/issue-88-p2-004-autosave-i18n/tests/e2e/skill-system-v2-studio.spec.ts`

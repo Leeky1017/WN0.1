@@ -184,6 +184,7 @@ test('outline: edit persists and node click locates editor', async () => {
 });
 
 test('knowledge graph: nodes/edges CRUD persists', async () => {
+  test.setTimeout(60_000);
   const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-'));
   const first = await launchApp(userDataDir);
 

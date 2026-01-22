@@ -29,6 +29,7 @@
     "cancel": "Cancel",
     "close": "Close",
     "create": "Create",
+    "edit": "Edit",
     "save": "Save",
     "delete": "Delete",
     "add": "Add",
@@ -40,6 +41,7 @@
     "retry": "Retry",
     "refresh": "Refresh",
     "loading": "Loading…",
+    "saving": "Saving…",
     "copied": "Copied",
     "copy": "Copy",
     "export": "Export"
@@ -212,6 +214,38 @@
       "edit": "Edit",
       "preview": "Preview",
       "split": "Split"
+    },
+    "tabs": {
+      "menuTitle": "Tabs menu",
+      "empty": "No open tabs",
+      "current": "Current",
+      "closeOther": "Close other",
+      "closeSaved": "Close saved",
+      "closeTabAria": "Close {{title}}",
+      "discardAndClose": "Close without saving",
+      "saveAndClose": "Save & close",
+      "confirmClose": {
+        "title": "Close unsaved document?",
+        "descriptionSingle": "“{{title}}” has unsaved changes.",
+        "singleHint": "Unsaved changes may be lost.",
+        "multipleHint": "Will act on {{count}} unsaved tabs."
+      },
+      "confirmCloseOther": {
+        "title": "Close other unsaved tabs?",
+        "description": "{{count}} tabs have unsaved changes. Choose “{{saveLabel}}” or “{{discardLabel}}”."
+      }
+    },
+    "flow": {
+      "menuTitle": "Flow modes",
+      "typewriter": "Typewriter",
+      "typewriterTight": "Typewriter: Tight",
+      "typewriterMedium": "Typewriter: Medium",
+      "typewriterWide": "Typewriter: Wide",
+      "paragraphFocus": "Paragraph Focus",
+      "focusLight": "Focus: Light",
+      "focusMedium": "Focus: Medium",
+      "focusStrong": "Focus: Strong",
+      "zen": "Zen"
     },
     "split": {
       "resizeAria": "Resize editor/preview split"
@@ -679,6 +713,74 @@
     "copyFor": "Copy for {{platform}}",
     "copyFailed": "Copy failed: {{error}}"
   },
+  "skills": {
+    "loading": "Loading skills…",
+    "loadFailed": "Failed to load skills: {{error}}",
+    "empty": "No skills found.",
+    "invalid": "Invalid skill",
+    "versionTag": "v{{version}}",
+    "actions": {
+      "new": "New SKILL"
+    },
+    "scope": {
+      "builtin": "Builtin",
+      "global": "Global",
+      "project": "Project"
+    },
+    "toggle": {
+      "on": "ON",
+      "off": "OFF"
+    },
+    "studio": {
+      "title": {
+        "new": "New SKILL",
+        "edit": "Edit SKILL"
+      },
+      "errors": {
+        "missingSkillId": "Missing skillId"
+      },
+      "sections": {
+        "metadata": "Metadata",
+        "prompt": "Prompt",
+        "output": "Output",
+        "notes": "Notes",
+        "validation": "Validation",
+        "previewPrompt": "Preview Prompt",
+        "skillMd": "SKILL.md"
+      },
+      "fields": {
+        "scope": "Scope",
+        "version": "Version",
+        "skillId": "Skill ID",
+        "name": "Name",
+        "description": "Description",
+        "tags": "Tags (comma separated)",
+        "packageId": "Package ID",
+        "model": "Model",
+        "maxInstructionTokens": "Max instruction tokens",
+        "systemPrompt": "System prompt",
+        "userPrompt": "User template",
+        "intent": "Intent (Markdown)"
+      },
+      "output": {
+        "outputOnlyResult": "Output only result",
+        "noExplanations": "No explanations",
+        "noCodeBlocks": "No code blocks"
+      },
+      "validation": {
+        "tokenEstimate": "~{{count}} tokens",
+        "ok": "OK",
+        "budgetLabel": "Budget",
+        "tokensLabel": "tokens",
+        "exceeds": "exceeds"
+      },
+      "preview": {
+        "system": "System",
+        "user": "User",
+        "fixErrorsHint": "Fix validation errors to see preview."
+      }
+    }
+  },
   "titleBar": {
     "window": {
       "minimize": "Minimize",
@@ -690,6 +792,12 @@
     "focus": {
       "enterAria": "Enter focus mode",
       "exitAria": "Exit focus mode"
+    },
+    "zen": {
+      "enterAria": "Enter zen mode",
+      "exitAria": "Exit zen mode",
+      "enterTitle": "Zen",
+      "exitTitle": "Exit zen"
     },
     "sidebar": {
       "title": "Sidebar",

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Columns, Edit3, Eye, Focus, MoreHorizontal, X } from 'lucide-react';
 import type { Editor as TipTapEditor } from '@tiptap/react';
+import { useTranslation } from 'react-i18next';
 
 import type { ViewMode } from '../../App';
 import { IpcError } from '../../lib/ipc';
@@ -52,6 +53,7 @@ function toErrorMessage(error: unknown) {
  * while keeping multi-tab actions (switch/close/reorder/overflow) discoverable.
  */
 export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorModeChange, richtextEditor }: TabToolbarProps) {
+  const { t } = useTranslation();
   const openTabs = useEditorStore((s) => s.openTabs);
   const activeTabId = useEditorStore((s) => s.activeTabId);
   const dirtyMap = useEditorStore((s) => s.dirtyMap);
@@ -92,7 +94,11 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
 
     const tab = openTabs.find((t) => t.id === tabId);
     const label = tab ? getTabLabel(tab.path) : tabId;
-    requestCloseTabs([tabId], '关闭未保存的文档？', `“${label}” 有未保存的更改。`);
+    requestCloseTabs(
+      [tabId],
+      t('editor.tabs.confirmClose.title'),
+      t('editor.tabs.confirmClose.descriptionSingle', { title: label }),
+    );
   };
 
   const closeOtherTabs = (anchorId: EditorTabId) => {
@@ -105,7 +111,13 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
     for (const id of savedOthers) closeTab(id);
 
     if (dirtyOthers.length === 0) return;
-    requestCloseTabs(dirtyOthers, '关闭其他未保存的标签？', `还有 ${dirtyOthers.length} 个标签未保存。选择“保存并关闭”或“直接关闭”。`);
+    const saveLabel = t('editor.tabs.saveAndClose');
+    const discardLabel = t('editor.tabs.discardAndClose');
+    requestCloseTabs(
+      dirtyOthers,
+      t('editor.tabs.confirmCloseOther.title'),
+      t('editor.tabs.confirmCloseOther.description', { count: dirtyOthers.length, saveLabel, discardLabel }),
+    );
   };
 
   const handleSaveAndClose = async () => {
@@ -192,8 +204,8 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
                         <span
                           className="inline-block shrink-0 rounded-full bg-[var(--accent-primary)]"
                           style={{ width: 6, height: 6 }}
-                          title="未保存"
-                          aria-label="Unsaved changes"
+                          title={t('editor.save.unsaved')}
+                          aria-label={t('editor.save.unsaved')}
                         />
                       )}
                       <button
@@ -203,8 +215,8 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
                           requestCloseTab(tab.id);
                         }}
                         className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors flex-none"
-                        title="关闭"
-                        aria-label={`Close ${label}`}
+                        title={t('common.close')}
+                        aria-label={t('editor.tabs.closeTabAria', { title: label })}
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -212,15 +224,15 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
                   </ContextMenuTrigger>
 
                   <ContextMenuContent className="min-w-[200px]">
-                    <ContextMenuItem onSelect={() => requestCloseTab(tab.id)}>关闭</ContextMenuItem>
-                    <ContextMenuItem onSelect={() => closeOtherTabs(tab.id)}>关闭其他</ContextMenuItem>
-                    <ContextMenuItem onSelect={() => closeSavedTabs()}>关闭已保存</ContextMenuItem>
+                    <ContextMenuItem onSelect={() => requestCloseTab(tab.id)}>{t('common.close')}</ContextMenuItem>
+                    <ContextMenuItem onSelect={() => closeOtherTabs(tab.id)}>{t('editor.tabs.closeOther')}</ContextMenuItem>
+                    <ContextMenuItem onSelect={() => closeSavedTabs()}>{t('editor.tabs.closeSaved')}</ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
                       onSelect={() => save(tab.id).catch(() => undefined)}
                       disabled={!dirty}
                     >
-                      保存
+                      {t('common.save')}
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
@@ -235,15 +247,15 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
               <button
                 type="button"
                 className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors flex-none"
-                title="标签菜单"
-                aria-label="Tabs menu"
+                title={t('editor.tabs.menuTitle')}
+                aria-label={t('editor.tabs.menuTitle')}
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
             }
           >
             {openTabs.length === 0 ? (
-              <DropdownMenuItem disabled>无打开标签</DropdownMenuItem>
+              <DropdownMenuItem disabled>{t('editor.tabs.empty')}</DropdownMenuItem>
             ) : (
               <>
                 {openTabs.map((tab) => {
@@ -256,12 +268,12 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
                       className={active ? 'text-[var(--text-primary)]' : ''}
                     >
                       <span className="truncate">{label}</span>
-                      {active ? <span className="ml-auto text-[10px] text-[var(--text-tertiary)]">当前</span> : null}
+                      {active ? <span className="ml-auto text-[10px] text-[var(--text-tertiary)]">{t('editor.tabs.current')}</span> : null}
                     </DropdownMenuItem>
                   );
                 })}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => closeSavedTabs()}>关闭已保存</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => closeSavedTabs()}>{t('editor.tabs.closeSaved')}</DropdownMenuItem>
               </>
             )}
           </DropdownMenu>
@@ -276,9 +288,9 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
                 ? 'bg-[var(--bg-tertiary)] text-[var(--text-primary)]'
                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]',
             ].join(' ')}
-            title={`Markdown（${getShortcutKeyLabel()}+S 保存）`}
+            title={t('editor.mode.markdownShortcut', { shortcut: getShortcutKeyLabel() })}
           >
-            Markdown
+            {t('editor.mode.markdown')}
           </button>
           <button
             onClick={() => onEditorModeChange('richtext')}
@@ -289,7 +301,7 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]',
             ].join(' ')}
           >
-            Rich Text
+            {t('editor.mode.richText')}
           </button>
 
           {editorMode === 'richtext' && (
@@ -311,7 +323,7 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
             ].join(' ')}
           >
             <Edit3 className="w-3 h-3" />
-            Edit
+            {t('editor.view.edit')}
           </button>
           <button
             onClick={() => onViewModeChange('preview')}
@@ -323,7 +335,7 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
             ].join(' ')}
           >
             <Eye className="w-3 h-3" />
-            Preview
+            {t('editor.view.preview')}
           </button>
           <button
             onClick={() => onViewModeChange('split')}
@@ -335,7 +347,7 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
             ].join(' ')}
           >
             <Columns className="w-3 h-3" />
-            Split
+            {t('editor.view.split')}
           </button>
 
           <DropdownMenu
@@ -345,8 +357,8 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
               <button
                 type="button"
                 className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors"
-                title="心流模式"
-                aria-label="Flow modes"
+                title={t('editor.flow.menuTitle')}
+                aria-label={t('editor.flow.menuTitle')}
                 data-testid="flow-menu"
               >
                 <Focus className="w-4 h-4" />
@@ -358,45 +370,45 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
               data-testid="toggle-typewriter"
             >
               <span className="w-4 inline-block">{typewriterEnabled ? '✓' : ''}</span>
-              Typewriter
+              {t('editor.flow.typewriter')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTypewriterTolerancePx(48)} disabled={!typewriterEnabled}>
               <span className="w-4 inline-block">{typewriterTolerancePx === 48 ? '•' : ''}</span>
-              Typewriter：紧
+              {t('editor.flow.typewriterTight')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTypewriterTolerancePx(72)} disabled={!typewriterEnabled}>
               <span className="w-4 inline-block">{typewriterTolerancePx === 72 ? '•' : ''}</span>
-              Typewriter：中
+              {t('editor.flow.typewriterMedium')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTypewriterTolerancePx(96)} disabled={!typewriterEnabled}>
               <span className="w-4 inline-block">{typewriterTolerancePx === 96 ? '•' : ''}</span>
-              Typewriter：宽
+              {t('editor.flow.typewriterWide')}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={() => toggleParagraphFocus()} data-testid="toggle-paragraph-focus">
               <span className="w-4 inline-block">{paragraphFocusEnabled ? '✓' : ''}</span>
-              Paragraph Focus
+              {t('editor.flow.paragraphFocus')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setParagraphFocusDimOpacity(0.6)} disabled={!paragraphFocusEnabled}>
               <span className="w-4 inline-block">{paragraphFocusDimOpacity === 0.6 ? '•' : ''}</span>
-              Focus：浅
+              {t('editor.flow.focusLight')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setParagraphFocusDimOpacity(0.35)} disabled={!paragraphFocusEnabled}>
               <span className="w-4 inline-block">{paragraphFocusDimOpacity === 0.35 ? '•' : ''}</span>
-              Focus：中
+              {t('editor.flow.focusMedium')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setParagraphFocusDimOpacity(0.2)} disabled={!paragraphFocusEnabled}>
               <span className="w-4 inline-block">{paragraphFocusDimOpacity === 0.2 ? '•' : ''}</span>
-              Focus：强
+              {t('editor.flow.focusStrong')}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={() => toggleZen()} data-testid="toggle-zen">
               <span className="w-4 inline-block">{zenEnabled ? '✓' : ''}</span>
-              Zen
+              {t('editor.flow.zen')}
             </DropdownMenuItem>
           </DropdownMenu>
         </div>
@@ -413,23 +425,23 @@ export function TabToolbar({ viewMode, onViewModeChange, editorMode, onEditorMod
         footer={
           <div className="flex items-center justify-end gap-2">
             <WnButton variant="ghost" onClick={() => setPendingClose(null)} isDisabled={closeBusy}>
-              取消
+              {t('common.cancel')}
             </WnButton>
             <WnButton variant="ghost" onClick={handleDiscardAndClose} isDisabled={closeBusy}>
-              直接关闭
+              {t('editor.tabs.discardAndClose')}
             </WnButton>
             <WnButton onClick={() => handleSaveAndClose().catch(() => undefined)} isDisabled={closeBusy}>
-              保存并关闭
+              {t('editor.tabs.saveAndClose')}
             </WnButton>
           </div>
         }
       >
         {closeError && <div className="text-[12px] text-red-400">{closeError}</div>}
         {!closeError && pendingClose && pendingClose.tabIds.length > 1 && (
-          <div className="text-[12px] text-[var(--text-tertiary)]">将操作 {pendingClose.tabIds.length} 个未保存标签。</div>
+          <div className="text-[12px] text-[var(--text-tertiary)]">{t('editor.tabs.confirmClose.multipleHint', { count: pendingClose.tabIds.length })}</div>
         )}
         {!closeError && pendingClose && pendingClose.tabIds.length === 1 && (
-          <div className="text-[12px] text-[var(--text-tertiary)]">未保存更改可能会丢失。</div>
+          <div className="text-[12px] text-[var(--text-tertiary)]">{t('editor.tabs.confirmClose.singleHint')}</div>
         )}
       </WnDialog>
     </>

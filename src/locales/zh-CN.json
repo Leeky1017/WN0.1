@@ -29,6 +29,7 @@
     "cancel": "取消",
     "close": "关闭",
     "create": "创建",
+    "edit": "编辑",
     "save": "保存",
     "delete": "删除",
     "add": "添加",
@@ -40,6 +41,7 @@
     "retry": "重试",
     "refresh": "刷新",
     "loading": "加载中...",
+    "saving": "保存中...",
     "copied": "已复制",
     "copy": "复制",
     "export": "导出"
@@ -212,6 +214,38 @@
       "edit": "编辑",
       "preview": "预览",
       "split": "分栏"
+    },
+    "tabs": {
+      "menuTitle": "标签菜单",
+      "empty": "无打开标签",
+      "current": "当前",
+      "closeOther": "关闭其他",
+      "closeSaved": "关闭已保存",
+      "closeTabAria": "关闭 {{title}}",
+      "discardAndClose": "直接关闭",
+      "saveAndClose": "保存并关闭",
+      "confirmClose": {
+        "title": "关闭未保存的文档？",
+        "descriptionSingle": "「{{title}}」有未保存的更改。",
+        "singleHint": "未保存更改可能会丢失。",
+        "multipleHint": "将操作 {{count}} 个未保存标签。"
+      },
+      "confirmCloseOther": {
+        "title": "关闭其他未保存的标签？",
+        "description": "还有 {{count}} 个标签未保存。选择「{{saveLabel}}」或「{{discardLabel}}」。"
+      }
+    },
+    "flow": {
+      "menuTitle": "心流模式",
+      "typewriter": "打字机",
+      "typewriterTight": "打字机：紧",
+      "typewriterMedium": "打字机：中",
+      "typewriterWide": "打字机：宽",
+      "paragraphFocus": "段落聚焦",
+      "focusLight": "聚焦：浅",
+      "focusMedium": "聚焦：中",
+      "focusStrong": "聚焦：强",
+      "zen": "Zen"
     },
     "split": {
       "resizeAria": "调整编辑器/预览分栏"
@@ -679,6 +713,74 @@
     "copyFor": "复制用于 {{platform}}",
     "copyFailed": "复制失败：{{error}}"
   },
+  "skills": {
+    "loading": "加载技能...",
+    "loadFailed": "技能加载失败：{{error}}",
+    "empty": "未找到技能。",
+    "invalid": "无效技能",
+    "versionTag": "v{{version}}",
+    "actions": {
+      "new": "新建 SKILL"
+    },
+    "scope": {
+      "builtin": "内置",
+      "global": "全局",
+      "project": "项目"
+    },
+    "toggle": {
+      "on": "开",
+      "off": "关"
+    },
+    "studio": {
+      "title": {
+        "new": "新建 SKILL",
+        "edit": "编辑 SKILL"
+      },
+      "errors": {
+        "missingSkillId": "缺少 skillId"
+      },
+      "sections": {
+        "metadata": "元数据",
+        "prompt": "Prompt",
+        "output": "输出",
+        "notes": "备注",
+        "validation": "校验",
+        "previewPrompt": "预览 Prompt",
+        "skillMd": "SKILL.md"
+      },
+      "fields": {
+        "scope": "作用域",
+        "version": "版本",
+        "skillId": "Skill ID",
+        "name": "名称",
+        "description": "描述",
+        "tags": "标签（逗号分隔）",
+        "packageId": "Package ID",
+        "model": "模型",
+        "maxInstructionTokens": "最大指令 tokens",
+        "systemPrompt": "System prompt",
+        "userPrompt": "User template",
+        "intent": "意图（Markdown）"
+      },
+      "output": {
+        "outputOnlyResult": "仅输出结果",
+        "noExplanations": "不输出解释",
+        "noCodeBlocks": "不输出代码块"
+      },
+      "validation": {
+        "tokenEstimate": "~{{count}} tokens",
+        "ok": "OK",
+        "budgetLabel": "预算",
+        "tokensLabel": "tokens",
+        "exceeds": "超出"
+      },
+      "preview": {
+        "system": "System",
+        "user": "User",
+        "fixErrorsHint": "修复校验错误后可查看预览。"
+      }
+    }
+  },
   "titleBar": {
     "window": {
       "minimize": "最小化",
@@ -690,6 +792,12 @@
     "focus": {
       "enterAria": "进入专注模式",
       "exitAria": "退出专注模式"
+    },
+    "zen": {
+      "enterAria": "进入 Zen 模式",
+      "exitAria": "退出 Zen 模式",
+      "enterTitle": "Zen",
+      "exitTitle": "退出 Zen"
     },
     "sidebar": {
       "title": "侧边栏",

@@ -303,10 +303,13 @@ class SkillIndexService {
       } catch {
         // ignore
       }
-      await this.reindexScope('project')
     }
 
     this.restartProjectWatcher()
+
+    if (this.projectPackagesDir) {
+      await this.reindexScope('project')
+    }
   }
 
   stop() {

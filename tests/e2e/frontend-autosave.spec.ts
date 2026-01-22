@@ -27,10 +27,11 @@ function escapeRegExp(text: string) {
 }
 
 async function createFile(page: Page, name: string) {
-  await page.locator('button[title="新建文件"]').click();
-  await page.getByPlaceholder('未命名').fill(name);
-  await page.getByPlaceholder('未命名').press('Enter');
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible();
+  await page.getByTitle(/New file|新建文件/).click();
+  const nameInput = page.getByPlaceholder(/Untitled|未命名/);
+  await nameInput.fill(name);
+  await nameInput.press('Enter');
+  await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) })).toBeVisible();
 }
 
 test('autosave debounces writes and language can switch', async () => {
@@ -40,19 +41,19 @@ test('autosave debounces writes and language can switch', async () => {
   const docName = `Autosave-${Date.now()}`;
   await createFile(page, docName);
 
-  const textarea = page.locator('textarea[placeholder="开始用 Markdown 写作…"]');
+  const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
   await expect(textarea).toBeVisible();
 
   const unique = `AUTOSAVE_${Date.now()}`;
   await textarea.fill(`# Autosave\n\n${unique}`);
 
-  await expect(page.getByTestId('statusbar')).toContainText('未保存');
+  await expect(page.getByTestId('statusbar')).toContainText(/未保存|Unsaved/);
 
   const docPath = path.join(userDataDir, 'documents', `${docName}.md`);
   const before = await readFile(docPath, 'utf8');
   expect(before).not.toContain(unique);
 
-  await expect(page.getByTestId('statusbar')).toContainText('已保存', { timeout: 15_000 });
+  await expect(page.getByTestId('statusbar')).toContainText(/已保存|Saved/, { timeout: 15_000 });
 
   const after = await readFile(docPath, 'utf8');
   expect(after).toContain(unique);
@@ -64,12 +65,11 @@ test('autosave debounces writes and language can switch', async () => {
   const statAfterWait = await stat(docPath);
   expect(statAfterWait.mtimeMs).toBe(savedMtime);
 
-  await page.locator('button[title="设置"]').click();
-  await expect(page.getByText('语言')).toBeVisible();
+  await page.getByTitle(/Settings|设置/).click();
+  await expect(page.getByText(/Language|语言/)).toBeVisible();
   await page.getByRole('radio', { name: 'English' }).check();
 
   await expect(page.getByTestId('statusbar')).toContainText('Saved');
 
   await electronApp.close();
 });
-

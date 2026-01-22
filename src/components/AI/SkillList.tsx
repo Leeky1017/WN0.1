@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useSkillsStore } from '../../stores/skillsStore';
 import { SkillStudio } from '../SkillStudio';
@@ -9,18 +10,12 @@ type SkillListProps = {
   onRun: (skill: { id: string; name: string }) => Promise<void>;
 };
 
-function scopeLabel(scope: string): string {
-  if (scope === 'project') return 'PROJECT';
-  if (scope === 'global') return 'GLOBAL';
-  if (scope === 'builtin') return 'BUILTIN';
-  return scope.toUpperCase();
-}
-
 /**
  * Renders the SKILL list from the indexed Skill System.
  * Why: the renderer must not maintain a separate hardcoded skill source; IPC + DB index are the SSOT for availability.
  */
 export function SkillList(props: SkillListProps) {
+  const { t } = useTranslation();
   const items = useSkillsStore((s) => s.items);
   const isLoading = useSkillsStore((s) => s.isLoading);
   const error = useSkillsStore((s) => s.error);
@@ -57,26 +52,26 @@ export function SkillList(props: SkillListProps) {
   }, [refresh]);
 
   if (isLoading && items.length === 0) {
-    return <div className="text-[12px] text-[var(--text-tertiary)] px-2 py-2">Loading skills…</div>;
+    return <div className="text-[12px] text-[var(--text-tertiary)] px-2 py-2">{t('skills.loading')}</div>;
   }
 
   if (error && items.length === 0) {
     return (
       <div className="px-2 py-2 space-y-2">
-        <div className="text-[12px] text-[var(--text-tertiary)]">Failed to load skills: {error}</div>
+        <div className="text-[12px] text-[var(--text-tertiary)]">{t('skills.loadFailed', { error })}</div>
         <button
           type="button"
           onClick={() => refresh({ includeDisabled: true }).catch(() => undefined)}
           className="text-[12px] text-[var(--accent-primary)] hover:underline"
         >
-          Retry
+          {t('common.retry')}
         </button>
       </div>
     );
   }
 
   if (items.length === 0) {
-    return <div className="text-[12px] text-[var(--text-tertiary)] px-2 py-2">No skills found.</div>;
+    return <div className="text-[12px] text-[var(--text-tertiary)] px-2 py-2">{t('skills.empty')}</div>;
   }
 
   return (
@@ -88,14 +83,14 @@ export function SkillList(props: SkillListProps) {
           className="text-[12px] px-2 py-1 rounded border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
           data-testid="skill-studio-new"
         >
-          New SKILL
+          {t('skills.actions.new')}
         </button>
       </div>
       {items.map((skill) => {
         const runnable = props.canRun && skill.enabled && skill.valid;
-        const scope = scopeLabel(skill.scope);
+        const scope = t(`skills.scope.${skill.scope}`, { defaultValue: skill.scope.toUpperCase() });
         const version = skill.version ?? '';
-        const errorMessage = skill.valid ? null : skill.error?.message ?? 'Invalid skill';
+        const errorMessage = skill.valid ? null : skill.error?.message ?? t('skills.invalid');
         const canEdit = skill.scope !== 'builtin';
 
         return (
@@ -117,12 +112,12 @@ export function SkillList(props: SkillListProps) {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="text-[13px] text-[var(--text-secondary)] leading-tight truncate">{skill.name}</div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] flex-shrink-0">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] flex-shrink-0 uppercase tracking-wide">
                     {scope}
                   </span>
                   {version && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] flex-shrink-0">
-                      v{version}
+                      {t('skills.versionTag', { version })}
                     </span>
                   )}
                 </div>
@@ -138,11 +133,11 @@ export function SkillList(props: SkillListProps) {
                   onClick={() => setStudio({ mode: 'edit', skillId: skill.id })}
                   className="text-[12px] px-2 py-1 rounded border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
                 >
-                  Edit
+                  {t('common.edit')}
                 </button>
               )}
               <label className="flex items-center gap-2 text-xs text-[var(--text-tertiary)] select-none">
-                <span className="uppercase tracking-wide">{skill.enabled ? 'ON' : 'OFF'}</span>
+                <span className="uppercase tracking-wide">{skill.enabled ? t('skills.toggle.on') : t('skills.toggle.off')}</span>
                 <input type="checkbox" checked={skill.enabled} onChange={(e) => toggle(skill.id, e.target.checked).catch(() => undefined)} />
               </label>
             </div>
