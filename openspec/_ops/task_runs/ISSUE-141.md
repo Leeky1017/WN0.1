@@ -1,7 +1,7 @@
 # ISSUE-141
 - Issue: #141
 - Branch: task/141-ipc-migration
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/142
 
 ## Goal
 - Establish Theia JSON-RPC transport that preserves WriteNow IPC contract semantics (`IpcResponse<T>` + stable error codes) and reuses the existing contract pipeline.
@@ -73,3 +73,7 @@
 - Key output: `[rpc-smoke] ok { ... }`
 - Evidence:
   - `writenow-theia/writenow-core/scripts/rpc-smoke.cjs`
+
+### 2026-01-23 PR
+- Command: `gh pr create --title "[SPRINT-THEIA-MIGRATION] Phase 2 / Task 008: IPC migration (Theia RPC) (#141)" --body "Closes #141 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/142`
