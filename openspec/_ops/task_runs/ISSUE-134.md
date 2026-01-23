@@ -3,6 +3,11 @@
 - Branch: task/134-tiptap-widget
 - PR: https://github.com/Leeky1017/WN0.1/pull/136
 
+## Plan
+- Formalize TipTap `.md` editor widget in `writenow-theia/writenow-core` (opener + widget + Save/Dirty).
+- Verify Browser + Electron targets and capture evidence in this run log.
+- Ship via PR checks + auto-merge.
+
 ## Goal
 - Migrate TipTap PoC into `writenow-theia/writenow-core/` as a production-ready Markdown editor widget for `.md` files, with full Save/Dirty lifecycle and correct keybinding/focus behavior.
 
@@ -146,3 +151,10 @@
   - `electron exited with signal SIGINT` (timeout stop)
 - Evidence:
   - `writenow-theia/electron-app/package.json` (start script)
+
+### 2026-01-23 20:30 openspec-log-guard failure diagnosis
+- Command: `gh run view 21286217657 --log-failed`
+- Key output:
+  - `Run log openspec/_ops/task_runs/ISSUE-134.md is incomplete. Missing: section '## Plan', at least one '- Command: \`...\`'`
+- Evidence:
+  - `openspec/_ops/task_runs/ISSUE-134.md`
