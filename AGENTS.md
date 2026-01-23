@@ -2,6 +2,20 @@
 
 本仓库目标：构建一个 AI 驱动的文字创作 IDE（创作者的 Cursor）。
 
+## 规范导航（Agent 阅读顺序：1 → 5）
+
+1) 宪法与治理：`AGENTS.md`
+2) 项目规范（产品/架构/路线图）：`openspec/specs/writenow-spec/spec.md`
+3) 当前 Sprint（Theia 迁移）：`openspec/specs/sprint-theia-migration/spec.md`
+4) 任务执行（任务清单）：`rulebook/tasks/issue-N-slug/`
+5) 运行证据（运行日志）：`openspec/_ops/task_runs/ISSUE-N.md`
+
+补充：工程标准（入口与指针）
+- 工程规范入口：`docs/README.md`
+- 代码规范：`docs/code-standards.md`
+- 测试规范：`docs/testing-standards.md`
+- Style guard：`docs/style-guard.md`
+
 ## 文档权威（必须遵守）
 
 - 项目权威规范（产品/架构/路线图）：`openspec/specs/writenow-spec/spec.md`
