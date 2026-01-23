@@ -1,7 +1,7 @@
 # ISSUE-121
 - Issue: #121
 - Branch: task/121-theia-windows-smoke-fix
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/122
 
 ## Plan
 - Fix `writenow-theia/scripts/win-msvc-env.ps1` so it accepts arbitrary arguments (incl. flags starting with `-`).
@@ -13,3 +13,7 @@
 - Key output: `.../issues/121` + `Preparing worktree (new branch 'task/121-theia-windows-smoke-fix')`
 - Evidence: `.worktrees/issue-121-theia-windows-smoke-fix/`
 
+### 2026-01-23 16:34 PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/122`
+- Evidence: `PR #122 (Closes #121)`
