@@ -96,7 +96,7 @@ jobs:
           Write-Host "---- electron stderr (tail) ----"
           Get-Content $stderr -Tail 200
 
-          $content = (Get-Content $stdout -Raw) + \"`n\" + (Get-Content $stderr -Raw)
+          $content = (Get-Content $stdout -Raw) + "`n" + (Get-Content $stderr -Raw)
           if ($content -notmatch "\\[writenow-core\\] frontend started") {
             throw "Expected frontend contribution log not found"
           }
