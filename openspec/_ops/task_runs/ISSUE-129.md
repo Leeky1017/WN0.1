@@ -1,7 +1,7 @@
 # ISSUE-129
 - Issue: #129
 - Branch: task/129-theia-windows-smoke-electron-quoting
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/130
 
 ## Plan
 - Fix PowerShell quoting in the electron smoke step so stdout/stderr can be concatenated and searched reliably.
@@ -13,3 +13,7 @@
 - Key output: `.../issues/129` + `Preparing worktree (new branch 'task/129-theia-windows-smoke-electron-quoting')`
 - Evidence: `.worktrees/issue-129-theia-windows-smoke-electron-quoting/`
 
+### 2026-01-23 17:05 PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/130`
+- Evidence: `PR #130 (Closes #129)`
