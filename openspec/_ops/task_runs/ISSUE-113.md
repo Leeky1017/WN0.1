@@ -1,7 +1,7 @@
 # ISSUE-113
 - Issue: #113
 - Branch: task/113-theia-docs-sync
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/116
 
 ## Plan
 - Phase 1–2: Add AGENTS.md navigation index; then trim to constitutional constraints (≤150 lines) + add "4) 状态同步（强制）" rule.
@@ -36,3 +36,7 @@
 - Command: `npx openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 14 passed, 0 failed (14 items)`
 - Evidence: CI-equivalent OpenSpec strict validation passed in worktree
+### 2026-01-23 11:14 pr
+- Command: `gh pr create --title "docs: constitutional doc refactor + Theia migration sync (#113)" --body "Closes #113 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/116`
+- Evidence: PR #116
