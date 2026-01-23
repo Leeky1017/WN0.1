@@ -1,14 +1,10 @@
-param(
-  [Parameter(ValueFromRemainingArguments = $true)]
-  [string[]]$Args
-)
-
-if ($Args.Count -gt 0 -and $Args[0] -eq "--") {
-  $Args = $Args[1..($Args.Count - 1)]
+$commandArgs = $args
+if ($commandArgs.Count -gt 0 -and $commandArgs[0] -eq "--") {
+  $commandArgs = if ($commandArgs.Count -gt 1) { $commandArgs[1..($commandArgs.Count - 1)] } else { @() }
 }
 
-if ($Args.Count -eq 0) {
-  throw "Usage: scripts/win-msvc-env.ps1 -- <command...>"
+if ($commandArgs.Count -eq 0) {
+  throw "Usage: scripts/win-msvc-env.ps1 <command...>"
 }
 
 $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\\Installer\\vswhere.exe"
@@ -48,7 +44,7 @@ foreach ($p in ($env:PATH -split ";")) {
 }
 $cleanPath = $cleanPathParts -join ";"
 
-$commandLine = ($Args | ForEach-Object { Quote-CmdArg $_ }) -join " "
+$commandLine = ($commandArgs | ForEach-Object { Quote-CmdArg $_ }) -join " "
 
 $cmd = @(
   "set ""PATH=$cleanPath""",
@@ -60,4 +56,3 @@ $cmd = @(
 
 cmd /c $cmd
 exit $LASTEXITCODE
-
