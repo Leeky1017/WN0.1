@@ -1,0 +1,15 @@
+node_modules
+.browser_modules
+.sysdeps/
+*.log
+
+# Generated build outputs
+**/lib/
+**/src-gen/
+
+# Theia apps: keep source config in git, ignore generated artifacts.
+*-app/*
+!*-app/package.json
+!*-app/webpack.config.js
+!*-app/gen-webpack.config.js
+!*-app/gen-webpack.node.config.js
