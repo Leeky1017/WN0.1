@@ -1,5 +1,10 @@
 # 005: Module Pruning（裁剪非必要 IDE 模块）
 
+Status: done  
+Issue: #133  
+PR: <fill-after-created>  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-133.md
+
 ## Context
 
 WriteNow 的定位是“创作者的 IDE”，目标是精简但可靠。Theia 默认集成许多开发者 IDE 模块（调试器、终端、Git、语言服务器等），会增加包体、复杂度与故障面，且干扰 UX。
@@ -12,9 +17,9 @@ WriteNow 的定位是“创作者的 IDE”，目标是精简但可靠。Theia �
 
 ## Acceptance Criteria
 
-- [ ] 被裁剪模块清单明确且可追溯（配置/依赖层面可定位）。
-- [ ] 裁剪后应用可启动且无明显 console error；核心工作流仍可用。
-- [ ] 包体与启动速度（如有测量）有明确收益或至少不恶化；若无法测量需说明原因与后续补测计划。
+- [x] 被裁剪模块清单明确且可追溯（配置/依赖层面可定位）。
+- [x] 裁剪后应用可启动且无明显 console error；核心工作流仍可用。
+- [x] 包体与启动速度（如有测量）有明确收益或至少不恶化；若无法测量需说明原因与后续补测计划。
 
 ## Dependencies
 
@@ -23,4 +28,3 @@ WriteNow 的定位是“创作者的 IDE”，目标是精简但可靠。Theia �
 ## Estimated Effort
 
 - M（1–2 天，取决于依赖树与 Theia bundling 约束）
-
