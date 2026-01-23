@@ -47,12 +47,16 @@ jobs:
         run: |
           cd writenow-theia
 
-          $log = Join-Path $env:RUNNER_TEMP "theia-browser.log"
-          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","browser-app","start","--hostname","127.0.0.1","--port","3012") -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError $log
+          $stdout = Join-Path $env:RUNNER_TEMP "theia-browser.stdout.log"
+          $stderr = Join-Path $env:RUNNER_TEMP "theia-browser.stderr.log"
+          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","browser-app","start","--hostname","127.0.0.1","--port","3012") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           Start-Sleep -Seconds 25
 
-          Write-Host "---- browser log (tail) ----"
-          Get-Content $log -Tail 120
+          Write-Host "---- browser stdout (tail) ----"
+          Get-Content $stdout -Tail 120
+
+          Write-Host "---- browser stderr (tail) ----"
+          Get-Content $stderr -Tail 120
 
           try {
             Invoke-WebRequest -Uri "http://127.0.0.1:3012" -UseBasicParsing | Out-Null
@@ -70,14 +74,18 @@ jobs:
         run: |
           cd writenow-theia
 
-          $log = Join-Path $env:RUNNER_TEMP "theia-electron.log"
-          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","electron-app","start") -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError $log
+          $stdout = Join-Path $env:RUNNER_TEMP "theia-electron.stdout.log"
+          $stderr = Join-Path $env:RUNNER_TEMP "theia-electron.stderr.log"
+          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","electron-app","start") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           Start-Sleep -Seconds 25
 
-          Write-Host "---- electron log (tail) ----"
-          Get-Content $log -Tail 200
+          Write-Host "---- electron stdout (tail) ----"
+          Get-Content $stdout -Tail 200
 
-          $content = Get-Content $log -Raw
+          Write-Host "---- electron stderr (tail) ----"
+          Get-Content $stderr -Tail 200
+
+          $content = (Get-Content $stdout -Raw) + \"`n\" + (Get-Content $stderr -Raw)
           if ($content -notmatch "\\[writenow-core\\] frontend started") {
             throw "Expected frontend contribution log not found"
           }
