@@ -1,7 +1,7 @@
 # ISSUE-141
 - Issue: #141
-- Branch: task/141-ipc-migration
-- PR: https://github.com/Leeky1017/WN0.1/pull/142
+- Branch: task/141-ipc-migration-doc-sync
+- PR: https://github.com/Leeky1017/WN0.1/pull/143
 
 ## Goal
 - Establish Theia JSON-RPC transport that preserves WriteNow IPC contract semantics (`IpcResponse<T>` + stable error codes) and reuses the existing contract pipeline.
@@ -77,3 +77,16 @@
 ### 2026-01-23 PR
 - Command: `gh pr create --title "[SPRINT-THEIA-MIGRATION] Phase 2 / Task 008: IPC migration (Theia RPC) (#141)" --body "Closes #141 ..."`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/142`
+
+### 2026-01-23 Post-merge closeout (task card + writenow-spec)
+- Command: `gh issue reopen 141`
+- Key output: `(reopened)`
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 14 passed, 0 failed (14 items)`
+- Evidence:
+  - `openspec/specs/sprint-theia-migration/task_cards/p2/008-ipc-migration.md`
+  - `openspec/specs/writenow-spec/spec.md`
+
+### 2026-01-23 PR (closeout)
+- Command: `gh pr create --title "[SPRINT-THEIA-MIGRATION] Task 008 closeout: docs sync (#141)" --body "Closes #141 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/143`
