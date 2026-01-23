@@ -202,7 +202,9 @@ async function main() {
   const generatedTs = renderIpcGeneratedTs({ baseTypes, channelTypes, invokeChannels });
 
   const outPath = path.join(repoRoot, 'src', 'types', 'ipc-generated.ts');
+  const theiaOutPath = path.join(repoRoot, 'writenow-theia', 'writenow-core', 'src', 'common', 'ipc-generated.ts');
   const existing = await fs.readFile(outPath, 'utf8').catch(() => null);
+  const theiaExisting = await fs.readFile(theiaOutPath, 'utf8').catch(() => null);
 
   const preloadResult = await updatePreloadAllowlist({ repoRoot, invokeChannels, checkOnly });
 
@@ -210,16 +212,26 @@ async function main() {
     const mismatches = [];
     if (existing === null) mismatches.push(`missing ${outPath}`);
     else if (existing !== generatedTs) mismatches.push(`drift detected: ${outPath}`);
+    if (theiaExisting === null) mismatches.push(`missing ${theiaOutPath}`);
+    else if (theiaExisting !== generatedTs) mismatches.push(`drift detected: ${theiaOutPath}`);
     if (preloadResult.changed) mismatches.push(`drift detected: ${preloadResult.preloadPath}`);
 
     if (mismatches.length === 0) return;
 
-    const { diff } = await diffTextFiles({ repoRoot, label: 'ipc-generated.ts', expectedPath: outPath, actualText: generatedTs });
+    const diffs = [];
+    if (existing === null || existing !== generatedTs) {
+      const { diff } = await diffTextFiles({ repoRoot, label: 'ipc-generated.ts', expectedPath: outPath, actualText: generatedTs });
+      if (diff.trim()) diffs.push(diff.trimEnd());
+    }
+    if (theiaExisting === null || theiaExisting !== generatedTs) {
+      const { diff } = await diffTextFiles({ repoRoot, label: 'ipc-generated.theia.ts', expectedPath: theiaOutPath, actualText: generatedTs });
+      if (diff.trim()) diffs.push(diff.trimEnd());
+    }
     // eslint-disable-next-line no-console
     console.error(mismatches.join('\n'));
-    if (diff.trim()) {
+    if (diffs.length > 0) {
       // eslint-disable-next-line no-console
-      console.error(diff.trimEnd());
+      console.error(diffs.join('\n'));
     } else {
       // eslint-disable-next-line no-console
       console.error('Run `npm run contract:generate` to update generated files.');
@@ -230,6 +242,8 @@ async function main() {
   }
 
   await fs.writeFile(outPath, generatedTs, 'utf8');
+  await fs.mkdir(path.dirname(theiaOutPath), { recursive: true });
+  await fs.writeFile(theiaOutPath, generatedTs, 'utf8');
 }
 
 main().catch((error) => {

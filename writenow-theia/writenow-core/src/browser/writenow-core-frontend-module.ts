@@ -9,6 +9,7 @@ import { TipTapMarkdownEditorWidgetFactory } from './tiptap-markdown-editor-widg
 import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';
 import { WritenowAiPanelPlaceholderWidgetFactory } from './writenow-ai-panel-placeholder-widget-factory';
 import { WritenowCoreContribution } from './writenow-core-contribution';
+import { WritenowFrontendService } from './writenow-frontend-service';
 import { WritenowLayoutContribution } from './writenow-layout-contribution';
 import { WritenowWelcomeWidgetFactory } from './writenow-welcome-widget-factory';
 
@@ -51,6 +52,8 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     if (isBound(ProblemContribution)) {
         rebind(ProblemContribution).to(WritenowHiddenProblemContribution).inSingletonScope();
     }
+
+    bind(WritenowFrontendService).toSelf().inSingletonScope();
 
     bind(WritenowCoreContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(WritenowCoreContribution);
