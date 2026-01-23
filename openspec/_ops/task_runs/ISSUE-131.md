@@ -1,7 +1,7 @@
 # ISSUE-131
 - Issue: #131
 - Branch: task/131-theia-windows-smoke-electron-log-match
-- PR: <fill>
+- PR: https://github.com/Leeky1017/WN0.1/pull/132
 
 ## Plan
 - Fix `theia-windows-smoke` electron step to assert markers via literal match (avoid invalid regex).
