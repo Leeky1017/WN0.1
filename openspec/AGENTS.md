@@ -4,7 +4,8 @@ This file is the authoritative guide for maintaining WriteNow as a **spec-first*
 
 ## Canonical rule
 
-- All canonical project constraints live in `openspec/specs/` (especially `writenow-constitution`).
+- All canonical product/architecture/roadmap constraints live in `openspec/specs/` (especially `writenow-spec`).
+- Governance & delivery constraints live in repo-root `AGENTS.md`.
 - `docs/` is non-canonical and should be treated as pointers/entrypoints (avoid a second source of truth).
 
 ## Directory layout (OpenSpec official)
@@ -19,28 +20,6 @@ openspec/
   changes/archive/YYYY-MM-DD-<change-id>/
   _ops/
 ```
-
-## WriteNow delivery workflow (Issue + Rulebook + GitHub)
-
-WriteNow uses `$openspec-rulebook-github-delivery` as the delivery hard gate:
-
-- Every change MUST be tracked by a GitHub Issue `#N`.
-- Branch MUST be `task/<N>-<slug>`.
-- All commits MUST include `(#N)`.
-- PR body MUST include `Closes #N`.
-- PR MUST include `openspec/_ops/task_runs/ISSUE-N.md`.
-- Required checks MUST be green: `ci` / `openspec-log-guard` / `merge-serial`.
-- Auto-merge MUST be enabled.
-
-Rulebook tasks are the execution checklist:
-- `rulebook/tasks/issue-<N>-<slug>/proposal.md`
-- `rulebook/tasks/issue-<N>-<slug>/tasks.md`
-
-Worktree hygiene (mandatory after merge):
-- This is a local-only step (GitHub Actions cannot delete your local worktrees).
-- After the PR is merged and controlplane `main` is synced, run:
-  - `scripts/agent_worktree_cleanup.sh <N> <slug>`
-  - Tip: start with `--dry-run` if you're unsure.
 
 ## Spec writing (strict)
 
