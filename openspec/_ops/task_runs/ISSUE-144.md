@@ -1,7 +1,7 @@
 # ISSUE-144
 - Issue: #144
 - Branch: task/144-issue-141-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/145
 
 ## Plan
 - Archive merged Rulebook task folder for #141 into `rulebook/tasks/archive/`.
@@ -23,3 +23,7 @@
 - Command: `git status --porcelain=v1`
 - Key output: `only archive move + new closeout task + RUN_LOG`
 - Evidence: `git status --porcelain` (see output above)
+
+### 2026-01-23 PR
+- Command: `gh pr create --title "[GOV] Closeout: archive Rulebook task for #141 (#144)" --body "Closes #144 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/145`
