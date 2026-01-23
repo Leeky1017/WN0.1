@@ -41,13 +41,6 @@ jobs:
           cd writenow-theia
           yarn build:browser:win
 
-      - name: Build electron target (writenow-theia)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd writenow-theia
-          yarn build:electron:win
-
       - name: Start browser target (smoke)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,6 +61,12 @@ jobs:
           try {
             Invoke-WebRequest -Uri "http://127.0.0.1:3012" -UseBasicParsing | Out-Null
             Write-Host "HTTP GET ok"
+
+            $content = (Get-Content $stdout -Raw) + "`n" + (Get-Content $stderr -Raw)
+            $expectedNativeSmoke = "[writenow-core] native smoke completed successfully"
+            if (-not $content.Contains($expectedNativeSmoke)) {
+              throw "Expected native smoke success log not found: $expectedNativeSmoke"
+            }
           } catch {
             Write-Host "HTTP GET failed"
             throw
@@ -78,6 +77,13 @@ jobs:
               # Ignore: process can exit early (e.g. fatal startup error).
             }
           }
+
+      - name: Build electron target (writenow-theia)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+          yarn build:electron:win
 
       - name: Start electron target (smoke)
         env:
