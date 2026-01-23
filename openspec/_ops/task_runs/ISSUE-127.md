@@ -1,7 +1,7 @@
 # ISSUE-127
 - Issue: #127
 - Branch: task/127-theia-windows-smoke-build-browser
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/128
 
 ## Plan
 - Fix theia-windows-smoke to run the browser build/bundle before starting the browser target.
@@ -13,3 +13,7 @@
 - Key output: `.../issues/127` + `Preparing worktree (new branch 'task/127-theia-windows-smoke-build-browser')`
 - Evidence: `.worktrees/issue-127-theia-windows-smoke-build-browser/`
 
+### 2026-01-23 16:52 PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/128`
+- Evidence: `PR #128 (Closes #127)`
