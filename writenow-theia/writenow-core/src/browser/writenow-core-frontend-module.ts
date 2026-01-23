@@ -7,7 +7,10 @@ import { ProblemContribution } from '@theia/markers/lib/browser/problem/problem-
 
 import { TipTapMarkdownEditorWidgetFactory } from './tiptap-markdown-editor-widget-factory';
 import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';
+import { WritenowAiPanelPlaceholderWidgetFactory } from './writenow-ai-panel-placeholder-widget-factory';
 import { WritenowCoreContribution } from './writenow-core-contribution';
+import { WritenowLayoutContribution } from './writenow-layout-contribution';
+import { WritenowWelcomeWidgetFactory } from './writenow-welcome-widget-factory';
 
 @injectable()
 class WritenowHiddenProblemContribution extends ProblemContribution {
@@ -54,9 +57,15 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(MenuContribution).toService(WritenowCoreContribution);
     bind(FrontendApplicationContribution).toService(WritenowCoreContribution);
 
+    bind(WritenowLayoutContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(WritenowLayoutContribution);
+    bind(FrontendApplicationContribution).toService(WritenowLayoutContribution);
+
     // Why: Align with Theia/PoC binding style; opener-service + widget-manager collect these
     // via multi-injection (no aliases) and choose the highest `canHandle` priority.
     bind(WidgetFactory).to(TipTapMarkdownEditorWidgetFactory).inSingletonScope();
     bind(OpenHandler).to(TipTapMarkdownOpenHandler).inSingletonScope();
-});
 
+    bind(WidgetFactory).to(WritenowWelcomeWidgetFactory).inSingletonScope();
+    bind(WidgetFactory).to(WritenowAiPanelPlaceholderWidgetFactory).inSingletonScope();
+});
