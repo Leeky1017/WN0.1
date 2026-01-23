@@ -15,6 +15,7 @@ writenow-theia/
 
 - Node.js >= 18
 - Yarn Classic (1.x)
+  - We pin via Corepack: `corepack prepare yarn@1.22.22 --activate`
 - Platform build toolchain for native dependencies:
   - Linux: `python3`, `make`, `g++` (and `pkg-config` + X11 headers for `native-keymap`)
   - Windows: Visual Studio Build Tools + Python 3 (see notes below)
@@ -25,6 +26,8 @@ Theia upstream prerequisites: see `https://github.com/eclipse-theia/theia/blob/m
 
 ```bash
 cd writenow-theia
+corepack enable
+corepack prepare yarn@1.22.22 --activate
 yarn install
 ```
 
@@ -66,6 +69,8 @@ yarn --cwd electron-app start
 
 If you built the Electron target and then start the Browser target (or vice‑versa), run the matching `rebuild` first.
 
+Note: some upstream native deps (e.g. `drivelist`, `keytar`) ship as **Node-API (N-API)** prebuilds and should not require Electron-specific rebuilds.
+
 ## Linux / WSL2 sysdeps workaround (pkg-config / X11 headers)
 
 If you cannot install system packages (no sudo) and you hit errors like:
@@ -98,7 +103,12 @@ yarn install
 ## Windows notes
 
 - Native builds may require:
-  - Visual Studio Build Tools (C++ workload)
+  - Visual Studio Build Tools (C++ workload / MSVC v143) + Windows SDK
   - Python 3
-- See `openspec/_ops/task_runs/ISSUE-117.md` for the exact commands and outputs verified on Windows.
-
+- If `drivelist` falls back to a source build and fails with `llvm-lib.exe` (e.g. `/LTCG:INCREMENTAL`), ensure you're using the **MSVC** toolset (not LLVM/ClangCL) and retry from a fresh install.
+- Setting `GITHUB_TOKEN` is recommended on Windows to avoid GitHub API rate limits during dependency install.
+- For convenience, this workspace ships a small wrapper that forces an MSVC environment via `VsDevCmd.bat`:
+  - `yarn install:win`
+  - `yarn build:electron:win`
+  - `yarn start:electron:win`
+- See `openspec/_ops/task_runs/ISSUE-117.md` / `openspec/_ops/task_runs/ISSUE-119.md` for the exact commands and outputs verified on Windows.
