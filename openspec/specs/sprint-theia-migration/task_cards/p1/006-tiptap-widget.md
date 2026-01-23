@@ -1,5 +1,10 @@
 # 006: TipTap Editor Widget（.md 绑定 + Save/Dirty）
 
+Status: done  
+Issue: #134  
+PR: <fill-after-created>  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-134.md
+
 ## Context
 
 PoC 通过后，需要把 TipTap 从“实验代码”升级为 Theia 内的正式 Editor Widget：可由 File Explorer 打开 `.md`、可保存、可展示 dirty 状态，并遵循统一的快捷键/命令策略。
@@ -13,9 +18,9 @@ PoC 通过后，需要把 TipTap 从“实验代码”升级为 Theia 内的正�
 
 ## Acceptance Criteria
 
-- [ ] `.md` 文件可通过 File Explorer 打开并在 TipTap 中编辑。
-- [ ] dirty 状态与保存行为一致：修改后标记 dirty；保存成功清理；保存失败提示并保留 dirty。
-- [ ] 快捷键冲突无高频 bug（至少覆盖：IME、Save、Undo/Redo、Esc、Cmd/Ctrl+K 的策略落地）。
+- [x] `.md` 文件可通过 File Explorer 打开并在 TipTap 中编辑。
+- [x] dirty 状态与保存行为一致：修改后标记 dirty；保存成功清理；保存失败提示并保留 dirty。
+- [x] 快捷键冲突无高频 bug（至少覆盖：IME、Save、Undo/Redo、Esc、Cmd/Ctrl+K 的策略落地）。
 
 ## Dependencies
 
@@ -26,4 +31,3 @@ PoC 通过后，需要把 TipTap 从“实验代码”升级为 Theia 内的正�
 ## Estimated Effort
 
 - L（3–5 天）
-
