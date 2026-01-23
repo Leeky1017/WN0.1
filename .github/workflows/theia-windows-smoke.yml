@@ -34,6 +34,13 @@ jobs:
           cd writenow-theia
           yarn install:win --frozen-lockfile
 
+      - name: Build browser target (writenow-theia)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+          yarn build:browser:win
+
       - name: Build electron target (writenow-theia)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -65,7 +72,11 @@ jobs:
             Write-Host "HTTP GET failed"
             throw
           } finally {
-            Stop-Process -Id $proc.Id -Force
+            try {
+              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            } catch {
+              # Ignore: process can exit early (e.g. fatal startup error).
+            }
           }
 
       - name: Start electron target (smoke)
@@ -90,4 +101,8 @@ jobs:
             throw "Expected frontend contribution log not found"
           }
 
-          Stop-Process -Id $proc.Id -Force
+          try {
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+          } catch {
+            # Ignore: process can exit early.
+          }
