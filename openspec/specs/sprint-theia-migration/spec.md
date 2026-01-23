@@ -119,3 +119,9 @@
 - GPT/Theia 调研结论（brain artifacts）：`brain_artifacts/theia-research-findings.md`
 - Theia ↔ WriteNow 能力融合地图（brain artifacts）：`brain_artifacts/theia-wn-capability-map.md`
 
+## 状态同步触发点
+
+- Phase 0 PoC 全部通过 → 更新 writenow-spec 路线图，标记 PoC 完成
+- Phase 1 框架搭建完成 → 更新 writenow-spec 架构章节，确认 Theia 为正式框架
+- Phase 2 核心迁移完成 → 更新 writenow-spec，移除旧架构描述
+- 任何 Phase 失败 → 更新 writenow-spec，记录失败原因和备选方案
