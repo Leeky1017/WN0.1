@@ -1,7 +1,7 @@
 # ISSUE-137
 - Issue: #137
 - Branch: task/137-p1-basic-layout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/138
 
 ## Plan
 - Brand `writenow-theia` as WriteNow (title/productName/icons + dark theme default).
@@ -82,3 +82,8 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 14 passed, 0 failed`
 - Evidence: `openspec/specs/**/spec.md`
+
+### 2026-01-24 01:42 PR
+- Command: `gh pr create --title "[SPRINT-THEIA-MIGRATION] P1/T007 Basic Layout + Branding (#137)" ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/138`
+- Evidence: `openspec/_ops/task_runs/ISSUE-137.md (PR link filled)`
