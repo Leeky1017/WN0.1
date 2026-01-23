@@ -5,7 +5,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 ## Status
 
 - 本规范：Active（持续更新的权威基线）
-- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 进行中）
+- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 进行中，Task 004 scaffold ✅ 2026-01-23）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 
@@ -953,7 +953,8 @@ CREATE TABLE settings (
 - [x] PoC：存储语义决策：Hybrid（project = workspace root）
 
 #### Phase 1：Scaffold（进行中）
-- [ ] Theia 应用壳体（脚手架 + 模块裁剪 + 基础布局/品牌）
+- [x] Task 004：Theia 应用壳体脚手架（`writenow-theia/`：browser + electron + core extension，可启动/可扩展）
+- [ ] 模块裁剪 + 基础布局/品牌
 - [ ] 迁移核心链路：RPC/IPC、SQLite、RAG、Embedding
 - [ ] 迁移面板：AI/版本历史/知识图谱（复用实现）
 - [ ] 规范：`openspec/specs/sprint-theia-migration/spec.md`
