@@ -1,7 +1,7 @@
 # ISSUE-133
 - Issue: #133
 - Branch: task/133-theia-module-pruning
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/135
 
 ## Plan
 - Capture baseline deps/sizes for `writenow-theia/` (before pruning) and keep evidence in this RUN_LOG.

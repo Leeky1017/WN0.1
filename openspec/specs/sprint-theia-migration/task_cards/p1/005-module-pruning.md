@@ -2,7 +2,7 @@
 
 Status: done  
 Issue: #133  
-PR: <fill-after-created>  
+PR: https://github.com/Leeky1017/WN0.1/pull/135  
 RUN_LOG: openspec/_ops/task_runs/ISSUE-133.md
 
 ## Context
