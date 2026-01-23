@@ -33,6 +33,7 @@
     "prepare": "yarn run clean && yarn run build",
     "clean": "rimraf lib",
     "build": "tsc",
+    "rpc:smoke": "yarn run build && node scripts/rpc-smoke.cjs",
     "watch": "tsc -w"
   },
   "theiaExtensions": [
