@@ -11,4 +11,4 @@
 
 ## 3. Documentation
 - [x] 3.1 Add `writenow-theia/README.md` with local dev instructions (browser/electron start) + native module notes.
-- [ ] 3.2 Update `openspec/_ops/task_runs/ISSUE-117.md` with all required evidence; check off task card and sync `writenow-spec` progress if this is Phase 1 first completion.
+- [x] 3.2 Update `openspec/_ops/task_runs/ISSUE-117.md` with all required evidence; check off task card and sync `writenow-spec` progress if this is Phase 1 first completion.
