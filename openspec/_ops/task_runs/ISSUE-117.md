@@ -1,7 +1,7 @@
 # ISSUE-117
 - Issue: #117
 - Branch: task/117-theia-scaffold
-- PR: <fill>
+- PR: https://github.com/Leeky1017/WN0.1/pull/118
 
 ## Plan
 - Scaffold a production Theia workspace under `writenow-theia/` (browser + electron + core extension).
