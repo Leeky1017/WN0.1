@@ -5,6 +5,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 ## Status
 
 - 本规范：Active（持续更新的权威基线）
+- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 进行中）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 
@@ -602,20 +603,31 @@ MVP 阶段采用"格式模板导出 + 剪贴板适配"方案。
 
 ## 四、系统架构
 
+### 架构迁移：Electron → Theia（当前进行中）
+
+WriteNow 正在从“自建 Electron + React + TipTap”迁移到 “Eclipse Theia 框架”。
+
+- 框架层使用 Eclipse Theia（替代原生 Electron 窗口管理与自建 shell）。
+- 编辑器层保留 TipTap（作为 Theia Editor Widget / ReactWidget 嵌入）。
+- 数据层保留 SQLite + better-sqlite3 + sqlite-vec（运行于 Theia backend）。
+- 存储模型采用 Hybrid 方案（project = workspace root；全局配置位于 userData，项目数据位于 workspace root/.writenow）。
+
 ### 技术栈
 
 | 层次 | 技术 | 说明 |
 |------|------|------|
-| 前端框架 | React 18 + TypeScript | 严格模式 |
+| 框架层 | Eclipse Theia 1.67.0 | IDE 框架（Electron-based），frontend + backend |
+| 前端框架 | React 18 + TypeScript | Theia frontend + 自定义 Widgets（严格模式） |
 | 样式 | Tailwind CSS v4 | 暗色/亮色/自定义主题 |
-| 编辑器 | TipTap (ProseMirror) | 双模式：Markdown / 富文本 |
+| 编辑器 | TipTap (ProseMirror) | 作为 Theia Editor Widget / ReactWidget 嵌入 |
 | 组件库 | shadcn/ui 自定义组件 | Cursor/Linear 风格 |
-| 桌面框架 | Electron | 无边框窗口 |
-| 构建工具 | Vite | Renderer 构建与开发服务器 |
-| 测试 | Vitest + Playwright | 单测 + E2E（用户路径） |
+| 通信 | Theia JSON-RPC | 替代 Electron IPC；复用 contract pipeline |
+| 构建工具 | Yarn (Classic) + Lerna | Theia app/extension 工作区（Phase 0 baseline） |
+| 测试 | Playwright | E2E（用户路径） |
 | 质量门禁 | ESLint + TypeScript | lint + 严格类型 |
-| 本地数据 | SQLite (better-sqlite3) | 含 FTS5 全文索引 |
-| 向量存储 | sqlite-vec | 语义搜索支持 |
+| 本地数据 | SQLite (better-sqlite3) | Theia backend 持久化（含 FTS5） |
+| 向量存储 | sqlite-vec | Theia backend 扩展 |
+| 存储模型 | Hybrid | project = workspace root |
 | 状态管理 | Zustand | 轻量级 |
 | AI 服务 | Claude API / OpenAI API | 流式响应，支持中转站 |
 | Embedding | text2vec-base-chinese | 本地模型 ~100MB |
@@ -658,75 +670,20 @@ interface AIConfig {
 - 可设置默认 provider
 - 密钥本地加密存储
 
-### 目录结构
+### 目录结构（迁移期：Theia 为主线）
 
 ```
 WriteNow/
-├── electron/                    # Electron 主进程
-│   ├── main.cjs                 # 主进程入口
-│   ├── preload.cjs              # 预加载脚本
-│   └── ipc/                     # IPC 处理器
-│       ├── files.cjs            # 文件操作
-│       ├── database.cjs         # 数据库操作
-│       ├── ai.cjs               # AI 服务代理
-│       └── embedding.cjs        # 本地 Embedding
-│
-├── src/                         # 前端源码
-│   ├── main.tsx                 # React 入口
-│   ├── App.tsx                  # 根组件
-│   ├── index.css                # 全局样式
-│   │
-│   ├── components/              # UI 组件
-│   │   ├── Editor/              # TipTap 编辑器
-│   │   │   ├── index.tsx
-│   │   │   ├── extensions/      # 编辑器扩展
-│   │   │   └── Toolbar.tsx      # 工具栏
-│   │   ├── AI/                  # AI 交互组件
-│   │   │   ├── SkillPanel.tsx
-│   │   │   ├── DiffView.tsx
-│   │   │   └── CommandPalette.tsx
-│   │   ├── Sidebar/             # 侧边栏
-│   │   │   ├── FilesView.tsx
-│   │   │   ├── OutlineView.tsx
-│   │   │   └── SettingsView.tsx
-│   │   └── ui/                  # 基础 UI 组件 (shadcn)
-│   │
-│   ├── stores/                  # Zustand 状态
-│   │   ├── editorStore.ts       # 编辑器状态
-│   │   ├── filesStore.ts        # 文件列表
-│   │   ├── aiStore.ts           # AI 面板状态
-│   │   ├── memoryStore.ts       # 外挂记忆
-│   │   └── settingsStore.ts     # 用户设置
-│   │
-│   ├── hooks/                   # 自定义 Hooks
-│   │   ├── useIpc.ts            # IPC 调用封装
-│   │   ├── useSkill.ts          # SKILL 执行
-│   │   └── useSearch.ts         # 搜索功能
-│   │
-│   ├── lib/                     # 工具函数
-│   │   ├── ipc.ts               # IPC 客户端
-│   │   ├── rag.ts               # RAG 逻辑
-│   │   └── utils.ts             # 通用工具
-│   │
-│   ├── locales/                 # 国际化
-│   │   ├── zh-CN.json
-│   │   └── en.json
-│   │
-│   └── types/                   # TypeScript 类型
-│       ├── ipc.ts
-│       ├── editor.ts
-│       └── ai.ts
-│
-├── models/                      # 本地 AI 模型
-│   └── text2vec-base-chinese/   # Embedding 模型
-│
-├── docs/                        # 文档
-│   └── reference/               # 参考资料
-│       └── manus-context-engineering/
-│
-└── openspec/                    # OpenSpec 规范
-    └── specs/
-        └── writenow-spec/
+├── theia-poc/                     # Theia migration Phase 0 PoC（✅ 2026-01-22）
+│   ├── writenow-theia-poc/        # Theia extension（TipTap Editor Widget + backend）
+│   ├── electron-app/              # Theia Electron app shell
+│   └── browser-app/               # Theia browser app（dev）
+├── electron/                      # Legacy Electron app（Phase 2 后移除）
+├── src/                           # Legacy renderer UI（Phase 2 后移除）
+├── models/                        # 本地模型资产（Embedding）
+├── docs/                          # 入口/工程规范/参考
+├── openspec/                      # 规范（权威）
+└── rulebook/                      # 任务执行清单与证据
 ```
 
 ### IPC 通信规范
@@ -919,6 +876,18 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
+### 当前状态（2026-01-23）
+
+- Sprint 1–5：✅ 已完成
+- Sprint 6：✅ 已完成（核心体验），剩余项已暂停（见下）
+- Theia 迁移：
+  - Phase 0 PoC：✅ 已完成（2026-01-22）
+  - Phase 1：进行中
+- 暂停的工作（统一原因：Theia 迁移为主线，避免双栈并存）：
+  - `openspec/specs/wn-frontend-deep-remediation/spec.md`
+  - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
+  - `openspec/specs/sprint-ide-advanced/spec.md`
+
 ### Sprint 1：可用的编辑器（1-2周）✅ 已完成
 - [x] TipTap 编辑器集成
 - [x] 真实的文件保存/加载
@@ -977,9 +946,13 @@ CREATE TABLE settings (
 - [ ] 命令面板 (Cmd+K)（Paused: 2026-01-22; blocked by Theia migration）
 
 ### Sprint：Theia Migration（优先，阻塞后续框架相关工作）
-- [ ] PoC：Theia + TipTap（输入/焦点/快捷键）
-- [ ] PoC：Theia backend + better-sqlite3 + sqlite-vec
-- [ ] PoC：存储语义决策（userData-first vs workspace-first）
+
+#### Phase 0：PoC（✅ 已完成：2026-01-22；Issue #111）
+- [x] PoC：Theia + TipTap（输入/焦点/快捷键）
+- [x] PoC：Theia backend + better-sqlite3 + sqlite-vec
+- [x] PoC：存储语义决策：Hybrid（project = workspace root）
+
+#### Phase 1：Scaffold（进行中）
 - [ ] Theia 应用壳体（脚手架 + 模块裁剪 + 基础布局/品牌）
 - [ ] 迁移核心链路：RPC/IPC、SQLite、RAG、Embedding
 - [ ] 迁移面板：AI/版本历史/知识图谱（复用实现）

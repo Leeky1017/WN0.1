@@ -48,13 +48,89 @@ jobs:
               per_page: 100,
             });
 
-            if (!files.some((f) => f.filename === expectedRunLog)) {
-              core.setFailed(`PR must include run log file: ${expectedRunLog}`);
-              return;
-            }
+                        if (!files.some((f) => f.filename === expectedRunLog)) {
+                          core.setFailed(`PR must include run log file: ${expectedRunLog}`);
+                          return;
+                        }
 
-            const expectedPrUrl = `https://github.com/${owner}/${repo}/pull/${pull_number}`;
-            const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                        // Guard: if a PR completes sprint task items (- [ ] -> - [x]), it MUST also update writenow-spec.
+                        const writenowSpecPath = "openspec/specs/writenow-spec/spec.md";
+                        const sprintTaskRe =
+                          /^openspec\/specs\/sprint-[^/]+\/(task_cards|tasks)\/.*\.md$/;
+                        const sprintTaskFiles = files.filter((f) => sprintTaskRe.test(f.filename));
+
+                        const parseChecklist = (md) => {
+                          const map = new Map();
+                          const re = /^\s*-\s*\[( |x|X)\]\s+(.*)\s*$/gm;
+                          let m2;
+                          while ((m2 = re.exec(md)) !== null) {
+                            const checked = (m2[1] || "").toLowerCase() === "x";
+                            const text = (m2[2] || "").trim();
+                            if (text) map.set(text, checked);
+                          }
+                          return map;
+                        };
+
+                        const getContentOrNull = async (path, ref) => {
+                          try {
+                            const res = await github.rest.repos.getContent({
+                              owner,
+                              repo,
+                              path,
+                              ref,
+                            });
+                            if (Array.isArray(res.data) || !("content" in res.data)) return null;
+                            return Buffer.from(
+                              res.data.content,
+                              res.data.encoding || "base64"
+                            ).toString("utf8");
+                          } catch (e) {
+                            return null;
+                          }
+                        };
+
+                        const hasCompletionToggle = async (file) => {
+                          const patch = file.patch || "";
+                          const patchShowsToggle =
+                            /^-\s*-\s*\[\s\]/m.test(patch) && /^\+\s*-\s*\[[xX]\]/m.test(patch);
+                          if (patchShowsToggle) return true;
+
+                          // Fallback for truncated/missing patches: compare base/head content.
+                          if (!patch) {
+                            const base = await getContentOrNull(file.filename, pr.base.sha);
+                            const head = await getContentOrNull(file.filename, pr.head.sha);
+                            if (!base || !head) return false;
+
+                            const baseItems = parseChecklist(base);
+                            const headItems = parseChecklist(head);
+                            for (const [text, checked] of baseItems.entries()) {
+                              if (checked) continue;
+                              if (headItems.get(text) === true) return true;
+                            }
+                          }
+
+                          return false;
+                        };
+
+                        const completedSprintTaskFiles = [];
+                        for (const f of sprintTaskFiles) {
+                          if (await hasCompletionToggle(f)) completedSprintTaskFiles.push(f.filename);
+                        }
+
+                        if (
+                          completedSprintTaskFiles.length > 0 &&
+                          !files.some((f) => f.filename === writenowSpecPath)
+                        ) {
+                          core.setFailed(
+                            `PR completes sprint task items ([ ] -> [x]) but does not update ${writenowSpecPath}. Files: ${completedSprintTaskFiles.join(
+                              ", "
+                            )}`
+                          );
+                          return;
+                        }
+
+                        const expectedPrUrl = `https://github.com/${owner}/${repo}/pull/${pull_number}`;
+                        const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
             const runLogRes = await github.rest.repos.getContent({
               owner,

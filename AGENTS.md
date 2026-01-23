@@ -2,6 +2,20 @@
 
 本仓库目标：构建一个 AI 驱动的文字创作 IDE（创作者的 Cursor）。
 
+## 规范导航（Agent 阅读顺序：1 → 5）
+
+1) 宪法与治理：`AGENTS.md`
+2) 项目规范（产品/架构/路线图）：`openspec/specs/writenow-spec/spec.md`
+3) 当前 Sprint（Theia 迁移）：`openspec/specs/sprint-theia-migration/spec.md`
+4) 任务执行（任务清单）：`rulebook/tasks/issue-N-slug/`
+5) 运行证据（运行日志）：`openspec/_ops/task_runs/ISSUE-N.md`
+
+补充：工程标准（入口与指针）
+- 工程规范入口：`docs/README.md`
+- 代码规范：`docs/code-standards.md`
+- 测试规范：`docs/testing-standards.md`
+- Style guard：`docs/style-guard.md`
+
 ## 文档权威（必须遵守）
 
 - 项目权威规范（产品/架构/路线图）：`openspec/specs/writenow-spec/spec.md`
@@ -82,88 +96,20 @@
 
 - 当某 Sprint 的任务完成并合并后，必须同步 `openspec/specs/writenow-spec/spec.md` 顶部状态与路线图进度，确保不会与实际实现漂移。
 
+### 4) 状态同步（强制）
+
+- 当项目状态发生以下变化时，必须同步更新上游文档，禁止文档滞后于实际状态：
+  - Sprint 重大里程碑完成（PoC 全部通过、Phase 完成、Sprint 结束）时，必须更新 writenow-spec 的“当前状态”和“路线图”章节。
+  - 架构决策变更（如 Theia 迁移确认）时，必须更新 writenow-spec 的“系统架构”章节。
+  - 工作暂停或恢复时，必须更新 writenow-spec，说明哪些 Spec 已暂停及原因。
+- 违反此规则视为任务未完成。
+
 ## 禁止事项（硬禁）
 
 - 禁止兼容旧方案/保留两套实现（有问题就替换，不留双路径）
 - 禁止假数据/stub 测试；禁止“写个测试但不跑”
 - 禁止不做验证就说“已完成”（最少：lint/test/e2e/openspec 的相关门禁需有证据）
 - 禁止 silent failure（任何失败必须可观测、可定位、可恢复或可重试）
-
-## 产品定位
-
-WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命创作者的写作体验。
-用户不是在"写文档"，是在"构建文学世界"。
-
-## 技术栈
-
-| 层次 | 技术 | 说明 |
-|------|------|------|
-| 前端框架 | React 18 + TypeScript | 严格模式 |
-| 样式 | Tailwind CSS v4 | 暗色/亮色/自定义主题 |
-| 编辑器 | TipTap (ProseMirror) | 双模式：Markdown / 富文本 |
-| 组件库 | shadcn/ui | Cursor/Linear 风格 |
-| 桌面框架 | Electron | 无边框窗口 |
-| 本地数据 | SQLite (better-sqlite3) | 含 FTS5 全文索引 |
-| 向量存储 | sqlite-vec | 语义搜索支持 |
-| 状态管理 | Zustand | 轻量级 |
-| AI 服务 | Claude API / OpenAI API | 流式响应，支持中转站 |
-| Embedding | text2vec-base-chinese | 本地模型 ~100MB |
-| 国际化 | i18next | 中/英双语 |
-
-## 平台支持
-
-- **Windows 10/11**：首要支持，主要开发测试平台
-- **macOS 10.15+**：次要支持，需要 Cmd 键适配
-- **Linux**：未来考虑
-
-## 核心设计参考
-
-- 完整规范文档：`openspec/specs/writenow-spec/spec.md`（产品/架构/路线图）
-- 治理与交付规范：`AGENTS.md`（本文件）
-- Manus 上下文工程参考：`docs/reference/manus-context-engineering/`
-- src 目录包含权威 UI 设计，所有前端开发必须以此为准
-
-## 目录结构
-
-```
-WriteNow/
-├── electron/                    # Electron 主进程
-│   ├── main.cjs
-│   ├── preload.cjs
-│   └── ipc/                     # IPC 处理器
-├── src/                         # 前端源码
-│   ├── components/              # UI 组件
-│   │   ├── Editor/              # TipTap 编辑器
-│   │   ├── AI/                  # AI 交互组件
-│   │   └── Sidebar/             # 侧边栏
-│   ├── stores/                  # Zustand 状态
-│   ├── hooks/                   # 自定义 Hooks
-│   ├── lib/                     # 工具函数
-│   └── locales/                 # i18n 语言文件
-├── models/                      # 本地 AI 模型
-├── docs/                        # 文档和参考资料
-└── openspec/                    # OpenSpec 规范
-```
-
-## 工作流程
-
-本仓库沿用 openspec-rulebook-github-delivery 工作流：
-- GitHub 是并发与交付唯一入口：Issue -> Branch -> PR -> Checks -> Auto-merge
-- Issue 号 N 是任务唯一 ID
-- 分支名：task/N-slug
-- 每个 commit message 必须包含 (#N)
-- PR body 必须包含 Closes #N
-
-Worktree 规范（本地，必须执行）：
-- 任务开始：在控制面（`main`）创建 worktree 到 `.worktrees/issue-N-slug`
-- 合并完成且控制面 `main` 同步后：运行 `scripts/agent_worktree_cleanup.sh <N> <slug>` 清理本地 worktree + 分支
-
-## 本地开发
-
-```bash
-npm install
-npm run electron:dev
-```
 
 ## 当前 Sprint / 进度
 
