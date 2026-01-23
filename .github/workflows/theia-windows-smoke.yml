@@ -1,0 +1,85 @@
+name: theia-windows-smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: theia-windows-smoke
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (Yarn Classic)
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          yarn --version
+
+      - name: Install (writenow-theia)
+        env:
+          # Helps avoid GitHub API rate limits for deps that download assets.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+          yarn install:win --frozen-lockfile
+
+      - name: Build electron target (writenow-theia)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+          yarn build:electron:win
+
+      - name: Start browser target (smoke)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+
+          $log = Join-Path $env:RUNNER_TEMP "theia-browser.log"
+          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","browser-app","start","--hostname","127.0.0.1","--port","3012") -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError $log
+          Start-Sleep -Seconds 25
+
+          Write-Host "---- browser log (tail) ----"
+          Get-Content $log -Tail 120
+
+          try {
+            Invoke-WebRequest -Uri "http://127.0.0.1:3012" -UseBasicParsing | Out-Null
+            Write-Host "HTTP GET ok"
+          } catch {
+            Write-Host "HTTP GET failed"
+            throw
+          } finally {
+            Stop-Process -Id $proc.Id -Force
+          }
+
+      - name: Start electron target (smoke)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+
+          $log = Join-Path $env:RUNNER_TEMP "theia-electron.log"
+          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","electron-app","start") -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError $log
+          Start-Sleep -Seconds 25
+
+          Write-Host "---- electron log (tail) ----"
+          Get-Content $log -Tail 200
+
+          $content = Get-Content $log -Raw
+          if ($content -notmatch "\\[writenow-core\\] frontend started") {
+            throw "Expected frontend contribution log not found"
+          }
+
+          Stop-Process -Id $proc.Id -Force

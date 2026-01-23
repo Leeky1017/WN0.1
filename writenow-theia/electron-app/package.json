@@ -24,7 +24,7 @@
   },
   "scripts": {
     "bundle": "yarn rebuild && theia build --mode development",
-    "rebuild": "theia rebuild:electron --cacheRoot .. --modules=node-pty,native-keymap,find-git-repositories,drivelist,keytar,ssh2,cpu-features,better-sqlite3",
+    "rebuild": "theia rebuild:electron --cacheRoot .. --modules=node-pty,native-keymap,better-sqlite3",
     "start": "theia start",
     "watch": "yarn rebuild && theia build --watch --mode development"
   },
