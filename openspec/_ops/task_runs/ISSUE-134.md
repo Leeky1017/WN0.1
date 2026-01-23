@@ -1,7 +1,7 @@
 # ISSUE-134
 - Issue: #134
 - Branch: task/134-tiptap-widget
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/136
 
 ## Goal
 - Migrate TipTap PoC into `writenow-theia/writenow-core/` as a production-ready Markdown editor widget for `.md` files, with full Save/Dirty lifecycle and correct keybinding/focus behavior.
