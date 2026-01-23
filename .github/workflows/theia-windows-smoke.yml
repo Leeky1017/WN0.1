@@ -49,7 +49,7 @@ jobs:
 
           $stdout = Join-Path $env:RUNNER_TEMP "theia-browser.stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "theia-browser.stderr.log"
-          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","browser-app","start","--hostname","127.0.0.1","--port","3012") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          $proc = Start-Process -FilePath "cmd.exe" -ArgumentList @("/c","yarn","--cwd","browser-app","start","--hostname","127.0.0.1","--port","3012") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           Start-Sleep -Seconds 25
 
           Write-Host "---- browser stdout (tail) ----"
@@ -76,7 +76,7 @@ jobs:
 
           $stdout = Join-Path $env:RUNNER_TEMP "theia-electron.stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "theia-electron.stderr.log"
-          $proc = Start-Process -FilePath "yarn" -ArgumentList @("--cwd","electron-app","start") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          $proc = Start-Process -FilePath "cmd.exe" -ArgumentList @("/c","yarn","--cwd","electron-app","start") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           Start-Sleep -Seconds 25
 
           Write-Host "---- electron stdout (tail) ----"
