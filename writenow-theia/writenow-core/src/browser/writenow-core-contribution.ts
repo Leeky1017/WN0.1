@@ -8,6 +8,11 @@ export const WRITENOW_CORE_HELLO_COMMAND: Command = {
     label: 'WriteNow: Hello'
 };
 
+export const WRITENOW_CORE_OPEN_INLINE_AI_COMMAND: Command = {
+    id: 'writenow.core.openInlineAI',
+    label: 'WriteNow: Open Inline AI',
+};
+
 @injectable()
 export class WritenowCoreContribution implements CommandContribution, MenuContribution, FrontendApplicationContribution {
     constructor(@inject(MessageService) private readonly messageService: MessageService) {}
@@ -24,6 +29,13 @@ export class WritenowCoreContribution implements CommandContribution, MenuContri
         registry.registerCommand(WRITENOW_CORE_HELLO_COMMAND, {
             execute: () => this.messageService.info('WriteNow core extension is loaded.'),
         });
+
+        registry.registerCommand(WRITENOW_CORE_OPEN_INLINE_AI_COMMAND, {
+            execute: () =>
+                this.messageService.info(
+                    'Inline AI is not implemented yet (Phase 1). This command is reserved to avoid Ctrl/Cmd+K chord conflicts while editing.',
+                ),
+        });
     }
 
     registerMenus(menus: MenuModelRegistry): void {
@@ -33,4 +45,3 @@ export class WritenowCoreContribution implements CommandContribution, MenuContri
         });
     }
 }
-

@@ -1,7 +1,12 @@
 import { CommandContribution, MenuContribution } from '@theia/core';
 import { FrontendApplicationContribution } from '@theia/core/lib/browser/frontend-application-contribution';
-import { ContainerModule, injectable } from '@theia/core/shared/inversify';
+import { OpenHandler } from '@theia/core/lib/browser/opener-service';
+import { WidgetFactory } from '@theia/core/lib/browser/widget-manager';
+import { injectable, ContainerModule } from '@theia/core/shared/inversify';
 import { ProblemContribution } from '@theia/markers/lib/browser/problem/problem-contribution';
+
+import { TipTapMarkdownEditorWidgetFactory } from './tiptap-markdown-editor-widget-factory';
+import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';
 import { WritenowCoreContribution } from './writenow-core-contribution';
 
 @injectable()
@@ -48,4 +53,10 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(CommandContribution).toService(WritenowCoreContribution);
     bind(MenuContribution).toService(WritenowCoreContribution);
     bind(FrontendApplicationContribution).toService(WritenowCoreContribution);
+
+    // Why: Align with Theia/PoC binding style; opener-service + widget-manager collect these
+    // via multi-injection (no aliases) and choose the highest `canHandle` priority.
+    bind(WidgetFactory).to(TipTapMarkdownEditorWidgetFactory).inSingletonScope();
+    bind(OpenHandler).to(TipTapMarkdownOpenHandler).inSingletonScope();
 });
+
