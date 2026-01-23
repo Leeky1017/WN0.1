@@ -41,13 +41,6 @@ jobs:
           cd writenow-theia
           yarn build:browser:win
 
-      - name: Build electron target (writenow-theia)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd writenow-theia
-          yarn build:electron:win
-
       - name: Start browser target (smoke)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,16 +61,30 @@ jobs:
           try {
             Invoke-WebRequest -Uri "http://127.0.0.1:3012" -UseBasicParsing | Out-Null
             Write-Host "HTTP GET ok"
+
+            $content = (Get-Content $stdout -Raw) + "`n" + (Get-Content $stderr -Raw)
+            $expectedNativeSmoke = "[writenow-core] native smoke completed successfully"
+            if (-not $content.Contains($expectedNativeSmoke)) {
+              throw "Expected native smoke success log not found: $expectedNativeSmoke"
+            }
           } catch {
             Write-Host "HTTP GET failed"
             throw
           } finally {
             try {
-              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+              & taskkill.exe /PID $proc.Id /T /F 2>$null | Out-Null
+              Start-Sleep -Seconds 2
             } catch {
               # Ignore: process can exit early (e.g. fatal startup error).
             }
           }
+
+      - name: Build electron target (writenow-theia)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+          yarn build:electron:win
 
       - name: Start electron target (smoke)
         env:
@@ -88,21 +95,31 @@ jobs:
           $stdout = Join-Path $env:RUNNER_TEMP "theia-electron.stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "theia-electron.stderr.log"
           $proc = Start-Process -FilePath "cmd.exe" -ArgumentList @("/c","yarn","--cwd","electron-app","start") -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-          Start-Sleep -Seconds 25
-
-          Write-Host "---- electron stdout (tail) ----"
-          Get-Content $stdout -Tail 200
-
-          Write-Host "---- electron stderr (tail) ----"
-          Get-Content $stderr -Tail 200
-
-          $content = (Get-Content $stdout -Raw) + "`n" + (Get-Content $stderr -Raw)
-          if ($content -notmatch "\\[writenow-core\\] frontend started") {
-            throw "Expected frontend contribution log not found"
-          }
-
           try {
-            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-          } catch {
-            # Ignore: process can exit early.
+            Start-Sleep -Seconds 25
+
+            Write-Host "---- electron stdout (tail) ----"
+            Get-Content $stdout -Tail 200
+
+            Write-Host "---- electron stderr (tail) ----"
+            Get-Content $stderr -Tail 200
+
+            $content = (Get-Content $stdout -Raw) + "`n" + (Get-Content $stderr -Raw)
+
+            $expectedFrontend = "[writenow-core] frontend started"
+            if (-not $content.Contains($expectedFrontend)) {
+              throw "Expected frontend contribution log not found: $expectedFrontend"
+            }
+
+            $expectedNativeSmoke = "[writenow-core] native smoke completed successfully"
+            if (-not $content.Contains($expectedNativeSmoke)) {
+              throw "Expected native smoke success log not found: $expectedNativeSmoke"
+            }
+          } finally {
+            try {
+              & taskkill.exe /PID $proc.Id /T /F 2>$null | Out-Null
+              Start-Sleep -Seconds 2
+            } catch {
+              # Ignore: process can exit early.
+            }
           }
