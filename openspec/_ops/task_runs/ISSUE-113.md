@@ -32,3 +32,7 @@
 - Key output: `Preparing worktree (new branch 'task/113-theia-docs-sync')`
 - Evidence: `.worktrees/issue-113-theia-docs-sync/`
 
+### 2026-01-23 11:10 validate (openspec)
+- Command: `npx openspec validate --specs --strict --no-interactive`
+- Key output: `Totals: 14 passed, 0 failed (14 items)`
+- Evidence: CI-equivalent OpenSpec strict validation passed in worktree
