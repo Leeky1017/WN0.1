@@ -1,7 +1,7 @@
 # ISSUE-139
 - Issue: #139
 - Branch: task/139-issue-137-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/140
 
 ## Plan
 - Archive the Rulebook task for Issue #137 into `rulebook/tasks/archive/` and keep `rulebook/tasks/` tidy.
@@ -27,3 +27,8 @@
 - Evidence:
   - Deleted: `rulebook/tasks/issue-137-p1-basic-layout/`
   - Added: `rulebook/tasks/archive/2026-01-23-issue-137-p1-basic-layout/`
+
+### 2026-01-24 01:58 PR
+- Command: `gh pr create --title "[GOV] Closeout: archive Rulebook task for #137 (#139)" ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/140`
+- Evidence: `openspec/_ops/task_runs/ISSUE-139.md (PR link filled)`
