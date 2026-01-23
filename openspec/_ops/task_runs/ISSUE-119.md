@@ -1,7 +1,7 @@
 # ISSUE-119
 - Issue: #119
 - Branch: task/119-theia-windows-build
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/120
 
 ## Plan
 - Unblock Windows (native) install/build/start for `writenow-theia/` by addressing `drivelist` native build failures.
@@ -28,3 +28,8 @@
 - Command: `rulebook task validate issue-119-theia-windows-build`
 - Key output: `✅ Task issue-119-theia-windows-build is valid`
 - Evidence: `rulebook/tasks/issue-119-theia-windows-build/`
+
+### 2026-01-23 16:22 PR
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/120`
+- Evidence: `PR #120 (Closes #119)`
