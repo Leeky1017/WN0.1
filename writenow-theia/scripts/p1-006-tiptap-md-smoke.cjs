@@ -110,33 +110,44 @@ async function openFileViaExplorerDoubleClick(page, fileName, artifactsDir) {
   await page.waitForFunction(() => document.querySelectorAll('.lm-DockPanel').length > 0, { timeout: 60_000 });
 
   await page.click('body');
-  // Use Command Palette to toggle Explorer (more reliable than Ctrl+Shift+E in headless browsers).
-  let paletteFocused = false;
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    await page.keyboard.press('F1');
-    try {
-      await page.waitForFunction(
-        () => document.activeElement && document.activeElement.tagName.toLowerCase() === 'input',
-        { timeout: 1500 },
-      );
-      paletteFocused = true;
-      break;
-    } catch {
-      // ignore and retry
-    }
-    await new Promise((r) => setTimeout(r, 300));
-  }
-
-  assert(paletteFocused, 'expected Command Palette input to be focused');
-  await page.keyboard.type('view: toggle explorer');
-  await page.keyboard.press('Enter');
-
-  await page.waitForFunction(() => {
+  // Ensure Explorer is visible. When a custom layout contribution already opened it,
+  // we must NOT toggle it closed.
+  const explorerVisible = await page.evaluate(() => {
     const files = document.querySelector('.theia-Files');
     if (!files) return false;
     const rect = files.getBoundingClientRect();
     return rect.width > 0 && rect.height > 0;
-  }, { timeout: 30_000 });
+  });
+
+  if (!explorerVisible) {
+    // Use Command Palette to toggle Explorer (more reliable than Ctrl+Shift+E in headless browsers).
+    let paletteFocused = false;
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await page.keyboard.press('F1');
+      try {
+        await page.waitForFunction(
+          () => document.activeElement && document.activeElement.tagName.toLowerCase() === 'input',
+          { timeout: 1500 },
+        );
+        paletteFocused = true;
+        break;
+      } catch {
+        // ignore and retry
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+
+    assert(paletteFocused, 'expected Command Palette input to be focused');
+    await page.keyboard.type('view: toggle explorer');
+    await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() => {
+      const files = document.querySelector('.theia-Files');
+      if (!files) return false;
+      const rect = files.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    }, { timeout: 30_000 });
+  }
 
   // Give Theia a moment to render the full layout; in headless mode the shell can
   // report mounted before widget factories/opener services finish wiring.

@@ -13,7 +13,8 @@
     "@theia/navigator": "1.67.0",
     "@theia/preferences": "1.67.0",
     "@theia/workspace": "1.67.0",
-    "writenow-core": "0.0.0"
+    "writenow-core": "0.0.0",
+    "@theia/search-in-workspace": "1.67.0"
   },
   "devDependencies": {
     "@theia/cli": "1.67.0",
@@ -29,8 +30,16 @@
     "target": "electron",
     "frontend": {
       "config": {
-        "applicationName": "WriteNow"
+        "applicationName": "WriteNow",
+        "defaultTheme": "dark",
+        "electron": {
+          "windowOptions": {
+            "icon": "../resources/icon-256.png"
+          }
+        },
+        "preferences": {}
       }
     }
-  }
+  },
+  "productName": "WriteNow"
 }
