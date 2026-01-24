@@ -2,7 +2,7 @@
 
 - Issue: #170
 - Branch: task/170-frontend-aesthetic
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/171
 
 ## Plan
 
