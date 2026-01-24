@@ -1,7 +1,7 @@
 # ISSUE-146
 - Issue: #146
-- Branch: task/146-theia-sqlite-migration
-- PR: https://github.com/Leeky1017/WN0.1/pull/147
+- Branch: task/146-theia-sqlite-migration-closeout
+- PR: <fill-after-created>
 
 ## Goal
 - Migrate WriteNow SQLite initialization + schema management into the Theia backend, and migrate baseline CRUD (projects/files/version) to run against the backend DB via Theia RPC.
@@ -12,11 +12,11 @@
 - Add reproducible verification steps/scripts and record evidence (DB init, CRUD, version history); then update task card + writenow-spec status.
 
 ## Status
-- CURRENT: SQLite data layer + projects/files/version services implemented; local verifications (Theia rpc-smoke + repo gates) completed; preparing PR.
+- CURRENT: Post-merge docs sync (task card + writenow-spec + RUN_LOG) after merging code PR #147.
 
 ## Next Actions
-- [ ] Create PR + enable auto-merge; ensure required checks (`ci`, `openspec-log-guard`, `merge-serial`) are green.
-- [ ] After merge: closeout docs (task card 009 + writenow-spec status sync) with PR link + RUN_LOG.
+- [ ] Create closeout PR (docs sync) and fill `- PR:` in this RUN_LOG with the real link.
+- [ ] Enable auto-merge; verify required checks green; confirm mergedAt != null.
 
 ## Decisions Made
 - 2026-01-24: Choose Option A (global DB under userData/data/writenow.db) as the initial Theia backend DB strategy to minimize migration surface; revisit per-project DB once workspace/project boundaries are fully wired.
@@ -63,3 +63,8 @@
 - Key output: `0 errors (warnings only)`
 - Command: `npm run build`
 - Key output: `✓ built in 11.29s`
+
+### 2026-01-24 (merge) Code PR merged
+- Command: `gh pr view 147 --json state,mergedAt`
+- Key output: `state=MERGED (code PR: https://github.com/Leeky1017/WN0.1/pull/147)`
+- Evidence: `openspec/specs/sprint-theia-migration/task_cards/p2/009-sqlite-migration.md`

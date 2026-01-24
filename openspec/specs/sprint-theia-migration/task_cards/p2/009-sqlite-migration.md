@@ -1,5 +1,10 @@
 # 009: SQLite Migration（初始化 + schema + 路径）
 
+Status: done  
+Issue: #146  
+PR: https://github.com/Leeky1017/WN0.1/pull/147  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-146.md
+
 ## Context
 
 SQLite 是 WriteNow 的本地持久化基石（projects/articles/version history/settings 等）。迁移到 Theia backend 后，必须先把 DB 初始化与 schema 迁移稳定下来，才能承载后续 RAG/Embedding/历史版本等能力。
@@ -12,9 +17,9 @@ SQLite 是 WriteNow 的本地持久化基石（projects/articles/version history
 
 ## Acceptance Criteria
 
-- [ ] Theia backend 启动后可初始化 DB（含 schema），且不会重复建表/破坏数据。
-- [ ] DB 路径策略明确并写入文档；E2E/本地运行可通过配置隔离数据目录。
-- [ ] 至少一个真实业务链路通过 DB 验证持久化（重启后仍可读）。
+- [x] Theia backend 启动后可初始化 DB（含 schema），且不会重复建表/破坏数据。
+- [x] DB 路径策略明确并写入文档；E2E/本地运行可通过配置隔离数据目录。
+- [x] 至少一个真实业务链路通过 DB 验证持久化（重启后仍可读）。
 
 ## Dependencies
 
@@ -25,4 +30,3 @@ SQLite 是 WriteNow 的本地持久化基石（projects/articles/version history
 ## Estimated Effort
 
 - M（2–3 天）
-
