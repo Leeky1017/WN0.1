@@ -5,7 +5,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 ## Status
 
 - 本规范：Active（持续更新的权威基线）
-- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 ✅ 2026-01-23；Phase 2 进行中，Task 008 IPC migration ✅ 2026-01-23；Task 009 SQLite migration ✅ 2026-01-24）
+- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 ✅ 2026-01-23；Phase 2 进行中，Task 008 IPC migration ✅ 2026-01-23；Task 009 SQLite migration ✅ 2026-01-24；Task 010 RAG migration ✅ 2026-01-24）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 

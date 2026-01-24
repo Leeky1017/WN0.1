@@ -7,7 +7,10 @@ import type { WritenowRpcService } from '../common/writenow-protocol';
 import { TheiaInvokeRegistry, toIpcError } from './theia-invoke-adapter';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
 import { FilesService } from './services/files-service';
+import { IndexService } from './services/index-service';
 import { ProjectsService } from './services/projects-service';
+import { RetrievalService } from './services/retrieval-service';
+import { SearchService } from './services/search-service';
 import { VersionService } from './services/version-service';
 
 @injectable()
@@ -20,6 +23,9 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(ProjectsService) projectsService: ProjectsService,
         @inject(FilesService) filesService: FilesService,
         @inject(VersionService) versionService: VersionService,
+        @inject(IndexService) _indexService: IndexService,
+        @inject(RetrievalService) retrievalService: RetrievalService,
+        @inject(SearchService) searchService: SearchService,
     ) {
         // Why: Task 009 requires the DB to be initialized at backend startup (not lazily on first request),
         // so failures surface early and are actionable.
@@ -28,6 +34,8 @@ export class WritenowBackendService implements WritenowRpcService {
         projectsService.register(this.registry);
         filesService.register(this.registry);
         versionService.register(this.registry);
+        retrievalService.register(this.registry);
+        searchService.register(this.registry);
     }
 
     async invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>> {
@@ -46,4 +54,3 @@ export class WritenowBackendService implements WritenowRpcService {
         }
     }
 }
-

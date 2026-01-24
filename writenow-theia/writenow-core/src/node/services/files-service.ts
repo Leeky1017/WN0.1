@@ -24,6 +24,7 @@ import { TheiaInvokeRegistry } from '../theia-invoke-adapter';
 import { deleteArticle, upsertArticle } from '../database/articles';
 import { WritenowSqliteDb } from '../database/writenow-sqlite-db';
 import { WRITENOW_DATA_DIR } from '../writenow-data-dir';
+import { IndexService } from './index-service';
 
 function createIpcError(code: IpcErrorCode, message: string, details?: unknown): Error {
     const error = new Error(message);
@@ -120,6 +121,7 @@ export class FilesService implements FilesServiceContractShape {
         @inject(ILogger) private readonly logger: ILogger,
         @inject(WRITENOW_DATA_DIR) private readonly dataDir: string,
         @inject(WritenowSqliteDb) private readonly sqliteDb: WritenowSqliteDb,
+        @inject(IndexService) private readonly indexService: IndexService,
     ) {}
 
     async sessionStatus(): Promise<FileSessionStatusResponse> {
@@ -205,6 +207,13 @@ export class FilesService implements FilesServiceContractShape {
         try {
             const projectId = assertValidProjectId(request);
             upsertArticle(db, { id: resolved.name, fileName: resolved.name, content, projectId });
+            try {
+                this.indexService.indexArticle(resolved.name);
+            } catch (error) {
+                this.logger.warn(
+                    `[files] rag index enqueue failed for write: ${resolved.name} (${error instanceof Error ? error.message : String(error)})`,
+                );
+            }
         } catch (error) {
             this.logger.error(`[files] db index failed for write: ${resolved.name} (${error instanceof Error ? error.message : String(error)})`);
             throw createIpcError('DB_ERROR', 'Saved to disk but failed to update search index', {
@@ -236,6 +245,13 @@ export class FilesService implements FilesServiceContractShape {
         try {
             const projectId = assertValidProjectId(request);
             upsertArticle(db, { id: fileName, fileName, content: defaultContent, projectId });
+            try {
+                this.indexService.indexArticle(fileName);
+            } catch (error) {
+                this.logger.warn(
+                    `[files] rag index enqueue failed for create: ${fileName} (${error instanceof Error ? error.message : String(error)})`,
+                );
+            }
         } catch (error) {
             try {
                 await fs.unlink(fullPath);
@@ -267,6 +283,11 @@ export class FilesService implements FilesServiceContractShape {
 
         try {
             deleteArticle(db, resolved.name);
+            void this.indexService.handleDeletedArticle(resolved.name).catch((error) => {
+                this.logger.warn(
+                    `[files] rag index cleanup failed for delete: ${resolved.name} (${error instanceof Error ? error.message : String(error)})`,
+                );
+            });
         } catch (error) {
             throw createIpcError('DB_ERROR', 'Failed to update search index for deleted file', {
                 name: resolved.name,

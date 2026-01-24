@@ -1,5 +1,10 @@
 # 010: RAG Migration（indexer + retrieval）
 
+Status: done  
+Issue: #149  
+PR: <fill-after-created>  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-149.md
+
 ## Context
 
 RAG（全文 + 语义）是 WriteNow “项目级上下文工程”与 AI 体验的核心基础设施。代码层面可复用度高，但依赖 sqlite-vec 与存储语义；因此需要在 Theia backend 中迁移并跑通最小闭环。
@@ -12,9 +17,9 @@ RAG（全文 + 语义）是 WriteNow “项目级上下文工程”与 AI 体验
 
 ## Acceptance Criteria
 
-- [ ] 在 Theia 上可对一个 workspace/project 执行索引，并在 DB/vec 中看到可验证的数据写入。
-- [ ] 可对同一项目执行一次检索，返回可解释结果（至少包含若干 passages/entity hits）。
-- [ ] 索引/检索失败路径可观测：错误码/日志可定位，且具备重试策略。
+- [x] 在 Theia 上可对一个 workspace/project 执行索引，并在 DB/vec 中看到可验证的数据写入。
+- [x] 可对同一项目执行一次检索，返回可解释结果（至少包含若干 passages/entity hits）。
+- [x] 索引/检索失败路径可观测：错误码/日志可定位，且具备重试策略。
 
 ## Dependencies
 
@@ -25,4 +30,3 @@ RAG（全文 + 语义）是 WriteNow “项目级上下文工程”与 AI 体验
 ## Estimated Effort
 
 - L（3–5 天）
-

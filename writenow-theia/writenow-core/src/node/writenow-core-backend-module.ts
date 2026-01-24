@@ -6,8 +6,12 @@ import { BackendApplicationContribution } from '@theia/core/lib/node/backend-app
 import { ContainerModule } from '@theia/core/shared/inversify';
 import { WRITENOW_RPC_PATH } from '../common/writenow-protocol';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
+import { VectorStore } from './rag/vector-store';
 import { FilesService } from './services/files-service';
+import { IndexService } from './services/index-service';
 import { ProjectsService } from './services/projects-service';
+import { SearchService } from './services/search-service';
+import { RetrievalService } from './services/retrieval-service';
 import { VersionService } from './services/version-service';
 import { WritenowCoreBackendContribution } from './writenow-core-backend-contribution';
 import { WritenowBackendService } from './writenow-backend-service';
@@ -22,9 +26,13 @@ export default new ContainerModule(bind => {
     bind(WRITENOW_DATA_DIR).toConstantValue(dataDir);
 
     bind(WritenowSqliteDb).toSelf().inSingletonScope();
+    bind(VectorStore).toSelf().inSingletonScope();
+    bind(IndexService).toSelf().inSingletonScope();
     bind(ProjectsService).toSelf().inSingletonScope();
     bind(FilesService).toSelf().inSingletonScope();
     bind(VersionService).toSelf().inSingletonScope();
+    bind(RetrievalService).toSelf().inSingletonScope();
+    bind(SearchService).toSelf().inSingletonScope();
 
     bind(WritenowBackendService).toSelf().inSingletonScope();
     bind(ConnectionHandler).toDynamicValue(ctx => new JsonRpcConnectionHandler(WRITENOW_RPC_PATH, () => ctx.container.get(WritenowBackendService))).inSingletonScope();
