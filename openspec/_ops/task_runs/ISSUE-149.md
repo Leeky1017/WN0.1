@@ -1,7 +1,7 @@
 # ISSUE-149
 - Issue: #149
 - Branch: task/149-theia-rag-migration
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/150
 
 ## Goal
 - Migrate the RAG pipeline (chunking/indexer/retrieval + sqlite-vec vector store) into Theia backend, building on the Task 009 SQLite layer, and expose it via Theia RPC with observable failures.
