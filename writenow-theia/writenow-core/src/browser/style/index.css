@@ -1,30 +1,25 @@
 /**
- * WriteNow Design System - Main Entry Point
+ * WriteNow Design System v2 - Main Entry Point
  *
- * Why: Single import point for all WriteNow styles. Import order matters:
- * 1. Tokens (primitive values)
- * 2. Theme (semantic mappings, Midnight is default)
- * 3. Theia overrides (apply WriteNow tokens to Theia variables)
- * 4. Component styles (AI Panel, Welcome, Editor)
- *
- * Theme switching is handled by adding/removing theme class on body:
- * - Default (no class): Midnight theme
- * - .wn-theme-warm-gray: Warm Gray theme
- * - .wn-theme-parchment: Parchment (light) theme
+ * Import order:
+ * 1. Tokens (primitives) - must be first
+ * 2. Themes (semantic tokens mapped from primitives)
+ * 3. Theia overrides (map WN tokens to Theia variables)
+ * 4. Component styles
  */
 
-/* 1. Design Tokens - SSOT for all visual values */
+/* Foundation */
 @import './tokens.css';
 
-/* 2. Theme definitions - Semantic token mappings */
+/* Themes */
 @import './theme-midnight.css';
 @import './theme-warm-gray.css';
 @import './theme-parchment.css';
 
-/* 3. Theia variable overrides - Apply WriteNow to Theia */
+/* Theia integration */
 @import './theia-overrides.css';
 
-/* 4. Component styles */
+/* Component styles */
 @import './ai-panel.css';
 @import './welcome.css';
 @import './editor.css';

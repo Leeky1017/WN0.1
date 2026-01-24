@@ -35,15 +35,10 @@ export class WritenowWelcomeWidget extends ReactWidget {
     protected override render(): React.ReactNode {
         return (
             <div className="wn-welcome-container" data-testid="writenow-welcome">
-                {/* Header with brand */}
+                {/* Header - pure text, no logo graphic */}
                 <header className="wn-welcome-header">
-                    <div className="wn-welcome-logo">
-                        <span className="wn-welcome-logo-icon">W</span>
-                    </div>
                     <h1 className="wn-welcome-title">WriteNow</h1>
-                    <p className="wn-welcome-tagline">
-                        Creator IDE — write in Markdown, think in projects.
-                    </p>
+                    <p className="wn-welcome-tagline">Creator IDE</p>
                 </header>
 
                 {/* Quick action buttons */}
