@@ -147,3 +147,7 @@ writenow-theia +
 - Decision: CI runs on ubuntu-latest; Theia install builds native-keymap and needs pkg-config/X11 headers.
 - Change: add apt-get install step for pkg-config + libx11-dev + libxkbfile-dev before running npm scripts.
 - Evidence: .github/workflows/ci.yml
+
+### 2026-01-24 21:29 OpenSpec validate
+- Command: npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive
+- Key output: Totals: 14 passed, 0 failed
