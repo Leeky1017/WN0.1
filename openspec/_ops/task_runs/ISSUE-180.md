@@ -2,7 +2,7 @@
 
 - Issue: #180
 - Branch: task/180-frontend-p0-quality
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/181
 
 ## Plan
 
@@ -19,3 +19,23 @@
 
 - Command: `git worktree add -b "task/180-frontend-p0-quality" ".worktrees/issue-180-frontend-p0-quality" origin/main`
 - Key output: `HEAD is now at 2d351ae feat: implement P0 frontend features (#178) (#179)`
+
+### 2026-01-25 Implementation
+
+- Command: `npm run lint`
+- Key output: `Done in 3.20s.` (all checks passed)
+
+- Files created:
+  - `tests/e2e/frontend-p0-settings.spec.ts` - 10 test cases for settings panel
+  - `tests/e2e/frontend-p0-editor-toolbar.spec.ts` - 8 test cases for editor toolbar
+  - `tests/e2e/frontend-p0-find-replace.spec.ts` - 12 test cases for find/replace
+
+- Files modified:
+  - `crash-recovery-contribution.ts` - Fixed silent failure, added error logging and user notification
+  - `wn-frontend-gap-analysis/spec.md` - Updated task card with completion status
+
+- Command: `git push -u origin HEAD && gh pr create`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/181`
+
+- Command: `gh pr merge --auto --squash 181`
+- Key output: Auto-merge enabled
