@@ -60,16 +60,30 @@ export class WritenowCoreContribution implements CommandContribution, MenuContri
                     await this.writenow.invoke('file:write', { path: created.path, content });
                     const read = await this.writenow.invoke('file:read', { path: created.path });
 
-                    await this.writenow.invoke('file:snapshot:write', {
-                        path: created.path,
+                    const v1 = await this.writenow.invoke('version:create', {
+                        articleId: created.path,
                         content: read.content,
-                        reason: 'manual',
+                        name: 'smoke v1',
+                        actor: 'user',
                     });
-                    const latest = await this.writenow.invoke('file:snapshot:latest', { path: created.path });
+
+                    const contentV2 = `${read.content}\n\n- v2: ${new Date().toISOString()}\n`;
+                    await this.writenow.invoke('file:write', { path: created.path, content: contentV2 });
+                    const v2 = await this.writenow.invoke('version:create', {
+                        articleId: created.path,
+                        content: contentV2,
+                        name: 'smoke v2',
+                        actor: 'user',
+                    });
+
+                    const diff = await this.writenow.invoke('version:diff', {
+                        fromSnapshotId: v1.snapshotId,
+                        toSnapshotId: v2.snapshotId,
+                    });
 
                     const elapsedMs = Date.now() - startedAt;
                     this.messageService.info(
-                        `RPC ok (elapsed: ${elapsedMs}ms): projects=${projects.projects.length}, file=${created.path}, snapshot=${latest.snapshot ? latest.snapshot.id : 'none'}`,
+                        `RPC ok (elapsed: ${elapsedMs}ms): projects=${projects.projects.length}, file=${created.path}, versionDiff=${diff.diff.length} chars`,
                     );
                 } catch (error) {
                     const message = error instanceof Error ? error.message : String(error);
