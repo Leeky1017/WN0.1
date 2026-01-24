@@ -25,3 +25,23 @@ export const WRITENOW_KNOWLEDGE_GRAPH_WIDGET_ID = 'writenow.knowledgeGraph';
  * Why: Settings panel widget id for user preferences configuration.
  */
 export const WRITENOW_SETTINGS_WIDGET_ID = 'writenow.settings';
+
+/**
+ * Why: Outline panel widget id for document heading navigation.
+ */
+export const WRITENOW_OUTLINE_WIDGET_ID = 'writenow.outline';
+
+/**
+ * Why: Shortcuts dialog widget id for keyboard shortcuts cheatsheet.
+ */
+export const WRITENOW_SHORTCUTS_DIALOG_ID = 'writenow.shortcutsDialog';
+
+/**
+ * Why: About dialog widget id for application information.
+ */
+export const WRITENOW_ABOUT_DIALOG_ID = 'writenow.aboutDialog';
+
+/**
+ * Why: Notification center widget id for centralized notifications.
+ */
+export const WRITENOW_NOTIFICATION_WIDGET_ID = 'writenow.notification';

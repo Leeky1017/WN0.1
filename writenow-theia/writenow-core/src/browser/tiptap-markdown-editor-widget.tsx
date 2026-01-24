@@ -21,20 +21,30 @@ import { Markdown } from '@tiptap/markdown';
 import { ActiveEditorService } from './active-editor-service';
 import { EditorToolbar } from './editor-toolbar';
 import { FindReplaceWidget } from './find-replace-widget';
+import { EditorContextMenu } from './editor-context-menu';
 
 export const TIPTAP_MARKDOWN_EDITOR_WIDGET_FACTORY_ID = 'writenow-tiptap-markdown-editor';
 
 type FocusChangedHandler = (focused: boolean) => void;
 type MarkdownChangedHandler = (markdown: string) => void;
 
+type ContextMenuState = {
+    isOpen: boolean;
+    x: number;
+    y: number;
+};
+
 type TipTapMarkdownEditorProps = Readonly<{
     markdown: string;
     showFindReplace: boolean;
     showReplaceRow: boolean;
+    isFocusMode: boolean;
     onMarkdownChanged: MarkdownChangedHandler;
     onFocusChanged: FocusChangedHandler;
     onEditorReady: (editor: Editor | null) => void;
     onCloseFindReplace: () => void;
+    onOpenFindReplace: (withReplace: boolean) => void;
+    onOpenAiPanel: () => void;
 }>;
 
 const TabIndentExtension = Extension.create({
@@ -51,8 +61,26 @@ const TabIndentExtension = Extension.create({
 });
 
 function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElement {
-    const { markdown, showFindReplace, showReplaceRow, onMarkdownChanged, onFocusChanged, onEditorReady, onCloseFindReplace } = props;
+    const { 
+        markdown, 
+        showFindReplace, 
+        showReplaceRow, 
+        isFocusMode,
+        onMarkdownChanged, 
+        onFocusChanged, 
+        onEditorReady, 
+        onCloseFindReplace,
+        onOpenFindReplace,
+        onOpenAiPanel,
+    } = props;
     const isProgrammaticUpdateRef = React.useRef(false);
+
+    // Context menu state
+    const [contextMenu, setContextMenu] = React.useState<ContextMenuState>({
+        isOpen: false,
+        x: 0,
+        y: 0,
+    });
 
     const editor = useEditor({
         extensions: [
@@ -77,6 +105,15 @@ function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElem
                 blur: () => {
                     onFocusChanged(false);
                     return false;
+                },
+                contextmenu: (view, event) => {
+                    event.preventDefault();
+                    setContextMenu({
+                        isOpen: true,
+                        x: event.clientX,
+                        y: event.clientY,
+                    });
+                    return true;
                 },
             },
         },
@@ -105,18 +142,38 @@ function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElem
         isProgrammaticUpdateRef.current = false;
     }, [editor, markdown]);
 
+    const closeContextMenu = React.useCallback(() => {
+        setContextMenu({ isOpen: false, x: 0, y: 0 });
+    }, []);
+
+    const containerClassName = isFocusMode 
+        ? 'wn-editor-container wn-editor-container--focus-mode' 
+        : 'wn-editor-container';
+
     return (
-        <div className="wn-editor-container" data-testid="writenow-tiptap-markdown-editor">
-            <EditorToolbar editor={editor} />
-            <FindReplaceWidget
-                editor={editor}
-                isOpen={showFindReplace}
-                showReplace={showReplaceRow}
-                onClose={onCloseFindReplace}
-            />
+        <div className={containerClassName} data-testid="writenow-tiptap-markdown-editor">
+            {!isFocusMode && <EditorToolbar editor={editor} />}
+            {!isFocusMode && (
+                <FindReplaceWidget
+                    editor={editor}
+                    isOpen={showFindReplace}
+                    showReplace={showReplaceRow}
+                    onClose={onCloseFindReplace}
+                />
+            )}
             <div className="wn-editor-content">
                 <EditorContent editor={editor} />
             </div>
+            {contextMenu.isOpen && (
+                <EditorContextMenu
+                    editor={editor}
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    onClose={closeContextMenu}
+                    onOpenFindReplace={onOpenFindReplace}
+                    onOpenAiPanel={onOpenAiPanel}
+                />
+            )}
         </div>
     );
 }
@@ -150,6 +207,7 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     private isEditorFocused = false;
     private showFindReplace = false;
     private showReplaceRow = false;
+    private isFocusMode = false;
 
     constructor(
         private readonly fileService: FileService,
@@ -268,6 +326,20 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
             if (isMod && key === 'h') {
                 event.preventDefault();
                 this.openFindReplace(true);
+                return;
+            }
+
+            // Focus mode toggle (Cmd+Shift+F)
+            if (isMod && event.shiftKey && key === 'f') {
+                event.preventDefault();
+                this.toggleFocusMode();
+                return;
+            }
+
+            // Escape to exit focus mode
+            if (key === 'escape' && this.isFocusMode) {
+                event.preventDefault();
+                this.exitFocusMode();
                 return;
             }
         };
@@ -420,6 +492,34 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     }
 
     /**
+     * Toggle focus mode.
+     *
+     * Why: Focus mode hides UI chrome (toolbar, sidebars) for distraction-free writing.
+     * The editor area is centered with a maximum width for optimal reading.
+     */
+    toggleFocusMode(): void {
+        this.isFocusMode = !this.isFocusMode;
+        this.update();
+    }
+
+    /**
+     * Get current focus mode state.
+     */
+    getFocusMode(): boolean {
+        return this.isFocusMode;
+    }
+
+    /**
+     * Exit focus mode.
+     */
+    exitFocusMode(): void {
+        if (this.isFocusMode) {
+            this.isFocusMode = false;
+            this.update();
+        }
+    }
+
+    /**
      * Replace the entire document content.
      *
      * Why: Rolling back to a historical snapshot must update the editor view while preserving Save/Dirty semantics.
@@ -451,12 +551,19 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
                 markdown={this.currentMarkdown}
                 showFindReplace={this.showFindReplace}
                 showReplaceRow={this.showReplaceRow}
+                isFocusMode={this.isFocusMode}
                 onMarkdownChanged={(markdown) => this.onEditorMarkdownChanged(markdown)}
                 onFocusChanged={(focused) => this.onEditorFocusChanged(focused)}
                 onEditorReady={(editor) => {
                     this.tiptapEditor = editor ?? undefined;
                 }}
                 onCloseFindReplace={() => this.closeFindReplace()}
+                onOpenFindReplace={(withReplace) => this.openFindReplace(withReplace)}
+                onOpenAiPanel={() => {
+                    void this.commandService
+                        .executeCommand('writenow.aiPanel.open')
+                        .catch((error: unknown) => console.error('[writenow-core] AI panel open failed', error));
+                }}
             />
         );
     }
