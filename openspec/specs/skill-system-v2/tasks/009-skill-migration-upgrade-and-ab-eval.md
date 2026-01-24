@@ -1,6 +1,6 @@
 # 任务 009: 迁移/升级助手 + A/B 评估（P3）
 
-Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+Status: paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## 目标
 

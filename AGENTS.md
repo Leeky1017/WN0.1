@@ -6,7 +6,7 @@
 
 1) 宪法与治理：`AGENTS.md`
 2) 项目规范（产品/架构/路线图）：`openspec/specs/writenow-spec/spec.md`
-3) 当前 Sprint（Theia 迁移）：`openspec/specs/sprint-theia-migration/spec.md`
+3) Sprint 增量规范（当前 Sprint 以 writenow-spec 为准）：`openspec/specs/sprint-*/spec.md`
 4) 任务执行（任务清单）：`rulebook/tasks/issue-N-slug/`
 5) 运行证据（运行日志）：`openspec/_ops/task_runs/ISSUE-N.md`
 

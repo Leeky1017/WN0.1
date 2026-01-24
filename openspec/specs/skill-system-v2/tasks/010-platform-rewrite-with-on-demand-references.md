@@ -1,6 +1,6 @@
 # 任务 010: 平台适配改写（`references/` 按需引用示例包）
 
-Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+Status: paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## 目标
 

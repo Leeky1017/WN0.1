@@ -1,6 +1,6 @@
 # Sprint IDE-Advanced：客观创作工具（时间线 / 出场追踪 / 大纲同步 / 风格样本）
 
-Status: paused (2026-01-22; wait for Theia framework baseline in `openspec/specs/sprint-theia-migration/spec.md`)
+Status: paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## Purpose
 

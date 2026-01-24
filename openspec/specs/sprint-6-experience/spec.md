@@ -1,6 +1,6 @@
 # Sprint 6：体验增强（2 周）
 
-Status: partially delivered; remaining scope paused (2026-01-22; blocked by `openspec/specs/sprint-theia-migration/spec.md`)
+Status: partially delivered; remaining scope paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## Purpose
 

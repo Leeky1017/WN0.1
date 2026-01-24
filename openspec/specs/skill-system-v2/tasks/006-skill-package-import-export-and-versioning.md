@@ -1,6 +1,6 @@
 # 任务 006: Skill Package 导入/导出与版本切换（P2）
 
-Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+Status: paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## 目标
 
