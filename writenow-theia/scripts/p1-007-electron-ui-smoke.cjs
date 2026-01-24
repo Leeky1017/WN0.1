@@ -140,7 +140,7 @@ async function main() {
     assert(page, 'expected to find an Electron renderer page');
 
     await page.waitForSelector('[data-testid="writenow-welcome"]', { timeout: 60_000 });
-    await page.waitForSelector('[data-testid="writenow-ai-panel-placeholder"]', { timeout: 60_000 });
+    await page.waitForSelector('[data-testid="writenow-ai-panel"]', { timeout: 60_000 });
 
     const title = await page.title();
     console.log('[p1-007/electron] title:', JSON.stringify(title));

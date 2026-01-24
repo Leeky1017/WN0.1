@@ -8,6 +8,7 @@ import { MessageService } from '@theia/core/lib/common/message-service';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 
 import { TIPTAP_MARKDOWN_EDITOR_WIDGET_FACTORY_ID, TipTapMarkdownEditorWidget } from './tiptap-markdown-editor-widget';
+import { ActiveEditorService } from './active-editor-service';
 
 /**
  * Why: `NavigatableWidgetOpenHandler` expects a widget factory registered under the same `id`.
@@ -25,6 +26,7 @@ export class TipTapMarkdownEditorWidgetFactory implements WidgetFactory {
         @inject(CommandService) private readonly commandService: CommandService,
         @inject(MessageService) private readonly messageService: MessageService,
         @inject(ContextKeyService) private readonly contextKeyService: ContextKeyService,
+        @inject(ActiveEditorService) private readonly activeEditorService: ActiveEditorService,
     ) {}
 
     static createWidgetId(uri: URI, counter?: number): string {
@@ -38,6 +40,7 @@ export class TipTapMarkdownEditorWidgetFactory implements WidgetFactory {
             this.commandService,
             this.messageService,
             this.contextKeyService,
+            this.activeEditorService,
         );
 
         this.setLabels(widget, uri);

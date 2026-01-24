@@ -18,6 +18,8 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 
+import { ActiveEditorService } from './active-editor-service';
+
 export const TIPTAP_MARKDOWN_EDITOR_WIDGET_FACTORY_ID = 'writenow-tiptap-markdown-editor';
 
 type FocusChangedHandler = (focused: boolean) => void;
@@ -138,6 +140,7 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
         private readonly commandService: CommandService,
         private readonly messageService: MessageService,
         private readonly contextKeyService: ContextKeyService,
+        private readonly activeEditorService: ActiveEditorService,
     ) {
         super();
         this.addClass('writenow-tiptap-editor-host');
@@ -193,7 +196,7 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
             if (isMod && key === 'k') {
                 event.preventDefault();
                 void this.commandService
-                    .executeCommand('writenow.core.openInlineAI')
+                    .executeCommand('writenow.aiPanel.open')
                     .catch((error: unknown) => console.error('[writenow-core] Ctrl+K command failed', error));
                 return;
             }
@@ -225,6 +228,9 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     protected override onBeforeDetach(msg: import('@lumino/messaging').Message): void {
         // Why: The widget is leaving the DOM; ensure focus context keys don't remain stuck.
         this.setEditorFocused(false);
+        if (this.activeEditorService.getActive() === this) {
+            this.activeEditorService.setActive(null);
+        }
         super.onBeforeDetach(msg);
     }
 
@@ -272,6 +278,10 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     private setEditorFocused(focused: boolean): void {
         this.isEditorFocused = focused;
         this.editorFocusKey.set(focused);
+        if (focused) {
+            // Why: AI Panel needs access to the most recently focused editor selection.
+            this.activeEditorService.setActive(this);
+        }
     }
 
     private onEditorFocusChanged(focused: boolean): void {
@@ -299,6 +309,41 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
             this.setDirtyState(true);
             throw error;
         }
+    }
+
+    /**
+     * Get the current selection snapshot.
+     *
+     * Why: The AI Panel needs deterministic selection capture for "rewrite selection" flows even after focus moves
+     * away from the editor widget.
+     */
+    getSelectionSnapshot(): { from: number; to: number; text: string } | null {
+        const editor = this.tiptapEditor;
+        if (!editor) return null;
+
+        const selection = editor.state.selection;
+        const from = selection.from;
+        const to = selection.to;
+        const text = editor.state.doc.textBetween(from, to, '\n');
+        return { from, to, text };
+    }
+
+    /**
+     * Replace a document range with plain text.
+     *
+     * Why: `insertContent` treats strings as HTML; using a ProseMirror transaction preserves literal text/Markdown.
+     */
+    replaceRange(from: number, to: number, text: string): void {
+        const editor = this.tiptapEditor;
+        if (!editor) return;
+
+        const nextText = typeof text === 'string' ? text : '';
+        const docSize = editor.state.doc.content.size;
+        const clampedFrom = Math.max(0, Math.min(from, docSize));
+        const clampedTo = Math.max(clampedFrom, Math.min(to, docSize));
+
+        editor.commands.focus();
+        editor.view.dispatch(editor.state.tr.insertText(nextText, clampedFrom, clampedTo));
     }
 
     protected override render(): React.ReactNode {

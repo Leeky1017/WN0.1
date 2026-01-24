@@ -4,16 +4,27 @@ import * as path from 'node:path';
 import { ConnectionHandler, JsonRpcConnectionHandler } from '@theia/core/lib/common/messaging';
 import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
 import { ContainerModule } from '@theia/core/shared/inversify';
-import { EmbeddingService as EmbeddingServiceToken, WRITENOW_RPC_PATH } from '../common/writenow-protocol';
+import {
+    AIService as AIServiceToken,
+    EmbeddingService as EmbeddingServiceToken,
+    SkillsService as SkillsServiceToken,
+    WRITENOW_AI_RPC_PATH,
+    WRITENOW_RPC_PATH,
+    WRITENOW_SKILLS_RPC_PATH,
+    type AiServiceClient,
+} from '../common/writenow-protocol';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
 import { EmbeddingServiceImpl } from './embedding/embedding-service';
 import { VectorStore } from './rag/vector-store';
+import { AiService as AiServiceImpl } from './services/ai-service';
+import { ContextService } from './services/context-service';
 import { FilesService } from './services/files-service';
 import { EmbeddingRpcService } from './services/embedding-rpc-service';
 import { IndexService } from './services/index-service';
 import { ProjectsService } from './services/projects-service';
 import { SearchService } from './services/search-service';
 import { RetrievalService } from './services/retrieval-service';
+import { SkillsService as SkillsServiceImpl } from './services/skills-service';
 import { VersionService } from './services/version-service';
 import { WritenowCoreBackendContribution } from './writenow-core-backend-contribution';
 import { WritenowBackendService } from './writenow-backend-service';
@@ -37,7 +48,23 @@ export default new ContainerModule(bind => {
     bind(VersionService).toSelf().inSingletonScope();
     bind(RetrievalService).toSelf().inSingletonScope();
     bind(SearchService).toSelf().inSingletonScope();
+    bind(ContextService).toSelf().inSingletonScope();
+
+    bind(SkillsServiceToken).to(SkillsServiceImpl).inSingletonScope();
+    bind(AIServiceToken).to(AiServiceImpl).inSingletonScope();
 
     bind(WritenowBackendService).toSelf().inSingletonScope();
     bind(ConnectionHandler).toDynamicValue(ctx => new JsonRpcConnectionHandler(WRITENOW_RPC_PATH, () => ctx.container.get(WritenowBackendService))).inSingletonScope();
+    bind(ConnectionHandler).toDynamicValue(ctx => new JsonRpcConnectionHandler(WRITENOW_SKILLS_RPC_PATH, () => ctx.container.get(SkillsServiceToken))).inSingletonScope();
+    bind(ConnectionHandler)
+        .toDynamicValue(
+            ctx =>
+                new JsonRpcConnectionHandler<AiServiceClient>(WRITENOW_AI_RPC_PATH, client => {
+                    const server = ctx.container.get<AiServiceImpl>(AIServiceToken);
+                    server.setClient(client);
+                    client.onDidCloseConnection(() => server.setClient(undefined));
+                    return server;
+                }),
+        )
+        .inSingletonScope();
 });

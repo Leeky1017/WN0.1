@@ -1,13 +1,16 @@
 import { CommandContribution, MenuContribution } from '@theia/core';
+import { KeybindingContribution } from '@theia/core/lib/browser/keybinding';
 import { FrontendApplicationContribution } from '@theia/core/lib/browser/frontend-application-contribution';
 import { OpenHandler } from '@theia/core/lib/browser/opener-service';
 import { WidgetFactory } from '@theia/core/lib/browser/widget-manager';
 import { injectable, ContainerModule } from '@theia/core/shared/inversify';
 import { ProblemContribution } from '@theia/markers/lib/browser/problem/problem-contribution';
 
+import { ActiveEditorService } from './active-editor-service';
 import { TipTapMarkdownEditorWidgetFactory } from './tiptap-markdown-editor-widget-factory';
 import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';
-import { WritenowAiPanelPlaceholderWidgetFactory } from './writenow-ai-panel-placeholder-widget-factory';
+import { AiPanelContribution, AiPanelWidgetFactory } from './ai-panel/ai-panel-contribution';
+import { AiPanelService } from './ai-panel/ai-panel-service';
 import { WritenowCoreContribution } from './writenow-core-contribution';
 import { WritenowFrontendService } from './writenow-frontend-service';
 import { WritenowLayoutContribution } from './writenow-layout-contribution';
@@ -54,6 +57,13 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     }
 
     bind(WritenowFrontendService).toSelf().inSingletonScope();
+    bind(ActiveEditorService).toSelf().inSingletonScope();
+
+    bind(AiPanelService).toSelf().inSingletonScope();
+    bind(AiPanelContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(AiPanelContribution);
+    bind(KeybindingContribution).toService(AiPanelContribution);
+    bind(AiPanelWidgetFactory).toSelf().inSingletonScope();
 
     bind(WritenowCoreContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(WritenowCoreContribution);
@@ -70,5 +80,5 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(OpenHandler).to(TipTapMarkdownOpenHandler).inSingletonScope();
 
     bind(WidgetFactory).to(WritenowWelcomeWidgetFactory).inSingletonScope();
-    bind(WidgetFactory).to(WritenowAiPanelPlaceholderWidgetFactory).inSingletonScope();
+    bind(WidgetFactory).to(AiPanelWidgetFactory).inSingletonScope();
 });
