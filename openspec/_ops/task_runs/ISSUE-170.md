@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. 重写 `wn-frontend-deep-remediation/spec.md` 为 Theia 适配版（Status: active）
-2. 建立 Design Token 系统（tokens.css + 主题变体）
-3. 创建 Theia 覆盖层 + 组件样式（AI Panel / Welcome / Editor）
+- 重写 `wn-frontend-deep-remediation/spec.md` 为 Theia 适配版（Status: active）
+- 建立 Design Token 系统（tokens.css + 主题变体）
+- 创建 Theia 覆盖层 + 组件样式（AI Panel / Welcome / Editor）
 
 ## Runs
 
