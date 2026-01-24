@@ -1,7 +1,7 @@
 # ISSUE-158
 - Issue: #158
 - Branch: task/158-theia-version-history-widget
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/160
 
 ## Plan
 - Audit/complete Theia version snapshot service + RPC surface
@@ -42,3 +42,46 @@
 - Evidence:
   - `writenow-theia/writenow-core/src/node/services/version-service.ts`
   - `writenow-theia/writenow-core/src/node/database/articles.ts`
+
+### 2026-01-24 11:10 UTC Snapshot create can upsert missing article rows (FK-safe)
+- Command:
+  ```bash
+  node - <<'NODE'
+  const os = require('node:os');
+  const path = require('node:path');
+  const fs = require('node:fs/promises');
+  const { WritenowSqliteDb } = require('./writenow-theia/writenow-core/lib/node/database/writenow-sqlite-db');
+  const { VersionService } = require('./writenow-theia/writenow-core/lib/node/services/version-service');
+  const logger = { error: console.error, warn: console.warn, info: console.log, debug: () => undefined };
+  (async () => {
+    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wn-version-upsert-'));
+    const db = new WritenowSqliteDb(logger, dataDir);
+    db.ensureReady();
+    const version = new VersionService(logger, db);
+    const created = await version.create({ articleId: 'Untracked.md', content: '# Untracked\\n\\nhello', name: 'v1', actor: 'user' });
+    const listed = await version.list({ articleId: 'Untracked.md', limit: 10, cursor: '0' });
+    const restored = await version.restore({ snapshotId: created.snapshotId });
+    console.log('created', created, 'listed', listed.items.length, 'restored', restored.articleId);
+  })();
+  NODE
+  ```
+- Key output: `created { snapshotId: ... } listed 1 restored Untracked.md`
+- Evidence: `writenow-theia/writenow-core/src/node/services/version-service.ts`
+
+### 2026-01-24 11:15 UTC Lint/build/contract/openspec gates
+- Command: `npm run contract:check`
+- Key output: `exit 0`
+- Command: `npm run lint`
+- Key output: `0 errors (warnings only)`
+- Command: `npm run build`
+- Key output: `vite build (exit 0)`
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 14 passed, 0 failed`
+
+### 2026-01-24 11:18 UTC Rollback + AI snapshot integration wiring (code path evidence)
+- Command: `rg -n \"version:create\" writenow-theia/writenow-core/src/browser/ai-panel/ai-panel-widget.tsx writenow-theia/writenow-core/src/browser/version-history/version-history-widget.tsx`
+- Key output: `AI Apply creates pre/post snapshots; Version History uses version:list/diff/restore + editor.setMarkdown`
+- Evidence:
+  - `writenow-theia/writenow-core/src/browser/ai-panel/ai-panel-widget.tsx`
+  - `writenow-theia/writenow-core/src/browser/version-history/version-history-widget.tsx`
+  - `writenow-theia/writenow-core/src/browser/tiptap-markdown-editor-widget.tsx`
