@@ -39,3 +39,16 @@
 - Command: `ls writenow-theia/writenow-core/lib/node/database/schema.sql`
 - Key output: File exists (6939 bytes)
 - Evidence: `schema.sql` successfully copied to lib directory during build
+
+### 2026-01-24 22:28 Create PR
+
+- Command: `gh pr create --title "fix: copy schema.sql to lib directory during build (#168)"`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/169`
+- Command: `gh pr merge 169 --auto --squash`
+- Status: Auto-merge enabled, CI checks pending
+
+### 2026-01-24 22:29 Add verification report
+
+- Command: `git commit -m "docs: add human-simulation verification report (#168)"`
+- Key output: `fe1b1af docs: add human-simulation verification report (#168)`
+- Evidence: `openspec/_ops/verification/WN-HUMAN-VERIFICATION-REPORT.md` added to PR
