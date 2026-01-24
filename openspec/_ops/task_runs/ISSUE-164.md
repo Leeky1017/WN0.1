@@ -169,3 +169,9 @@ writenow-theia +
 > node scripts/ipc-contract-sync.js check
 - Key output: exit 0
 - Evidence: openspec/_ops/task_runs/ISSUE-164.md
+
+
+### 2026-01-24 21:35 RUN_LOG guard fix (backticks)
+- Command: `npm run contract:check`
+- Key output: exit 0
+- Evidence: openspec/_ops/task_runs/ISSUE-164.md
