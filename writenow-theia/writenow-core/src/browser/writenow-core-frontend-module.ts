@@ -29,6 +29,10 @@ import { WritenowCoreContribution } from './writenow-core-contribution';
 import { WritenowFrontendService } from './writenow-frontend-service';
 import { WritenowLayoutContribution } from './writenow-layout-contribution';
 import { WritenowWelcomeWidgetFactory } from './writenow-welcome-widget-factory';
+import { OutlineContribution, OutlineWidgetFactory } from './outline/outline-contribution';
+import { HelpContribution, ShortcutsDialogFactory, AboutDialogFactory } from './help/help-contribution';
+import { NotificationService } from './notification/notification-widget';
+import { NotificationContribution, NotificationWidgetFactory } from './notification/notification-contribution';
 
 @injectable()
 class WritenowHiddenProblemContribution extends ProblemContribution {
@@ -105,6 +109,7 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(WritenowCoreContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(WritenowCoreContribution);
     bind(MenuContribution).toService(WritenowCoreContribution);
+    bind(KeybindingContribution).toService(WritenowCoreContribution);
     bind(FrontendApplicationContribution).toService(WritenowCoreContribution);
 
     bind(WritenowLayoutContribution).toSelf().inSingletonScope();
@@ -121,4 +126,28 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(WidgetFactory).to(VersionHistoryWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(KnowledgeGraphWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(SettingsWidgetFactory).inSingletonScope();
+
+    // Outline panel (P1-003)
+    bind(OutlineContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(OutlineContribution);
+    bind(MenuContribution).toService(OutlineContribution);
+    bind(OutlineWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(OutlineWidgetFactory).inSingletonScope();
+
+    // Help dialogs (P1-006, P1-007)
+    bind(HelpContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(HelpContribution);
+    bind(MenuContribution).toService(HelpContribution);
+    bind(KeybindingContribution).toService(HelpContribution);
+    bind(ShortcutsDialogFactory).toSelf().inSingletonScope();
+    bind(AboutDialogFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(ShortcutsDialogFactory).inSingletonScope();
+    bind(WidgetFactory).to(AboutDialogFactory).inSingletonScope();
+
+    // Notification center (P1-008)
+    bind(NotificationService).toSelf().inSingletonScope();
+    bind(NotificationContribution).toSelf().inSingletonScope();
+    bind(FrontendApplicationContribution).toService(NotificationContribution);
+    bind(NotificationWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(NotificationWidgetFactory).inSingletonScope();
 });

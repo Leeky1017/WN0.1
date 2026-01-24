@@ -1,9 +1,12 @@
 import { Command, CommandContribution, CommandRegistry, MenuContribution, MenuModelRegistry, MessageService } from '@theia/core';
 import { CommonMenus } from '@theia/core/lib/browser/common-menus';
 import { FrontendApplicationContribution } from '@theia/core/lib/browser/frontend-application-contribution';
+import { KeybindingContribution, KeybindingRegistry } from '@theia/core/lib/browser/keybinding';
 import { inject, injectable } from '@theia/core/shared/inversify';
 
 import { WritenowFrontendService } from './writenow-frontend-service';
+import { ActiveEditorService } from './active-editor-service';
+import { TipTapMarkdownEditorWidget } from './tiptap-markdown-editor-widget';
 
 export const WRITENOW_CORE_HELLO_COMMAND: Command = {
     id: 'writenow.core.hello',
@@ -20,11 +23,45 @@ export const WRITENOW_CORE_RPC_SMOKE_COMMAND: Command = {
     label: 'WriteNow: RPC Smoke',
 };
 
+// P1-004: Export commands
+export const WRITENOW_EXPORT_MARKDOWN_COMMAND: Command = {
+    id: 'writenow.export.markdown',
+    label: 'WriteNow: 导出 Markdown',
+    category: 'WriteNow',
+};
+
+export const WRITENOW_EXPORT_WORD_COMMAND: Command = {
+    id: 'writenow.export.word',
+    label: 'WriteNow: 导出 Word',
+    category: 'WriteNow',
+};
+
+export const WRITENOW_EXPORT_PDF_COMMAND: Command = {
+    id: 'writenow.export.pdf',
+    label: 'WriteNow: 导出 PDF',
+    category: 'WriteNow',
+};
+
+// P1-010: Focus mode command
+export const WRITENOW_FOCUS_MODE_COMMAND: Command = {
+    id: 'writenow.focusMode.toggle',
+    label: 'WriteNow: 切换专注模式',
+    category: 'WriteNow',
+};
+
+// P1-008: Notification toggle command
+export const WRITENOW_NOTIFICATION_TOGGLE_COMMAND: Command = {
+    id: 'writenow.notification.toggle',
+    label: 'WriteNow: 通知中心',
+    category: 'WriteNow',
+};
+
 @injectable()
-export class WritenowCoreContribution implements CommandContribution, MenuContribution, FrontendApplicationContribution {
+export class WritenowCoreContribution implements CommandContribution, MenuContribution, KeybindingContribution, FrontendApplicationContribution {
     constructor(
         @inject(MessageService) private readonly messageService: MessageService,
         @inject(WritenowFrontendService) private readonly writenow: WritenowFrontendService,
+        @inject(ActiveEditorService) private readonly activeEditor: ActiveEditorService,
     ) {}
 
     /**
@@ -91,12 +128,150 @@ export class WritenowCoreContribution implements CommandContribution, MenuContri
                 }
             },
         });
+
+        // P1-004: Export commands
+        registry.registerCommand(WRITENOW_EXPORT_MARKDOWN_COMMAND, {
+            execute: async () => {
+                const editor = this.activeEditor.getActive();
+                if (!editor) {
+                    this.messageService.warn('请先打开一个文档');
+                    return;
+                }
+                const title = editor.getArticleId() ?? '未命名';
+                const content = editor.getMarkdown();
+                if (!content.trim()) {
+                    this.messageService.warn('文档内容为空');
+                    return;
+                }
+                try {
+                    const result = await this.writenow.invokeResponse('export:markdown', { title, content });
+                    if (result.ok) {
+                        this.messageService.info(`已导出: ${result.data.path}`);
+                    } else {
+                        this.messageService.error(`导出失败: ${result.error.message}`);
+                    }
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.messageService.error(`导出失败: ${message}`);
+                }
+            },
+        });
+
+        registry.registerCommand(WRITENOW_EXPORT_WORD_COMMAND, {
+            execute: async () => {
+                const editor = this.activeEditor.getActive();
+                if (!editor) {
+                    this.messageService.warn('请先打开一个文档');
+                    return;
+                }
+                const title = editor.getArticleId() ?? '未命名';
+                const content = editor.getMarkdown();
+                if (!content.trim()) {
+                    this.messageService.warn('文档内容为空');
+                    return;
+                }
+                try {
+                    const result = await this.writenow.invokeResponse('export:docx', { title, content });
+                    if (result.ok) {
+                        this.messageService.info(`已导出: ${result.data.path}`);
+                    } else {
+                        this.messageService.error(`导出失败: ${result.error.message}`);
+                    }
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.messageService.error(`导出失败: ${message}`);
+                }
+            },
+        });
+
+        registry.registerCommand(WRITENOW_EXPORT_PDF_COMMAND, {
+            execute: async () => {
+                const editor = this.activeEditor.getActive();
+                if (!editor) {
+                    this.messageService.warn('请先打开一个文档');
+                    return;
+                }
+                const title = editor.getArticleId() ?? '未命名';
+                const content = editor.getMarkdown();
+                if (!content.trim()) {
+                    this.messageService.warn('文档内容为空');
+                    return;
+                }
+                try {
+                    const result = await this.writenow.invokeResponse('export:pdf', { title, content });
+                    if (result.ok) {
+                        this.messageService.info(`已导出: ${result.data.path}`);
+                    } else {
+                        this.messageService.error(`导出失败: ${result.error.message}`);
+                    }
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.messageService.error(`导出失败: ${message}`);
+                }
+            },
+        });
+
+        // P1-010: Focus mode toggle
+        registry.registerCommand(WRITENOW_FOCUS_MODE_COMMAND, {
+            execute: () => {
+                const editor = this.activeEditor.getActive();
+                if (editor && editor instanceof TipTapMarkdownEditorWidget) {
+                    (editor as TipTapMarkdownEditorWidget).toggleFocusMode();
+                } else {
+                    this.messageService.warn('请先打开一个文档');
+                }
+            },
+        });
+
+        // P1-008: Notification toggle (placeholder, actual implementation in NotificationContribution)
+        registry.registerCommand(WRITENOW_NOTIFICATION_TOGGLE_COMMAND, {
+            execute: () => {
+                // This will be handled by NotificationContribution
+            },
+        });
     }
 
     registerMenus(menus: MenuModelRegistry): void {
         menus.registerMenuAction(CommonMenus.HELP, {
             commandId: WRITENOW_CORE_HELLO_COMMAND.id,
             label: WRITENOW_CORE_HELLO_COMMAND.label,
+        });
+
+        // P1-004: Export submenu
+        const EXPORT_SUBMENU = [...CommonMenus.FILE, 'export'];
+        menus.registerSubmenu(EXPORT_SUBMENU, '导出');
+
+        menus.registerMenuAction(EXPORT_SUBMENU, {
+            commandId: WRITENOW_EXPORT_MARKDOWN_COMMAND.id,
+            label: 'Markdown (.md)',
+            order: 'a1',
+        });
+
+        menus.registerMenuAction(EXPORT_SUBMENU, {
+            commandId: WRITENOW_EXPORT_WORD_COMMAND.id,
+            label: 'Word (.docx)',
+            order: 'a2',
+        });
+
+        menus.registerMenuAction(EXPORT_SUBMENU, {
+            commandId: WRITENOW_EXPORT_PDF_COMMAND.id,
+            label: 'PDF (.pdf)',
+            order: 'a3',
+        });
+
+        // P1-010: Focus mode in View menu
+        menus.registerMenuAction(CommonMenus.VIEW_VIEWS, {
+            commandId: WRITENOW_FOCUS_MODE_COMMAND.id,
+            label: '专注模式',
+            order: 'z9',
+        });
+    }
+
+    registerKeybindings(registry: KeybindingRegistry): void {
+        // P1-010: Focus mode shortcut
+        registry.registerKeybinding({
+            command: WRITENOW_FOCUS_MODE_COMMAND.id,
+            keybinding: 'ctrlcmd+shift+f',
         });
     }
 }

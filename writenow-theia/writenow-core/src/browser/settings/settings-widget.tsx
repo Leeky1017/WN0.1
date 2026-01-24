@@ -268,15 +268,86 @@ function ShortcutsSettingsPanel(): React.ReactElement {
 }
 
 /**
+ * Available languages.
+ */
+const AVAILABLE_LANGUAGES = [
+    { id: 'zh-CN', label: '简体中文' },
+    { id: 'zh-TW', label: '繁體中文' },
+    { id: 'en', label: 'English' },
+    { id: 'ja', label: '日本語' },
+];
+
+/**
  * Language Settings panel component.
  */
-function LanguageSettingsPanel(): React.ReactElement {
+function LanguageSettingsPanel(props: { messageService: MessageService }): React.ReactElement {
+    const { messageService } = props;
+    const [language, setLanguage] = React.useState<string>('zh-CN');
+    const [saving, setSaving] = React.useState<boolean>(false);
+
+    // Load language setting on mount
+    React.useEffect(() => {
+        try {
+            const stored = localStorage.getItem('writenow.language');
+            if (stored) {
+                setLanguage(stored);
+            }
+        } catch {
+            // Use default
+        }
+    }, []);
+
+    const handleLanguageChange = (newLanguage: string): void => {
+        setLanguage(newLanguage);
+    };
+
+    const handleSave = (): void => {
+        setSaving(true);
+        try {
+            localStorage.setItem('writenow.language', language);
+            messageService.info('语言设置已保存，重启后生效');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            messageService.error(`保存失败: ${message}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <div className="wn-settings-section">
             <h3 className="wn-settings-section-title">语言设置</h3>
-            <p className="wn-settings-placeholder">
-                语言切换选项将在后续版本中添加。
+            
+            <div className="wn-settings-field">
+                <label className="wn-settings-label" htmlFor="settings-language">
+                    界面语言
+                </label>
+                <select
+                    id="settings-language"
+                    className="wn-settings-select"
+                    value={language}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                >
+                    {AVAILABLE_LANGUAGES.map((lang) => (
+                        <option key={lang.id} value={lang.id}>{lang.label}</option>
+                    ))}
+                </select>
+            </div>
+
+            <p className="wn-settings-hint">
+                切换语言后需要重新启动应用才能生效。
             </p>
+
+            <div className="wn-settings-actions">
+                <button
+                    type="button"
+                    className="wn-settings-button wn-settings-button--primary"
+                    onClick={handleSave}
+                    disabled={saving}
+                >
+                    {saving ? '保存中...' : '保存'}
+                </button>
+            </div>
         </div>
     );
 }
@@ -299,7 +370,7 @@ function SettingsView(props: SettingsViewProps): React.ReactElement {
             case 'shortcuts':
                 return <ShortcutsSettingsPanel />;
             case 'language':
-                return <LanguageSettingsPanel />;
+                return <LanguageSettingsPanel messageService={messageService} />;
             default:
                 return null;
         }
