@@ -2,6 +2,7 @@
 
 - Issue: #176
 - Branch: task/176-frontend-gap-structure
+- PR: https://github.com/Leeky1017/WN0.1/pull/177
 
 ## Plan
 
