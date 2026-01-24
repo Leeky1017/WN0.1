@@ -1,0 +1,23 @@
+yarn run v1.22.22
+$ theia start --hostname 127.0.0.1 --port 3012
+2026-01-24T13:19:23.531Z root ERROR [writenow-db] init failed: Unable to load schema.sql.
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/browser-app/lib/backend/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/browser-app/lib/backend/schema.sql'
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql'
+2026-01-24T13:19:23.532Z root ERROR [writenow-core] app DB init failed: Failed to initialize database
+2026-01-24T13:19:23.532Z root INFO [writenow-core] native smoke starting (db: /tmp/writenow-theia/native-smoke.db)
+2026-01-24T13:19:23.532Z root INFO [writenow-core] native smoke: sqlite CRUD
+2026-01-24T13:19:23.532Z root INFO [writenow-core] native smoke: CRUD ok (row: {"id":80,"name":"ok"})
+2026-01-24T13:19:23.532Z root INFO [writenow-core] native smoke: loading sqlite-vec
+2026-01-24T13:19:23.532Z root INFO [writenow-core] native smoke: vec query ok (results: [{"rowid":80,"distance":0}])
+2026-01-24T13:19:23.532Z root INFO [writenow-core] native smoke completed successfully
+2026-01-24T13:19:23.532Z root WARN Backend DefaultMessagingService.initialize took longer than the expected maximum 50 milliseconds: 61.8 ms [Finished 0.294 s after backend start]
+2026-01-24T13:19:23.532Z root WARN Backend Object.initialize took longer than the expected maximum 50 milliseconds: 61.2 ms [Finished 0.294 s after backend start]
+2026-01-24T13:19:23.532Z root INFO Backend WritenowCoreBackendContribution.initialize: 22.2 ms [Finished 0.294 s after backend start]
+2026-01-24T13:19:23.532Z root WARN Backend LocalizationServerImpl.initialize took longer than the expected maximum 50 milliseconds: 61.2 ms [Finished 0.294 s after backend start]
+2026-01-24T13:19:23.534Z root INFO configured all backend app contributions
+2026-01-24T13:19:23.534Z root INFO Backend WebsocketEndpoint.onStart: 0.9 ms [Finished 0.298 s after backend start]
+2026-01-24T13:19:23.535Z root INFO Theia app listening on http://127.0.0.1:3012.
+2026-01-24T13:19:23.536Z root INFO Configuration directory URI: 'file:///home/leeky/.theia'
+2026-01-24T13:19:23.539Z root INFO Backend DefaultWorkspaceServer.onStart: 5.3 ms [Finished 0.304 s after backend start]
+2026-01-24T13:19:23.539Z root INFO Backend WritenowCoreBackendContribution.onStart: 0.0 ms [Finished 0.304 s after backend start]
+2026-01-24T13:19:23.540Z root INFO Finished starting backend application: 0.0 ms [Finished 0.304 s after backend start]

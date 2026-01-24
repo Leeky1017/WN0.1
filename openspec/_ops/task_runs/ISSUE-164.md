@@ -140,7 +140,7 @@ writenow-theia +
 - Key output: HTTP_OK + [writenow-core] native smoke completed successfully
 - Command: (Linux sysdeps) electron start smoke: timeout 25s yarn --cwd writenow-theia/electron-app start
 - Key output: [writenow-core] frontend started + native smoke completed successfully
-- Evidence: rulebook/tasks/issue-164-sprint-cleanup/evidence/theia-browser-smoke.log; rulebook/tasks/issue-164-sprint-cleanup/evidence/theia-electron-smoke.log
+- Evidence: rulebook/tasks/issue-164-sprint-cleanup/evidence/theia-browser-smoke.txt; rulebook/tasks/issue-164-sprint-cleanup/evidence/theia-electron-smoke.txt
 - Note: native-keymap build requires pkg-config/x11 dev libs; in this environment we used a local sysroot under writenow-theia/.sysdeps (see evidence logs).
 
 ### 2026-01-24 21:24 CI adjustment (ubuntu native deps)
