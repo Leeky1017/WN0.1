@@ -2,7 +2,7 @@
 
 - Issue: #174
 - Branch: task/174-frontend-gap-analysis
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/175
 
 ## Plan
 
