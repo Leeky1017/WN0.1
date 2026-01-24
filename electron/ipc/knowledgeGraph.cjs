@@ -101,6 +101,11 @@ function assertEntityExists(db, projectId, entityId) {
   if (!row) throw createIpcError('NOT_FOUND', 'Entity not found', { projectId, entityId })
 }
 
+function assertRelationExists(db, projectId, id) {
+  const row = db.prepare('SELECT id FROM kg_relations WHERE id = ? AND project_id = ?').get(id, projectId)
+  if (!row) throw createIpcError('NOT_FOUND', 'Relation not found', { projectId, id })
+}
+
 function registerKnowledgeGraphIpcHandlers(ipcMain, options = {}) {
   const db = options.db ?? null
   const logger = options.logger ?? null
@@ -281,6 +286,76 @@ function registerKnowledgeGraphIpcHandlers(ipcMain, options = {}) {
     db.prepare(
       'INSERT INTO kg_relations (id, project_id, from_entity_id, to_entity_id, type, metadata_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     ).run(id, projectId, fromEntityId, toEntityId, type, metadata.present ? metadata.value : null, now, now)
+
+    const row = db
+      .prepare('SELECT id, project_id, from_entity_id, to_entity_id, type, metadata_json, created_at, updated_at FROM kg_relations WHERE id = ?')
+      .get(id)
+    return { relation: mapRelationRow(row) }
+  })
+
+  handleInvoke('kg:relation:update', async (_evt, payload) => {
+    if (!db) throw createIpcError('DB_ERROR', 'Database is not ready')
+    const projectId = coerceString(payload?.projectId)
+    const id = coerceString(payload?.id)
+    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+    if (!id) throw createIpcError('INVALID_ARGUMENT', 'id is required')
+
+    assertRelationExists(db, projectId, id)
+
+    const existingRow = db
+      .prepare('SELECT id, project_id, from_entity_id, to_entity_id, type, metadata_json, created_at, updated_at FROM kg_relations WHERE id = ? AND project_id = ?')
+      .get(id, projectId)
+    const existing = mapRelationRow(existingRow)
+
+    const fromEntityId = typeof payload?.fromEntityId === 'string' ? payload.fromEntityId.trim() : undefined
+    const toEntityId = typeof payload?.toEntityId === 'string' ? payload.toEntityId.trim() : undefined
+    const type = typeof payload?.type === 'string' ? payload.type.trim() : undefined
+
+    if (typeof fromEntityId === 'string' && !fromEntityId) throw createIpcError('INVALID_ARGUMENT', 'fromEntityId cannot be empty')
+    if (typeof toEntityId === 'string' && !toEntityId) throw createIpcError('INVALID_ARGUMENT', 'toEntityId cannot be empty')
+    if (typeof type === 'string' && !type) throw createIpcError('INVALID_ARGUMENT', 'type cannot be empty')
+    if (typeof type === 'string' && type.length > 60) throw createIpcError('INVALID_ARGUMENT', 'type is too long', { max: 60 })
+
+    const nextFrom = typeof fromEntityId === 'string' ? fromEntityId : existing.fromEntityId
+    const nextTo = typeof toEntityId === 'string' ? toEntityId : existing.toEntityId
+    if (nextFrom === nextTo) throw createIpcError('INVALID_ARGUMENT', 'fromEntityId and toEntityId cannot be the same')
+
+    if (typeof fromEntityId === 'string' || typeof toEntityId === 'string') {
+      assertEntityExists(db, projectId, nextFrom)
+      assertEntityExists(db, projectId, nextTo)
+    }
+
+    const metadata = encodeJsonField(payload, 'metadata')
+
+    const sets = []
+    const params = { id, project_id: projectId }
+    if (typeof fromEntityId === 'string') {
+      sets.push('from_entity_id = @from_entity_id')
+      params.from_entity_id = nextFrom
+    }
+    if (typeof toEntityId === 'string') {
+      sets.push('to_entity_id = @to_entity_id')
+      params.to_entity_id = nextTo
+    }
+    if (typeof type === 'string') {
+      sets.push('type = @type')
+      params.type = type
+    }
+    if (metadata.present) {
+      sets.push('metadata_json = @metadata_json')
+      params.metadata_json = metadata.value
+    }
+    if (sets.length === 0) throw createIpcError('INVALID_ARGUMENT', 'No fields to update')
+
+    params.updated_at = toIsoNow()
+    sets.push('updated_at = @updated_at')
+
+    try {
+      db.prepare(`UPDATE kg_relations SET ${sets.join(', ')} WHERE id = @id AND project_id = @project_id`).run(params)
+    } catch (error) {
+      logger?.error?.('kg', 'relation update failed', { message: error?.message })
+      throw createIpcError('DB_ERROR', 'Failed to update relation', { message: error?.message })
+    }
 
     const row = db
       .prepare('SELECT id, project_id, from_entity_id, to_entity_id, type, metadata_json, created_at, updated_at FROM kg_relations WHERE id = ?')

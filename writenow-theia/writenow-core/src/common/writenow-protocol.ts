@@ -17,6 +17,24 @@ import type {
     IpcChannel,
     IpcError,
     IpcResponse,
+    KgEntityCreateRequest,
+    KgEntityCreateResponse,
+    KgEntityDeleteRequest,
+    KgEntityDeleteResponse,
+    KgEntityListRequest,
+    KgEntityListResponse,
+    KgEntityUpdateRequest,
+    KgEntityUpdateResponse,
+    KgGraphGetRequest,
+    KgGraphGetResponse,
+    KgRelationCreateRequest,
+    KgRelationCreateResponse,
+    KgRelationDeleteRequest,
+    KgRelationDeleteResponse,
+    KgRelationListRequest,
+    KgRelationListResponse,
+    KgRelationUpdateRequest,
+    KgRelationUpdateResponse,
     ProjectBootstrapResponse,
     ProjectCreateRequest,
     ProjectCreateResponse,
@@ -137,6 +155,20 @@ export interface ProjectsServiceContract {
     create(request: ProjectCreateRequest): Promise<ProjectCreateResponse>;
     update(request: ProjectUpdateRequest): Promise<ProjectUpdateResponse>;
     delete(request: ProjectDeleteRequest): Promise<ProjectDeleteResponse>;
+}
+
+export interface KnowledgeGraphServiceContract {
+    getGraph(request: KgGraphGetRequest): Promise<KgGraphGetResponse>;
+
+    listEntities(request: KgEntityListRequest): Promise<KgEntityListResponse>;
+    createEntity(request: KgEntityCreateRequest): Promise<KgEntityCreateResponse>;
+    updateEntity(request: KgEntityUpdateRequest): Promise<KgEntityUpdateResponse>;
+    deleteEntity(request: KgEntityDeleteRequest): Promise<KgEntityDeleteResponse>;
+
+    listRelations(request: KgRelationListRequest): Promise<KgRelationListResponse>;
+    createRelation(request: KgRelationCreateRequest): Promise<KgRelationCreateResponse>;
+    updateRelation(request: KgRelationUpdateRequest): Promise<KgRelationUpdateResponse>;
+    deleteRelation(request: KgRelationDeleteRequest): Promise<KgRelationDeleteResponse>;
 }
 
 export interface FilesServiceContract {

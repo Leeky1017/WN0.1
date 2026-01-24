@@ -12,6 +12,7 @@ import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';
 import { AiPanelContribution, AiPanelWidgetFactory } from './ai-panel/ai-panel-contribution';
 import { AiPanelService } from './ai-panel/ai-panel-service';
 import { VersionHistoryContribution, VersionHistoryWidgetFactory } from './version-history/version-history-contribution';
+import { KnowledgeGraphContribution, KnowledgeGraphWidgetFactory } from './knowledge-graph/knowledge-graph-contribution';
 import { WritenowCoreContribution } from './writenow-core-contribution';
 import { WritenowFrontendService } from './writenow-frontend-service';
 import { WritenowLayoutContribution } from './writenow-layout-contribution';
@@ -69,6 +70,10 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(VersionHistoryContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(VersionHistoryContribution);
     bind(VersionHistoryWidgetFactory).toSelf().inSingletonScope();
+    bind(KnowledgeGraphContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(KnowledgeGraphContribution);
+    bind(MenuContribution).toService(KnowledgeGraphContribution);
+    bind(KnowledgeGraphWidgetFactory).toSelf().inSingletonScope();
 
     bind(WritenowCoreContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(WritenowCoreContribution);
@@ -87,4 +92,5 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(WidgetFactory).to(WritenowWelcomeWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(AiPanelWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(VersionHistoryWidgetFactory).inSingletonScope();
+    bind(WidgetFactory).to(KnowledgeGraphWidgetFactory).inSingletonScope();
 });

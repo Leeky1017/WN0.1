@@ -22,6 +22,8 @@ console.info('[rpc-smoke] require: embedding-service');
 const { EmbeddingServiceImpl } = require('../lib/node/embedding/embedding-service');
 console.info('[rpc-smoke] require: projects-service');
 const { ProjectsService } = require('../lib/node/services/projects-service');
+console.info('[rpc-smoke] require: knowledge-graph-service');
+const { KnowledgeGraphService } = require('../lib/node/services/knowledge-graph-service');
 console.info('[rpc-smoke] require: files-service');
 const { FilesService } = require('../lib/node/services/files-service');
 console.info('[rpc-smoke] require: embedding-rpc-service');
@@ -106,10 +108,12 @@ async function main() {
   const searchService = new SearchService(logger, sqliteDb, embeddingService, vectorStore);
   const embeddingRpcService = new EmbeddingRpcService(logger, embeddingService, vectorStore);
   const contextService = new ContextService(logger, dataDir);
+  const knowledgeGraphService = new KnowledgeGraphService(logger, sqliteDb);
   const backend = new WritenowBackendService(
     logger,
     sqliteDb,
     new ProjectsService(logger, sqliteDb),
+    knowledgeGraphService,
     new FilesService(logger, dataDir, sqliteDb, indexService),
     new VersionService(logger, sqliteDb),
     indexService,
@@ -170,6 +174,52 @@ async function main() {
     // Keep the default project; delete the newly created one.
     const deletedProject = await proxy.invoke('project:delete', { id: createdProject.data.project.id });
     assert.equal(deletedProject.ok, true);
+
+    // --- knowledge graph CRUD ---
+    const kgEntity1 = await proxy.invoke('kg:entity:create', { projectId: bootstrap.data.currentProjectId, type: 'Character', name: 'Alice' });
+    assert.equal(kgEntity1.ok, true);
+    assert.ok(kgEntity1.data.entity.id);
+
+    const kgEntity2 = await proxy.invoke('kg:entity:create', { projectId: bootstrap.data.currentProjectId, type: 'Character', name: 'Bob' });
+    assert.equal(kgEntity2.ok, true);
+    assert.ok(kgEntity2.data.entity.id);
+
+    const kgEntityUpdate = await proxy.invoke('kg:entity:update', {
+      projectId: bootstrap.data.currentProjectId,
+      id: kgEntity1.data.entity.id,
+      description: 'Friend of Bob',
+    });
+    assert.equal(kgEntityUpdate.ok, true);
+    assert.equal(kgEntityUpdate.data.entity.description, 'Friend of Bob');
+
+    const kgRelation = await proxy.invoke('kg:relation:create', {
+      projectId: bootstrap.data.currentProjectId,
+      fromEntityId: kgEntity1.data.entity.id,
+      toEntityId: kgEntity2.data.entity.id,
+      type: 'knows',
+    });
+    assert.equal(kgRelation.ok, true);
+    assert.ok(kgRelation.data.relation.id);
+
+    const kgRelationUpdate = await proxy.invoke('kg:relation:update', {
+      projectId: bootstrap.data.currentProjectId,
+      id: kgRelation.data.relation.id,
+      type: 'trusts',
+    });
+    assert.equal(kgRelationUpdate.ok, true);
+    assert.equal(kgRelationUpdate.data.relation.type, 'trusts');
+
+    const kgGraph = await proxy.invoke('kg:graph:get', { projectId: bootstrap.data.currentProjectId });
+    assert.equal(kgGraph.ok, true);
+    assert.ok(Array.isArray(kgGraph.data.entities) && kgGraph.data.entities.length >= 2);
+    assert.ok(Array.isArray(kgGraph.data.relations) && kgGraph.data.relations.length >= 1);
+
+    const kgRelationDelete = await proxy.invoke('kg:relation:delete', { projectId: bootstrap.data.currentProjectId, id: kgRelation.data.relation.id });
+    assert.equal(kgRelationDelete.ok, true);
+
+    const kgEntityDelete = await proxy.invoke('kg:entity:delete', { projectId: bootstrap.data.currentProjectId, id: kgEntity2.data.entity.id });
+    assert.equal(kgEntityDelete.ok, true);
+    console.info('[rpc-smoke] knowledge graph: ok');
 
     const created = await proxy.invoke('file:create', { name: 'RPC Smoke' });
     assert.equal(created.ok, true);

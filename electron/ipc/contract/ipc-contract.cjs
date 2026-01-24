@@ -778,6 +778,19 @@ export type KgRelationCreateResponse = {
   relation: KnowledgeGraphRelation;
 };
 
+export type KgRelationUpdateRequest = {
+  projectId: string;
+  id: string;
+  fromEntityId?: string;
+  toEntityId?: string;
+  type?: string;
+  metadata?: JsonValue;
+};
+
+export type KgRelationUpdateResponse = {
+  relation: KnowledgeGraphRelation;
+};
+
 export type KgRelationDeleteRequest = {
   projectId: string;
   id: string;

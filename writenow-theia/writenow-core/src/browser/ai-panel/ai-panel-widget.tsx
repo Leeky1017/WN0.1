@@ -3,7 +3,15 @@ import * as React from '@theia/core/shared/react';
 import { codicon, ReactWidget } from '@theia/core/lib/browser/widgets';
 import { inject, injectable } from '@theia/core/shared/inversify';
 
-import type { AiSkillRunRequest, IpcError, RagRetrieveRequest, RagRetrieveResponse, SkillListItem } from '../../common/ipc-generated';
+import type {
+    AiSkillRunRequest,
+    IpcError,
+    KnowledgeGraphEntity,
+    KnowledgeGraphRelation,
+    RagRetrieveRequest,
+    RagRetrieveResponse,
+    SkillListItem,
+} from '../../common/ipc-generated';
 import { ActiveEditorService } from '../active-editor-service';
 import { WritenowFrontendService } from '../writenow-frontend-service';
 import { WRITENOW_AI_PANEL_WIDGET_ID } from '../writenow-layout-ids';
@@ -74,6 +82,51 @@ function formatRagContext(response: RagRetrieveResponse): string {
             if (!name || !content) continue;
             parts.push(`- ${name}: ${content}`);
         }
+    }
+
+    return parts.join('\n').trim();
+}
+
+function formatKnowledgeGraphContext(entities: readonly KnowledgeGraphEntity[], relations: readonly KnowledgeGraphRelation[], targetText: string): string {
+    const haystack = typeof targetText === 'string' ? targetText : '';
+    if (!haystack.trim()) return '';
+
+    const matches: KnowledgeGraphEntity[] = [];
+    for (const entity of entities) {
+        const name = coerceString(entity.name);
+        if (!name) continue;
+        if (name.length < 2) continue;
+        if (haystack.includes(name)) matches.push(entity);
+    }
+
+    if (matches.length === 0) return '';
+
+    const limited = matches.slice(0, 8);
+    const includedIds = new Set(limited.map((e) => e.id));
+    const idToName = new Map(limited.map((e) => [e.id, coerceString(e.name)] as const));
+
+    const edgeLines: string[] = [];
+    for (const rel of relations) {
+        if (!includedIds.has(rel.fromEntityId) || !includedIds.has(rel.toEntityId)) continue;
+        const from = idToName.get(rel.fromEntityId) ?? rel.fromEntityId;
+        const to = idToName.get(rel.toEntityId) ?? rel.toEntityId;
+        const type = coerceString(rel.type) || 'related_to';
+        edgeLines.push(`- ${from} -[${type}]-> ${to}`);
+    }
+
+    const parts: string[] = [];
+    parts.push('Knowledge Graph:');
+    parts.push('Entities:');
+    for (const entity of limited) {
+        const type = coerceString(entity.type) || 'Entity';
+        const name = coerceString(entity.name) || '(unnamed)';
+        const desc = coerceString(entity.description);
+        parts.push(`- [${type}] ${name}${desc ? `: ${desc}` : ''}`);
+    }
+
+    if (edgeLines.length > 0) {
+        parts.push('Relations:');
+        parts.push(...edgeLines.slice(0, 12));
     }
 
     return parts.join('\n').trim();
@@ -293,7 +346,20 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
             // ignore: RAG is optional for initial panel usage.
         }
 
-        const contextCombined = [instruction, ragContext].map((s) => s.trim()).filter(Boolean).join('\n\n');
+        let kgContext = '';
+        try {
+            const bootstrap = await writenow.invokeResponse('project:bootstrap', {});
+            if (bootstrap.ok) {
+                const kgRes = await writenow.invokeResponse('kg:graph:get', { projectId: bootstrap.data.currentProjectId });
+                if (kgRes.ok) {
+                    kgContext = formatKnowledgeGraphContext(kgRes.data.entities, kgRes.data.relations, targetText);
+                }
+            }
+        } catch {
+            // ignore: KG is optional for initial panel usage.
+        }
+
+        const contextCombined = [instruction, ragContext, kgContext].map((s) => s.trim()).filter(Boolean).join('\n\n');
         const userContent = renderTemplate(userTemplate, {
             text: targetText,
             context: contextCombined,
