@@ -19,6 +19,8 @@ import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 
 import { ActiveEditorService } from './active-editor-service';
+import { EditorToolbar } from './editor-toolbar';
+import { FindReplaceWidget } from './find-replace-widget';
 
 export const TIPTAP_MARKDOWN_EDITOR_WIDGET_FACTORY_ID = 'writenow-tiptap-markdown-editor';
 
@@ -27,9 +29,12 @@ type MarkdownChangedHandler = (markdown: string) => void;
 
 type TipTapMarkdownEditorProps = Readonly<{
     markdown: string;
+    showFindReplace: boolean;
+    showReplaceRow: boolean;
     onMarkdownChanged: MarkdownChangedHandler;
     onFocusChanged: FocusChangedHandler;
     onEditorReady: (editor: Editor | null) => void;
+    onCloseFindReplace: () => void;
 }>;
 
 const TabIndentExtension = Extension.create({
@@ -46,7 +51,7 @@ const TabIndentExtension = Extension.create({
 });
 
 function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElement {
-    const { markdown, onMarkdownChanged, onFocusChanged, onEditorReady } = props;
+    const { markdown, showFindReplace, showReplaceRow, onMarkdownChanged, onFocusChanged, onEditorReady, onCloseFindReplace } = props;
     const isProgrammaticUpdateRef = React.useRef(false);
 
     const editor = useEditor({
@@ -102,7 +107,16 @@ function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElem
 
     return (
         <div className="wn-editor-container" data-testid="writenow-tiptap-markdown-editor">
-            <EditorContent editor={editor} />
+            <EditorToolbar editor={editor} />
+            <FindReplaceWidget
+                editor={editor}
+                isOpen={showFindReplace}
+                showReplace={showReplaceRow}
+                onClose={onCloseFindReplace}
+            />
+            <div className="wn-editor-content">
+                <EditorContent editor={editor} />
+            </div>
         </div>
     );
 }
@@ -134,6 +148,8 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
 
     private tiptapEditor: Editor | undefined;
     private isEditorFocused = false;
+    private showFindReplace = false;
+    private showReplaceRow = false;
 
     constructor(
         private readonly fileService: FileService,
@@ -240,6 +256,19 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
                 } else if (key === 'b') {
                     this.tiptapEditor?.commands.toggleBold();
                 }
+            }
+
+            // Find (Cmd+F) and Replace (Cmd+H)
+            if (isMod && key === 'f') {
+                event.preventDefault();
+                this.openFindReplace(false);
+                return;
+            }
+
+            if (isMod && key === 'h') {
+                event.preventDefault();
+                this.openFindReplace(true);
+                return;
             }
         };
 
@@ -371,6 +400,26 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     }
 
     /**
+     * Open the find/replace panel.
+     */
+    openFindReplace(withReplace: boolean): void {
+        this.showFindReplace = true;
+        this.showReplaceRow = withReplace;
+        this.update();
+    }
+
+    /**
+     * Close the find/replace panel.
+     */
+    closeFindReplace(): void {
+        this.showFindReplace = false;
+        this.showReplaceRow = false;
+        this.update();
+        // Return focus to editor
+        this.tiptapEditor?.commands.focus();
+    }
+
+    /**
      * Replace the entire document content.
      *
      * Why: Rolling back to a historical snapshot must update the editor view while preserving Save/Dirty semantics.
@@ -400,11 +449,14 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
         return (
             <TipTapMarkdownEditor
                 markdown={this.currentMarkdown}
+                showFindReplace={this.showFindReplace}
+                showReplaceRow={this.showReplaceRow}
                 onMarkdownChanged={(markdown) => this.onEditorMarkdownChanged(markdown)}
                 onFocusChanged={(focused) => this.onEditorFocusChanged(focused)}
                 onEditorReady={(editor) => {
                     this.tiptapEditor = editor ?? undefined;
                 }}
+                onCloseFindReplace={() => this.closeFindReplace()}
             />
         );
     }

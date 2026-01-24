@@ -1,0 +1,279 @@
+/**
+ * WriteNow Settings Panel Styles
+ *
+ * Why: Settings panel uses WriteNow design tokens for consistent theming.
+ * Layout: Left sidebar navigation + right content area.
+ */
+
+.writenow-settings {
+    background: var(--wn-surface-base);
+    color: var(--wn-text-primary);
+    height: 100%;
+    overflow: hidden;
+}
+
+.wn-settings-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--wn-surface-base);
+}
+
+/* Header */
+.wn-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wn-space-4);
+    border-bottom: 1px solid var(--wn-border-default);
+    flex-shrink: 0;
+}
+
+.wn-settings-title {
+    font-size: var(--wn-text-xl);
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: 0;
+}
+
+.wn-settings-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: var(--wn-radius-default);
+    background: transparent;
+    color: var(--wn-text-secondary);
+    cursor: pointer;
+    transition: background var(--wn-transition-fast), color var(--wn-transition-fast);
+}
+
+.wn-settings-close:hover {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+/* Content layout */
+.wn-settings-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Sidebar navigation */
+.wn-settings-nav {
+    display: flex;
+    flex-direction: column;
+    width: 180px;
+    flex-shrink: 0;
+    padding: var(--wn-space-2);
+    border-right: 1px solid var(--wn-border-default);
+    background: var(--wn-surface-raised);
+}
+
+.wn-settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-2);
+    padding: var(--wn-space-2) var(--wn-space-3);
+    border: none;
+    border-radius: var(--wn-radius-default);
+    background: transparent;
+    color: var(--wn-text-secondary);
+    font-size: var(--wn-text-base);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--wn-transition-fast), color var(--wn-transition-fast);
+}
+
+.wn-settings-nav-item:hover {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+.wn-settings-nav-item--active {
+    background: var(--wn-accent-subtle);
+    color: var(--wn-accent-fg);
+}
+
+.wn-settings-nav-item--active:hover {
+    background: var(--wn-accent-subtle);
+}
+
+.wn-settings-nav-icon {
+    font-size: var(--wn-text-lg);
+}
+
+.wn-settings-nav-label {
+    font-weight: var(--wn-font-medium);
+}
+
+/* Main content area */
+.wn-settings-main {
+    flex: 1;
+    padding: var(--wn-space-6);
+    overflow-y: auto;
+}
+
+/* Section styles */
+.wn-settings-section {
+    max-width: 600px;
+}
+
+.wn-settings-section-title {
+    font-size: var(--wn-text-lg);
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: 0 0 var(--wn-space-4) 0;
+    padding-bottom: var(--wn-space-2);
+    border-bottom: 1px solid var(--wn-border-default);
+}
+
+.wn-settings-placeholder {
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-base);
+}
+
+/* Form fields */
+.wn-settings-field {
+    margin-bottom: var(--wn-space-4);
+}
+
+.wn-settings-label {
+    display: block;
+    margin-bottom: var(--wn-space-1);
+    font-size: var(--wn-text-sm);
+    font-weight: var(--wn-font-medium);
+    color: var(--wn-text-secondary);
+}
+
+.wn-settings-input,
+.wn-settings-select {
+    width: 100%;
+    height: var(--wn-input-height);
+    padding: 0 var(--wn-space-2);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-input-radius);
+    background: var(--wn-surface-base);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-base);
+    transition: border-color var(--wn-transition-fast);
+}
+
+.wn-settings-input:focus,
+.wn-settings-select:focus {
+    outline: none;
+    border-color: var(--wn-accent-fg);
+}
+
+.wn-settings-input::placeholder {
+    color: var(--wn-text-muted);
+}
+
+/* Input group (for API key with toggle) */
+.wn-settings-input-group {
+    display: flex;
+    gap: var(--wn-space-1);
+}
+
+.wn-settings-input-group .wn-settings-input {
+    flex: 1;
+}
+
+.wn-settings-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--wn-input-height);
+    height: var(--wn-input-height);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-input-radius);
+    background: var(--wn-surface-raised);
+    color: var(--wn-text-secondary);
+    cursor: pointer;
+    transition: background var(--wn-transition-fast), color var(--wn-transition-fast);
+}
+
+.wn-settings-icon-button:hover {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+/* Actions */
+.wn-settings-actions {
+    margin-top: var(--wn-space-6);
+    padding-top: var(--wn-space-4);
+    border-top: 1px solid var(--wn-border-default);
+}
+
+.wn-settings-button {
+    padding: var(--wn-space-2) var(--wn-space-4);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-button-radius);
+    background: var(--wn-surface-raised);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-base);
+    font-weight: var(--wn-font-medium);
+    cursor: pointer;
+    transition: background var(--wn-transition-fast), border-color var(--wn-transition-fast);
+}
+
+.wn-settings-button:hover {
+    background: var(--wn-surface-hover);
+}
+
+.wn-settings-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wn-settings-button--primary {
+    background: var(--wn-accent-fg);
+    border-color: var(--wn-accent-fg);
+    color: white;
+}
+
+.wn-settings-button--primary:hover {
+    background: var(--wn-accent-fg-hover);
+    border-color: var(--wn-accent-fg-hover);
+}
+
+/* Shortcuts list */
+.wn-settings-shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wn-space-2);
+}
+
+.wn-settings-shortcut {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-3);
+    padding: var(--wn-space-2) 0;
+    border-bottom: 1px solid var(--wn-border-subtle);
+}
+
+.wn-settings-shortcut:last-child {
+    border-bottom: none;
+}
+
+.wn-settings-shortcut-key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    padding: var(--wn-space-1) var(--wn-space-2);
+    border-radius: var(--wn-radius-default);
+    background: var(--wn-surface-raised);
+    color: var(--wn-text-primary);
+    font-family: var(--wn-font-mono);
+    font-size: var(--wn-text-sm);
+    font-weight: var(--wn-font-medium);
+}
+
+.wn-settings-shortcut-desc {
+    color: var(--wn-text-secondary);
+    font-size: var(--wn-text-base);
+}

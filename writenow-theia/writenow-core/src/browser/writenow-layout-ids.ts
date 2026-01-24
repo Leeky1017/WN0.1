@@ -21,3 +21,7 @@ export const WRITENOW_VERSION_HISTORY_WIDGET_ID = 'writenow.versionHistory';
  */
 export const WRITENOW_KNOWLEDGE_GRAPH_WIDGET_ID = 'writenow.knowledgeGraph';
 
+/**
+ * Why: Settings panel widget id for user preferences configuration.
+ */
+export const WRITENOW_SETTINGS_WIDGET_ID = 'writenow.settings';

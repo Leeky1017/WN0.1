@@ -183,3 +183,155 @@
     color: var(--wn-text-muted);
     margin: 0;
 }
+
+/* ===== TWO COLUMN LAYOUT ===== */
+
+.wn-welcome-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wn-space-8);
+    margin-bottom: var(--wn-space-10);
+}
+
+@media (max-width: 600px) {
+    .wn-welcome-main {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wn-welcome-column {
+    min-width: 0;
+}
+
+.wn-welcome-section-title {
+    font-size: 11px;
+    font-weight: var(--wn-font-medium);
+    color: var(--wn-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 var(--wn-space-3);
+}
+
+.wn-welcome-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-welcome-section-header .wn-welcome-section-title {
+    margin: 0;
+}
+
+.wn-welcome-clear-btn {
+    padding: var(--wn-space-1) var(--wn-space-2);
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-radius-sm);
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-xs);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-welcome-clear-btn:hover {
+    color: var(--wn-text-primary);
+    background: var(--wn-surface-hover);
+}
+
+/* ===== RECENT FILES ===== */
+
+.wn-welcome-recent-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wn-welcome-recent-item {
+    margin: 0;
+}
+
+.wn-welcome-recent-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-2);
+    width: 100%;
+    padding: var(--wn-space-2);
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-radius-default);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--wn-transition-fast);
+}
+
+.wn-welcome-recent-btn:hover {
+    background: var(--wn-surface-hover);
+}
+
+.wn-welcome-recent-icon {
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+.wn-welcome-recent-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wn-welcome-recent-time {
+    flex-shrink: 0;
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-xs);
+}
+
+.wn-welcome-empty {
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-sm);
+    font-style: italic;
+    margin: 0;
+    padding: var(--wn-space-2);
+}
+
+/* ===== SHORTCUTS ===== */
+
+.wn-welcome-shortcuts {
+    margin-top: var(--wn-space-6);
+}
+
+.wn-welcome-shortcuts-title {
+    font-size: 11px;
+    font-weight: var(--wn-font-medium);
+    color: var(--wn-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 var(--wn-space-2);
+}
+
+.wn-welcome-shortcut {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-2);
+    padding: var(--wn-space-1) 0;
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+}
+
+.wn-welcome-shortcut kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    padding: 2px 6px;
+    background: var(--wn-surface-raised);
+    border-radius: var(--wn-radius-sm);
+    font-family: var(--wn-font-sans);
+    font-size: var(--wn-text-xs);
+    font-weight: var(--wn-font-medium);
+    color: var(--wn-text-primary);
+}
