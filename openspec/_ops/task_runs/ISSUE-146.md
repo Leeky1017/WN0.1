@@ -26,48 +26,40 @@
 
 ## Runs
 ### 2026-01-24 (prep) Issue
-- Command:
-  - `gh issue create -t "[SPRINT-THEIA-MIGRATION] Phase 2 / Task 009: SQLite migration (init + schema + CRUD)" ...`
-- Key output:
-  - `https://github.com/Leeky1017/WN0.1/issues/146`
+- Command: `gh issue create -t "[SPRINT-THEIA-MIGRATION] Phase 2 / Task 009: SQLite migration (init + schema + CRUD)" ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/issues/146`
 
 ### 2026-01-24 (prep) Worktree
-- Command:
-  - `git fetch origin`
-  - `git worktree add -b task/146-theia-sqlite-migration .worktrees/issue-146-theia-sqlite-migration origin/main`
-- Key output:
-  - `Preparing worktree (new branch 'task/146-theia-sqlite-migration')`
+- Command: `git fetch origin`
+- Key output: `(exit 0)`
+- Command: `git worktree add -b task/146-theia-sqlite-migration .worktrees/issue-146-theia-sqlite-migration origin/main`
+- Key output: `Preparing worktree (new branch 'task/146-theia-sqlite-migration')`
 
 ### 2026-01-24 Install (writenow-theia)
-- Command:
-  - `cd writenow-theia && corepack enable && corepack prepare yarn@1.22.22 --activate`
-  - `cd writenow-theia && yarn install --frozen-lockfile --ignore-scripts`
-- Key output:
-  - `Done in 6.63s. (scripts ignored)`
+- Command: `cd writenow-theia && corepack enable && corepack prepare yarn@1.22.22 --activate`
+- Key output: `Preparing yarn@1.22.22 for immediate activation...`
+- Command: `cd writenow-theia && yarn install --frozen-lockfile --ignore-scripts`
+- Key output: `Done in 6.63s. (scripts ignored)`
 
 ### 2026-01-24 Build native dep: better-sqlite3 (host Node ABI)
-- Command:
-  - `cd writenow-theia/node_modules/better-sqlite3 && npm run build-release`
-- Key output:
-  - `gyp info ok`
+- Command: `cd writenow-theia/node_modules/better-sqlite3 && npm run build-release`
+- Key output: `gyp info ok`
 
 ### 2026-01-24 Build + RPC verification (writenow-core)
-- Command:
-  - `cd writenow-theia/writenow-core && yarn build`
-  - `cd writenow-theia/writenow-core && yarn rpc:smoke`
-- Key output:
-  - `[rpc-smoke] ok { dataDir: "/tmp/writenow-theia-rpc-smoke-.../", dbPath: ".../data/writenow.db", ... }`
-- Evidence:
-  - `writenow-theia/writenow-core/scripts/rpc-smoke.cjs`
+- Command: `cd writenow-theia/writenow-core && yarn build`
+- Key output: `Done in 1.85s.`
+- Command: `cd writenow-theia/writenow-core && yarn rpc:smoke`
+- Key output: `[rpc-smoke] ok { dataDir: "/tmp/writenow-theia-rpc-smoke-.../", dbPath: ".../data/writenow.db", ... }`
+- Evidence: `writenow-theia/writenow-core/scripts/rpc-smoke.cjs`
 
 ### 2026-01-24 Repo gates (root)
-- Command:
-  - `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
-  - `npm ci`
-  - `npm run contract:check`
-  - `npm run lint`
-  - `npm run build`
-- Key output:
-  - `Totals: 14 passed, 0 failed (14 items)`
-  - `added 1291 packages, and audited 1292 packages`
-  - `✓ built in 11.29s`
+- Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
+- Key output: `Totals: 14 passed, 0 failed (14 items)`
+- Command: `npm ci`
+- Key output: `added 1291 packages, and audited 1292 packages`
+- Command: `npm run contract:check`
+- Key output: `(exit 0)`
+- Command: `npm run lint`
+- Key output: `0 errors (warnings only)`
+- Command: `npm run build`
+- Key output: `✓ built in 11.29s`
