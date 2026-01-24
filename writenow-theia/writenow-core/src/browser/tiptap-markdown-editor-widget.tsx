@@ -155,6 +155,30 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
         return this.resourceUri;
     }
 
+    /**
+     * Get the logical WriteNow article id for the current editor.
+     *
+     * Why: Theia uses absolute file URIs, but WriteNow's SQLite layer keys articles by a stable string id. For the
+     * current migration, the canonical id is the markdown file name (basename) so version history and AI snapshotting
+     * can operate without leaking absolute paths into the DB.
+     */
+    getArticleId(): string | null {
+        const uri = this.resourceUri;
+        if (!uri) return null;
+        const base = typeof uri.path.base === 'string' ? uri.path.base : '';
+        return base ? base : null;
+    }
+
+    /**
+     * Get the current markdown content.
+     *
+     * Why: Version history (manual snapshots, diff, rollback) and the AI Panel need access to the full document
+     * text even when the editor widget is not currently focused.
+     */
+    getMarkdown(): string {
+        return this.currentMarkdown;
+    }
+
     createMoveToUri(resourceUri: URI): URI | undefined {
         return resourceUri;
     }
@@ -344,6 +368,24 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
 
         editor.commands.focus();
         editor.view.dispatch(editor.state.tr.insertText(nextText, clampedFrom, clampedTo));
+    }
+
+    /**
+     * Replace the entire document content.
+     *
+     * Why: Rolling back to a historical snapshot must update the editor view while preserving Save/Dirty semantics.
+     * Failure semantics: No-op if the widget hasn't finished loading.
+     */
+    setMarkdown(markdown: string): void {
+        if (!this.isLoaded) return;
+
+        this.currentMarkdown = typeof markdown === 'string' ? markdown : '';
+        const nextDirty = this.currentMarkdown !== this.lastSavedMarkdown;
+        if (nextDirty !== this.isDirty) {
+            this.setDirtyState(nextDirty);
+        }
+        this.onContentChangedEmitter.fire();
+        this.update();
     }
 
     protected override render(): React.ReactNode {

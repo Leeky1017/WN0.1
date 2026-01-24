@@ -15,6 +15,7 @@ import type {
 import type { VersionServiceContract as VersionServiceContractShape } from '../../common/writenow-protocol';
 import { TheiaInvokeRegistry } from '../theia-invoke-adapter';
 import { type SqliteDatabase } from '../database/init';
+import { upsertArticle } from '../database/articles';
 import { WritenowSqliteDb } from '../database/writenow-sqlite-db';
 
 type SnapshotActor = 'user' | 'ai' | 'auto';
@@ -318,9 +319,27 @@ export class VersionService implements VersionServiceContractShape {
 
         const explicitContent = typeof request?.content === 'string' ? request.content : null;
         const article = readArticleRow(db, articleId);
-        if (!article) throw createIpcError('NOT_FOUND', 'Article not found', { articleId });
+        if (!article && explicitContent === null) {
+            throw createIpcError('NOT_FOUND', 'Article not found', { articleId });
+        }
 
-        const content = explicitContent !== null ? explicitContent : article.content;
+        // Why: Snapshots are stored under `article_snapshots` with a foreign key to `articles`.
+        // Users may create/edit `.md` files via Theia's file explorer before the DB indexer sees them; when explicit
+        // content is provided we can safely upsert the article row to satisfy the FK without requiring a prior
+        // `file:create/write` call.
+        if (!article && explicitContent !== null) {
+            try {
+                upsertArticle(db, { id: articleId, fileName: articleId, content: explicitContent });
+            } catch (error) {
+                this.logger.error(`[version] upsert article failed: ${error instanceof Error ? error.message : String(error)}`);
+                throw createIpcError('DB_ERROR', 'Failed to initialize article for version snapshot', {
+                    articleId,
+                    message: error instanceof Error ? error.message : String(error),
+                });
+            }
+        }
+
+        const content = explicitContent !== null ? explicitContent : article?.content ?? '';
         const snapshotId = generateSnapshotId();
         const createdAt = nowIso();
 
