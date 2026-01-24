@@ -1,99 +1,84 @@
 /**
- * WriteNow Parchment Theme
+ * WriteNow Parchment Theme v2
  *
- * Why: A warm light theme inspired by aged paper and classic writing tools.
- * Designed for users who prefer light themes or work in bright environments.
- *
- * Design philosophy:
- * - Paper-like warmth: cream tones instead of pure white
- * - Ink-like text: deep browns and blacks for high readability
- * - Subtle texture: visual weight without harshness
- * - iA Writer inspiration: focused, distraction-free writing
+ * Light theme with warm, paper-like tones.
+ * Designed for comfortable reading in well-lit environments.
  */
 
 .wn-theme-parchment {
-    /* ===== SEMANTIC BACKGROUND TOKENS ===== */
+    /* ===== BACKGROUND COLORS ===== */
+    /* Warm whites and creams */
 
-    --wn-bg-app: #f8f4ef;
-    --wn-bg-sidebar: #f0ebe4;
-    --wn-bg-panel: #e8e2d9;
-    --wn-bg-editor: #faf8f4;
+    --wn-bg-app: #faf9f7;
+    --wn-bg-sidebar: #f5f4f2;
+    --wn-bg-panel: #f5f4f2;
+    --wn-bg-editor: #faf9f7;
     --wn-bg-card: #ffffff;
     --wn-bg-input: #ffffff;
 
-    /* Interactive backgrounds */
-    --wn-bg-hover: rgba(0, 0, 0, 0.04);
-    --wn-bg-active: rgba(0, 0, 0, 0.08);
-    --wn-bg-selected: rgba(139, 92, 42, 0.12);
+    /* Interactive */
+    --wn-bg-hover: rgba(0, 0, 0, 0.03);
+    --wn-bg-active: rgba(0, 0, 0, 0.05);
+    --wn-bg-selected: rgba(74, 127, 199, 0.1);
 
-    /* Message backgrounds */
-    --wn-bg-message-user: #e8e2d9;
-    --wn-bg-message-assistant: #f0ebe4;
+    /* Messages */
+    --wn-bg-message-user: #f0efed;
+    --wn-bg-message-assistant: #f5f4f2;
 
-    /* ===== SEMANTIC TEXT TOKENS ===== */
+    /* ===== TEXT COLORS ===== */
+    /* Dark browns for warmth */
 
-    --wn-text-primary: #2d2a26;
-    --wn-text-secondary: #5a554e;
-    --wn-text-tertiary: #8a847a;
-    --wn-text-muted: #a8a298;
-    --wn-text-inverse: #faf8f4;
+    --wn-text-primary: rgba(30, 28, 26, 1.0);
+    --wn-text-secondary: rgba(30, 28, 26, 0.65);
+    --wn-text-tertiary: rgba(30, 28, 26, 0.45);
+    --wn-text-muted: rgba(30, 28, 26, 0.3);
+    --wn-text-inverse: #faf9f7;
 
-    --wn-text-link: #8b5c2a;
-    --wn-text-link-hover: #6b4520;
+    --wn-text-link: var(--wn-blue-600);
+    --wn-text-link-hover: var(--wn-blue-700);
 
-    /* ===== SEMANTIC BORDER TOKENS ===== */
+    /* ===== BORDER COLORS ===== */
 
-    --wn-border-subtle: #e0d8cc;
-    --wn-border-default: #d0c8bc;
-    --wn-border-strong: #b8b0a4;
-    --wn-border-focus: #8b5c2a;
+    --wn-border-subtle: rgba(0, 0, 0, 0.04);
+    --wn-border-default: rgba(0, 0, 0, 0.08);
+    --wn-border-strong: rgba(0, 0, 0, 0.12);
+    --wn-border-focus: var(--wn-blue-500);
 
-    /* ===== SEMANTIC SHADOW TOKENS ===== */
+    /* ===== SHADOWS ===== */
+    /* Ultra-light */
 
-    --wn-shadow-subtle: 0 1px 2px rgba(45, 42, 38, 0.08);
-    --wn-shadow-default: 0 2px 4px rgba(45, 42, 38, 0.12);
-    --wn-shadow-elevated: 0 4px 12px rgba(45, 42, 38, 0.16);
-    --wn-shadow-floating: 0 8px 24px rgba(45, 42, 38, 0.2);
+    --wn-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.03);
+    --wn-shadow-default: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --wn-shadow-elevated: 0 2px 6px rgba(0, 0, 0, 0.08);
+    --wn-shadow-floating: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-    /* ===== STATE COLORS ===== */
+    /* ===== ACCENT COLORS ===== */
+    /* Slightly warmer blue */
 
-    --wn-accent-primary: #8b5c2a;
-    --wn-accent-primary-hover: #6b4520;
-    --wn-accent-primary-active: #a87840;
+    --wn-accent-primary: var(--wn-blue-600);
+    --wn-accent-primary-hover: var(--wn-blue-700);
+    --wn-accent-primary-active: var(--wn-blue-800);
 
-    --wn-success: #2d7a4a;
-    --wn-success-bg: rgba(45, 122, 74, 0.1);
-    --wn-success-text: #2d7a4a;
+    /* ===== EDITOR ===== */
 
-    --wn-warning: #9a6b00;
-    --wn-warning-bg: rgba(154, 107, 0, 0.1);
-    --wn-warning-text: #9a6b00;
+    --wn-editor-gutter-text: rgba(0, 0, 0, 0.2);
+    --wn-editor-gutter-text-active: rgba(0, 0, 0, 0.4);
+    --wn-editor-line-highlight: rgba(0, 0, 0, 0.02);
+    --wn-editor-selection: rgba(74, 127, 199, 0.15);
+    --wn-editor-selection-inactive: rgba(74, 127, 199, 0.08);
+    --wn-editor-cursor: var(--wn-blue-600);
 
-    --wn-error: #c43030;
-    --wn-error-bg: rgba(196, 48, 48, 0.1);
-    --wn-error-text: #c43030;
+    /* ===== AI PANEL ===== */
+    /* Blue accent, no purple */
 
-    /* ===== EDITOR-SPECIFIC ===== */
+    --wn-ai-accent: var(--wn-accent-primary);
+    --wn-ai-accent-hover: var(--wn-accent-primary-hover);
+    --wn-ai-bubble-user: #f0efed;
+    --wn-ai-bubble-assistant: #f5f4f2;
 
-    --wn-editor-gutter-bg: transparent;
-    --wn-editor-gutter-text: #b8b0a4;
-    --wn-editor-gutter-text-active: #8a847a;
-
-    --wn-editor-line-highlight: rgba(139, 92, 42, 0.06);
-    --wn-editor-selection: rgba(139, 92, 42, 0.2);
-    --wn-editor-selection-inactive: rgba(139, 92, 42, 0.1);
-    --wn-editor-cursor: #2d2a26;
-
-    /* ===== AI PANEL SPECIFIC ===== */
-
-    --wn-ai-accent: #8b5c2a;
-    --wn-ai-accent-hover: #6b4520;
-    --wn-ai-bubble-user: #e0d8cc;
-    --wn-ai-bubble-assistant: #f0ebe4;
-
-    /* Diff colors adjusted for light theme */
-    --wn-diff-insert-bg: rgba(45, 122, 74, 0.12);
-    --wn-diff-delete-bg: rgba(196, 48, 48, 0.12);
-    --wn-diff-insert-text: #2d7a4a;
-    --wn-diff-delete-text: #c43030;
+    /* Diff */
+    --wn-diff-insert-bg: rgba(34, 197, 94, 0.1);
+    --wn-diff-delete-bg: rgba(239, 68, 68, 0.1);
+    --wn-diff-insert-text: var(--wn-green-600);
+    --wn-diff-delete-text: var(--wn-red-600);
 }

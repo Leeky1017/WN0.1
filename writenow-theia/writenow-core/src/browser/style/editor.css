@@ -1,264 +1,245 @@
 /**
- * WriteNow Editor Styles
+ * WriteNow TipTap Editor Styles v2
  *
- * Why: The editor is where users spend most of their time. It needs to be
- * immersive, comfortable for long sessions, and maintain visual consistency
- * with the rest of WriteNow.
- *
- * Design principles:
- * - Immersive focus: minimal chrome, content-first
- * - Comfortable typography: readable fonts, good line height
- * - Subtle feedback: gentle highlights for current line, selections
- * - Seamless integration: gutter blends with background
+ * Clean, distraction-free writing experience.
  */
 
-/* ===== EDITOR HOST ===== */
-
-.writenow-tiptap-editor-host {
+/* Editor Container */
+.wn-editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     background: var(--wn-bg-editor);
     font-family: var(--wn-font-sans);
-    height: 100%;
-    width: 100%;
 }
 
-/* Inner container for TipTap editor */
-.wn-editor-container {
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-    background: var(--wn-bg-editor);
+/* ===== PROSE CONTENT ===== */
+
+.wn-editor-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--wn-space-8) var(--wn-space-6);
 }
 
-/* ===== TIPTAP EDITOR ===== */
-
-.writenow-tiptap-editor {
-    font-family: var(--wn-font-mono);
-    font-size: var(--wn-text-base);
-    line-height: var(--wn-leading-relaxed);
-    color: var(--wn-text-primary);
-    padding: var(--wn-space-6) var(--wn-space-8);
-    min-height: 100%;
-    max-width: 80ch;
+.wn-editor-prose {
+    max-width: 680px;
     margin: 0 auto;
-    outline: none;
+    color: var(--wn-text-primary);
+    font-size: 16px;
+    line-height: var(--wn-leading-relaxed);
 }
 
-/* Prose content styling */
-.writenow-tiptap-editor p {
+/* Headings */
+.wn-editor-prose h1 {
+    font-size: 28px;
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: var(--wn-space-8) 0 var(--wn-space-4);
+    letter-spacing: -0.5px;
+}
+
+.wn-editor-prose h2 {
+    font-size: 22px;
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: var(--wn-space-6) 0 var(--wn-space-3);
+    letter-spacing: -0.3px;
+}
+
+.wn-editor-prose h3 {
+    font-size: 18px;
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: var(--wn-space-5) 0 var(--wn-space-2);
+}
+
+/* Paragraphs */
+.wn-editor-prose p {
     margin: 0 0 var(--wn-space-4);
 }
 
-.writenow-tiptap-editor h1,
-.writenow-tiptap-editor h2,
-.writenow-tiptap-editor h3,
-.writenow-tiptap-editor h4,
-.writenow-tiptap-editor h5,
-.writenow-tiptap-editor h6 {
-    font-weight: var(--wn-font-semibold);
-    margin: var(--wn-space-6) 0 var(--wn-space-3);
-    line-height: var(--wn-leading-tight);
-}
-
-.writenow-tiptap-editor h1 {
-    font-size: var(--wn-text-3xl);
-}
-
-.writenow-tiptap-editor h2 {
-    font-size: var(--wn-text-2xl);
-}
-
-.writenow-tiptap-editor h3 {
-    font-size: var(--wn-text-xl);
-}
-
-.writenow-tiptap-editor h4,
-.writenow-tiptap-editor h5,
-.writenow-tiptap-editor h6 {
-    font-size: var(--wn-text-lg);
-}
-
-/* Code blocks */
-.writenow-tiptap-editor pre {
-    background: var(--wn-bg-card);
-    border: 1px solid var(--wn-border-subtle);
-    border-radius: var(--wn-panel-radius);
-    padding: var(--wn-space-4);
-    margin: var(--wn-space-4) 0;
-    overflow-x: auto;
-}
-
-.writenow-tiptap-editor code {
-    font-family: var(--wn-font-mono);
-    font-size: 0.9em;
-}
-
-.writenow-tiptap-editor pre code {
-    background: none;
-    padding: 0;
-}
-
-.writenow-tiptap-editor :not(pre) > code {
-    background: var(--wn-bg-hover);
-    padding: 2px 6px;
-    border-radius: var(--wn-radius-sm);
-}
-
-/* Blockquotes */
-.writenow-tiptap-editor blockquote {
-    margin: var(--wn-space-4) 0;
-    padding-left: var(--wn-space-4);
-    border-left: 3px solid var(--wn-border-default);
-    color: var(--wn-text-secondary);
-    font-style: italic;
-}
-
-/* Lists */
-.writenow-tiptap-editor ul,
-.writenow-tiptap-editor ol {
-    margin: var(--wn-space-4) 0;
-    padding-left: var(--wn-space-6);
-}
-
-.writenow-tiptap-editor li {
-    margin: var(--wn-space-1) 0;
-}
-
-.writenow-tiptap-editor li > p {
-    margin: 0;
-}
-
-/* Task lists */
-.writenow-tiptap-editor ul[data-type="taskList"] {
-    list-style: none;
-    padding-left: 0;
-}
-
-.writenow-tiptap-editor ul[data-type="taskList"] li {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--wn-space-2);
-}
-
-.writenow-tiptap-editor ul[data-type="taskList"] input[type="checkbox"] {
-    margin-top: 4px;
-    accent-color: var(--wn-accent-primary);
-}
-
-/* Horizontal rules */
-.writenow-tiptap-editor hr {
-    border: none;
-    border-top: 1px solid var(--wn-border-subtle);
-    margin: var(--wn-space-6) 0;
+.wn-editor-prose p:last-child {
+    margin-bottom: 0;
 }
 
 /* Links */
-.writenow-tiptap-editor a {
+.wn-editor-prose a {
     color: var(--wn-text-link);
     text-decoration: none;
     transition: color var(--wn-transition-fast);
 }
 
-.writenow-tiptap-editor a:hover {
+.wn-editor-prose a:hover {
     color: var(--wn-text-link-hover);
-    text-decoration: underline;
 }
 
-/* Bold & Italic */
-.writenow-tiptap-editor strong {
-    font-weight: var(--wn-font-semibold);
+/* Lists */
+.wn-editor-prose ul,
+.wn-editor-prose ol {
+    margin: 0 0 var(--wn-space-4);
+    padding-left: var(--wn-space-5);
 }
 
-.writenow-tiptap-editor em {
+.wn-editor-prose li {
+    margin-bottom: var(--wn-space-1);
+}
+
+.wn-editor-prose li::marker {
+    color: var(--wn-text-muted);
+}
+
+/* Blockquotes */
+.wn-editor-prose blockquote {
+    margin: var(--wn-space-4) 0;
+    padding: var(--wn-space-3) var(--wn-space-4);
+    border-left: 2px solid var(--wn-border-strong);
+    color: var(--wn-text-secondary);
     font-style: italic;
 }
 
-/* Selection */
-.writenow-tiptap-editor ::selection {
+/* Code - inline */
+.wn-editor-prose code {
+    padding: 2px 6px;
+    background: var(--wn-bg-card);
+    border-radius: var(--wn-radius-sm);
+    font-family: var(--wn-font-mono);
+    font-size: 0.9em;
+    color: var(--wn-text-primary);
+}
+
+/* Code - block */
+.wn-editor-prose pre {
+    margin: var(--wn-space-4) 0;
+    padding: var(--wn-space-3) var(--wn-space-4);
+    background: var(--wn-bg-card);
+    border-radius: var(--wn-radius-md);
+    overflow-x: auto;
+}
+
+.wn-editor-prose pre code {
+    padding: 0;
+    background: transparent;
+    font-size: var(--wn-text-sm);
+    line-height: var(--wn-leading-normal);
+}
+
+/* Horizontal rule */
+.wn-editor-prose hr {
+    border: none;
+    border-top: 1px solid var(--wn-border-subtle);
+    margin: var(--wn-space-6) 0;
+}
+
+/* Images */
+.wn-editor-prose img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--wn-radius-md);
+}
+
+/* Tables */
+.wn-editor-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--wn-space-4) 0;
+}
+
+.wn-editor-prose th,
+.wn-editor-prose td {
+    padding: var(--wn-space-2) var(--wn-space-3);
+    border: 1px solid var(--wn-border-default);
+    text-align: left;
+}
+
+.wn-editor-prose th {
+    background: var(--wn-bg-card);
+    font-weight: var(--wn-font-medium);
+}
+
+/* ===== SELECTION ===== */
+
+.wn-editor-prose ::selection {
     background: var(--wn-editor-selection);
 }
 
 /* ===== PLACEHOLDER ===== */
 
-.writenow-tiptap-editor p.is-editor-empty:first-child::before {
+.wn-editor-prose .is-empty::before {
     content: attr(data-placeholder);
-    float: left;
     color: var(--wn-text-muted);
     pointer-events: none;
-    height: 0;
+    position: absolute;
 }
 
-/* ===== FOCUS MODE ===== */
+/* ===== FOCUS STATE ===== */
 
-.writenow-tiptap-editor.focus-mode p:not(.is-active) {
-    opacity: 0.4;
-    transition: opacity var(--wn-transition-normal);
+.wn-editor-prose:focus {
+    outline: none;
 }
 
-.writenow-tiptap-editor.focus-mode p.is-active {
-    opacity: 1;
+/* ===== LINE NUMBERS ===== */
+/* Optional, can be enabled per preference */
+
+.wn-editor-line-numbers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: transparent;
+    color: var(--wn-editor-gutter-text);
+    font-family: var(--wn-font-mono);
+    font-size: var(--wn-text-sm);
+    text-align: right;
+    padding-right: var(--wn-space-2);
+    user-select: none;
 }
 
-/* ===== TYPEWRITER MODE ===== */
+/* ===== CURRENT LINE HIGHLIGHT ===== */
 
-.writenow-tiptap-editor-host.typewriter-mode {
+.wn-editor-line--current {
+    background: var(--wn-editor-line-highlight);
+}
+
+/* ===== TOOLBAR ===== */
+/* If editor has a toolbar */
+
+.wn-editor-toolbar {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: var(--wn-space-1);
+    padding: var(--wn-space-1) var(--wn-space-2);
+    background: var(--wn-bg-panel);
+    border-bottom: 1px solid var(--wn-border-subtle);
 }
 
-.writenow-tiptap-editor-host.typewriter-mode .writenow-tiptap-editor {
-    padding-top: 40vh;
-    padding-bottom: 40vh;
-}
-
-/* ===== LOADING & ERROR STATES ===== */
-
-.wn-editor-loading,
-.wn-editor-error {
+.wn-editor-toolbar-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    padding: var(--wn-space-8);
-    text-align: center;
-}
-
-.wn-editor-loading {
-    color: var(--wn-text-tertiary);
-}
-
-.wn-editor-error {
-    color: var(--wn-error-text);
-}
-
-/* ===== SCROLLBAR ===== */
-
-.writenow-tiptap-editor-host::-webkit-scrollbar {
-    width: 8px;
-}
-
-.writenow-tiptap-editor-host::-webkit-scrollbar-track {
+    width: 28px;
+    height: 28px;
     background: transparent;
+    border: none;
+    border-radius: var(--wn-button-radius);
+    color: var(--wn-text-secondary);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
 }
 
-.writenow-tiptap-editor-host::-webkit-scrollbar-thumb {
-    background: var(--theia-scrollbarSlider-background);
-    border-radius: var(--wn-radius-full);
+.wn-editor-toolbar-btn:hover {
+    background: var(--wn-bg-hover);
+    color: var(--wn-text-primary);
 }
 
-.writenow-tiptap-editor-host::-webkit-scrollbar-thumb:hover {
-    background: var(--theia-scrollbarSlider-hoverBackground);
+.wn-editor-toolbar-btn--active {
+    background: var(--wn-bg-active);
+    color: var(--wn-text-primary);
 }
 
-/* ===== PRINT STYLES ===== */
-
-@media print {
-    .writenow-tiptap-editor {
-        max-width: none;
-        padding: 0;
-        color: black;
-    }
-
-    .writenow-tiptap-editor pre {
-        border: 1px solid #ccc;
-    }
+.wn-editor-toolbar-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--wn-border-default);
+    margin: 0 var(--wn-space-1);
 }
