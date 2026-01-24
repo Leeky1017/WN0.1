@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. 在 writenow-core 的构建脚本中添加 schema.sql 复制步骤
-2. 验证构建后 schema.sql 存在于 lib/node/database/
-3. 验证服务器启动时数据库正常初始化
+- 在 writenow-core 的构建脚本中添加 schema.sql 复制步骤
+- 验证构建后 schema.sql 存在于 lib/node/database/
+- 验证服务器启动时数据库正常初始化
 
 ## Runs
 
