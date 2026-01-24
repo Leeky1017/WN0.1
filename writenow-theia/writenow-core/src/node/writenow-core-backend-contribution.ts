@@ -7,13 +7,18 @@ import { BackendApplicationContribution } from '@theia/core/lib/node/backend-app
 import Database = require('better-sqlite3');
 import { load as loadSqliteVec } from 'sqlite-vec';
 
+import { WritenowSqliteDb } from './database/writenow-sqlite-db';
+
 type SqliteDatabase = ReturnType<typeof Database>;
 
 @injectable()
 export class WritenowCoreBackendContribution implements BackendApplicationContribution {
     private hasRun = false;
 
-    constructor(@inject(ILogger) private readonly logger: ILogger) {}
+    constructor(
+        @inject(ILogger) private readonly logger: ILogger,
+        @inject(WritenowSqliteDb) private readonly sqliteDb: WritenowSqliteDb,
+    ) {}
 
     /**
      * Why: Run a small native-module smoke at backend startup so failures are visible early
@@ -35,7 +40,18 @@ export class WritenowCoreBackendContribution implements BackendApplicationContri
             return;
         }
         this.hasRun = true;
+        this.ensureAppDatabase();
         this.runNativeSmoke();
+    }
+
+    private ensureAppDatabase(): void {
+        try {
+            const { dbPath, schemaVersion } = this.sqliteDb.ensureReady();
+            this.logger.info(`[writenow-core] app DB ready (path: ${dbPath}, schema: ${schemaVersion})`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.error(`[writenow-core] app DB init failed: ${message}`);
+        }
     }
 
     private runNativeSmoke(): void {
@@ -122,4 +138,3 @@ export class WritenowCoreBackendContribution implements BackendApplicationContri
         this.logger.error(`[writenow-core] ${stage} failed: ${message}`);
     }
 }
-

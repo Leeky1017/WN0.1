@@ -10,6 +10,10 @@ const { Uint8ArrayReadBuffer, Uint8ArrayWriteBuffer } = require('@theia/core/lib
 const { RpcProxyFactory } = require('@theia/core/lib/common/messaging/proxy-factory');
 
 const { WritenowBackendService } = require('../lib/node/writenow-backend-service');
+const { WritenowSqliteDb } = require('../lib/node/database/writenow-sqlite-db');
+const { ProjectsService } = require('../lib/node/services/projects-service');
+const { FilesService } = require('../lib/node/services/files-service');
+const { VersionService } = require('../lib/node/services/version-service');
 const { WRITENOW_RPC_PATH } = require('../lib/common/writenow-protocol');
 
 class ChannelPipe {
@@ -52,7 +56,15 @@ function createLogger() {
 async function main() {
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'writenow-theia-rpc-smoke-'));
 
-  const backend = new WritenowBackendService(createLogger(), dataDir);
+  const logger = createLogger();
+  const sqliteDb = new WritenowSqliteDb(logger, dataDir);
+  const backend = new WritenowBackendService(
+    logger,
+    sqliteDb,
+    new ProjectsService(logger, sqliteDb),
+    new FilesService(logger, dataDir, sqliteDb),
+    new VersionService(logger, sqliteDb),
+  );
 
   const pipe = new ChannelPipe();
   const clientMultiplexer = new ChannelMultiplexer(pipe.left);
@@ -70,43 +82,92 @@ async function main() {
   clientFactory.listen(rpcChannel);
   const proxy = clientFactory.createProxy();
 
+  // --- DB init verification ---
+  const dbPath = path.join(dataDir, 'data', 'writenow.db');
+  await fs.access(dbPath);
+  const schemaRow = sqliteDb.db.prepare('SELECT value FROM settings WHERE key = ?').get('schema_version');
+  assert.ok(schemaRow && typeof schemaRow.value === 'string');
+  assert.equal(Number.parseInt(schemaRow.value, 10), 7);
+  const tableNames = sqliteDb.db
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' OR type='virtual_table' ORDER BY name")
+    .all()
+    .map((row) => row.name)
+    .filter(Boolean);
+  for (const required of ['articles', 'articles_fts', 'projects', 'article_snapshots', 'article_chunks', 'entity_cards', 'settings']) {
+    assert.ok(tableNames.includes(required), `missing table: ${required}`);
+  }
+
+  // --- projects CRUD ---
   const bootstrap = await proxy.invoke('project:bootstrap', {});
   assert.equal(bootstrap.ok, true);
   assert.ok(bootstrap.data.currentProjectId);
+
+  const createdProject = await proxy.invoke('project:create', { name: 'RPC Smoke Project' });
+  assert.equal(createdProject.ok, true);
+  assert.ok(createdProject.data.project.id);
+
+  const projects = await proxy.invoke('project:list', {});
+  assert.equal(projects.ok, true);
+  assert.ok(projects.data.projects.length >= 1);
+
+  const updatedProject = await proxy.invoke('project:update', { id: createdProject.data.project.id, description: 'updated' });
+  assert.equal(updatedProject.ok, true);
+
+  // Keep the default project; delete the newly created one.
+  const deletedProject = await proxy.invoke('project:delete', { id: createdProject.data.project.id });
+  assert.equal(deletedProject.ok, true);
 
   const created = await proxy.invoke('file:create', { name: 'RPC Smoke' });
   assert.equal(created.ok, true);
   assert.ok(created.data.path.endsWith('.md'));
 
-  const content = '# RPC Smoke\n\nHello from rpc-smoke.';
-  const write = await proxy.invoke('file:write', { path: created.data.path, content });
+  const contentA = '# RPC Smoke\n\nHello from rpc-smoke.';
+  const write = await proxy.invoke('file:write', { path: created.data.path, content: contentA });
   assert.equal(write.ok, true);
 
   const read = await proxy.invoke('file:read', { path: created.data.path });
   assert.equal(read.ok, true);
-  assert.equal(read.data.content, content);
+  assert.equal(read.data.content, contentA);
 
-  const snapshotWrite = await proxy.invoke('file:snapshot:write', {
-    path: created.data.path,
-    content,
-    reason: 'manual',
-  });
-  assert.equal(snapshotWrite.ok, true);
-  assert.ok(snapshotWrite.data.snapshotId);
+  // --- version history verification ---
+  const snap1 = await proxy.invoke('version:create', { articleId: created.data.path, content: contentA, name: 'v1', actor: 'user' });
+  assert.equal(snap1.ok, true);
+  assert.ok(snap1.data.snapshotId);
 
-  const snapshotLatest = await proxy.invoke('file:snapshot:latest', { path: created.data.path });
-  assert.equal(snapshotLatest.ok, true);
-  assert.ok(snapshotLatest.data.snapshot);
+  const contentB = '# RPC Smoke\n\nHello v2.';
+  await proxy.invoke('file:write', { path: created.data.path, content: contentB });
+  const snap2 = await proxy.invoke('version:create', { articleId: created.data.path, content: contentB, name: 'v2', actor: 'user' });
+  assert.equal(snap2.ok, true);
+  assert.ok(snap2.data.snapshotId);
+
+  const versions = await proxy.invoke('version:list', { articleId: created.data.path, limit: 10 });
+  assert.equal(versions.ok, true);
+  assert.ok(versions.data.items.length >= 2);
+
+  const diff = await proxy.invoke('version:diff', { fromSnapshotId: snap1.data.snapshotId, toSnapshotId: snap2.data.snapshotId });
+  assert.equal(diff.ok, true);
+  assert.ok(diff.data.diff.includes('-Hello from rpc-smoke.') || diff.data.diff.includes('+Hello v2.'));
+
+  const restored = await proxy.invoke('version:restore', { snapshotId: snap1.data.snapshotId });
+  assert.equal(restored.ok, true);
+  assert.equal(restored.data.content, contentA);
 
   const invalidRead = await proxy.invoke('file:read', { path: '../escape.md' });
   assert.equal(invalidRead.ok, false);
   assert.equal(invalidRead.error.code, 'INVALID_ARGUMENT');
 
+  // --- persistence verification (simulate restart) ---
+  const sqliteDb2 = new WritenowSqliteDb(logger, dataDir);
+  sqliteDb2.ensureReady();
+  const projectsAfter = sqliteDb2.db.prepare('SELECT COUNT(*) AS total FROM projects').get();
+  assert.ok(Number(projectsAfter.total) >= 1);
+
   console.info('[rpc-smoke] ok', {
     dataDir,
+    dbPath,
     projectId: bootstrap.data.currentProjectId,
     file: created.data.path,
-    snapshotId: snapshotWrite.data.snapshotId,
+    snapshots: [snap1.data.snapshotId, snap2.data.snapshotId],
   });
 }
 
