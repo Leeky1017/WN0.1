@@ -11,6 +11,7 @@ import { TipTapMarkdownEditorWidgetFactory } from './tiptap-markdown-editor-widg
 import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';
 import { AiPanelContribution, AiPanelWidgetFactory } from './ai-panel/ai-panel-contribution';
 import { AiPanelService } from './ai-panel/ai-panel-service';
+import { VersionHistoryContribution, VersionHistoryWidgetFactory } from './version-history/version-history-contribution';
 import { WritenowCoreContribution } from './writenow-core-contribution';
 import { WritenowFrontendService } from './writenow-frontend-service';
 import { WritenowLayoutContribution } from './writenow-layout-contribution';
@@ -65,6 +66,10 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(KeybindingContribution).toService(AiPanelContribution);
     bind(AiPanelWidgetFactory).toSelf().inSingletonScope();
 
+    bind(VersionHistoryContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(VersionHistoryContribution);
+    bind(VersionHistoryWidgetFactory).toSelf().inSingletonScope();
+
     bind(WritenowCoreContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(WritenowCoreContribution);
     bind(MenuContribution).toService(WritenowCoreContribution);
@@ -81,4 +86,5 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
 
     bind(WidgetFactory).to(WritenowWelcomeWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(AiPanelWidgetFactory).inSingletonScope();
+    bind(WidgetFactory).to(VersionHistoryWidgetFactory).inSingletonScope();
 });

@@ -335,15 +335,48 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         setSuggestedText('');
     }, []);
 
-    const onApply = React.useCallback(() => {
+    const onApply = React.useCallback(async () => {
         if (runStatus !== 'done') return;
         if (!selection) return;
         const editor = activeEditor.getActive();
-        if (!editor) return;
+        const articleId = editor?.getArticleId();
+        if (!editor || !articleId) {
+            window.alert('No active editor.');
+            return;
+        }
         if (!suggestedText.trim()) return;
+
+        // Why: Version history is WriteNow's safety net for AI-assisted edits.
+        // We snapshot both the pre-apply and post-apply document so users can diff/rollback.
+        const reason = skillId ? `ai:${skillId}` : 'ai';
+        const before = editor.getMarkdown();
+        const pre = await writenow.invokeResponse('version:create', {
+            articleId,
+            content: before,
+            name: 'Before AI',
+            reason,
+            actor: 'auto',
+        });
+        if (!pre.ok) {
+            window.alert(`Failed to save pre-AI snapshot: ${formatIpcError(pre.error)}`);
+        }
+
         editor.replaceRange(selection.from, selection.to, suggestedText);
+
+        const after = editor.getMarkdown();
+        const post = await writenow.invokeResponse('version:create', {
+            articleId,
+            content: after,
+            name: 'AI Apply',
+            reason,
+            actor: 'ai',
+        });
+        if (!post.ok) {
+            window.alert(`Failed to save AI snapshot: ${formatIpcError(post.error)}`);
+        }
+
         onDiscard();
-    }, [activeEditor, onDiscard, runStatus, selection, suggestedText]);
+    }, [activeEditor, onDiscard, runStatus, selection, skillId, suggestedText, writenow]);
 
     const showDiff = runStatus === 'done' && Boolean(selection) && Boolean(selection?.text.trim()) && Boolean(suggestedText.trim());
 
