@@ -3,6 +3,13 @@
 - Branch: task/164-sprint-cleanup
 - PR: https://github.com/Leeky1017/WN0.1/pull/165
 
+## Plan
+- Close out Task 012 task card metadata
+- Remove theia-poc/ and legacy src/ + electron/ implementations
+- Update package.json scripts to be Theia-first and prune npm deps
+- Update docs/specs to reflect Theia-only baseline
+- Verify contract + Theia build/start and record evidence
+
 ## Goal
 - Remove legacy/duplicate implementations (theia-poc/, legacy React UI in src/, migrated Electron main-process parts) and update docs so the codebase baseline is clearly Theia-first.
 
@@ -155,3 +162,10 @@ writenow-theia +
 ### 2026-01-24 21:29 PR
 - Command: gh pr create ...
 - Key output: https://github.com/Leeky1017/WN0.1/pull/165
+
+### 2026-01-24 21:32 RUN_LOG guard fix
+- Command: 
+> writenow@2.0.0 contract:check
+> node scripts/ipc-contract-sync.js check
+- Key output: exit 0
+- Evidence: openspec/_ops/task_runs/ISSUE-164.md
