@@ -1,7 +1,7 @@
 # ISSUE-162
 - Issue: #162
 - Branch: task/162-issue-159-rulebook-archive
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/163
 
 ## Plan
 - Commit the Rulebook task archive move for #159 (tasks/ -> tasks/archive/).
