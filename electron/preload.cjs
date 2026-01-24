@@ -34,6 +34,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'kg:relation:create',
   'kg:relation:delete',
   'kg:relation:list',
+  'kg:relation:update',
   'memory:create',
   'memory:delete',
   'memory:injection:preview',

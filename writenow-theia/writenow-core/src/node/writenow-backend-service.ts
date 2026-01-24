@@ -10,6 +10,7 @@ import { FilesService } from './services/files-service';
 import { IndexService } from './services/index-service';
 import { EmbeddingRpcService } from './services/embedding-rpc-service';
 import { ProjectsService } from './services/projects-service';
+import { KnowledgeGraphService } from './services/knowledge-graph-service';
 import { RetrievalService } from './services/retrieval-service';
 import { SearchService } from './services/search-service';
 import { VersionService } from './services/version-service';
@@ -23,6 +24,7 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(ILogger) private readonly logger: ILogger,
         @inject(WritenowSqliteDb) sqliteDb: WritenowSqliteDb,
         @inject(ProjectsService) projectsService: ProjectsService,
+        @inject(KnowledgeGraphService) knowledgeGraphService: KnowledgeGraphService,
         @inject(FilesService) filesService: FilesService,
         @inject(VersionService) versionService: VersionService,
         @inject(IndexService) _indexService: IndexService,
@@ -36,6 +38,7 @@ export class WritenowBackendService implements WritenowRpcService {
         sqliteDb.ensureReady();
 
         projectsService.register(this.registry);
+        knowledgeGraphService.register(this.registry);
         filesService.register(this.registry);
         versionService.register(this.registry);
         embeddingRpcService.register(this.registry);

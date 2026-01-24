@@ -21,6 +21,7 @@ import { ContextService } from './services/context-service';
 import { FilesService } from './services/files-service';
 import { EmbeddingRpcService } from './services/embedding-rpc-service';
 import { IndexService } from './services/index-service';
+import { KnowledgeGraphService } from './services/knowledge-graph-service';
 import { ProjectsService } from './services/projects-service';
 import { SearchService } from './services/search-service';
 import { RetrievalService } from './services/retrieval-service';
@@ -44,6 +45,7 @@ export default new ContainerModule(bind => {
     bind(EmbeddingRpcService).toSelf().inSingletonScope();
     bind(IndexService).toSelf().inSingletonScope();
     bind(ProjectsService).toSelf().inSingletonScope();
+    bind(KnowledgeGraphService).toSelf().inSingletonScope();
     bind(FilesService).toSelf().inSingletonScope();
     bind(VersionService).toSelf().inSingletonScope();
     bind(RetrievalService).toSelf().inSingletonScope();

@@ -90,6 +90,7 @@ export type IpcChannel =
   | 'kg:relation:create'
   | 'kg:relation:delete'
   | 'kg:relation:list'
+  | 'kg:relation:update'
   | 'memory:create'
   | 'memory:delete'
   | 'memory:injection:preview'
@@ -864,6 +865,19 @@ export type KgRelationCreateResponse = {
   relation: KnowledgeGraphRelation;
 };
 
+export type KgRelationUpdateRequest = {
+  projectId: string;
+  id: string;
+  fromEntityId?: string;
+  toEntityId?: string;
+  type?: string;
+  metadata?: JsonValue;
+};
+
+export type KgRelationUpdateResponse = {
+  relation: KnowledgeGraphRelation;
+};
+
 export type KgRelationDeleteRequest = {
   projectId: string;
   id: string;
@@ -1378,6 +1392,7 @@ export type IpcInvokePayloadMap = {
   'kg:relation:create': KgRelationCreateRequest;
   'kg:relation:delete': KgRelationDeleteRequest;
   'kg:relation:list': KgRelationListRequest;
+  'kg:relation:update': KgRelationUpdateRequest;
   'memory:create': MemoryCreateRequest;
   'memory:delete': MemoryDeleteRequest;
   'memory:injection:preview': MemoryInjectionPreviewRequest;
@@ -1464,6 +1479,7 @@ export type IpcInvokeDataMap = {
   'kg:relation:create': KgRelationCreateResponse;
   'kg:relation:delete': KgRelationDeleteResponse;
   'kg:relation:list': KgRelationListResponse;
+  'kg:relation:update': KgRelationUpdateResponse;
   'memory:create': MemoryCreateResponse;
   'memory:delete': MemoryDeleteResponse;
   'memory:injection:preview': MemoryInjectionPreviewResponse;
