@@ -76,8 +76,11 @@ export class CrashRecoveryContribution implements FrontendApplicationContributio
                 this.messageService.info('已丢弃未保存的内容。');
             }
         } catch (error) {
-            // Silently fail - crash recovery should not block app startup
+            // Why: Crash recovery check failure should not block app startup, but we
+            // must notify the user so they're aware data might not be recovered.
+            const errorMessage = error instanceof Error ? error.message : String(error);
             console.error('[writenow-core] Crash recovery check failed:', error);
+            this.messageService.warn(`崩溃恢复检查失败: ${errorMessage}。如有未保存内容，可能无法恢复。`);
         }
     }
 
@@ -98,9 +101,14 @@ export class CrashRecoveryContribution implements FrontendApplicationContributio
                 if (result.ok) {
                     recovered++;
                 } else {
+                    // Why: Log specific IPC error for debugging when recovery fails
+                    console.error(`[writenow-core] Failed to recover ${snapshot.articleId}: ${result.error?.message ?? 'unknown error'}`);
                     failed++;
                 }
-            } catch {
+            } catch (error) {
+                // Why: Log exception details for debugging; user will be notified via summary message
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(`[writenow-core] Exception recovering ${snapshot.articleId}: ${errorMessage}`);
                 failed++;
             }
         }
@@ -158,8 +166,10 @@ export function markForCrashRecovery(articleId: string, content: string): void {
         }
 
         localStorage.setItem(recoveryKey, JSON.stringify(snapshots));
-    } catch {
-        // Silently fail - crash recovery marking should not throw
+    } catch (error) {
+        // Why: Log failure for debugging; marking failure is non-critical but should be observable
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.warn(`[writenow-core] Failed to mark crash recovery for ${articleId}: ${errorMessage}`);
     }
 }
 
@@ -189,7 +199,9 @@ export function clearCrashRecoveryMarker(articleId: string): void {
         } else {
             localStorage.setItem(recoveryKey, JSON.stringify(filtered));
         }
-    } catch {
-        // Silently fail
+    } catch (error) {
+        // Why: Log failure for debugging; clearing marker failure is non-critical but should be observable
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.warn(`[writenow-core] Failed to clear crash recovery marker for ${articleId}: ${errorMessage}`);
     }
 }
