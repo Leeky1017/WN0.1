@@ -1,0 +1,313 @@
+/**
+ * WriteNow Welcome Page Styles
+ *
+ * Why: The welcome page is the first impression of WriteNow. It should
+ * communicate brand identity, provide clear navigation, and feel
+ * professional yet approachable.
+ *
+ * Design principles:
+ * - Clean and focused: minimal distraction, clear hierarchy
+ * - Brand presence: WriteNow identity front and center
+ * - Quick access: prominent action buttons for common tasks
+ * - Feature preview: showcase capabilities without overwhelming
+ */
+
+/* Container */
+.writenow-welcome {
+    background: var(--wn-bg-editor);
+    font-family: var(--wn-font-sans);
+    overflow-y: auto;
+}
+
+.wn-welcome-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--wn-space-12) var(--wn-space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wn-space-10);
+    min-height: 100%;
+}
+
+/* ===== HEADER / BRAND ===== */
+
+.wn-welcome-header {
+    text-align: center;
+    padding: var(--wn-space-8) 0;
+}
+
+.wn-welcome-logo {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto var(--wn-space-6);
+    background: linear-gradient(135deg, var(--wn-accent-primary), var(--wn-purple-500));
+    border-radius: var(--wn-card-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--wn-shadow-elevated);
+}
+
+.wn-welcome-logo-icon {
+    font-size: 36px;
+    color: white;
+}
+
+.wn-welcome-title {
+    font-size: var(--wn-text-3xl);
+    font-weight: var(--wn-font-bold);
+    color: var(--wn-text-primary);
+    margin: 0 0 var(--wn-space-2);
+    letter-spacing: -0.5px;
+}
+
+.wn-welcome-tagline {
+    font-size: var(--wn-text-lg);
+    color: var(--wn-text-secondary);
+    margin: 0;
+}
+
+/* ===== QUICK ACTIONS ===== */
+
+.wn-welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--wn-space-3);
+}
+
+.wn-welcome-action {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-2);
+    padding: var(--wn-space-3) var(--wn-space-6);
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-panel-radius);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-base);
+    font-weight: var(--wn-font-medium);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-welcome-action:hover {
+    background: var(--wn-bg-hover);
+    border-color: var(--wn-border-strong);
+    transform: translateY(-1px);
+    box-shadow: var(--wn-shadow-default);
+}
+
+.wn-welcome-action:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.wn-welcome-action:focus {
+    outline: 2px solid var(--wn-border-focus);
+    outline-offset: 2px;
+}
+
+.wn-welcome-action--primary {
+    background: var(--wn-accent-primary);
+    border-color: var(--wn-accent-primary);
+    color: var(--wn-text-inverse);
+}
+
+.wn-welcome-action--primary:hover {
+    background: var(--wn-accent-primary-hover);
+    border-color: var(--wn-accent-primary-hover);
+}
+
+.wn-welcome-action-icon {
+    font-size: var(--wn-text-xl);
+    opacity: 0.8;
+}
+
+/* ===== FEATURES SECTION ===== */
+
+.wn-welcome-features {
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-subtle);
+    border-radius: var(--wn-card-radius);
+    padding: var(--wn-space-6);
+}
+
+.wn-welcome-features-title {
+    font-size: var(--wn-text-lg);
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: 0 0 var(--wn-space-4);
+}
+
+.wn-welcome-features-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wn-space-3);
+}
+
+.wn-welcome-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wn-space-3);
+    padding: var(--wn-space-3);
+    background: var(--wn-bg-editor);
+    border-radius: var(--wn-panel-radius);
+    transition: background-color var(--wn-transition-fast);
+}
+
+.wn-welcome-feature:hover {
+    background: var(--wn-bg-hover);
+}
+
+.wn-welcome-feature-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--wn-bg-selected);
+    border-radius: var(--wn-radius-md);
+    color: var(--wn-accent-primary);
+    font-size: var(--wn-text-base);
+}
+
+.wn-welcome-feature-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.wn-welcome-feature-name {
+    font-size: var(--wn-text-base);
+    font-weight: var(--wn-font-medium);
+    color: var(--wn-text-primary);
+    margin: 0 0 var(--wn-space-1);
+}
+
+.wn-welcome-feature-desc {
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+    margin: 0;
+    line-height: var(--wn-leading-normal);
+}
+
+/* ===== RECENT PROJECTS ===== */
+
+.wn-welcome-recent {
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-subtle);
+    border-radius: var(--wn-card-radius);
+    padding: var(--wn-space-6);
+}
+
+.wn-welcome-recent-title {
+    font-size: var(--wn-text-lg);
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-text-primary);
+    margin: 0 0 var(--wn-space-4);
+}
+
+.wn-welcome-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wn-space-2);
+}
+
+.wn-welcome-recent-item {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-3);
+    padding: var(--wn-space-3);
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-panel-radius);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--wn-transition-fast);
+    width: 100%;
+}
+
+.wn-welcome-recent-item:hover {
+    background: var(--wn-bg-hover);
+}
+
+.wn-welcome-recent-item:focus {
+    outline: 2px solid var(--wn-border-focus);
+    outline-offset: -2px;
+}
+
+.wn-welcome-recent-item-icon {
+    color: var(--wn-text-tertiary);
+}
+
+.wn-welcome-recent-item-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wn-welcome-recent-item-path {
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-xs);
+}
+
+.wn-welcome-recent-empty {
+    text-align: center;
+    padding: var(--wn-space-6);
+    color: var(--wn-text-tertiary);
+    font-size: var(--wn-text-sm);
+}
+
+/* ===== FOOTER ===== */
+
+.wn-welcome-footer {
+    text-align: center;
+    padding: var(--wn-space-6) 0;
+    margin-top: auto;
+}
+
+.wn-welcome-footer-text {
+    font-size: var(--wn-text-xs);
+    color: var(--wn-text-muted);
+    margin: 0;
+}
+
+.wn-welcome-footer-link {
+    color: var(--wn-text-link);
+    text-decoration: none;
+    transition: color var(--wn-transition-fast);
+}
+
+.wn-welcome-footer-link:hover {
+    color: var(--wn-text-link-hover);
+    text-decoration: underline;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 640px) {
+    .wn-welcome-container {
+        padding: var(--wn-space-6) var(--wn-space-4);
+        gap: var(--wn-space-6);
+    }
+
+    .wn-welcome-actions {
+        flex-direction: column;
+    }
+
+    .wn-welcome-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .wn-welcome-diff-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -6,6 +6,15 @@ import { WidgetFactory } from '@theia/core/lib/browser/widget-manager';
 import { injectable, ContainerModule } from '@theia/core/shared/inversify';
 import { ProblemContribution } from '@theia/markers/lib/browser/problem/problem-contribution';
 
+/**
+ * Why: Import WriteNow design system styles. This single import loads:
+ * - Design tokens (primitive + semantic)
+ * - Theme definitions (Midnight default, Warm Gray, Parchment)
+ * - Theia variable overrides
+ * - Component-specific styles (AI Panel, Welcome, Editor)
+ */
+import './style/index.css';
+
 import { ActiveEditorService } from './active-editor-service';
 import { TipTapMarkdownEditorWidgetFactory } from './tiptap-markdown-editor-widget-factory';
 import { TipTapMarkdownOpenHandler } from './tiptap-markdown-open-handler';

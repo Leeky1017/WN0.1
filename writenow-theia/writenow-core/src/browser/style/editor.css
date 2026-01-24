@@ -1,0 +1,264 @@
+/**
+ * WriteNow Editor Styles
+ *
+ * Why: The editor is where users spend most of their time. It needs to be
+ * immersive, comfortable for long sessions, and maintain visual consistency
+ * with the rest of WriteNow.
+ *
+ * Design principles:
+ * - Immersive focus: minimal chrome, content-first
+ * - Comfortable typography: readable fonts, good line height
+ * - Subtle feedback: gentle highlights for current line, selections
+ * - Seamless integration: gutter blends with background
+ */
+
+/* ===== EDITOR HOST ===== */
+
+.writenow-tiptap-editor-host {
+    background: var(--wn-bg-editor);
+    font-family: var(--wn-font-sans);
+    height: 100%;
+    width: 100%;
+}
+
+/* Inner container for TipTap editor */
+.wn-editor-container {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    background: var(--wn-bg-editor);
+}
+
+/* ===== TIPTAP EDITOR ===== */
+
+.writenow-tiptap-editor {
+    font-family: var(--wn-font-mono);
+    font-size: var(--wn-text-base);
+    line-height: var(--wn-leading-relaxed);
+    color: var(--wn-text-primary);
+    padding: var(--wn-space-6) var(--wn-space-8);
+    min-height: 100%;
+    max-width: 80ch;
+    margin: 0 auto;
+    outline: none;
+}
+
+/* Prose content styling */
+.writenow-tiptap-editor p {
+    margin: 0 0 var(--wn-space-4);
+}
+
+.writenow-tiptap-editor h1,
+.writenow-tiptap-editor h2,
+.writenow-tiptap-editor h3,
+.writenow-tiptap-editor h4,
+.writenow-tiptap-editor h5,
+.writenow-tiptap-editor h6 {
+    font-weight: var(--wn-font-semibold);
+    margin: var(--wn-space-6) 0 var(--wn-space-3);
+    line-height: var(--wn-leading-tight);
+}
+
+.writenow-tiptap-editor h1 {
+    font-size: var(--wn-text-3xl);
+}
+
+.writenow-tiptap-editor h2 {
+    font-size: var(--wn-text-2xl);
+}
+
+.writenow-tiptap-editor h3 {
+    font-size: var(--wn-text-xl);
+}
+
+.writenow-tiptap-editor h4,
+.writenow-tiptap-editor h5,
+.writenow-tiptap-editor h6 {
+    font-size: var(--wn-text-lg);
+}
+
+/* Code blocks */
+.writenow-tiptap-editor pre {
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-subtle);
+    border-radius: var(--wn-panel-radius);
+    padding: var(--wn-space-4);
+    margin: var(--wn-space-4) 0;
+    overflow-x: auto;
+}
+
+.writenow-tiptap-editor code {
+    font-family: var(--wn-font-mono);
+    font-size: 0.9em;
+}
+
+.writenow-tiptap-editor pre code {
+    background: none;
+    padding: 0;
+}
+
+.writenow-tiptap-editor :not(pre) > code {
+    background: var(--wn-bg-hover);
+    padding: 2px 6px;
+    border-radius: var(--wn-radius-sm);
+}
+
+/* Blockquotes */
+.writenow-tiptap-editor blockquote {
+    margin: var(--wn-space-4) 0;
+    padding-left: var(--wn-space-4);
+    border-left: 3px solid var(--wn-border-default);
+    color: var(--wn-text-secondary);
+    font-style: italic;
+}
+
+/* Lists */
+.writenow-tiptap-editor ul,
+.writenow-tiptap-editor ol {
+    margin: var(--wn-space-4) 0;
+    padding-left: var(--wn-space-6);
+}
+
+.writenow-tiptap-editor li {
+    margin: var(--wn-space-1) 0;
+}
+
+.writenow-tiptap-editor li > p {
+    margin: 0;
+}
+
+/* Task lists */
+.writenow-tiptap-editor ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+}
+
+.writenow-tiptap-editor ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wn-space-2);
+}
+
+.writenow-tiptap-editor ul[data-type="taskList"] input[type="checkbox"] {
+    margin-top: 4px;
+    accent-color: var(--wn-accent-primary);
+}
+
+/* Horizontal rules */
+.writenow-tiptap-editor hr {
+    border: none;
+    border-top: 1px solid var(--wn-border-subtle);
+    margin: var(--wn-space-6) 0;
+}
+
+/* Links */
+.writenow-tiptap-editor a {
+    color: var(--wn-text-link);
+    text-decoration: none;
+    transition: color var(--wn-transition-fast);
+}
+
+.writenow-tiptap-editor a:hover {
+    color: var(--wn-text-link-hover);
+    text-decoration: underline;
+}
+
+/* Bold & Italic */
+.writenow-tiptap-editor strong {
+    font-weight: var(--wn-font-semibold);
+}
+
+.writenow-tiptap-editor em {
+    font-style: italic;
+}
+
+/* Selection */
+.writenow-tiptap-editor ::selection {
+    background: var(--wn-editor-selection);
+}
+
+/* ===== PLACEHOLDER ===== */
+
+.writenow-tiptap-editor p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--wn-text-muted);
+    pointer-events: none;
+    height: 0;
+}
+
+/* ===== FOCUS MODE ===== */
+
+.writenow-tiptap-editor.focus-mode p:not(.is-active) {
+    opacity: 0.4;
+    transition: opacity var(--wn-transition-normal);
+}
+
+.writenow-tiptap-editor.focus-mode p.is-active {
+    opacity: 1;
+}
+
+/* ===== TYPEWRITER MODE ===== */
+
+.writenow-tiptap-editor-host.typewriter-mode {
+    display: flex;
+    flex-direction: column;
+}
+
+.writenow-tiptap-editor-host.typewriter-mode .writenow-tiptap-editor {
+    padding-top: 40vh;
+    padding-bottom: 40vh;
+}
+
+/* ===== LOADING & ERROR STATES ===== */
+
+.wn-editor-loading,
+.wn-editor-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: var(--wn-space-8);
+    text-align: center;
+}
+
+.wn-editor-loading {
+    color: var(--wn-text-tertiary);
+}
+
+.wn-editor-error {
+    color: var(--wn-error-text);
+}
+
+/* ===== SCROLLBAR ===== */
+
+.writenow-tiptap-editor-host::-webkit-scrollbar {
+    width: 8px;
+}
+
+.writenow-tiptap-editor-host::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.writenow-tiptap-editor-host::-webkit-scrollbar-thumb {
+    background: var(--theia-scrollbarSlider-background);
+    border-radius: var(--wn-radius-full);
+}
+
+.writenow-tiptap-editor-host::-webkit-scrollbar-thumb:hover {
+    background: var(--theia-scrollbarSlider-hoverBackground);
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+    .writenow-tiptap-editor {
+        max-width: none;
+        padding: 0;
+        color: black;
+    }
+
+    .writenow-tiptap-editor pre {
+        border: 1px solid #ccc;
+    }
+}

@@ -1,0 +1,80 @@
+/**
+ * WriteNow Warm Gray Theme
+ *
+ * Why: A softer dark theme with warm undertones, reducing the clinical feel
+ * of pure gray. Better for users who find pure dark themes too stark.
+ *
+ * Design philosophy:
+ * - Warm neutrals: slight sepia/brown undertones
+ * - Cozy atmosphere: feels like writing by lamplight
+ * - Same depth as Midnight but softer edges
+ */
+
+.wn-theme-warm-gray {
+    /* ===== SEMANTIC BACKGROUND TOKENS ===== */
+
+    --wn-bg-app: #0f0e0d;
+    --wn-bg-sidebar: #171614;
+    --wn-bg-panel: #1d1b19;
+    --wn-bg-editor: #171614;
+    --wn-bg-card: #1d1b19;
+    --wn-bg-input: #242220;
+
+    /* Interactive backgrounds */
+    --wn-bg-hover: rgba(255, 248, 240, 0.05);
+    --wn-bg-active: rgba(255, 248, 240, 0.08);
+    --wn-bg-selected: rgba(180, 140, 100, 0.15);
+
+    /* Message backgrounds */
+    --wn-bg-message-user: #242220;
+    --wn-bg-message-assistant: #1d1b19;
+
+    /* ===== SEMANTIC TEXT TOKENS ===== */
+
+    --wn-text-primary: #f5f0ea;
+    --wn-text-secondary: #a8a098;
+    --wn-text-tertiary: #7a7268;
+    --wn-text-muted: #5a5248;
+    --wn-text-inverse: #171614;
+
+    --wn-text-link: #d4a574;
+    --wn-text-link-hover: #e8c4a0;
+
+    /* ===== SEMANTIC BORDER TOKENS ===== */
+
+    --wn-border-subtle: #2a2724;
+    --wn-border-default: #3a3632;
+    --wn-border-strong: #4a4640;
+    --wn-border-focus: #d4a574;
+
+    /* ===== SEMANTIC SHADOW TOKENS ===== */
+
+    --wn-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --wn-shadow-default: 0 2px 4px rgba(0, 0, 0, 0.35);
+    --wn-shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --wn-shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.55);
+
+    /* ===== STATE COLORS ===== */
+
+    --wn-accent-primary: #d4a574;
+    --wn-accent-primary-hover: #e8c4a0;
+    --wn-accent-primary-active: #c08850;
+
+    /* ===== EDITOR-SPECIFIC ===== */
+
+    --wn-editor-gutter-bg: transparent;
+    --wn-editor-gutter-text: #5a5248;
+    --wn-editor-gutter-text-active: #8a8278;
+
+    --wn-editor-line-highlight: rgba(255, 248, 240, 0.03);
+    --wn-editor-selection: rgba(212, 165, 116, 0.25);
+    --wn-editor-selection-inactive: rgba(212, 165, 116, 0.12);
+    --wn-editor-cursor: #d4a574;
+
+    /* ===== AI PANEL SPECIFIC ===== */
+
+    --wn-ai-accent: #d4a574;
+    --wn-ai-accent-hover: #e8c4a0;
+    --wn-ai-bubble-user: #2a2724;
+    --wn-ai-bubble-assistant: #1d1b19;
+}

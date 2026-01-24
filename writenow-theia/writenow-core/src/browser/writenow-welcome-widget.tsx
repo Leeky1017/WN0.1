@@ -34,61 +34,94 @@ export class WritenowWelcomeWidget extends ReactWidget {
      */
     protected override render(): React.ReactNode {
         return (
-            <div
-                style={{
-                    height: '100%',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    padding: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 16,
-                }}
-                data-testid="writenow-welcome"
-            >
-                <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>WriteNow</div>
-                    <div style={{ opacity: 0.8, fontSize: 14 }}>Creator IDE — write in Markdown, think in projects.</div>
+            <div className="wn-welcome-container" data-testid="writenow-welcome">
+                {/* Header with brand */}
+                <header className="wn-welcome-header">
+                    <div className="wn-welcome-logo">
+                        <span className="wn-welcome-logo-icon">W</span>
+                    </div>
+                    <h1 className="wn-welcome-title">WriteNow</h1>
+                    <p className="wn-welcome-tagline">
+                        Creator IDE — write in Markdown, think in projects.
+                    </p>
                 </header>
 
-                <section style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                {/* Quick action buttons */}
+                <section className="wn-welcome-actions">
                     <button
                         type="button"
-                        className="theia-button"
+                        className="wn-welcome-action wn-welcome-action--primary"
                         onClick={() => this.safeExecute('workspace:openFolder')}
                         data-testid="writenow-welcome-open-folder"
                     >
+                        <span className={codicon('folder-opened') + ' wn-welcome-action-icon'} />
                         Open Folder
                     </button>
                     <button
                         type="button"
-                        className="theia-button"
+                        className="wn-welcome-action"
                         onClick={() => this.safeExecute('workspace:openFile')}
                         data-testid="writenow-welcome-open-file"
                     >
+                        <span className={codicon('file') + ' wn-welcome-action-icon'} />
                         Open File
                     </button>
                     <button
                         type="button"
-                        className="theia-button"
+                        className="wn-welcome-action"
                         onClick={() => this.safeExecute('preferences:open')}
                         data-testid="writenow-welcome-open-settings"
                     >
+                        <span className={codicon('gear') + ' wn-welcome-action-icon'} />
                         Settings
                     </button>
                 </section>
 
-                <section style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ fontWeight: 600 }}>What’s ready in Phase 1</div>
-                    <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <li>Explorer + workspace browsing</li>
-                        <li>TipTap-based Markdown editor for <code>.md</code> (save/dirty)</li>
-                        <li>Right-side AI Panel placeholder slot</li>
+                {/* Features section */}
+                <section className="wn-welcome-features">
+                    <h2 className="wn-welcome-features-title">What's ready</h2>
+                    <ul className="wn-welcome-features-list">
+                        <li className="wn-welcome-feature">
+                            <div className="wn-welcome-feature-icon">
+                                <span className={codicon('files')} />
+                            </div>
+                            <div className="wn-welcome-feature-content">
+                                <h3 className="wn-welcome-feature-name">Explorer + Workspace</h3>
+                                <p className="wn-welcome-feature-desc">
+                                    Browse and manage your writing projects with a familiar file tree.
+                                </p>
+                            </div>
+                        </li>
+                        <li className="wn-welcome-feature">
+                            <div className="wn-welcome-feature-icon">
+                                <span className={codicon('edit')} />
+                            </div>
+                            <div className="wn-welcome-feature-content">
+                                <h3 className="wn-welcome-feature-name">Markdown Editor</h3>
+                                <p className="wn-welcome-feature-desc">
+                                    Rich TipTap-based editor with auto-save and Markdown support.
+                                </p>
+                            </div>
+                        </li>
+                        <li className="wn-welcome-feature">
+                            <div className="wn-welcome-feature-icon">
+                                <span className={codicon('sparkle')} />
+                            </div>
+                            <div className="wn-welcome-feature-content">
+                                <h3 className="wn-welcome-feature-name">AI Assistant</h3>
+                                <p className="wn-welcome-feature-desc">
+                                    Context-aware AI panel for writing assistance and editing.
+                                </p>
+                            </div>
+                        </li>
                     </ul>
                 </section>
 
-                <footer style={{ marginTop: 'auto', opacity: 0.65, fontSize: 12 }}>
-                    This welcome page is a Phase 1 scaffold. Replace with the real onboarding later.
+                {/* Footer */}
+                <footer className="wn-welcome-footer">
+                    <p className="wn-welcome-footer-text">
+                        WriteNow — Your creative writing IDE
+                    </p>
                 </footer>
             </div>
         );

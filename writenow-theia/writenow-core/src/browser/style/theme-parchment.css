@@ -1,0 +1,99 @@
+/**
+ * WriteNow Parchment Theme
+ *
+ * Why: A warm light theme inspired by aged paper and classic writing tools.
+ * Designed for users who prefer light themes or work in bright environments.
+ *
+ * Design philosophy:
+ * - Paper-like warmth: cream tones instead of pure white
+ * - Ink-like text: deep browns and blacks for high readability
+ * - Subtle texture: visual weight without harshness
+ * - iA Writer inspiration: focused, distraction-free writing
+ */
+
+.wn-theme-parchment {
+    /* ===== SEMANTIC BACKGROUND TOKENS ===== */
+
+    --wn-bg-app: #f8f4ef;
+    --wn-bg-sidebar: #f0ebe4;
+    --wn-bg-panel: #e8e2d9;
+    --wn-bg-editor: #faf8f4;
+    --wn-bg-card: #ffffff;
+    --wn-bg-input: #ffffff;
+
+    /* Interactive backgrounds */
+    --wn-bg-hover: rgba(0, 0, 0, 0.04);
+    --wn-bg-active: rgba(0, 0, 0, 0.08);
+    --wn-bg-selected: rgba(139, 92, 42, 0.12);
+
+    /* Message backgrounds */
+    --wn-bg-message-user: #e8e2d9;
+    --wn-bg-message-assistant: #f0ebe4;
+
+    /* ===== SEMANTIC TEXT TOKENS ===== */
+
+    --wn-text-primary: #2d2a26;
+    --wn-text-secondary: #5a554e;
+    --wn-text-tertiary: #8a847a;
+    --wn-text-muted: #a8a298;
+    --wn-text-inverse: #faf8f4;
+
+    --wn-text-link: #8b5c2a;
+    --wn-text-link-hover: #6b4520;
+
+    /* ===== SEMANTIC BORDER TOKENS ===== */
+
+    --wn-border-subtle: #e0d8cc;
+    --wn-border-default: #d0c8bc;
+    --wn-border-strong: #b8b0a4;
+    --wn-border-focus: #8b5c2a;
+
+    /* ===== SEMANTIC SHADOW TOKENS ===== */
+
+    --wn-shadow-subtle: 0 1px 2px rgba(45, 42, 38, 0.08);
+    --wn-shadow-default: 0 2px 4px rgba(45, 42, 38, 0.12);
+    --wn-shadow-elevated: 0 4px 12px rgba(45, 42, 38, 0.16);
+    --wn-shadow-floating: 0 8px 24px rgba(45, 42, 38, 0.2);
+
+    /* ===== STATE COLORS ===== */
+
+    --wn-accent-primary: #8b5c2a;
+    --wn-accent-primary-hover: #6b4520;
+    --wn-accent-primary-active: #a87840;
+
+    --wn-success: #2d7a4a;
+    --wn-success-bg: rgba(45, 122, 74, 0.1);
+    --wn-success-text: #2d7a4a;
+
+    --wn-warning: #9a6b00;
+    --wn-warning-bg: rgba(154, 107, 0, 0.1);
+    --wn-warning-text: #9a6b00;
+
+    --wn-error: #c43030;
+    --wn-error-bg: rgba(196, 48, 48, 0.1);
+    --wn-error-text: #c43030;
+
+    /* ===== EDITOR-SPECIFIC ===== */
+
+    --wn-editor-gutter-bg: transparent;
+    --wn-editor-gutter-text: #b8b0a4;
+    --wn-editor-gutter-text-active: #8a847a;
+
+    --wn-editor-line-highlight: rgba(139, 92, 42, 0.06);
+    --wn-editor-selection: rgba(139, 92, 42, 0.2);
+    --wn-editor-selection-inactive: rgba(139, 92, 42, 0.1);
+    --wn-editor-cursor: #2d2a26;
+
+    /* ===== AI PANEL SPECIFIC ===== */
+
+    --wn-ai-accent: #8b5c2a;
+    --wn-ai-accent-hover: #6b4520;
+    --wn-ai-bubble-user: #e0d8cc;
+    --wn-ai-bubble-assistant: #f0ebe4;
+
+    /* Diff colors adjusted for light theme */
+    --wn-diff-insert-bg: rgba(45, 122, 74, 0.12);
+    --wn-diff-delete-bg: rgba(196, 48, 48, 0.12);
+    --wn-diff-insert-text: #2d7a4a;
+    --wn-diff-delete-text: #c43030;
+}
