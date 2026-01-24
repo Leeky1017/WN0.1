@@ -14,12 +14,12 @@
 - Remove legacy/duplicate implementations (theia-poc/, legacy React UI in src/, migrated Electron main-process parts) and update docs so the codebase baseline is clearly Theia-first.
 
 ## Status
-- CURRENT: Initialize RUN_LOG + capture pre-cleanup snapshots.
+- CURRENT: MERGED via PR #165 (2026-01-24).
 
 ## Next Actions
-- [ ] Capture pre-cleanup directory snapshots (top-level + src/ + electron/ + writenow-theia/ + theia-poc/).
-- [ ] Part 1: Close Task 012 card metadata + acceptance checkmarks.
-- [ ] Part 2: Remove theia-poc/ and clean src/ + electron/.
+- [x] Capture pre-cleanup directory snapshots (top-level + src/ + electron/ + writenow-theia/ + theia-poc/).
+- [x] Part 1: Close Task 012 card metadata + acceptance checkmarks.
+- [x] Part 2: Remove theia-poc/ and clean src/ + electron/.
 
 ## Decisions Made
 - 2026-01-24: Use GitHub Issue #164 as the delivery tracker for this cleanup; Task 012 card will reference its historical Issue/PR (#156/#157).
@@ -175,3 +175,20 @@ writenow-theia +
 - Command: `npm run contract:check`
 - Key output: exit 0
 - Evidence: openspec/_ops/task_runs/ISSUE-164.md
+
+### 2026-01-24 21:53 Fix merge-serial native deps + re-run checks
+- Command: `git commit -m "ci: fix merge-serial native deps (#164)" && git push`
+- Key output: `merge-serial pass; ci pass`
+- Evidence: `.github/workflows/merge-serial.yml`
+
+### 2026-01-24 21:55 Merge confirmation
+- Command: `gh pr view 165 --json state,mergedAt,url`
+- Key output: `{\"state\":\"MERGED\",\"mergedAt\":\"2026-01-24T13:54:57Z\"}`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/165`
+
+### 2026-01-24 21:58 Post-merge sync + local worktree cleanup
+- Command: `git fetch origin && git pull --ff-only`
+- Key output: `Fast-forward`
+- Command: `scripts/agent_worktree_cleanup.sh "164" "sprint-cleanup"`
+- Key output: `Removing worktree: .worktrees/issue-164-sprint-cleanup`
+- Evidence: `/home/leeky/work/WriteNow (control plane)`
