@@ -6,22 +6,9 @@
 
 ## Plan
 
-1. Implement 10 P1 frontend features from wn-frontend-gap-analysis spec
-2. Add proper tests and ensure lint passes
-3. Create PR with comprehensive documentation
-
-## Features
-
-- P1-001: 编辑器右键菜单
-- P1-002: 文件树右键菜单增强
-- P1-003: 大纲导航面板
-- P1-004: 导出菜单
-- P1-005: 语言切换
-- P1-006: 快捷键速查表
-- P1-007: 关于对话框
-- P1-008: 通知中心
-- P1-009: 图片/表格/链接插入
-- P1-010: 专注模式
+- Implement 10 P1 frontend features from wn-frontend-gap-analysis spec
+- Add proper tests and ensure lint passes
+- Create PR with comprehensive documentation
 
 ## Runs
 
