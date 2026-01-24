@@ -356,7 +356,7 @@ ${childStderr}`));
     await page.waitForSelector('[data-testid="writenow-welcome"]', { timeout: 60_000 });
 
     // Right panel placeholder
-    await page.waitForSelector('[data-testid="writenow-ai-panel-placeholder"]', { timeout: 60_000 });
+    await page.waitForSelector('[data-testid="writenow-ai-panel"]', { timeout: 60_000 });
 
     // Activity bar sanity: ensure no debug/git/extensions icon classes.
     const activityBarIcons = await page.evaluate(() => {

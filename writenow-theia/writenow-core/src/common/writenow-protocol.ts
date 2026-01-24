@@ -1,4 +1,8 @@
 import type {
+    AiSkillCancelRequest,
+    AiSkillCancelResponse,
+    AiSkillRunRequest,
+    AiSkillRunResponse,
     FileCreateRequest,
     FileCreateResponse,
     FileDeleteRequest,
@@ -11,6 +15,7 @@ import type {
     FileWriteRequest,
     FileWriteResponse,
     IpcChannel,
+    IpcError,
     IpcResponse,
     ProjectBootstrapResponse,
     ProjectCreateRequest,
@@ -26,6 +31,10 @@ import type {
     RagEntityCard,
     RagRetrieveRequest,
     RagRetrieveResponse,
+    SkillListRequest,
+    SkillListResponse,
+    SkillReadRequest,
+    SkillReadResponse,
     VersionCreateRequest,
     VersionCreateResponse,
     VersionDiffRequest,
@@ -48,6 +57,64 @@ export interface WritenowRpcService {
      * RPC boundary (avoid leaking stacks to the frontend).
      */
     invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>>;
+}
+
+export const WRITENOW_AI_RPC_PATH = '/services/writenow/ai';
+export const AIService = Symbol('AIService');
+
+export type AiStreamEvent =
+    | { type: 'delta'; runId: string; text: string }
+    | { type: 'done'; runId: string; result: { text: string; meta?: unknown } }
+    | { type: 'error'; runId: string; error: IpcError };
+
+export interface AiServiceClient {
+    /**
+     * Why: Theia JSON-RPC calls are request/response; streaming requires backend->frontend notifications.
+     * Failure semantics: MUST NOT throw; callers should treat missing events as a recoverable transport issue.
+     */
+    onStreamEvent(event: AiStreamEvent): void;
+}
+
+export interface AIService {
+    /**
+     * Why: Allow the backend to push streaming deltas over the existing Theia WebSocket messaging layer.
+     */
+    setClient(client: AiServiceClient | undefined): void;
+
+    /**
+     * Why: Execute a SKILL request without incremental deltas (backend will still emit a single `done` event).
+     * Failure semantics: MUST return `IpcResponse` and MUST NOT throw across the RPC boundary.
+     */
+    executeSkill(request: AiSkillRunRequest): Promise<IpcResponse<AiSkillRunResponse>>;
+
+    /**
+     * Why: Execute a SKILL request with streaming deltas (`delta` events) followed by a terminal `done`/`error`.
+     * Failure semantics: MUST return `IpcResponse` and MUST NOT throw across the RPC boundary.
+     */
+    streamResponse(request: AiSkillRunRequest): Promise<IpcResponse<AiSkillRunResponse>>;
+
+    /**
+     * Why: Users must be able to stop generation; cancellation must clear pending state deterministically.
+     * Failure semantics: MUST return `IpcResponse` and MUST NOT throw across the RPC boundary.
+     */
+    cancel(request: AiSkillCancelRequest): Promise<IpcResponse<AiSkillCancelResponse>>;
+}
+
+export const WRITENOW_SKILLS_RPC_PATH = '/services/writenow/skills';
+export const SkillsService = Symbol('SkillsService');
+
+export interface SkillsService {
+    /**
+     * Why: The AI Panel needs a stable, typed entrypoint to list available skills.
+     * Failure semantics: MUST return `IpcResponse` and MUST NOT throw across the RPC boundary.
+     */
+    listSkills(request: SkillListRequest): Promise<IpcResponse<SkillListResponse>>;
+
+    /**
+     * Why: The AI Panel needs access to a single skill definition (for debugging / future prompt viewers).
+     * Failure semantics: MUST return `IpcResponse` and MUST NOT throw across the RPC boundary.
+     */
+    getSkill(request: SkillReadRequest): Promise<IpcResponse<SkillReadResponse>>;
 }
 
 export const EmbeddingService = Symbol('EmbeddingService');

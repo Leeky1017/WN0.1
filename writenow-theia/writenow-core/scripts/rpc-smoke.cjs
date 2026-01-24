@@ -34,6 +34,8 @@ console.info('[rpc-smoke] require: search-service');
 const { SearchService } = require('../lib/node/services/search-service');
 console.info('[rpc-smoke] require: version-service');
 const { VersionService } = require('../lib/node/services/version-service');
+console.info('[rpc-smoke] require: context-service');
+const { ContextService } = require('../lib/node/services/context-service');
 console.info('[rpc-smoke] require: writenow-protocol');
 const { WRITENOW_RPC_PATH } = require('../lib/common/writenow-protocol');
 
@@ -103,6 +105,7 @@ async function main() {
   const indexService = new IndexService(logger, sqliteDb, embeddingService, vectorStore);
   const searchService = new SearchService(logger, sqliteDb, embeddingService, vectorStore);
   const embeddingRpcService = new EmbeddingRpcService(logger, embeddingService, vectorStore);
+  const contextService = new ContextService(logger, dataDir);
   const backend = new WritenowBackendService(
     logger,
     sqliteDb,
@@ -113,6 +116,7 @@ async function main() {
     embeddingRpcService,
     new RetrievalService(logger, sqliteDb, embeddingService, indexService, vectorStore),
     searchService,
+    contextService,
   );
 
   try {

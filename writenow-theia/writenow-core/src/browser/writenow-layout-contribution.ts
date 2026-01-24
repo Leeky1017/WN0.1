@@ -4,7 +4,7 @@ import { ApplicationShell } from '@theia/core/lib/browser/shell/application-shel
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { FILE_NAVIGATOR_ID } from '@theia/navigator/lib/browser/navigator-widget';
 
-import { WritenowAiPanelPlaceholderWidget } from './writenow-ai-panel-placeholder-widget';
+import { AiPanelWidget } from './ai-panel/ai-panel-widget';
 import { WritenowWelcomeWidget } from './writenow-welcome-widget';
 
 export const WRITENOW_OPEN_WELCOME_COMMAND: Command = {
@@ -53,12 +53,15 @@ export class WritenowLayoutContribution implements FrontendApplicationContributi
     }
 
     private async openAiPanel(options: Readonly<{ activate: boolean }>): Promise<void> {
-        const widget = await this.widgetManager.getOrCreateWidget(WritenowAiPanelPlaceholderWidget.ID);
+        const widget = await this.widgetManager.getOrCreateWidget(AiPanelWidget.ID);
         if (!this.shell.getAreaFor(widget)) {
             await this.shell.addWidget(widget, { area: 'right' });
         }
         if (options.activate) {
             await this.shell.activateWidget(widget.id);
+            if (widget instanceof AiPanelWidget) {
+                widget.focusInput();
+            }
         } else {
             await this.shell.revealWidget(widget.id);
         }

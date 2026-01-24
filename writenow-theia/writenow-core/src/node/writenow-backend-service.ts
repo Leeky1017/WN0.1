@@ -13,6 +13,7 @@ import { ProjectsService } from './services/projects-service';
 import { RetrievalService } from './services/retrieval-service';
 import { SearchService } from './services/search-service';
 import { VersionService } from './services/version-service';
+import { ContextService } from './services/context-service';
 
 @injectable()
 export class WritenowBackendService implements WritenowRpcService {
@@ -28,6 +29,7 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(EmbeddingRpcService) embeddingRpcService: EmbeddingRpcService,
         @inject(RetrievalService) retrievalService: RetrievalService,
         @inject(SearchService) searchService: SearchService,
+        @inject(ContextService) contextService: ContextService,
     ) {
         // Why: Task 009 requires the DB to be initialized at backend startup (not lazily on first request),
         // so failures surface early and are actionable.
@@ -39,6 +41,7 @@ export class WritenowBackendService implements WritenowRpcService {
         embeddingRpcService.register(this.registry);
         retrievalService.register(this.registry);
         searchService.register(this.registry);
+        contextService.register(this.registry);
     }
 
     async invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>> {
