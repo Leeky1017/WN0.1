@@ -1,7 +1,7 @@
 # ISSUE-146
 - Issue: #146
 - Branch: task/146-theia-sqlite-migration
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/147
 
 ## Goal
 - Migrate WriteNow SQLite initialization + schema management into the Theia backend, and migrate baseline CRUD (projects/files/version) to run against the backend DB via Theia RPC.
