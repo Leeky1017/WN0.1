@@ -1,6 +1,12 @@
 # WriteNow 前端缺口分析规范
 
-Status: active (2026-01-24)
+Status: active (2026-01-25)
+
+## Completion
+
+- P0 Features Implementation: Issue #178, PR #179 (merged 2026-01-24)
+- P0 Quality Fix: Issue #180 (current)
+- RUN_LOG: `openspec/_ops/task_runs/ISSUE-178.md`, `openspec/_ops/task_runs/ISSUE-180.md`
 
 > 本规范系统性分析 WriteNow Theia 前端的功能缺口、交互缺陷和显示问题。
 > 通过深入代码审计，识别后端已有但前端未暴露的能力，以及用户体验层面的关键缺失。
@@ -510,24 +516,24 @@ Welcome 页面当前只有：
 
 ### 10.1 Welcome 页面
 
-- [ ] 显示最近打开的 5 个文件/项目
+- [x] 显示最近打开的 5 个文件/项目 (Issue #178, PR #179)
 - [ ] "继续上次工作" 一键恢复
 - [ ] AI 功能可点击入口
-- [ ] 快捷键提示（至少 Cmd+K / Cmd+P）
+- [x] 快捷键提示（至少 Cmd+K / Cmd+P）(Issue #178, PR #179)
 - [ ] 主题切换入口
 - [ ] 创作统计摘要（今日字数）
 
 ### 10.2 功能入口
 
-- [ ] 所有已实现功能在菜单中可见
-- [ ] 核心功能有键盘快捷键
-- [ ] 快捷键在 UI 中可见
+- [x] 所有已实现功能在菜单中可见（设置面板已添加 File > Preferences > Settings，Issue #178, PR #179）
+- [x] 核心功能有键盘快捷键（Cmd+,/Cmd+F/Cmd+H，Issue #178, PR #179）
+- [x] 快捷键在 UI 中可见（设置面板快捷键列表，Issue #178, PR #179）
 
 ### 10.3 交互反馈
 
-- [ ] 所有写操作有成功/失败反馈
+- [x] 所有写操作有成功/失败反馈（设置保存显示消息，Issue #178, PR #179）
 - [ ] 所有长操作有加载指示
-- [ ] 错误信息可读且可操作
+- [x] 错误信息可读且可操作（崩溃恢复对话框，Issue #178, PR #179）
 
 ### 10.4 数据展示
 
@@ -735,15 +741,15 @@ menus.registerMenuAction(CommonMenus.FILE, {
 
 ### 20.1 P0 - 阻塞基本使用（必须立即修复）
 
-1. Welcome 页面重做（最近文件、功能入口、快捷键提示）
-2. 编辑器查找替换（Cmd+F）
-3. 字数统计显示（状态栏）
-4. 编辑器工具栏（UI 按钮）
+1. ✅ Welcome 页面重做（最近文件、功能入口、快捷键提示）(Issue #178, PR #179)
+2. ✅ 编辑器查找替换（Cmd+F）(Issue #178, PR #179)
+3. ✅ 字数统计显示（状态栏）(Issue #178, PR #179)
+4. ✅ 编辑器工具栏（UI 按钮）(Issue #178, PR #179)
 5. 文件重命名 UI
-6. API Key 配置入口
-7. AI 模型选择 UI
+6. ✅ API Key 配置入口（设置面板 AI 分类）(Issue #178, PR #179)
+7. ✅ AI 模型选择 UI（设置面板 AI 分类）(Issue #178, PR #179)
 8. 关于对话框
-9. 快捷键速查表
+9. ✅ 快捷键速查表（设置面板快捷键分类）(Issue #178, PR #179)
 
 ### 20.2 P1 - 影响核心体验
 
@@ -755,7 +761,7 @@ menus.registerMenuAction(CommonMenus.FILE, {
 15. 新建文件夹
 16. 语言切换 UI
 17. 编辑器右键菜单
-18. 崩溃恢复 UI
+18. ✅ 崩溃恢复 UI（启动时检测快照并提示恢复/丢弃）(Issue #178, PR #179)
 19. 用户指南入口
 
 ### 20.3 P2 - 增强专业体验
