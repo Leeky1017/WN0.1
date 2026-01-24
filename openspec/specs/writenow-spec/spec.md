@@ -5,7 +5,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 ## Status
 
 - 本规范：Active（持续更新的权威基线）
-- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 ✅ 2026-01-23；Phase 2 进行中，Task 008 IPC migration ✅ 2026-01-23；Task 009 SQLite migration ✅ 2026-01-24；Task 010 RAG migration ✅ 2026-01-24）
+- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 ✅ 2026-01-23；Phase 2 ✅ 2026-01-24：Task 008 IPC migration ✅ 2026-01-23；Task 009 SQLite migration ✅ 2026-01-24；Task 010 RAG migration ✅ 2026-01-24；Task 011 Embedding migration ✅ 2026-01-24）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 
@@ -876,13 +876,14 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
-### 当前状态（2026-01-23）
+### 当前状态（2026-01-24）
 
 - Sprint 1–5：✅ 已完成
 - Sprint 6：✅ 已完成（核心体验），剩余项已暂停（见下）
 - Theia 迁移：
   - Phase 0 PoC：✅ 已完成（2026-01-22）
-  - Phase 1：进行中
+  - Phase 1：✅ 已完成（2026-01-23）
+  - Phase 2：✅ 已完成（2026-01-24）
 - 暂停的工作（统一原因：Theia 迁移为主线，避免双栈并存）：
   - `openspec/specs/wn-frontend-deep-remediation/spec.md`
   - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
@@ -952,13 +953,18 @@ CREATE TABLE settings (
 - [x] PoC：Theia backend + better-sqlite3 + sqlite-vec
 - [x] PoC：存储语义决策：Hybrid（project = workspace root）
 
-#### Phase 1：Scaffold（进行中）
+#### Phase 1：Scaffold（✅ 已完成：2026-01-23）
 - [x] Task 004：Theia 应用壳体脚手架（`writenow-theia/`：browser + electron + core extension，可启动/可扩展）
+- [x] Task 005：模块裁剪（移除 IDE-only modules）
 - [x] Task 006：TipTap Editor Widget（`.md` 绑定 + Save/Dirty 生命周期）
-- [ ] 模块裁剪 + 基础布局/品牌
-- [ ] 迁移核心链路：RPC/IPC、SQLite、RAG、Embedding
-- [ ] 迁移面板：AI/版本历史/知识图谱（复用实现）
-- [ ] 规范：`openspec/specs/sprint-theia-migration/spec.md`
+- [x] Task 007：基础布局 + Branding
+- [x] 规范：`openspec/specs/sprint-theia-migration/spec.md`
+
+#### Phase 2：Core Migration（✅ 已完成：2026-01-24）
+- [x] Task 008：IPC migration（Electron IPC → Theia JSON-RPC）
+- [x] Task 009：SQLite migration（init + schema + CRUD）
+- [x] Task 010：RAG migration（indexer + retrieval，FTS + sqlite-vec）
+- [x] Task 011：Embedding migration（worker + ONNX assets + semantic backtest）
 
 ### Sprint 7：云服务（3周）
 - [ ] Supabase 用户认证

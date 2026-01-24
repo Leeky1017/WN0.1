@@ -5,13 +5,8 @@ import type { ILogger } from '@theia/core/lib/common/logger';
 import { chunkMarkdownToParagraphs } from './chunking';
 import { parseEntityCard } from './entities';
 import type { VectorStore } from './vector-store';
+import type { EmbeddingService } from '../../common/writenow-protocol';
 import type { SqliteDatabase } from '../database/init';
-
-export type EmbeddingService = Readonly<{
-    encode(texts: readonly string[], options: Readonly<{ model: string }>): Promise<{ dimension: number; vectors: number[][] }>;
-}>;
-
-const DEFAULT_MODEL = 'shibing624/text2vec-base-chinese';
 
 function toIsoNow(): string {
     return new Date().toISOString();
@@ -189,10 +184,7 @@ export class RagIndexer {
             const batchSize = 24;
             for (let i = 0; i < chunks.length; i += batchSize) {
                 const batch = chunks.slice(i, i + batchSize);
-                const encoded = await this.embeddingService.encode(
-                    batch.map((c) => c.content),
-                    { model: DEFAULT_MODEL },
-                );
+                const encoded = await this.embeddingService.encode(batch.map((c) => c.content));
                 this.vectorStore.ensureChunkIndex(encoded.dimension);
                 vectors.push(...encoded.vectors);
             }
@@ -249,7 +241,7 @@ export class RagIndexer {
             }
 
             if (this.embeddingService && this.vectorStore) {
-                const encoded = await this.embeddingService.encode([card.content], { model: DEFAULT_MODEL });
+                const encoded = await this.embeddingService.encode([card.content]);
                 this.vectorStore.ensureEntityIndex(encoded.dimension);
                 this.vectorStore.upsertEntityEmbeddings([
                     { entityId: card.id, entityType: card.type, embedding: encoded.vectors[0] },

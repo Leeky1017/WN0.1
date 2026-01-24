@@ -8,8 +8,11 @@ import type {
     SearchSemanticRequest,
     SearchSemanticResponse,
 } from '../../common/ipc-generated';
+import { EmbeddingService as EmbeddingServiceToken } from '../../common/writenow-protocol';
+import type { EmbeddingService as EmbeddingServiceShape } from '../../common/writenow-protocol';
 import { TheiaInvokeRegistry } from '../theia-invoke-adapter';
 import { WritenowSqliteDb } from '../database/writenow-sqlite-db';
+import { VectorStore } from '../rag/vector-store';
 
 function createIpcError(code: IpcErrorCode, message: string, details?: unknown): Error {
     const error = new Error(message);
@@ -60,6 +63,8 @@ export class SearchService {
     constructor(
         @inject(ILogger) private readonly logger: ILogger,
         @inject(WritenowSqliteDb) private readonly sqliteDb: WritenowSqliteDb,
+        @inject(EmbeddingServiceToken) private readonly embeddingService: EmbeddingServiceShape,
+        @inject(VectorStore) private readonly vectorStore: VectorStore,
     ) {}
 
     async fulltext(request: SearchFulltextRequest): Promise<SearchFulltextResponse> {
@@ -143,8 +148,93 @@ export class SearchService {
     }
 
     async semantic(request: SearchSemanticRequest): Promise<SearchSemanticResponse> {
-        // Why: Task 011 provides the embedding service; until then we surface a stable "not ready" error.
-        throw createIpcError('MODEL_NOT_READY', 'Embedding service is not ready');
+        const db = this.sqliteDb.db;
+        const query = typeof request?.query === 'string' ? request.query.trim() : '';
+        if (!query) throw createIpcError('INVALID_ARGUMENT', 'Query is required');
+
+        const projectId = assertValidProjectId(request);
+
+        const limit = parseLimit(request?.limit);
+        if (limit === null) throw createIpcError('INVALID_ARGUMENT', 'Invalid limit', { limit: request?.limit });
+
+        const offset = parseOffsetCursor(request?.cursor);
+        if (offset === null) throw createIpcError('INVALID_ARGUMENT', 'Invalid cursor', { cursor: request?.cursor });
+
+        const thresholdRaw = (request as { threshold?: unknown })?.threshold;
+        const threshold =
+            typeof thresholdRaw === 'undefined' || thresholdRaw === null || thresholdRaw === ''
+                ? null
+                : Number.parseFloat(String(thresholdRaw));
+        if (threshold !== null && (!Number.isFinite(threshold) || threshold < 0 || threshold > 1)) {
+            throw createIpcError('INVALID_ARGUMENT', 'Invalid threshold', { threshold: thresholdRaw });
+        }
+
+        const maxDistance = threshold && threshold > 0 ? 1 / threshold - 1 : null;
+
+        try {
+            const encoded = await this.embeddingService.encode([query]);
+            this.vectorStore.ensureReady(encoded.dimension);
+
+            const batchSize = 50;
+            const items: Array<{ id: string; title: string; snippet: string; score: number }> = [];
+            let scanOffset = offset;
+
+            while (items.length < limit) {
+                const hits = this.vectorStore.querySimilarArticles(encoded.vectors[0], { topK: batchSize, offset: scanOffset, maxDistance });
+                if (hits.length === 0) break;
+                scanOffset += hits.length;
+
+                const ids = hits.map((hit) => hit.id);
+                const articleById = new Map<string, { id: string; title: string; content: string }>();
+                if (ids.length > 0) {
+                    const placeholders = ids.map(() => '?').join(',');
+                    const rows = projectId
+                        ? (db
+                              .prepare(`SELECT id, title, content FROM articles WHERE id IN (${placeholders}) AND project_id = ?`)
+                              .all(...ids, projectId) as Array<{ id?: unknown; title?: unknown; content?: unknown }>)
+                        : (db
+                              .prepare(`SELECT id, title, content FROM articles WHERE id IN (${placeholders})`)
+                              .all(...ids) as Array<{ id?: unknown; title?: unknown; content?: unknown }>);
+
+                    for (const row of rows) {
+                        if (!row || typeof row.id !== 'string') continue;
+                        articleById.set(row.id, {
+                            id: row.id,
+                            title: typeof row.title === 'string' ? row.title : row.id,
+                            content: typeof row.content === 'string' ? row.content : '',
+                        });
+                    }
+                }
+
+                for (const hit of hits) {
+                    const row = articleById.get(hit.id);
+                    if (!row) continue;
+                    const snippetBase = row.content.replace(/\\s+/g, ' ').trim();
+                    const snippet = snippetBase.length > 160 ? `${snippetBase.slice(0, 160)}…` : snippetBase;
+                    const distance = hit.distance;
+                    const score = Number.isFinite(distance) ? 1 / (1 + Math.max(0, distance)) : 0;
+                    items.push({ id: hit.id, title: row.title || hit.id, snippet, score });
+                    if (items.length >= limit) break;
+                }
+
+                if (hits.length < batchSize) break;
+            }
+
+            const nextCursor = items.length === limit ? String(scanOffset) : undefined;
+
+            return {
+                items,
+                page: {
+                    limit,
+                    cursor: String(offset),
+                    nextCursor,
+                },
+            };
+        } catch (error) {
+            if (error && typeof error === 'object' && 'ipcError' in error) throw error;
+            this.logger.error(`[search] semantic query failed: ${error instanceof Error ? error.message : String(error)}`);
+            throw createIpcError('DB_ERROR', 'Semantic search failed', { message: error instanceof Error ? error.message : String(error) });
+        }
     }
 
     register(registry: TheiaInvokeRegistry): void {

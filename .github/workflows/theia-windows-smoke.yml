@@ -41,6 +41,13 @@ jobs:
           cd writenow-theia
           yarn build:browser:win
 
+      - name: RPC smoke (writenow-core)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd writenow-theia
+          yarn --cwd writenow-core rpc:smoke
+
       - name: Start browser target (smoke)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

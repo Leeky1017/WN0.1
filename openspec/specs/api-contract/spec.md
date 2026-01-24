@@ -169,6 +169,7 @@ export type IpcErrorCode =
   | 'IO_ERROR'
   | 'DB_ERROR'
   | 'MODEL_NOT_READY'
+  | 'ENCODING_FAILED'
   | 'RATE_LIMITED'
   | 'TIMEOUT'
   | 'CANCELED'
@@ -183,6 +184,7 @@ export type IpcErrorCode =
 - 文件/网络/系统 I/O 异常 → `IO_ERROR`
 - SQLite/FTS5/sqlite-vec 异常 → `DB_ERROR`
 - Embedding 模型未加载/不可用 → `MODEL_NOT_READY`
+- Embedding 生成失败（非超时/非模型不可用）→ `ENCODING_FAILED`
 - AI 服务商错误/中转站错误 → `UPSTREAM_ERROR`
 - 用户取消 → `CANCELED`
 - 未分类异常 → `INTERNAL`

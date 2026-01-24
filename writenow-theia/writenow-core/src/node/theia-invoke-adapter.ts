@@ -12,6 +12,7 @@ const IPC_ERROR_CODES: ReadonlySet<IpcErrorCode> = new Set([
     'IO_ERROR',
     'DB_ERROR',
     'MODEL_NOT_READY',
+    'ENCODING_FAILED',
     'RATE_LIMITED',
     'TIMEOUT',
     'CANCELED',
