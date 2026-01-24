@@ -1,7 +1,8 @@
 # ISSUE-153
 - Issue: #153
 - Branch: task/153-embedding-migration
-- PR: https://github.com/Leeky1017/WN0.1/pull/154
+- PR: https://github.com/Leeky1017/WN0.1/pull/155
+- Implementation PR: https://github.com/Leeky1017/WN0.1/pull/154
 
 ## Goal
 - Migrate Embedding service into Theia backend (worker + model assets) and unblock RAG semantic retrieval end-to-end.
