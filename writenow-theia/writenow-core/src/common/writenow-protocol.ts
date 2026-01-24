@@ -23,6 +23,9 @@ import type {
     ProjectSetCurrentResponse,
     ProjectUpdateRequest,
     ProjectUpdateResponse,
+    RagEntityCard,
+    RagRetrieveRequest,
+    RagRetrieveResponse,
     VersionCreateRequest,
     VersionCreateResponse,
     VersionDiffRequest,
@@ -71,4 +74,28 @@ export interface VersionServiceContract {
     create(request: VersionCreateRequest): Promise<VersionCreateResponse>;
     restore(request: VersionRestoreRequest): Promise<VersionRestoreResponse>;
     diff(request: VersionDiffRequest): Promise<VersionDiffResponse>;
+}
+
+export interface IndexServiceContract {
+    /**
+     * Why: Provide explicit indexing entrypoints so the frontend can force a refresh
+     * (e.g. after bulk imports or when recovering from failures).
+     */
+    indexArticle(articleId: string): Promise<{ queued: true }>;
+
+    /**
+     * Why: Project-level indexing is the minimal closure for Theia workspace integration; it can be wired
+     * to watcher start/ensure flows later without changing the contract shape.
+     */
+    indexProject(projectId: string): Promise<{ queued: number }>;
+}
+
+export interface RetrievalServiceContract {
+    retrieveContext(request: RagRetrieveRequest): Promise<RagRetrieveResponse>;
+
+    /**
+     * Why: Some UI flows only need entity cards (e.g. autocomplete). When semantic embeddings are unavailable,
+     * implementations should fall back to exact/FTS recall and return stable `MODEL_NOT_READY` for semantic-only calls.
+     */
+    searchEntities(queryText: string): Promise<{ characters: RagEntityCard[]; settings: RagEntityCard[] }>;
 }

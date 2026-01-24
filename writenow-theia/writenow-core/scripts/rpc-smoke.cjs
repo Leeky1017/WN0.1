@@ -11,8 +11,12 @@ const { RpcProxyFactory } = require('@theia/core/lib/common/messaging/proxy-fact
 
 const { WritenowBackendService } = require('../lib/node/writenow-backend-service');
 const { WritenowSqliteDb } = require('../lib/node/database/writenow-sqlite-db');
+const { VectorStore } = require('../lib/node/rag/vector-store');
 const { ProjectsService } = require('../lib/node/services/projects-service');
 const { FilesService } = require('../lib/node/services/files-service');
+const { IndexService } = require('../lib/node/services/index-service');
+const { RetrievalService } = require('../lib/node/services/retrieval-service');
+const { SearchService } = require('../lib/node/services/search-service');
 const { VersionService } = require('../lib/node/services/version-service');
 const { WRITENOW_RPC_PATH } = require('../lib/common/writenow-protocol');
 
@@ -54,16 +58,23 @@ function createLogger() {
 }
 
 async function main() {
+  process.env.WN_E2E = '1';
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'writenow-theia-rpc-smoke-'));
 
   const logger = createLogger();
   const sqliteDb = new WritenowSqliteDb(logger, dataDir);
+  const vectorStore = new VectorStore(logger, sqliteDb);
+  const indexService = new IndexService(logger, sqliteDb, vectorStore);
+  const searchService = new SearchService(logger, sqliteDb);
   const backend = new WritenowBackendService(
     logger,
     sqliteDb,
     new ProjectsService(logger, sqliteDb),
-    new FilesService(logger, dataDir, sqliteDb),
+    new FilesService(logger, dataDir, sqliteDb, indexService),
     new VersionService(logger, sqliteDb),
+    indexService,
+    new RetrievalService(logger, sqliteDb, indexService, vectorStore),
+    searchService,
   );
 
   const pipe = new ChannelPipe();
@@ -152,6 +163,56 @@ async function main() {
   assert.equal(restored.ok, true);
   assert.equal(restored.data.content, contentA);
 
+  // --- rag indexing + retrieval verification ---
+  const card = await proxy.invoke('file:create', { name: 'Entity Card' });
+  assert.equal(card.ok, true);
+
+  const cardContent = `---\ntype: character\nname: Alice\naliases:\n  - 小爱\n---\n\n# Alice\n\nAlice is a test character.\n`;
+  const cardWrite = await proxy.invoke('file:write', { path: card.data.path, content: cardContent });
+  assert.equal(cardWrite.ok, true);
+
+  const storyWithEntity = `# RPC Smoke\n\nAlice appears in this story.\n`;
+  const storyWrite = await proxy.invoke('file:write', { path: created.data.path, content: storyWithEntity });
+  assert.equal(storyWrite.ok, true);
+
+  const fulltext = await proxy.invoke('search:fulltext', { query: 'Alice', limit: 10 });
+  assert.equal(fulltext.ok, true);
+  assert.ok(fulltext.data.items.length >= 1, 'expected fulltext hits');
+
+  const semantic = await proxy.invoke('search:semantic', { query: 'Alice', limit: 10 });
+  assert.equal(semantic.ok, false);
+  assert.equal(semantic.error.code, 'MODEL_NOT_READY');
+
+  const rag = await proxy.invoke('rag:retrieve', { queryText: '@Alice', budget: { maxChars: 1500, maxChunks: 6 } });
+  assert.equal(rag.ok, true);
+  assert.ok(rag.data.passages.length > 0, 'expected at least one passage');
+  assert.ok(rag.data.characters.some((c) => c.name === 'Alice'), 'expected Alice in recalled characters');
+
+  const chunkCount = sqliteDb.db.prepare('SELECT COUNT(*) AS total FROM article_chunks WHERE article_id = ?').get(created.data.path);
+  assert.ok(Number(chunkCount.total) >= 1, 'expected chunk rows for main article');
+  const entityCount = sqliteDb.db.prepare('SELECT COUNT(*) AS total FROM entity_cards WHERE id = ?').get('character:Alice');
+  assert.ok(Number(entityCount.total) === 1, 'expected entity card row for Alice');
+
+  // --- sqlite-vec verification (native module smoke against app DB) ---
+  const { load: loadSqliteVec } = require('sqlite-vec');
+  loadSqliteVec(sqliteDb.db);
+  sqliteDb.db.exec(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS writenow_core_embeddings
+      USING vec0(embedding float[3])
+  `);
+  const vector = '[0.1, 0.2, 0.3]';
+  sqliteDb.db.prepare('INSERT INTO writenow_core_embeddings (embedding) VALUES (vec_f32(?))').run(vector);
+  const vecHits = sqliteDb.db
+    .prepare(
+      `SELECT rowid, distance
+       FROM writenow_core_embeddings
+       WHERE embedding MATCH vec_f32(?)
+       ORDER BY distance
+       LIMIT 1`
+    )
+    .all(vector);
+  assert.ok(Array.isArray(vecHits) && vecHits.length >= 1, 'expected vec query results');
+
   const invalidRead = await proxy.invoke('file:read', { path: '../escape.md' });
   assert.equal(invalidRead.ok, false);
   assert.equal(invalidRead.error.code, 'INVALID_ARGUMENT');
@@ -167,6 +228,7 @@ async function main() {
     dbPath,
     projectId: bootstrap.data.currentProjectId,
     file: created.data.path,
+    rag: { passages: rag.data.passages.length, characters: rag.data.characters.length, vecHits: vecHits.length },
     snapshots: [snap1.data.snapshotId, snap2.data.snapshotId],
   });
 }
