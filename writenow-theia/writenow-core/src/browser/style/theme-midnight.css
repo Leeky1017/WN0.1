@@ -1,0 +1,113 @@
+/**
+ * WriteNow Midnight Theme
+ *
+ * Why: The default dark theme with deep blue-black tones, inspired by Cursor's
+ * professional depth and Linear's restrained elegance. Optimized for long
+ * creative sessions with reduced eye strain.
+ *
+ * Design philosophy:
+ * - Deep, not harsh: backgrounds are soft charcoal, not pure black
+ * - Layered depth: subtle background variations create visual hierarchy
+ * - Focused attention: muted chrome, prominent content
+ * - Warm accents: slight warmth in neutrals to avoid clinical feel
+ */
+
+:root,
+.wn-theme-midnight {
+    /* ===== SEMANTIC BACKGROUND TOKENS ===== */
+
+    /* App-level backgrounds (darkest to lightest for layering) */
+    --wn-bg-app: var(--wn-gray-950);
+    --wn-bg-sidebar: var(--wn-gray-900);
+    --wn-bg-panel: var(--wn-gray-850);
+    --wn-bg-editor: var(--wn-gray-900);
+    --wn-bg-card: var(--wn-gray-850);
+    --wn-bg-input: var(--wn-gray-800);
+
+    /* Interactive backgrounds */
+    --wn-bg-hover: rgba(255, 255, 255, 0.05);
+    --wn-bg-active: rgba(255, 255, 255, 0.08);
+    --wn-bg-selected: rgba(59, 130, 246, 0.15);
+
+    /* Message backgrounds (AI Panel) */
+    --wn-bg-message-user: var(--wn-gray-800);
+    --wn-bg-message-assistant: var(--wn-gray-850);
+
+    /* ===== SEMANTIC TEXT TOKENS ===== */
+
+    --wn-text-primary: var(--wn-gray-100);
+    --wn-text-secondary: var(--wn-gray-400);
+    --wn-text-tertiary: var(--wn-gray-500);
+    --wn-text-muted: var(--wn-gray-600);
+    --wn-text-inverse: var(--wn-gray-900);
+
+    /* Link colors */
+    --wn-text-link: var(--wn-blue-400);
+    --wn-text-link-hover: var(--wn-blue-300);
+
+    /* ===== SEMANTIC BORDER TOKENS ===== */
+
+    --wn-border-subtle: var(--wn-gray-800);
+    --wn-border-default: var(--wn-gray-700);
+    --wn-border-strong: var(--wn-gray-600);
+    --wn-border-focus: var(--wn-blue-500);
+
+    /* ===== SEMANTIC SHADOW TOKENS ===== */
+
+    /* Layered shadow system for depth */
+    --wn-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --wn-shadow-default: 0 2px 4px rgba(0, 0, 0, 0.4);
+    --wn-shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --wn-shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+    /* Inner shadows for inset effects */
+    --wn-shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+
+    /* ===== STATE COLORS ===== */
+
+    --wn-accent-primary: var(--wn-blue-500);
+    --wn-accent-primary-hover: var(--wn-blue-400);
+    --wn-accent-primary-active: var(--wn-blue-600);
+
+    --wn-success: var(--wn-green-500);
+    --wn-success-bg: rgba(34, 197, 94, 0.12);
+    --wn-success-text: var(--wn-green-400);
+
+    --wn-warning: var(--wn-yellow-500);
+    --wn-warning-bg: rgba(234, 179, 8, 0.12);
+    --wn-warning-text: var(--wn-yellow-400);
+
+    --wn-error: var(--wn-red-500);
+    --wn-error-bg: rgba(239, 68, 68, 0.12);
+    --wn-error-text: var(--wn-red-400);
+
+    /* ===== EDITOR-SPECIFIC ===== */
+
+    /* Line number gutter */
+    --wn-editor-gutter-bg: transparent;
+    --wn-editor-gutter-text: var(--wn-gray-600);
+    --wn-editor-gutter-text-active: var(--wn-gray-400);
+
+    /* Current line highlight */
+    --wn-editor-line-highlight: rgba(255, 255, 255, 0.03);
+
+    /* Selection */
+    --wn-editor-selection: rgba(59, 130, 246, 0.25);
+    --wn-editor-selection-inactive: rgba(59, 130, 246, 0.12);
+
+    /* Cursor */
+    --wn-editor-cursor: var(--wn-blue-400);
+
+    /* ===== AI PANEL SPECIFIC ===== */
+
+    --wn-ai-accent: var(--wn-purple-500);
+    --wn-ai-accent-hover: var(--wn-purple-400);
+    --wn-ai-bubble-user: var(--wn-gray-750);
+    --wn-ai-bubble-assistant: var(--wn-gray-850);
+
+    /* Diff colors */
+    --wn-diff-insert-bg: rgba(34, 197, 94, 0.12);
+    --wn-diff-delete-bg: rgba(239, 68, 68, 0.12);
+    --wn-diff-insert-text: var(--wn-green-400);
+    --wn-diff-delete-text: var(--wn-red-400);
+}

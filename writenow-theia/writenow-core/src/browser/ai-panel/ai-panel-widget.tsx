@@ -446,25 +446,33 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
 
     const showDiff = runStatus === 'done' && Boolean(selection) && Boolean(selection?.text.trim()) && Boolean(suggestedText.trim());
 
+    /**
+     * Why: Build CSS class names dynamically for messages based on role and status.
+     * This approach moves styling logic out of inline styles into the CSS file.
+     */
+    const getMessageClassName = (m: ChatMessage): string => {
+        const classes = ['wn-ai-message'];
+        classes.push(m.role === 'user' ? 'wn-ai-message--user' : 'wn-ai-message--assistant');
+        if (m.status === 'streaming') classes.push('wn-ai-message--streaming');
+        if (m.status === 'error') classes.push('wn-ai-message--error');
+        return classes.join(' ');
+    };
+
+    const getStatusClassName = (): string => {
+        const classes = ['wn-ai-status'];
+        if (runStatus === 'streaming') classes.push('wn-ai-status--streaming');
+        if (runStatus === 'error') classes.push('wn-ai-status--error');
+        return classes.join(' ');
+    };
+
     return (
-        <div
-            style={{
-                height: '100%',
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                boxSizing: 'border-box',
-                gap: 10,
-                padding: 10,
-                color: 'var(--theia-ui-font-color1)',
-            }}
-            data-testid="writenow-ai-panel"
-        >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="wn-ai-panel-container" data-testid="writenow-ai-panel">
+            {/* Skill selector bar */}
+            <div className="wn-ai-skill-bar">
                 <select
                     value={skillId}
                     onChange={(e) => setSkillId(e.target.value)}
-                    style={{ flex: 1, height: 30 }}
+                    className="wn-ai-skill-select"
                     disabled={skillsLoading}
                     data-testid="writenow-ai-skill-select"
                 >
@@ -476,75 +484,58 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                 </select>
                 <button
                     type="button"
+                    className="wn-ai-button wn-ai-button--primary"
                     onClick={() => void onSend()}
                     disabled={skillsLoading || runStatus === 'streaming'}
                     data-testid="writenow-ai-send"
-                    style={{ height: 30 }}
                 >
                     Send
                 </button>
                 <button
                     type="button"
+                    className="wn-ai-button wn-ai-button--secondary"
                     onClick={() => void onStop()}
                     disabled={runStatus !== 'streaming'}
                     data-testid="writenow-ai-stop"
-                    style={{ height: 30 }}
                 >
                     Stop
                 </button>
             </div>
 
+            {/* Error displays */}
             {skillsError && (
-                <div style={{ color: 'var(--theia-errorForeground)', fontSize: 12 }} data-testid="writenow-ai-skills-error">
+                <div className="wn-ai-error" data-testid="writenow-ai-skills-error">
                     {skillsError}
                 </div>
             )}
 
             {runError && (
-                <div style={{ color: 'var(--theia-errorForeground)', fontSize: 12 }} data-testid="writenow-ai-run-error">
+                <div className="wn-ai-error" data-testid="writenow-ai-run-error">
                     {runError}
                 </div>
             )}
 
-            <div style={{ fontSize: 11, opacity: 0.8 }} data-testid="writenow-ai-status">
+            {/* Status indicator */}
+            <div className={getStatusClassName()} data-testid="writenow-ai-status">
                 Status: {runStatus}
                 {runId ? ` (${runId})` : ''}
             </div>
 
+            {/* Chat history */}
             <div
                 ref={historyRef}
-                style={{
-                    flex: 1,
-                    overflow: 'auto',
-                    border: '1px solid var(--theia-border-color1)',
-                    borderRadius: 6,
-                    padding: 8,
-                    background: 'var(--theia-editor-background)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                }}
+                className="wn-ai-history"
                 data-testid="writenow-ai-history"
             >
                 {messages.length === 0 && (
-                    <div style={{ opacity: 0.8, fontSize: 12 }}>
+                    <div className="wn-ai-history--empty">
                         Select a SKILL, type an optional instruction, then Send (or select text in the editor and Send).
                     </div>
                 )}
                 {messages.map((m) => (
                     <div
                         key={m.id}
-                        style={{
-                            alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                            maxWidth: '100%',
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
-                            padding: '6px 8px',
-                            borderRadius: 6,
-                            border: '1px solid var(--theia-border-color1)',
-                            background: m.role === 'user' ? 'var(--theia-sideBar-background)' : 'var(--theia-editorWidget-background)',
-                            fontSize: 12,
-                        }}
+                        className={getMessageClassName(m)}
                         data-testid={`writenow-ai-message-${m.role}`}
                     >
                         {m.content || (m.role === 'assistant' && m.status === 'streaming' ? '…' : '')}
@@ -552,22 +543,13 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                 ))}
             </div>
 
+            {/* Input area */}
             <textarea
                 ref={onInputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Instruction (optional). If no editor selection, this will be treated as the input text."
-                style={{
-                    minHeight: 64,
-                    resize: 'vertical',
-                    padding: 8,
-                    borderRadius: 6,
-                    border: '1px solid var(--theia-border-color1)',
-                    background: 'var(--theia-editor-background)',
-                    color: 'var(--theia-ui-font-color1)',
-                    fontSize: 12,
-                    fontFamily: 'var(--theia-ui-font-family)',
-                }}
+                className="wn-ai-input"
                 data-testid="writenow-ai-input"
                 onKeyDown={(e) => {
                     if (e.key === 'Escape') {
@@ -577,35 +559,39 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                 }}
             />
 
+            {/* Diff view for apply/discard */}
             {showDiff && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} data-testid="writenow-ai-diff">
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" onClick={onDiscard} style={{ height: 28 }} data-testid="writenow-ai-discard">
+                <div className="wn-ai-diff" data-testid="writenow-ai-diff">
+                    <div className="wn-ai-diff-actions">
+                        <button
+                            type="button"
+                            className="wn-ai-button wn-ai-button--secondary"
+                            onClick={onDiscard}
+                            data-testid="writenow-ai-discard"
+                        >
                             Discard
                         </button>
-                        <button type="button" onClick={onApply} style={{ height: 28 }} data-testid="writenow-ai-apply">
+                        <button
+                            type="button"
+                            className="wn-ai-button wn-ai-button--primary"
+                            onClick={onApply}
+                            data-testid="writenow-ai-apply"
+                        >
                             Apply
                         </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                        <div
-                            style={{
-                                border: '1px solid var(--theia-border-color1)',
-                                borderRadius: 6,
-                                padding: 8,
-                                overflow: 'auto',
-                                background: 'var(--theia-editor-background)',
-                            }}
-                        >
-                            <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 6 }}>Original</div>
-                            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12 }}>
+                    <div className="wn-ai-diff-grid">
+                        <div className="wn-ai-diff-pane">
+                            <div className="wn-ai-diff-label">Original</div>
+                            <pre className="wn-ai-diff-content">
                                 {diffChars(selection!.text, suggestedText).map((seg, idx) => {
                                     if (seg.op === 'insert') return null;
-                                    const background = seg.op === 'delete' ? 'rgba(255, 0, 0, 0.15)' : 'transparent';
-                                    const textDecoration = seg.op === 'delete' ? 'line-through' : 'none';
                                     return (
-                                        <span key={idx} style={{ background, textDecoration }}>
+                                        <span
+                                            key={idx}
+                                            className={seg.op === 'delete' ? 'wn-ai-diff-delete' : ''}
+                                        >
                                             {seg.text}
                                         </span>
                                     );
@@ -613,22 +599,16 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                             </pre>
                         </div>
 
-                        <div
-                            style={{
-                                border: '1px solid var(--theia-border-color1)',
-                                borderRadius: 6,
-                                padding: 8,
-                                overflow: 'auto',
-                                background: 'var(--theia-editor-background)',
-                            }}
-                        >
-                            <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 6 }}>Suggested</div>
-                            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12 }}>
+                        <div className="wn-ai-diff-pane">
+                            <div className="wn-ai-diff-label">Suggested</div>
+                            <pre className="wn-ai-diff-content">
                                 {diffChars(selection!.text, suggestedText).map((seg, idx) => {
                                     if (seg.op === 'delete') return null;
-                                    const background = seg.op === 'insert' ? 'rgba(0, 255, 0, 0.12)' : 'transparent';
                                     return (
-                                        <span key={idx} style={{ background }}>
+                                        <span
+                                            key={idx}
+                                            className={seg.op === 'insert' ? 'wn-ai-diff-insert' : ''}
+                                        >
                                             {seg.text}
                                         </span>
                                     );

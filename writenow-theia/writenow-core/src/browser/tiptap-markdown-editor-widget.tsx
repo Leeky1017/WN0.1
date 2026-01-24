@@ -61,8 +61,8 @@ function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElem
         contentType: 'markdown',
         editorProps: {
             attributes: {
+                // Why: CSS styling moved to editor.css for consistent theming
                 class: 'writenow-tiptap-editor',
-                style: 'outline: none; padding: 12px; min-height: 400px;',
             },
             handleDOMEvents: {
                 focus: () => {
@@ -101,7 +101,7 @@ function TipTapMarkdownEditor(props: TipTapMarkdownEditorProps): React.ReactElem
     }, [editor, markdown]);
 
     return (
-        <div style={{ height: '100%', width: '100%', overflow: 'auto' }} data-testid="writenow-tiptap-markdown-editor">
+        <div className="wn-editor-container" data-testid="writenow-tiptap-markdown-editor">
             <EditorContent editor={editor} />
         </div>
     );

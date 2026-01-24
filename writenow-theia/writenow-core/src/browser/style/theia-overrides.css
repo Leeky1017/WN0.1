@@ -1,0 +1,268 @@
+/**
+ * WriteNow Theia Variable Overrides
+ *
+ * Why: Map WriteNow design tokens to Theia's CSS variables to achieve
+ * visual consistency across the entire application. Theia uses a
+ * comprehensive variable system; we override the key ones.
+ *
+ * Strategy:
+ * 1. Override Theia layout/color variables with our semantic tokens
+ * 2. Add WriteNow-specific refinements (rounded corners, shadows)
+ * 3. Ensure all overrides work with Midnight theme by default
+ */
+
+:root {
+    /* ===== LAYOUT BACKGROUNDS ===== */
+
+    /* Main layout colors */
+    --theia-layout-color0: var(--wn-bg-app);
+    --theia-layout-color1: var(--wn-bg-sidebar);
+    --theia-layout-color2: var(--wn-bg-panel);
+    --theia-layout-color3: var(--wn-bg-card);
+    --theia-layout-color4: var(--wn-bg-input);
+
+    /* Activity bar (leftmost icon bar) */
+    --theia-activityBar-background: var(--wn-bg-app);
+    --theia-activityBar-foreground: var(--wn-text-secondary);
+    --theia-activityBar-activeBorder: var(--wn-accent-primary);
+    --theia-activityBar-activeBackground: var(--wn-bg-hover);
+
+    /* Sidebar (explorer, search, etc.) */
+    --theia-sideBar-background: var(--wn-bg-sidebar);
+    --theia-sideBar-foreground: var(--wn-text-primary);
+    --theia-sideBarSectionHeader-background: var(--wn-bg-sidebar);
+    --theia-sideBarSectionHeader-foreground: var(--wn-text-secondary);
+    --theia-sideBarTitle-foreground: var(--wn-text-primary);
+
+    /* Editor */
+    --theia-editor-background: var(--wn-bg-editor);
+    --theia-editor-foreground: var(--wn-text-primary);
+    --theia-editorLineNumber-foreground: var(--wn-editor-gutter-text);
+    --theia-editorLineNumber-activeForeground: var(--wn-editor-gutter-text-active);
+    --theia-editorCursor-foreground: var(--wn-editor-cursor);
+    --theia-editor-lineHighlightBackground: var(--wn-editor-line-highlight);
+    --theia-editor-selectionBackground: var(--wn-editor-selection);
+    --theia-editor-inactiveSelectionBackground: var(--wn-editor-selection-inactive);
+
+    /* Editor widgets */
+    --theia-editorWidget-background: var(--wn-bg-panel);
+    --theia-editorWidget-foreground: var(--wn-text-primary);
+    --theia-editorWidget-border: var(--wn-border-subtle);
+
+    /* Panel (bottom panel area) */
+    --theia-panel-background: var(--wn-bg-panel);
+    --theia-panel-border: var(--wn-border-subtle);
+    --theia-panelTitle-activeForeground: var(--wn-text-primary);
+    --theia-panelTitle-inactiveForeground: var(--wn-text-tertiary);
+    --theia-panelTitle-activeBorder: var(--wn-accent-primary);
+
+    /* ===== TABS ===== */
+
+    --theia-tab-activeBackground: var(--wn-bg-editor);
+    --theia-tab-activeForeground: var(--wn-text-primary);
+    --theia-tab-inactiveBackground: var(--wn-bg-sidebar);
+    --theia-tab-inactiveForeground: var(--wn-text-secondary);
+    --theia-tab-border: var(--wn-border-subtle);
+    --theia-tab-activeBorderTop: var(--wn-accent-primary);
+    --theia-tab-hoverBackground: var(--wn-bg-hover);
+
+    /* ===== BORDERS ===== */
+
+    --theia-border-color: var(--wn-border-subtle);
+    --theia-contrastBorder: var(--wn-border-default);
+    --theia-focusBorder: var(--wn-border-focus);
+
+    /* ===== TEXT COLORS ===== */
+
+    --theia-foreground: var(--wn-text-primary);
+    --theia-descriptionForeground: var(--wn-text-secondary);
+    --theia-disabledForeground: var(--wn-text-muted);
+    --theia-errorForeground: var(--wn-error-text);
+    --theia-warningForeground: var(--wn-warning-text);
+
+    /* ===== UI ELEMENTS ===== */
+
+    /* Buttons */
+    --theia-button-background: var(--wn-accent-primary);
+    --theia-button-foreground: var(--wn-text-inverse);
+    --theia-button-hoverBackground: var(--wn-accent-primary-hover);
+    --theia-button-secondaryBackground: var(--wn-bg-input);
+    --theia-button-secondaryForeground: var(--wn-text-primary);
+    --theia-button-secondaryHoverBackground: var(--wn-bg-hover);
+
+    /* Inputs */
+    --theia-input-background: var(--wn-bg-input);
+    --theia-input-foreground: var(--wn-text-primary);
+    --theia-input-border: var(--wn-border-default);
+    --theia-input-placeholderForeground: var(--wn-text-muted);
+    --theia-inputOption-activeBackground: var(--wn-bg-selected);
+    --theia-inputOption-activeForeground: var(--wn-text-primary);
+
+    /* Dropdowns */
+    --theia-dropdown-background: var(--wn-bg-panel);
+    --theia-dropdown-foreground: var(--wn-text-primary);
+    --theia-dropdown-border: var(--wn-border-default);
+
+    /* Scrollbar */
+    --theia-scrollbarSlider-background: rgba(255, 255, 255, 0.1);
+    --theia-scrollbarSlider-hoverBackground: rgba(255, 255, 255, 0.15);
+    --theia-scrollbarSlider-activeBackground: rgba(255, 255, 255, 0.2);
+
+    /* List/Tree */
+    --theia-list-activeSelectionBackground: var(--wn-bg-selected);
+    --theia-list-activeSelectionForeground: var(--wn-text-primary);
+    --theia-list-hoverBackground: var(--wn-bg-hover);
+    --theia-list-inactiveSelectionBackground: var(--wn-bg-active);
+    --theia-list-focusOutline: var(--wn-border-focus);
+
+    /* ===== STATUS BAR ===== */
+
+    --theia-statusBar-background: var(--wn-bg-app);
+    --theia-statusBar-foreground: var(--wn-text-secondary);
+    --theia-statusBar-border: var(--wn-border-subtle);
+    --theia-statusBarItem-hoverBackground: var(--wn-bg-hover);
+    --theia-statusBarItem-activeBackground: var(--wn-bg-active);
+
+    /* ===== NOTIFICATIONS ===== */
+
+    --theia-notifications-background: var(--wn-bg-panel);
+    --theia-notifications-foreground: var(--wn-text-primary);
+    --theia-notifications-border: var(--wn-border-default);
+
+    /* ===== MENU ===== */
+
+    --theia-menu-background: var(--wn-bg-panel);
+    --theia-menu-foreground: var(--wn-text-primary);
+    --theia-menu-selectionBackground: var(--wn-bg-selected);
+    --theia-menu-selectionForeground: var(--wn-text-primary);
+    --theia-menu-separatorBackground: var(--wn-border-subtle);
+
+    /* ===== TITLE BAR ===== */
+
+    --theia-titleBar-activeBackground: var(--wn-bg-app);
+    --theia-titleBar-activeForeground: var(--wn-text-primary);
+    --theia-titleBar-inactiveBackground: var(--wn-bg-sidebar);
+    --theia-titleBar-inactiveForeground: var(--wn-text-tertiary);
+    --theia-titleBar-border: var(--wn-border-subtle);
+
+    /* ===== FONT ===== */
+
+    --theia-ui-font-family: var(--wn-font-sans);
+    --theia-code-font-family: var(--wn-font-mono);
+    --theia-ui-font-size0: var(--wn-text-xs);
+    --theia-ui-font-size1: var(--wn-text-sm);
+    --theia-ui-font-size2: var(--wn-text-base);
+    --theia-ui-font-size3: var(--wn-text-lg);
+}
+
+/* ===== REFINED COMPONENT STYLES ===== */
+
+/* Tab bar refinements - rounded top corners */
+.theia-tabBar-tab {
+    border-radius: var(--wn-tab-radius) var(--wn-tab-radius) 0 0;
+    transition: background-color var(--wn-transition-fast);
+}
+
+.theia-tabBar-tab:hover {
+    background-color: var(--wn-bg-hover);
+}
+
+/* Side panel shadow for depth */
+.theia-left-panel,
+.theia-right-panel {
+    box-shadow: var(--wn-shadow-elevated);
+}
+
+/* Panel borders */
+.theia-sidepanel {
+    transition: box-shadow var(--wn-transition-normal);
+}
+
+/* Button refinements */
+.theia-button {
+    border-radius: var(--wn-button-radius);
+    transition: all var(--wn-transition-fast);
+    font-weight: var(--wn-font-medium);
+}
+
+.theia-button:focus {
+    outline: 2px solid var(--wn-border-focus);
+    outline-offset: 2px;
+}
+
+/* Input refinements */
+.theia-input {
+    border-radius: var(--wn-input-radius);
+    transition: border-color var(--wn-transition-fast), box-shadow var(--wn-transition-fast);
+}
+
+.theia-input:focus {
+    border-color: var(--wn-border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Menu refinements */
+.p-Menu {
+    border-radius: var(--wn-panel-radius);
+    box-shadow: var(--wn-shadow-floating);
+    overflow: hidden;
+}
+
+.p-Menu-content {
+    padding: var(--wn-space-1) 0;
+}
+
+.p-Menu-item {
+    border-radius: var(--wn-radius-sm);
+    margin: 0 var(--wn-space-1);
+    transition: background-color var(--wn-transition-fast);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--theia-scrollbarSlider-background);
+    border-radius: var(--wn-radius-full);
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--theia-scrollbarSlider-hoverBackground);
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+/* Status bar refinements */
+.theia-statusBar {
+    font-size: var(--wn-text-xs);
+    height: 22px;
+}
+
+/* Dialog refinements */
+.dialogBlock {
+    border-radius: var(--wn-modal-radius);
+    box-shadow: var(--wn-shadow-floating);
+    overflow: hidden;
+}
+
+/* Tree/List refinements */
+.theia-TreeNode {
+    border-radius: var(--wn-radius-sm);
+    margin: 1px var(--wn-space-1);
+    transition: background-color var(--wn-transition-fast);
+}
+
+/* Notification refinements */
+.theia-notification-message {
+    border-radius: var(--wn-panel-radius);
+    box-shadow: var(--wn-shadow-elevated);
+}
