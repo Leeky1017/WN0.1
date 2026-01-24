@@ -9,6 +9,7 @@ export type IpcErrorCode =
   | 'IO_ERROR'
   | 'DB_ERROR'
   | 'MODEL_NOT_READY'
+  | 'ENCODING_FAILED'
   | 'RATE_LIMITED'
   | 'TIMEOUT'
   | 'CANCELED'

@@ -2,7 +2,11 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import { ILogger } from '@theia/core/lib/common/logger';
 
 import type { IpcErrorCode, RagEntityCard, RagRetrieveRequest, RagRetrieveResponse } from '../../common/ipc-generated';
-import type { RetrievalServiceContract as RetrievalServiceContractShape } from '../../common/writenow-protocol';
+import { EmbeddingService as EmbeddingServiceToken } from '../../common/writenow-protocol';
+import type {
+    EmbeddingService as EmbeddingServiceShape,
+    RetrievalServiceContract as RetrievalServiceContractShape,
+} from '../../common/writenow-protocol';
 import { TheiaInvokeRegistry } from '../theia-invoke-adapter';
 import { WritenowSqliteDb } from '../database/writenow-sqlite-db';
 import { retrieveRagContext } from '../rag/retrieval';
@@ -28,6 +32,7 @@ export class RetrievalService implements RetrievalServiceContractShape {
     constructor(
         @inject(ILogger) private readonly logger: ILogger,
         @inject(WritenowSqliteDb) private readonly sqliteDb: WritenowSqliteDb,
+        @inject(EmbeddingServiceToken) private readonly embeddingService: EmbeddingServiceShape,
         @inject(IndexService) private readonly indexService: IndexService,
         @inject(VectorStore) private readonly vectorStore: VectorStore,
     ) {}
@@ -47,7 +52,7 @@ export class RetrievalService implements RetrievalServiceContractShape {
         return retrieveRagContext({
             db: this.sqliteDb.db,
             logger: this.logger,
-            embeddingService: null,
+            embeddingService: this.embeddingService,
             vectorStore: this.vectorStore,
             queryText,
             budget: request?.budget,
@@ -61,7 +66,7 @@ export class RetrievalService implements RetrievalServiceContractShape {
         const result = await retrieveRagContext({
             db: this.sqliteDb.db,
             logger: this.logger,
-            embeddingService: null,
+            embeddingService: this.embeddingService,
             vectorStore: this.vectorStore,
             queryText: query,
             budget: { maxChunks: 1, maxChars: 800, maxCharacters: 10, maxSettings: 10, cursor: '0' },

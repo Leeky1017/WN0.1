@@ -50,6 +50,18 @@ export interface WritenowRpcService {
     invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>>;
 }
 
+export const EmbeddingService = Symbol('EmbeddingService');
+
+export interface EmbeddingService {
+    /**
+     * Why: Semantic search and RAG require a stable, local embedding primitive in the Theia backend.
+     *
+     * Failure semantics: MUST throw `ipcError`-shaped errors so `WritenowBackendService` can map them to
+     * `IpcResponse` without leaking stacks across the RPC boundary.
+     */
+    encode(texts: readonly string[]): Promise<{ vectors: number[][]; dimension: number }>;
+}
+
 export interface ProjectsServiceContract {
     bootstrap(): Promise<ProjectBootstrapResponse>;
     list(): Promise<ProjectListResponse>;

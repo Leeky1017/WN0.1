@@ -1,12 +1,10 @@
 import type { ILogger } from '@theia/core/lib/common/logger';
 
 import type { IpcErrorCode, RagBudget, RagEntityCard, RagPassage, RagRetrieveResponse } from '../../common/ipc-generated';
+import type { EmbeddingService } from '../../common/writenow-protocol';
 import type { SqliteDatabase } from '../database/init';
 import { containsEntity, extractExplicitMentions } from './entities';
-import type { EmbeddingService } from './indexer';
 import type { VectorStore } from './vector-store';
-
-const DEFAULT_MODEL = 'shibing624/text2vec-base-chinese';
 
 function createIpcError(code: IpcErrorCode, message: string, details?: unknown): Error {
     const error = new Error(message);
@@ -152,7 +150,7 @@ export async function retrieveRagContext(options: RetrieveRagOptions): Promise<R
     let embeddingDimension: number | null = null;
     if (recalledEntities.length === 0 && embeddingService && vectorStore) {
         try {
-            const encoded = await embeddingService.encode([queryText], { model: DEFAULT_MODEL });
+            const encoded = await embeddingService.encode([queryText]);
             queryEmbedding = encoded.vectors[0];
             embeddingDimension = encoded.dimension;
             vectorStore.ensureEntityIndex(encoded.dimension);
@@ -203,7 +201,7 @@ export async function retrieveRagContext(options: RetrieveRagOptions): Promise<R
     if (embeddingService && vectorStore) {
         try {
             if (!queryEmbedding || !embeddingDimension) {
-                const encoded = await embeddingService.encode([queryText], { model: DEFAULT_MODEL });
+                const encoded = await embeddingService.encode([queryText]);
                 queryEmbedding = encoded.vectors[0];
                 embeddingDimension = encoded.dimension;
             }

@@ -2,6 +2,8 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import { ILogger } from '@theia/core/lib/common/logger';
 
 import type { IpcErrorCode } from '../../common/ipc-generated';
+import { EmbeddingService as EmbeddingServiceToken } from '../../common/writenow-protocol';
+import type { EmbeddingService as EmbeddingServiceShape } from '../../common/writenow-protocol';
 import { RagIndexer } from '../rag/indexer';
 import { VectorStore } from '../rag/vector-store';
 import { WritenowSqliteDb } from '../database/writenow-sqlite-db';
@@ -29,13 +31,14 @@ export class IndexService {
     constructor(
         @inject(ILogger) private readonly logger: ILogger,
         @inject(WritenowSqliteDb) sqliteDb: WritenowSqliteDb,
+        @inject(EmbeddingServiceToken) embeddingService: EmbeddingServiceShape,
         @inject(VectorStore) vectorStore: VectorStore,
     ) {
         this.sqliteDb = sqliteDb;
         this.ragIndexer = new RagIndexer({
             db: sqliteDb.db,
             logger,
-            embeddingService: null,
+            embeddingService,
             vectorStore,
         });
     }

@@ -4,10 +4,12 @@ import * as path from 'node:path';
 import { ConnectionHandler, JsonRpcConnectionHandler } from '@theia/core/lib/common/messaging';
 import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
 import { ContainerModule } from '@theia/core/shared/inversify';
-import { WRITENOW_RPC_PATH } from '../common/writenow-protocol';
+import { EmbeddingService as EmbeddingServiceToken, WRITENOW_RPC_PATH } from '../common/writenow-protocol';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
+import { EmbeddingServiceImpl } from './embedding/embedding-service';
 import { VectorStore } from './rag/vector-store';
 import { FilesService } from './services/files-service';
+import { EmbeddingRpcService } from './services/embedding-rpc-service';
 import { IndexService } from './services/index-service';
 import { ProjectsService } from './services/projects-service';
 import { SearchService } from './services/search-service';
@@ -27,6 +29,8 @@ export default new ContainerModule(bind => {
 
     bind(WritenowSqliteDb).toSelf().inSingletonScope();
     bind(VectorStore).toSelf().inSingletonScope();
+    bind(EmbeddingServiceToken).to(EmbeddingServiceImpl).inSingletonScope();
+    bind(EmbeddingRpcService).toSelf().inSingletonScope();
     bind(IndexService).toSelf().inSingletonScope();
     bind(ProjectsService).toSelf().inSingletonScope();
     bind(FilesService).toSelf().inSingletonScope();

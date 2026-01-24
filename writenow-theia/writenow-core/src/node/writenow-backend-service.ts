@@ -8,6 +8,7 @@ import { TheiaInvokeRegistry, toIpcError } from './theia-invoke-adapter';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
 import { FilesService } from './services/files-service';
 import { IndexService } from './services/index-service';
+import { EmbeddingRpcService } from './services/embedding-rpc-service';
 import { ProjectsService } from './services/projects-service';
 import { RetrievalService } from './services/retrieval-service';
 import { SearchService } from './services/search-service';
@@ -24,6 +25,7 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(FilesService) filesService: FilesService,
         @inject(VersionService) versionService: VersionService,
         @inject(IndexService) _indexService: IndexService,
+        @inject(EmbeddingRpcService) embeddingRpcService: EmbeddingRpcService,
         @inject(RetrievalService) retrievalService: RetrievalService,
         @inject(SearchService) searchService: SearchService,
     ) {
@@ -34,6 +36,7 @@ export class WritenowBackendService implements WritenowRpcService {
         projectsService.register(this.registry);
         filesService.register(this.registry);
         versionService.register(this.registry);
+        embeddingRpcService.register(this.registry);
         retrievalService.register(this.registry);
         searchService.register(this.registry);
     }
