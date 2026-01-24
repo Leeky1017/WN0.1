@@ -22,6 +22,9 @@ import { AiPanelContribution, AiPanelWidgetFactory } from './ai-panel/ai-panel-c
 import { AiPanelService } from './ai-panel/ai-panel-service';
 import { VersionHistoryContribution, VersionHistoryWidgetFactory } from './version-history/version-history-contribution';
 import { KnowledgeGraphContribution, KnowledgeGraphWidgetFactory } from './knowledge-graph/knowledge-graph-contribution';
+import { SettingsContribution, SettingsWidgetFactory } from './settings/settings-contribution';
+import { WritenowStatusbarContribution } from './statusbar/writenow-statusbar-contribution';
+import { CrashRecoveryContribution } from './crash-recovery/crash-recovery-contribution';
 import { WritenowCoreContribution } from './writenow-core-contribution';
 import { WritenowFrontendService } from './writenow-frontend-service';
 import { WritenowLayoutContribution } from './writenow-layout-contribution';
@@ -84,6 +87,21 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(MenuContribution).toService(KnowledgeGraphContribution);
     bind(KnowledgeGraphWidgetFactory).toSelf().inSingletonScope();
 
+    // Settings panel
+    bind(SettingsContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(SettingsContribution);
+    bind(MenuContribution).toService(SettingsContribution);
+    bind(KeybindingContribution).toService(SettingsContribution);
+    bind(SettingsWidgetFactory).toSelf().inSingletonScope();
+
+    // Status bar (word count + AI status)
+    bind(WritenowStatusbarContribution).toSelf().inSingletonScope();
+    bind(FrontendApplicationContribution).toService(WritenowStatusbarContribution);
+
+    // Crash recovery
+    bind(CrashRecoveryContribution).toSelf().inSingletonScope();
+    bind(FrontendApplicationContribution).toService(CrashRecoveryContribution);
+
     bind(WritenowCoreContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(WritenowCoreContribution);
     bind(MenuContribution).toService(WritenowCoreContribution);
@@ -102,4 +120,5 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(WidgetFactory).to(AiPanelWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(VersionHistoryWidgetFactory).inSingletonScope();
     bind(WidgetFactory).to(KnowledgeGraphWidgetFactory).inSingletonScope();
+    bind(WidgetFactory).to(SettingsWidgetFactory).inSingletonScope();
 });

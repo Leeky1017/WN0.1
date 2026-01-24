@@ -243,3 +243,193 @@
     background: var(--wn-border-default);
     margin: 0 var(--wn-space-1);
 }
+
+/* ===== NEW TOOLBAR COMPONENTS ===== */
+
+.wn-toolbar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-button-radius);
+    color: var(--wn-text-secondary);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-toolbar-button:hover:not(:disabled) {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+.wn-toolbar-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.wn-toolbar-button--active {
+    background: var(--wn-accent-subtle);
+    color: var(--wn-accent-fg);
+}
+
+.wn-toolbar-button--active:hover:not(:disabled) {
+    background: var(--wn-accent-subtle);
+}
+
+.wn-toolbar-separator {
+    width: 1px;
+    height: 18px;
+    background: var(--wn-border-default);
+    margin: 0 var(--wn-space-1);
+}
+
+/* Heading dropdown */
+.wn-toolbar-dropdown {
+    position: relative;
+}
+
+.wn-toolbar-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-1);
+    padding: var(--wn-space-1) var(--wn-space-2);
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-button-radius);
+    color: var(--wn-text-secondary);
+    font-size: var(--wn-text-sm);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-toolbar-dropdown-trigger:hover:not(:disabled) {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+.wn-toolbar-dropdown-trigger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.wn-toolbar-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: var(--wn-z-dropdown);
+    min-width: 100px;
+    margin-top: var(--wn-space-1);
+    padding: var(--wn-space-1);
+    background: var(--wn-surface-raised);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wn-toolbar-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: var(--wn-space-1) var(--wn-space-2);
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-radius-sm);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--wn-transition-fast);
+}
+
+.wn-toolbar-dropdown-item:hover {
+    background: var(--wn-surface-hover);
+}
+
+.wn-toolbar-dropdown-item--active {
+    background: var(--wn-accent-subtle);
+    color: var(--wn-accent-fg);
+}
+
+/* ===== FIND/REPLACE ===== */
+
+.wn-find-replace-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wn-space-2);
+    padding: var(--wn-space-2) var(--wn-space-3);
+    background: var(--wn-surface-raised);
+    border-bottom: 1px solid var(--wn-border-default);
+}
+
+.wn-find-replace-row {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-2);
+}
+
+.wn-find-replace-input {
+    flex: 1;
+    height: var(--wn-input-height);
+    padding: 0 var(--wn-space-2);
+    background: var(--wn-surface-base);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-input-radius);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-sm);
+}
+
+.wn-find-replace-input:focus {
+    outline: none;
+    border-color: var(--wn-accent-fg);
+}
+
+.wn-find-replace-input::placeholder {
+    color: var(--wn-text-muted);
+}
+
+.wn-find-replace-count {
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-sm);
+    min-width: 60px;
+    text-align: center;
+}
+
+.wn-find-replace-actions {
+    display: flex;
+    gap: var(--wn-space-1);
+}
+
+.wn-find-replace-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-button-radius);
+    color: var(--wn-text-secondary);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-find-replace-btn:hover:not(:disabled) {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+.wn-find-replace-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.wn-find-replace-btn--active {
+    background: var(--wn-accent-subtle);
+    color: var(--wn-accent-fg);
+}
+
+.wn-find-replace-close {
+    margin-left: auto;
+}
