@@ -1,7 +1,7 @@
 # ISSUE-156
 - Issue: #156
 - Branch: task/156-ai-panel-widget
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/157
 
 ## Plan
 - Migrate AI/Skills/Context backend services to writenow-core and extend Theia RPC protocol.
