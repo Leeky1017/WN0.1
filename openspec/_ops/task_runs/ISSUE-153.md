@@ -68,3 +68,15 @@
 ### 2026-01-24 15:20 Windows verification (pending)
 - Command: `gh workflow run theia-windows-smoke.yml --ref task/153-embedding-migration`
 - Key output: pending
+
+### 2026-01-24 07:40 Windows verification (GitHub Actions, main)
+- Command: `gh workflow run theia-windows-smoke.yml --ref main`
+- Key output:
+  - run: `https://github.com/Leeky1017/WN0.1/actions/runs/21311501731` (conclusion: `success`)
+  - `[rpc-smoke] embedding ok { ms: 7590, dim: 768, sim01: 0.830..., sim02: 0.300..., onnxSelected: 'model.onnx' }`
+  - `[rpc-smoke] ok { rag: { passages: 2, characters: 1, vecHits: 1 }, semanticOnly: { passages: 4 } }`
+  - expected failure paths observed:
+    - `invoke failed: embedding:encode (TIMEOUT)` (timeout test)
+    - `invoke failed: file:read (INVALID_ARGUMENT)` (semantic-only backtest forces keyword recall to fail)
+- Evidence:
+  - https://github.com/Leeky1017/WN0.1/actions/runs/21311501731
