@@ -1,0 +1,12 @@
+src/locales/en.json
+src/locales/zh-CN.json
+src/types/ai.ts
+src/types/constraints.ts
+src/types/context-debug.ts
+src/types/context.test.ts
+src/types/context.ts
+src/types/editor.ts
+src/types/ipc-generated.ts
+src/types/ipc.ts
+src/types/models.ts
+src/types/window.d.ts

@@ -5,7 +5,9 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 ## Status
 
 - 本规范：Active（持续更新的权威基线）
-- 架构主线：Eclipse Theia 迁移（Phase 0 PoC ✅ 2026-01-22；Phase 1 ✅ 2026-01-23；Phase 2 ✅ 2026-01-24：Task 008 IPC migration ✅ 2026-01-23；Task 009 SQLite migration ✅ 2026-01-24；Task 010 RAG migration ✅ 2026-01-24；Task 011 Embedding migration ✅ 2026-01-24；Phase 3 ✅ 2026-01-24：Task 012 AI Panel Widget ✅ 2026-01-24；Task 013 Version History Widget ✅ 2026-01-24；Task 014 Knowledge Graph Widget ✅ 2026-01-24）
+- 架构主线：Eclipse Theia（✅ 迁移完成：Phase 0–3，2026-01-24）
+- 代码基线：`writenow-theia/`（production Theia workspace：browser + electron + writenow-core extension）
+- Legacy 清理：`theia-poc/` 已移除；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/`（contract SSOT）+ `skills/`（builtin packages）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 
@@ -603,35 +605,28 @@ MVP 阶段采用"格式模板导出 + 剪贴板适配"方案。
 
 ## 四、系统架构
 
-### 架构迁移：Electron → Theia（当前进行中）
+### 架构：Eclipse Theia（已完成迁移）
 
-WriteNow 正在从“自建 Electron + React + TipTap”迁移到 “Eclipse Theia 框架”。
+WriteNow 当前以 **Eclipse Theia** 为唯一 IDE/前端基线（browser + electron targets），不再维护旧的“自建 Electron + React + TipTap”独立前端栈。
 
-- 框架层使用 Eclipse Theia（替代原生 Electron 窗口管理与自建 shell）。
-- 编辑器层保留 TipTap（作为 Theia Editor Widget / ReactWidget 嵌入）。
-- 数据层保留 SQLite + better-sqlite3 + sqlite-vec（运行于 Theia backend）。
-- 存储模型采用 Hybrid 方案（project = workspace root；全局配置位于 userData，项目数据位于 workspace root/.writenow）。
+- 框架层：Eclipse Theia（workspace/shell/命令系统/扩展机制）。
+- 编辑器层：TipTap（作为 Theia Editor Widget / ReactWidget 嵌入）。
+- 后端层：Theia backend（Node）承载 SQLite/better-sqlite3/sqlite-vec、RAG、Embedding、Skills 等服务。
+- 合约与类型：保留 contract pipeline（`electron/ipc/**` → 生成 `src/types/ipc-generated.ts` 与 `writenow-theia/writenow-core/src/common/ipc-generated.ts`）。
+- 代码基线清理：移除 `theia-poc/` 与 legacy renderer UI；仓库不再双栈并存。
 
 ### 技术栈
 
 | 层次 | 技术 | 说明 |
 |------|------|------|
-| 框架层 | Eclipse Theia 1.67.0 | IDE 框架（Electron-based），frontend + backend |
-| 前端框架 | React 18 + TypeScript | Theia frontend + 自定义 Widgets（严格模式） |
-| 样式 | Tailwind CSS v4 | 暗色/亮色/自定义主题 |
-| 编辑器 | TipTap (ProseMirror) | 作为 Theia Editor Widget / ReactWidget 嵌入 |
-| 组件库 | shadcn/ui 自定义组件 | Cursor/Linear 风格 |
-| 通信 | Theia JSON-RPC | 替代 Electron IPC；复用 contract pipeline |
-| 构建工具 | Yarn (Classic) + Lerna | Theia app/extension 工作区（Phase 0 baseline） |
-| 测试 | Playwright | E2E（用户路径） |
-| 质量门禁 | ESLint + TypeScript | lint + 严格类型 |
-| 本地数据 | SQLite (better-sqlite3) | Theia backend 持久化（含 FTS5） |
-| 向量存储 | sqlite-vec | Theia backend 扩展 |
-| 存储模型 | Hybrid | project = workspace root |
-| 状态管理 | Zustand | 轻量级 |
-| AI 服务 | Claude API / OpenAI API | 流式响应，支持中转站 |
+| 框架层 | Eclipse Theia 1.67.0 | IDE 框架（browser + electron targets） |
+| 前端框架 | React + TypeScript | Theia Widgets / Editor Widget（严格模式） |
+| 通信 | Theia JSON-RPC (WebSocket) | frontend ↔ backend |
+| 构建工具 | Yarn (Classic) + Lerna | `writenow-theia/` 工作区 |
+| 本地数据 | SQLite (better-sqlite3) | backend 持久化（含 FTS5） |
+| 向量存储 | sqlite-vec | backend 扩展 |
 | Embedding | text2vec-base-chinese | 本地模型 ~100MB |
-| 国际化 | i18next | 中/英双语 |
+| AI 服务 | Claude / OpenAI | 流式响应，支持取消 |
 
 ### 平台支持
 
@@ -670,17 +665,17 @@ interface AIConfig {
 - 可设置默认 provider
 - 密钥本地加密存储
 
-### 目录结构（迁移期：Theia 为主线）
+### 目录结构（Theia baseline）
 
 ```
 WriteNow/
-├── theia-poc/                     # Theia migration Phase 0 PoC（✅ 2026-01-22）
-│   ├── writenow-theia-poc/        # Theia extension（TipTap Editor Widget + backend）
-│   ├── electron-app/              # Theia Electron app shell
-│   └── browser-app/               # Theia browser app（dev）
-├── electron/                      # Legacy Electron app（Phase 2 后移除）
-├── src/                           # Legacy renderer UI（Phase 2 后移除）
-├── models/                        # 本地模型资产（Embedding）
+├── writenow-theia/                # ✅ Production Theia workspace (browser + electron + writenow-core)
+├── electron/                      # Shared assets for Theia (not a standalone Electron app)
+│   ├── ipc/                       # IPC contract SSOT + channel inventory (generation only)
+│   └── skills/                    # Builtin SKILL packages consumed by Theia backend
+├── src/                           # Shared assets
+│   ├── types/                     # Shared/generated IPC types
+│   └── locales/                   # i18n source files
 ├── docs/                          # 入口/工程规范/参考
 ├── openspec/                      # 规范（权威）
 └── rulebook/                      # 任务执行清单与证据
@@ -884,10 +879,12 @@ CREATE TABLE settings (
   - Phase 0 PoC：✅ 已完成（2026-01-22）
   - Phase 1：✅ 已完成（2026-01-23）
   - Phase 2：✅ 已完成（2026-01-24）
-- 暂停的工作（统一原因：Theia 迁移为主线，避免双栈并存）：
-  - `openspec/specs/wn-frontend-deep-remediation/spec.md`
+  - Phase 3：✅ 已完成（2026-01-24）
+- 暂停的工作（待重新排期）：
   - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
   - `openspec/specs/sprint-ide-advanced/spec.md`
+- 已废弃：
+  - `openspec/specs/wn-frontend-deep-remediation/spec.md`（legacy React 前端已移除；UI baseline 为 Theia）
 
 ### Sprint 1：可用的编辑器（1-2周）✅ 已完成
 - [x] TipTap 编辑器集成
@@ -943,10 +940,10 @@ CREATE TABLE settings (
 - [x] 番茄钟
 - [x] 编辑器多标签（多文档 TabBar + Toolbar 单行合并）
 - [x] 心流保护（Typewriter / Paragraph Focus / Zen）
-- [ ] 外挂记忆（用户偏好学习）（Paused: 2026-01-22; blocked by Theia migration）
-- [ ] 命令面板 (Cmd+K)（Paused: 2026-01-22; blocked by Theia migration）
+- [ ] 外挂记忆（用户偏好学习）（Paused: 2026-01-22; to be rescheduled post-Theia baseline）
+- [ ] 命令面板 (Cmd+K)（Paused: 2026-01-22; to be rescheduled post-Theia baseline）
 
-### Sprint：Theia Migration（优先，阻塞后续框架相关工作）
+### Sprint：Theia Migration（✅ 已完成）
 
 #### Phase 0：PoC（✅ 已完成：2026-01-22；Issue #111）
 - [x] PoC：Theia + TipTap（输入/焦点/快捷键）
@@ -965,6 +962,11 @@ CREATE TABLE settings (
 - [x] Task 009：SQLite migration（init + schema + CRUD）
 - [x] Task 010：RAG migration（indexer + retrieval，FTS + sqlite-vec）
 - [x] Task 011：Embedding migration（worker + ONNX assets + semantic backtest）
+
+#### Phase 3：Widget Migration（✅ 已完成：2026-01-24）
+- [x] Task 012：AI Panel Widget
+- [x] Task 013：Version History Widget
+- [x] Task 014：Knowledge Graph Widget
 
 ### Sprint 7：云服务（3周）
 - [ ] Supabase 用户认证

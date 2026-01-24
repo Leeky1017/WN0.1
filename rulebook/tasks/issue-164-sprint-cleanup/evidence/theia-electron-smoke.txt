@@ -1,0 +1,82 @@
+yarn run v1.22.22
+$ theia start
+Showing main window early
+2026-01-24T13:21:17.158Z root ERROR [writenow-db] init failed: Unable to load schema.sql.
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/schema.sql'
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql'
+2026-01-24T13:21:17.160Z root ERROR [writenow-core] app DB init failed: Failed to initialize database
+2026-01-24T13:21:17.160Z root INFO [writenow-core] native smoke starting (db: /tmp/writenow-theia/native-smoke.db)
+2026-01-24T13:21:17.160Z root INFO [writenow-core] native smoke: sqlite CRUD
+2026-01-24T13:21:17.160Z root INFO [writenow-core] native smoke: CRUD ok (row: {"id":81,"name":"ok"})
+2026-01-24T13:21:17.160Z root INFO [writenow-core] native smoke: loading sqlite-vec
+2026-01-24T13:21:17.160Z root INFO [writenow-core] native smoke: vec query ok (results: [{"rowid":81,"distance":0}])
+2026-01-24T13:21:17.160Z root INFO [writenow-core] native smoke completed successfully
+2026-01-24T13:21:17.160Z root WARN Backend DefaultMessagingService.initialize took longer than the expected maximum 50 milliseconds: 70.2 ms [Finished 0.399 s after backend start]
+2026-01-24T13:21:17.160Z root WARN Backend Object.initialize took longer than the expected maximum 50 milliseconds: 69.3 ms [Finished 0.399 s after backend start]
+2026-01-24T13:21:17.160Z root INFO Backend WritenowCoreBackendContribution.initialize: 22.9 ms [Finished 0.399 s after backend start]
+2026-01-24T13:21:17.160Z root WARN Backend LocalizationServerImpl.initialize took longer than the expected maximum 50 milliseconds: 69.4 ms [Finished 0.399 s after backend start]
+2026-01-24T13:21:17.167Z root INFO configured all backend app contributions
+2026-01-24T13:21:17.168Z root INFO Backend WebsocketEndpoint.onStart: 1.1 ms [Finished 0.410 s after backend start]
+2026-01-24T13:21:17.168Z root ERROR (node:604762) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `electron --trace-deprecation ...` to show where the warning was created)
+2026-01-24T13:21:17.169Z root INFO Configuration directory URI: 'file:///home/leeky/.theia'
+2026-01-24T13:21:17.171Z root INFO Theia app listening on http://127.0.0.1:38327.
+2026-01-24T13:21:17.177Z root INFO Backend DefaultWorkspaceServer.onStart: 9.1 ms [Finished 0.419 s after backend start]
+2026-01-24T13:21:17.177Z root INFO Backend WritenowCoreBackendContribution.onStart: 0.1 ms [Finished 0.419 s after backend start]
+2026-01-24T13:21:17.177Z root INFO Finished starting backend application: 0.0 ms [Finished 0.419 s after backend start]
+[604776:0124/212117.560452:ERROR:components/viz/service/main/viz_main_impl.cc:189] Exiting GPU process due to errors during initialization
+2026-01-24T13:21:17.914Z root INFO creating connection for 1
+2026-01-24T13:21:18.385Z root ERROR [writenow-db] init failed: Unable to load schema.sql.
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/schema.sql'
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql'
+2026-01-24T13:21:18.385Z root ERROR Error: Failed to initialize database
+    at createIpcError (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/main.js:628:19)
+    at WritenowSqliteDb.ensureReady (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/main.js:652:19)
+    at get db (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/main.js:658:21)
+    at new IndexService (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/main.js:3575:26)
+    at createInstanceWithInjections (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/vendors-node_modules_theia_core_lib_common_index_js.js:22542:22)
+    at _createInstance (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/vendors-node_modules_theia_core_lib_common_index_js.js:22533:22)
+    at resolveInstance (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/vendors-node_modules_theia_core_lib_common_index_js.js:22611:20)
+    at _getResolvedFromBinding (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/vendors-node_modules_theia_core_lib_common_index_js.js:22721:58)
+    at /home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/vendors-node_modules_theia_core_lib_common_index_js.js:22741:22
+    at _resolveInScope (/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/vendors-node_modules_theia_core_lib_common_index_js.js:22734:14)
+Opening channel for service path '/services/electron-window'.
+2026-01-24T13:21:18.492Z root INFO [writenow-core] frontend started
+2026-01-24T13:21:18.501Z root INFO Start frontend contributions: 141.4 ms [Finished 1.304 s after frontend start]
+2026-01-24T13:21:18.502Z root INFO Changed application state from 'init' to 'started_contributions'.
+2026-01-24T13:21:18.502Z root INFO Changed application state from 'started_contributions' to 'attached_shell'.
+2026-01-24T13:21:18.502Z root INFO >>> Restoring the layout state...
+2026-01-24T13:21:18.662Z root INFO <<< Nothing to restore.
+2026-01-24T13:21:18.663Z root WARN Linked preference "workbench.colorCustomizations" not found.
+2026-01-24T13:21:18.762Z root ERROR [writenow-db] init failed: Unable to load schema.sql.
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/electron-app/lib/backend/schema.sql'
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql: ENOENT: no such file or directory, open '/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/src/node/database/schema.sql'
+2026-01-24T13:21:18.762Z root ERROR [skills] list failed: Failed to initialize database
+2026-01-24T13:21:20.793Z root WARN Widget was activated, but did not accept focus after 2000ms: writenow.welcome
+2026-01-24T13:21:21.039Z root WARN Frontend WritenowLayoutContribution.initializeLayout took longer than the expected maximum 100 milliseconds: 2359.3 ms [Finished 3.851 s after frontend start]
+2026-01-24T13:21:21.044Z root INFO Initialize the workbench layout: 2541.0 ms [Finished 3.857 s after frontend start]
+2026-01-24T13:21:21.044Z root INFO Changed application state from 'attached_shell' to 'initialized_layout'.
+2026-01-24T13:21:21.855Z root INFO Replace loading indicator with ready workbench UI (animation): 810.0 ms [Finished 4.668 s after frontend start]
+2026-01-24T13:21:21.855Z root INFO Frontend application start: 3463.1 ms [Finished 5.097 s after backend start]
+2026-01-24T13:21:21.855Z root INFO Changed application state from 'initialized_layout' to 'ready'.
+2026-01-24T13:21:40.142Z root INFO socket closed
+2026-01-24T13:21:40.142Z root INFO closing connection for 1
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/localization-server'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/os'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/commands'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/logger'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/messageService'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/ChannelCloseService'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/remote-filesystem'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/envs'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/workspace'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/keyboard'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/stopwatch'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/application'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/i18n'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/quickInput'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/cli-preferences'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/writenow/ai'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/writenow/skills'.
+2026-01-24T13:21:40.142Z root INFO Closing channel on service path '/services/search-in-workspace'.
+/home/leeky/work/WriteNow/.worktrees/issue-164-sprint-cleanup/writenow-theia/node_modules/electron/dist/electron exited with signal SIGTERM

@@ -1,6 +1,6 @@
 # SKILL System V2（可复用 / 可升级 / 可组合）
 
-Status: partially delivered; remaining tasks paused (2026-01-22; see `openspec/specs/sprint-theia-migration/spec.md`)
+Status: partially delivered; remaining tasks paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # 任务 008: 风格学习（作品 → 风格 SKILL，隐私优先）（P3）
 
-Status: paused (2026-01-22; Theia migration changes the IPC/RPC transport: see `openspec/specs/sprint-theia-migration/spec.md`)
+Status: paused (2026-01-24; unblocked by Theia baseline; needs re-scheduling)
 
 ## 目标
 

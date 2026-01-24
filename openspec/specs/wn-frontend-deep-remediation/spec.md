@@ -1,6 +1,8 @@
 # FRONTEND 深度修复规范（UX/DX + 设计系统）
 
-Status: paused (2026-01-22; blocked by `openspec/specs/sprint-theia-migration/spec.md`)
+Status: deprecated (2026-01-24; legacy React frontend removed; UI baseline is Theia under `writenow-theia/`)
+
+> 已废弃：本规范面向旧的 React 前端（`src/`）与其设计系统改造。当前仓库前端已迁移到 Theia（`writenow-theia/`），因此本 spec 不再作为执行入口。
 
 ## Purpose
 

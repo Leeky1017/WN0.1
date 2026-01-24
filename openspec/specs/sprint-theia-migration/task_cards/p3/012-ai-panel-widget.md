@@ -1,5 +1,10 @@
 # 012: AI Panel Widget（Theia Widget 化）
 
+Status: done  
+Issue: #156  
+PR: https://github.com/Leeky1017/WN0.1/pull/157  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-156.md
+
 ## Context
 
 AI 面板是 WriteNow 的核心交互入口。迁移到 Theia 后，需要将现有 AI 面板 UI/状态机重做为 Theia Widget，并把 streaming 事件流迁移到 Theia RPC/notifications。
@@ -22,9 +27,9 @@ AI 面板是 WriteNow 的核心交互入口。迁移到 Theia 后，需要将现
 
 ## Acceptance Criteria
 
-- [ ] AI Panel Widget 可打开/关闭/聚焦，布局与主题符合基础骨架。
-- [ ] 至少一个端到端 AI 流式请求在 Theia 上可跑通（含取消），且失败路径可观测。
-- [ ] 不存在 silent failure：错误码/错误信息可定位，pending 状态被清理。
+- [x] AI Panel Widget 可打开/关闭/聚焦，布局与主题符合基础骨架。
+- [x] 至少一个端到端 AI 流式请求在 Theia 上可跑通（含取消），且失败路径可观测。
+- [x] 不存在 silent failure：错误码/错误信息可定位，pending 状态被清理。
 
 ## Dependencies
 

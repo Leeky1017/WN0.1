@@ -144,35 +144,6 @@ function renderIpcGeneratedTs({ baseTypes, channelTypes, invokeChannels }) {
   );
 }
 
-function renderPreloadInvokeAllowlist(invokeChannels) {
-  const lines = invokeChannels.map((c) => `  '${c}',`).join('\n');
-  return `// IPC_CONTRACT_AUTOGEN_INVOKE_START\n${lines}\n  // IPC_CONTRACT_AUTOGEN_INVOKE_END`;
-}
-
-async function updatePreloadAllowlist({ repoRoot, invokeChannels, checkOnly }) {
-  const preloadPath = path.join(repoRoot, 'electron', 'preload.cjs');
-  const original = await fs.readFile(preloadPath, 'utf8');
-
-  const startMarker = '// IPC_CONTRACT_AUTOGEN_INVOKE_START';
-  const endMarker = '// IPC_CONTRACT_AUTOGEN_INVOKE_END';
-  const startIdx = original.indexOf(startMarker);
-  const endIdx = original.indexOf(endMarker);
-  if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) {
-    throw new Error(`preload allowlist markers not found in ${preloadPath}`);
-  }
-
-  const before = original.slice(0, startIdx);
-  const after = original.slice(endIdx + endMarker.length);
-  const replacement = renderPreloadInvokeAllowlist(invokeChannels);
-  const next = `${before}${replacement}${after}`;
-
-  if (next === original) return { changed: false, preloadPath };
-  if (checkOnly) return { changed: true, preloadPath };
-
-  await fs.writeFile(preloadPath, next, 'utf8');
-  return { changed: true, preloadPath };
-}
-
 async function diffTextFiles({ repoRoot, label, expectedPath, actualText }) {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'writenow-ipc-contract-'));
   const tmpFile = path.join(tmpDir, `${label}.generated`);
@@ -206,7 +177,6 @@ async function main() {
   const existing = await fs.readFile(outPath, 'utf8').catch(() => null);
   const theiaExisting = await fs.readFile(theiaOutPath, 'utf8').catch(() => null);
 
-  const preloadResult = await updatePreloadAllowlist({ repoRoot, invokeChannels, checkOnly });
 
   if (checkOnly) {
     const mismatches = [];
@@ -214,7 +184,6 @@ async function main() {
     else if (existing !== generatedTs) mismatches.push(`drift detected: ${outPath}`);
     if (theiaExisting === null) mismatches.push(`missing ${theiaOutPath}`);
     else if (theiaExisting !== generatedTs) mismatches.push(`drift detected: ${theiaOutPath}`);
-    if (preloadResult.changed) mismatches.push(`drift detected: ${preloadResult.preloadPath}`);
 
     if (mismatches.length === 0) return;
 
