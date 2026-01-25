@@ -49,3 +49,4 @@
 
 - Command: `npm run lint`
 - Key output: `Done in 3.21s.` (all checks passed)
+- Evidence: `writenow-theia/writenow-core/src/browser/navigator/navigator-context-menu-contribution.ts` (new), `writenow-theia/writenow-core/src/browser/editor-context-menu.tsx` (modified), `writenow-theia/writenow-core/src/browser/editor-toolbar.tsx` (modified)
