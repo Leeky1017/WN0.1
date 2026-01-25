@@ -2,7 +2,7 @@
 
 - Issue: #184
 - Branch: task/184-p1-quality-fix
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/185
 
 ## Plan
 
