@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. P2-001: 可访问性基础 - 添加 focus-ring token，修复 ARIA 标签
-2. P2-002: 高对比度主题 - 创建 theme-high-contrast.css
-3. P2-003~008: 新增 6 个 Widget（角色、术语、统计、日志、指南、更新）
+- P2-001: 可访问性基础 - 添加 focus-ring token，修复 ARIA 标签
+- P2-002: 高对比度主题 - 创建 theme-high-contrast.css
+- P2-003~008: 新增 6 个 Widget（角色、术语、统计、日志、指南、更新）
 
 ## Runs
 
