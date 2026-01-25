@@ -433,3 +433,181 @@
 .wn-find-replace-close {
     margin-left: auto;
 }
+
+/* ===== TOOLBAR SPACER ===== */
+.wn-toolbar-spacer {
+    flex: 1;
+}
+
+/* ===== TOOLBAR TOGGLE GROUP ===== */
+.wn-toolbar-toggle {
+    display: flex;
+    align-items: center;
+    background: var(--wn-surface-subtle);
+    border-radius: var(--wn-radius-md);
+    padding: 2px;
+}
+
+.wn-toolbar-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-radius-sm);
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-xs);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-toolbar-toggle-btn:hover {
+    color: var(--wn-text-secondary);
+}
+
+.wn-toolbar-toggle-btn--active {
+    background: var(--wn-surface-base);
+    color: var(--wn-text-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== TOOLBAR STATS ===== */
+.wn-toolbar-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px;
+}
+
+.wn-toolbar-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--wn-text-muted);
+    font-size: var(--wn-text-xs);
+}
+
+.wn-toolbar-stat .codicon {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* ===== INSERT DIALOGS ===== */
+.wn-toolbar-dialog {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--wn-z-modal);
+    min-width: 280px;
+    margin-top: var(--wn-space-2);
+    background: var(--wn-surface-raised);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.wn-toolbar-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wn-space-3) var(--wn-space-4);
+    border-bottom: 1px solid var(--wn-border-subtle);
+    font-weight: var(--wn-font-medium);
+}
+
+.wn-toolbar-dialog-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    border-radius: var(--wn-radius-sm);
+    color: var(--wn-text-muted);
+    cursor: pointer;
+}
+
+.wn-toolbar-dialog-close:hover {
+    background: var(--wn-surface-hover);
+    color: var(--wn-text-primary);
+}
+
+.wn-toolbar-dialog-body {
+    padding: var(--wn-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wn-space-3);
+}
+
+.wn-toolbar-dialog-row {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-3);
+}
+
+.wn-toolbar-dialog-row label {
+    min-width: 40px;
+    color: var(--wn-text-secondary);
+    font-size: var(--wn-text-sm);
+}
+
+.wn-toolbar-dialog-input {
+    flex: 1;
+    height: var(--wn-input-height);
+    padding: 0 var(--wn-space-3);
+    background: var(--wn-surface-base);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-input-radius);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-sm);
+}
+
+.wn-toolbar-dialog-input:focus {
+    outline: none;
+    border-color: var(--wn-accent-fg);
+}
+
+.wn-toolbar-dialog-input--small {
+    width: 80px;
+    flex: none;
+}
+
+.wn-toolbar-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--wn-space-2);
+    padding: var(--wn-space-3) var(--wn-space-4);
+    border-top: 1px solid var(--wn-border-subtle);
+}
+
+.wn-toolbar-dialog-btn {
+    padding: var(--wn-space-2) var(--wn-space-4);
+    background: var(--wn-surface-subtle);
+    border: none;
+    border-radius: var(--wn-button-radius);
+    color: var(--wn-text-primary);
+    font-size: var(--wn-text-sm);
+    cursor: pointer;
+    transition: background var(--wn-transition-fast);
+}
+
+.wn-toolbar-dialog-btn:hover:not(:disabled) {
+    background: var(--wn-surface-hover);
+}
+
+.wn-toolbar-dialog-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.wn-toolbar-dialog-btn--primary {
+    background: var(--wn-accent-fg);
+    color: white;
+}
+
+.wn-toolbar-dialog-btn--primary:hover:not(:disabled) {
+    background: var(--wn-accent-emphasis);
+}
