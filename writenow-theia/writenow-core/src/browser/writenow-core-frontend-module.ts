@@ -33,6 +33,7 @@ import { OutlineContribution, OutlineWidgetFactory } from './outline/outline-con
 import { HelpContribution, ShortcutsDialogFactory, AboutDialogFactory } from './help/help-contribution';
 import { NotificationService } from './notification/notification-widget';
 import { NotificationContribution, NotificationWidgetFactory } from './notification/notification-contribution';
+import { NavigatorContextMenuContribution } from './navigator/navigator-context-menu-contribution';
 
 @injectable()
 class WritenowHiddenProblemContribution extends ProblemContribution {
@@ -150,4 +151,10 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(FrontendApplicationContribution).toService(NotificationContribution);
     bind(NotificationWidgetFactory).toSelf().inSingletonScope();
     bind(WidgetFactory).to(NotificationWidgetFactory).inSingletonScope();
+
+    // Navigator context menu (P1-002)
+    bind(NavigatorContextMenuContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(NavigatorContextMenuContribution);
+    bind(MenuContribution).toService(NavigatorContextMenuContribution);
+    bind(KeybindingContribution).toService(NavigatorContextMenuContribution);
 });

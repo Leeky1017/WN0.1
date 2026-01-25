@@ -102,17 +102,12 @@ function OutlineView(props: OutlineViewProps): React.ReactElement {
     const handleClick = (heading: HeadingItem): void => {
         setSelectedId(heading.id);
 
-        // Scroll to heading in editor
+        // Scroll to heading in editor using public API
         const editor = activeEditor.getActive();
         if (editor) {
-            // Why: We use replaceRange to move cursor to the heading position
-            // This is a simplified approach; a more robust solution would use
-            // ProseMirror's document structure to find the exact node.
-            const tiptapEditor = (editor as unknown as { tiptapEditor?: { commands: { focus: () => void; setTextSelection: (pos: number) => void } } }).tiptapEditor;
-            if (tiptapEditor) {
-                tiptapEditor.commands.focus();
-                tiptapEditor.commands.setTextSelection(heading.position);
-            }
+            // Why: Use the public scrollToPosition API instead of accessing
+            // private TipTap editor instance with unsafe type assertions.
+            editor.scrollToPosition(heading.position);
         }
     };
 

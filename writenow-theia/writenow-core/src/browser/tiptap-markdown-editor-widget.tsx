@@ -492,6 +492,30 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     }
 
     /**
+     * Scroll to a specific position in the document.
+     *
+     * Why: Provides a public API for outline navigation without requiring
+     * type assertions or access to private TipTap editor instance.
+     */
+    scrollToPosition(position: number): void {
+        const editor = this.tiptapEditor;
+        if (!editor) return;
+
+        const docSize = editor.state.doc.content.size;
+        const clampedPos = Math.max(0, Math.min(position, docSize));
+
+        editor.commands.focus();
+        editor.commands.setTextSelection(clampedPos);
+
+        // Scroll the cursor into view
+        const { view } = editor;
+        const { node } = view.domAtPos(clampedPos);
+        if (node instanceof HTMLElement) {
+            node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    /**
      * Toggle focus mode.
      *
      * Why: Focus mode hides UI chrome (toolbar, sidebars) for distraction-free writing.
