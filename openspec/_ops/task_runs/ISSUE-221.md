@@ -2,7 +2,7 @@
 
 - Issue: #221
 - Branch: task/221-phase1-hotfix
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/222
 
 ## Plan
 
