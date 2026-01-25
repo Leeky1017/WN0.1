@@ -9,7 +9,7 @@ import type { PanelComponent } from './layout-config';
 import { LayoutApiProvider } from './layout-api-provider';
 import type { LayoutApi } from './layout-api-context';
 import { loadLayout, saveLayout } from '@/lib/layout/persistence';
-import { useLayoutStore } from '@/stores';
+import { useEditorFilesStore, useLayoutStore } from '@/stores';
 import { FileTreePanel } from '@/features/file-tree/FileTreePanel';
 import { EditorPanel } from '@/features/editor/EditorPanel';
 import { AIPanelPlaceholder } from '@/features/ai-panel/AIPanelPlaceholder';
@@ -89,9 +89,33 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
   
   // 处理 Action（可用于拦截特定操作）
   const handleAction = useCallback((action: Action): Action | undefined => {
-    // 可以在这里拦截特定 action，例如阻止关闭某些 tab
+    // Intercept editor tab closing when there are unsaved changes.
+    if (action.type === Actions.DELETE_TAB) {
+      const tabId = (action.data as { node?: unknown } | undefined)?.node;
+      if (typeof tabId === 'string') {
+        const node = model.getNodeById(tabId);
+        if (node && node.getType() === 'tab') {
+          const tab = node as TabNode;
+          const component = tab.getComponent() as PanelComponent;
+          if (component === 'Editor') {
+            const config = tab.getConfig() as { filePath?: unknown } | undefined;
+            const filePath = typeof config?.filePath === 'string' ? config.filePath : '';
+            if (filePath && useEditorFilesStore.getState().getDirty(filePath)) {
+              const ok = window.confirm('该文件有未保存修改，仍要关闭吗？');
+              if (!ok) return undefined;
+            }
+
+            // Remove cached state once the tab is allowed to close.
+            if (filePath) {
+              useEditorFilesStore.getState().remove(filePath);
+            }
+          }
+        }
+      }
+    }
+
     return action;
-  }, []);
+  }, [model]);
 
   const openEditorTab = useCallback(
     (filePath: string) => {
@@ -132,6 +156,29 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
     [model],
   );
 
+  const setEditorTabDirty = useCallback(
+    (filePath: string, isDirty: boolean) => {
+      const normalizedPath = filePath.trim();
+      if (!normalizedPath) return;
+
+      let tabId: string | null = null;
+      model.visitNodes((node) => {
+        if (tabId) return;
+        if (node.getType() !== 'tab') return;
+        const tab = node as TabNode;
+        if (tab.getComponent() !== 'Editor') return;
+        const config = tab.getConfig() as { filePath?: unknown } | undefined;
+        if (config?.filePath === normalizedPath) tabId = tab.getId();
+      });
+      if (!tabId) return;
+
+      const fileName = normalizedPath.split('/').pop() || normalizedPath;
+      const name = isDirty ? `● ${fileName}` : fileName;
+      model.doAction(Actions.renameTab(tabId, name));
+    },
+    [model],
+  );
+
   const focusAiPanel = useCallback(() => {
     let aiTabId: string | null = null;
     model.visitNodes((node) => {
@@ -145,7 +192,10 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
     }
   }, [model]);
 
-  const layoutApi = useMemo<LayoutApi>(() => ({ openEditorTab, focusAiPanel }), [focusAiPanel, openEditorTab]);
+  const layoutApi = useMemo<LayoutApi>(
+    () => ({ openEditorTab, focusAiPanel, setEditorTabDirty }),
+    [focusAiPanel, openEditorTab, setEditorTabDirty],
+  );
   
   // 添加键盘快捷键支持
   useEffect(() => {

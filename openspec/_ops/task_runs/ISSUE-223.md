@@ -56,3 +56,28 @@
 - Command: `cd writenow-frontend && npm run build`
 - Key output: `✓ built in 4.97s` (chunk-size warning only)
 - Evidence: `writenow-frontend/dist/`
+
+### 2026-01-25 20:23 deps (TipTap editor)
+- Command: `cd writenow-frontend && npm install @tiptap/* (editor dependencies)`
+- Key output: `added 76 packages ... audited 370 packages (0 vulnerabilities)`
+- Evidence: `writenow-frontend/package.json`, `writenow-frontend/package-lock.json`
+
+### 2026-01-25 20:36 lint (writenow-frontend, Phase 2)
+- Command: `cd writenow-frontend && npm run lint`
+- Key output: `ExportDialog.tsx no-control-regex (sanitize filename regexp)` (exit 1)
+- Evidence: `writenow-frontend/src/features/export/ExportDialog.tsx`
+
+### 2026-01-25 20:38 build (writenow-frontend, Phase 2)
+- Command: `cd writenow-frontend && npm run build`
+- Key output: `TS2305 BubbleMenu missing; TS2613 @tiptap/extension-table has no default export` (exit 2)
+- Evidence: `writenow-frontend/src/components/editor/FloatingToolbar.tsx`, `writenow-frontend/src/components/editor/TipTapEditor.tsx`
+
+### 2026-01-25 20:41 lint (writenow-frontend, Phase 2)
+- Command: `cd writenow-frontend && npm run lint`
+- Key output: `eslint .` (exit 0)
+- Evidence: `writenow-frontend/src/components/editor/*`, `writenow-frontend/src/features/editor/EditorPanel.tsx`, `writenow-frontend/src/features/export/ExportDialog.tsx`
+
+### 2026-01-25 20:41 build (writenow-frontend, Phase 2)
+- Command: `cd writenow-frontend && npm run build`
+- Key output: `✓ built in 4.28s` (chunk-size warning only)
+- Evidence: `writenow-frontend/dist/`

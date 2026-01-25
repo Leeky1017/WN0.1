@@ -9,6 +9,11 @@ import { createContext, useContext } from 'react';
 export interface LayoutApi {
   openEditorTab: (filePath: string) => void;
   focusAiPanel: () => void;
+  /**
+   * Update the editor tab title to reflect unsaved changes.
+   * Why: FlexLayout owns the tab UI; editor panels must request a tab title update via an explicit API.
+   */
+  setEditorTabDirty: (filePath: string, isDirty: boolean) => void;
 }
 
 export const LayoutApiContext = createContext<LayoutApi | null>(null);
@@ -20,4 +25,3 @@ export function useLayoutApi(): LayoutApi {
   }
   return api;
 }
-

@@ -5,6 +5,7 @@
 
 import { useEffect } from 'react';
 import { AppLayout, StatusBar } from '@/components/layout';
+import { TooltipProvider } from '@/components/ui';
 import { useRpcConnection } from '@/lib/hooks';
 import { useStatusBarStore } from '@/stores';
 
@@ -22,15 +23,17 @@ function App() {
   }, [isConnected, setConnectionStatus]);
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-app)]">
-      {/* Main Layout Area */}
-      <div className="flex-1 overflow-hidden">
-        <AppLayout />
+    <TooltipProvider>
+      <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-app)]">
+        {/* Main Layout Area */}
+        <div className="flex-1 overflow-hidden">
+          <AppLayout />
+        </div>
+
+        {/* Status Bar */}
+        <StatusBar />
       </div>
-      
-      {/* Status Bar */}
-      <StatusBar />
-    </div>
+    </TooltipProvider>
   );
 }
 
