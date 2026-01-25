@@ -212,7 +212,8 @@ type SlashCommandMenuProps = Readonly<{
 }>;
 
 function SlashCommandMenu(props: SlashCommandMenuProps): React.ReactElement | null {
-    const { filter, selectedIndex, onSelect, onClose } = props;
+    const { filter, selectedIndex, onSelect } = props;
+    // Note: onClose is available via props but currently handled by parent component
 
     const filtered = React.useMemo(() => {
         if (!filter) return SLASH_COMMANDS;
@@ -732,7 +733,14 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         if (runStatus === 'streaming') return;
         // Remove last assistant message and resend
         setMessages((prev) => {
-            const lastUserIdx = prev.findLastIndex((m) => m.role === 'user');
+            // Find last user message index (compatible with ES2020)
+            let lastUserIdx = -1;
+            for (let i = prev.length - 1; i >= 0; i--) {
+                if (prev[i].role === 'user') {
+                    lastUserIdx = i;
+                    break;
+                }
+            }
             if (lastUserIdx >= 0) {
                 return prev.slice(0, lastUserIdx + 1);
             }
