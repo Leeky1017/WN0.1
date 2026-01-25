@@ -53,18 +53,18 @@ export class WritenowBackendService implements WritenowRpcService {
         contextService.register(this.registry);
 
         // Stats service (stats:getToday, stats:getRange, stats:increment)
-        this.registry.set('stats:getToday', async (_event, payload) => statsService.getToday(payload as never));
-        this.registry.set('stats:getRange', async (_event, payload) => statsService.getRange(payload as never));
-        this.registry.set('stats:increment', async (_event, payload) => statsService.increment(payload as never));
+        this.registry.handleInvoke('stats:getToday', (_event: unknown, payload: unknown) => statsService.getToday(payload as never));
+        this.registry.handleInvoke('stats:getRange', (_event: unknown, payload: unknown) => statsService.getRange(payload as never));
+        this.registry.handleInvoke('stats:increment', (_event: unknown, payload: unknown) => statsService.increment(payload as never));
 
         // Snapshot service (file:snapshot:latest, file:snapshot:write)
-        this.registry.set('file:snapshot:latest', async (_event, payload) => snapshotService.getLatestSnapshot(payload as never));
-        this.registry.set('file:snapshot:write', async (_event, payload) => snapshotService.writeSnapshot(payload as never));
+        this.registry.handleInvoke('file:snapshot:latest', (_event: unknown, payload: unknown) => snapshotService.getLatestSnapshot(payload as never));
+        this.registry.handleInvoke('file:snapshot:write', (_event: unknown, payload: unknown) => snapshotService.writeSnapshot(payload as never));
 
         // Export service (export:markdown, export:docx, export:pdf)
-        this.registry.set('export:markdown', async (_event, payload) => exportService.exportMarkdown(payload as never));
-        this.registry.set('export:docx', async (_event, payload) => exportService.exportDocx(payload as never));
-        this.registry.set('export:pdf', async (_event, payload) => exportService.exportPdf(payload as never));
+        this.registry.handleInvoke('export:markdown', (_event: unknown, payload: unknown) => exportService.exportMarkdown(payload as never));
+        this.registry.handleInvoke('export:docx', (_event: unknown, payload: unknown) => exportService.exportDocx(payload as never));
+        this.registry.handleInvoke('export:pdf', (_event: unknown, payload: unknown) => exportService.exportPdf(payload as never));
     }
 
     async invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>> {

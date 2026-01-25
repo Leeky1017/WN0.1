@@ -23,18 +23,18 @@ export class StatsService {
     /**
      * Why: Get today's writing statistics.
      */
-    async getToday(_request: StatsGetTodayRequest): Promise<StatsGetTodayResponse> {
+    getToday(_request: StatsGetTodayRequest): StatsGetTodayResponse {
         const today = this.formatDate(new Date());
-        const row = await this.getOrCreateRow(today);
+        const row = this.getOrCreateRow(today);
         return { stats: row };
     }
 
     /**
      * Why: Get writing statistics for a date range with aggregated summary.
      */
-    async getRange(request: StatsGetRangeRequest): Promise<StatsGetRangeResponse> {
+    getRange(request: StatsGetRangeRequest): StatsGetRangeResponse {
         const { startDate, endDate } = request;
-        const db = await this.db.getDb();
+        const db = this.db.db;
 
         const rows = db.prepare(`
             SELECT date, word_count, writing_minutes, articles_created, skills_used
@@ -73,13 +73,13 @@ export class StatsService {
     /**
      * Why: Increment writing statistics for a specific date (defaults to today).
      */
-    async increment(request: StatsIncrementRequest): Promise<StatsIncrementResponse> {
+    increment(request: StatsIncrementRequest): StatsIncrementResponse {
         const date = request.date ?? this.formatDate(new Date());
         const { increments } = request;
-        const db = await this.db.getDb();
+        const db = this.db.db;
 
         // Ensure row exists
-        await this.getOrCreateRow(date);
+        this.getOrCreateRow(date);
 
         // Build dynamic update SQL
         const updates: string[] = [];
@@ -117,8 +117,8 @@ export class StatsService {
     /**
      * Why: Get or create a stats row for a specific date.
      */
-    private async getOrCreateRow(date: string): Promise<WritingStatsRow> {
-        const db = await this.db.getDb();
+    private getOrCreateRow(date: string): WritingStatsRow {
+        const db = this.db.db;
 
         let row = db.prepare(`
             SELECT date, word_count, writing_minutes, articles_created, skills_used

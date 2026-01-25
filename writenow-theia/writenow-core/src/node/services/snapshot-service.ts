@@ -22,9 +22,9 @@ export class SnapshotService {
     /**
      * Why: Write a new snapshot of document content for recovery.
      */
-    async writeSnapshot(request: FileSnapshotWriteRequest): Promise<FileSnapshotWriteResponse> {
+    writeSnapshot(request: FileSnapshotWriteRequest): FileSnapshotWriteResponse {
         const { path, content, reason = 'auto' } = request;
-        const db = await this.db.getDb();
+        const db = this.db.db;
 
         const snapshotId = this.generateSnapshotId();
         const now = new Date().toISOString();
@@ -51,9 +51,9 @@ export class SnapshotService {
     /**
      * Why: Get the latest snapshot for crash recovery.
      */
-    async getLatestSnapshot(request: FileSnapshotLatestRequest): Promise<FileSnapshotLatestResponse> {
+    getLatestSnapshot(request: FileSnapshotLatestRequest): FileSnapshotLatestResponse {
         const { path } = request;
-        const db = await this.db.getDb();
+        const db = this.db.db;
 
         if (path) {
             // Get latest snapshot for specific path
