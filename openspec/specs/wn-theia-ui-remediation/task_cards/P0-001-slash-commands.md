@@ -8,11 +8,18 @@ Issue: #199
 
 ## Acceptance Criteria
 
-- [ ] 输入 "/" 触发弹出菜单
-- [ ] 菜单显示 4 个命令：polish（润色）、expand（扩写）、outline（大纲）、style（改写风格）
-- [ ] 支持键盘导航：↑↓ 选择，Enter 确认，Esc 关闭
-- [ ] 支持模糊搜索过滤（输入 /pol 只显示 polish）
-- [ ] 选择命令后自动设置对应 skillId 并发送
+- [x] 输入 "/" 触发弹出菜单
+- [x] 菜单显示 4 个命令：polish（润色）、expand（扩写）、outline（大纲）、style（改写风格）
+- [x] 支持键盘导航：↑↓ 选择，Enter 确认，Esc 关闭
+- [x] 支持模糊搜索过滤（输入 /pol 只显示 polish）
+- [x] 选择命令后自动设置对应 skillId 并发送
+
+## Completion
+
+- PR: https://github.com/Leeky1017/WN0.1/pull/200
+- 实现了 SlashCommandMenu 组件，支持 /polish、/expand、/condense 等命令
+- 支持键盘导航和模糊搜索
+- RUN_LOG: openspec/_ops/task_runs/ISSUE-199.md
 
 ## Implementation Notes
 

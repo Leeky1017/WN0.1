@@ -1,8 +1,10 @@
 # ISSUE-199
 
 - Issue: #199
-- Branch: task/199-theia-ai-panel-ux
-- PR: https://github.com/Leeky1017/WN0.1/pull/200
+- Branch: task/199-closeout
+- Original-Branch: task/199-theia-ai-panel-ux
+- PR: https://github.com/Leeky1017/WN0.1/pull/201
+- Original-PR: https://github.com/Leeky1017/WN0.1/pull/200
 
 ## Plan
 
@@ -34,3 +36,15 @@
   - writenow-theia/writenow-core/src/browser/style/tokens.css
   - writenow-theia/writenow-core/src/browser/style/ai-panel.css
   - writenow-theia/writenow-core/src/browser/ai-panel/ai-panel-widget.tsx
+
+### 2026-01-25 CI 修复与合并
+
+- Command: `gh pr view 200 --json state,mergedAt`
+- Key output: `{"mergedAt":"2026-01-25T05:06:48Z","state":"MERGED"}`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/200
+
+### 2026-01-25 控制面同步
+
+- Command: `git fetch origin && git pull origin main`
+- Key output: `HEAD is now at b69a829`
+- Evidence: 控制面 main 已同步
