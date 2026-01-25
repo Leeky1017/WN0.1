@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. 安装依赖并构建 Theia 应用（browser mode）
-2. 使用 MCP Browser 工具逐一验证 P0-P3 共 30 个功能
-3. 记录 bug 和体验问题，生成 QA 报告
+- 安装依赖并构建 Theia 应用（browser mode）
+- 使用 MCP Browser 工具逐一验证 P0-P3 共 30 个功能
+- 记录 bug 和体验问题，生成 QA 报告
 
 ## Runs
 
