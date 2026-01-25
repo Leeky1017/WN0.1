@@ -70,3 +70,23 @@ export const WRITENOW_LOG_VIEWER_WIDGET_ID = 'writenow.logViewer';
  * Why: User guide panel widget id (P2-007).
  */
 export const WRITENOW_USER_GUIDE_WIDGET_ID = 'writenow.userGuide';
+
+/**
+ * Why: Semantic search panel widget id (P3-002).
+ */
+export const WRITENOW_SEMANTIC_SEARCH_WIDGET_ID = 'writenow.semanticSearch';
+
+/**
+ * Why: Memory viewer panel widget id (P3-004).
+ */
+export const WRITENOW_MEMORY_VIEWER_WIDGET_ID = 'writenow.memoryViewer';
+
+/**
+ * Why: Constraint editor panel widget id (P3-003).
+ */
+export const WRITENOW_CONSTRAINT_EDITOR_WIDGET_ID = 'writenow.constraintEditor';
+
+/**
+ * Why: Context debugger panel widget id (P3-001).
+ */
+export const WRITENOW_CONTEXT_DEBUGGER_WIDGET_ID = 'writenow.contextDebugger';

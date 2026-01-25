@@ -43,6 +43,12 @@ import { LogViewerContribution, LogViewerWidgetFactory } from './log-viewer/log-
 import { UserGuideContribution, UserGuideWidgetFactory } from './user-guide/user-guide-contribution';
 import { UpdateContribution } from './update/update-contribution';
 
+// P3 Features
+import { SemanticSearchContribution, SemanticSearchWidgetFactory } from './semantic-search/semantic-search-contribution';
+import { MemoryViewerContribution, MemoryViewerWidgetFactory } from './memory-viewer/memory-viewer-contribution';
+import { ConstraintEditorContribution, ConstraintEditorWidgetFactory } from './constraint-editor/constraint-editor-contribution';
+import { ContextDebuggerContribution, ContextDebuggerWidgetFactory } from './context-debugger/context-debugger-contribution';
+
 @injectable()
 class WritenowHiddenProblemContribution extends ProblemContribution {
     /**
@@ -204,4 +210,33 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     // Update notification (P2-008)
     bind(UpdateContribution).toSelf().inSingletonScope();
     bind(FrontendApplicationContribution).toService(UpdateContribution);
+
+    // Semantic Search (P3-002)
+    bind(SemanticSearchContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(SemanticSearchContribution);
+    bind(MenuContribution).toService(SemanticSearchContribution);
+    bind(KeybindingContribution).toService(SemanticSearchContribution);
+    bind(SemanticSearchWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(SemanticSearchWidgetFactory).inSingletonScope();
+
+    // Memory Viewer (P3-004)
+    bind(MemoryViewerContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(MemoryViewerContribution);
+    bind(MenuContribution).toService(MemoryViewerContribution);
+    bind(MemoryViewerWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(MemoryViewerWidgetFactory).inSingletonScope();
+
+    // Constraint Editor (P3-003)
+    bind(ConstraintEditorContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(ConstraintEditorContribution);
+    bind(MenuContribution).toService(ConstraintEditorContribution);
+    bind(ConstraintEditorWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(ConstraintEditorWidgetFactory).inSingletonScope();
+
+    // Context Debugger (P3-001)
+    bind(ContextDebuggerContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(ContextDebuggerContribution);
+    bind(MenuContribution).toService(ContextDebuggerContribution);
+    bind(ContextDebuggerWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(ContextDebuggerWidgetFactory).inSingletonScope();
 });
