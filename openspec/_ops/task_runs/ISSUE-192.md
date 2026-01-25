@@ -2,7 +2,7 @@
 
 - Issue: #192
 - Branch: task/192-task-card-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/193
 
 ## Plan
 
