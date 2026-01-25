@@ -9,7 +9,7 @@
 | 优先级 | P0 |
 | 状态 | Done |
 | Issue | #223 |
-| PR | TBD |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
 | RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P2-001 |
 

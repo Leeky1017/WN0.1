@@ -1,7 +1,7 @@
 # ISSUE-223
 - Issue: #223
 - Branch: task/223-frontend-v2
-- PR: TBD
+- PR: https://github.com/Leeky1017/WN0.1/pull/224
 
 ## Plan
 - Review Electron integration design + P6 task cards

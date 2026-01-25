@@ -10,7 +10,7 @@
 | 状态 | Done |
 | 依赖 | P0-004 |
 | Issue | #223 |
-| PR | TBD |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
 | RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 
 ## 必读前置（执行前必须阅读）
