@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P3-002 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [ ] `spec.md` AI 面板 Requirement — 斜杠命令需求
+
 ## 目标
 
 在 AI 面板输入框中实现斜杠命令（/polish, /expand 等）。

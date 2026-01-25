@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P6-003 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/05-electron-integration.md` — 平台打包配置
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+
 ## 目标
 
 在各平台测试安装包，确保可正常安装和运行。

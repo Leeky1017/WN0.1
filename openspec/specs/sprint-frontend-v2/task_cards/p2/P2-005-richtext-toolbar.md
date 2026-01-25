@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P2-001 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 TipTap）**
+- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+
 ## 目标
 
 实现类似 Word/Notion 的可视化富文本工具栏，让不懂 Markdown 的普通创作者也能流畅完成所有格式化操作。

@@ -10,6 +10,52 @@
 | 上游依赖 | writenow-spec/spec.md |
 | 目标 | 脱离 Theia 前端，构建独立的高质量 React 前端 |
 
+---
+
+## 技术栈锁定（必读 · 禁止替换）
+
+> **警告**：以下技术选型已经过评估并锁定，**执行任务时禁止替换为其他方案**。如需变更，必须先提交 RFC 并获得批准。
+
+### 必读设计文档
+
+执行任何工程任务前，**必须先阅读以下设计文档**：
+
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| 系统概览 | `design/00-overview.md` | 目录结构、架构图 |
+| 设计令牌 | `design/01-design-tokens.md` | 颜色、间距、字体规范 |
+| **技术选型** | `design/02-tech-stack.md` | **核心选型，禁止替换** |
+| 布局系统 | `design/03-layout-system.md` | FlexLayout 配置 |
+| RPC 客户端 | `design/04-rpc-client.md` | 后端通信 |
+| Electron 集成 | `design/05-electron-integration.md` | 桌面打包 |
+
+### 锁定的核心技术（禁止替换）
+
+| 类别 | 锁定选型 | 禁止替换为 |
+|------|---------|-----------|
+| 构建工具 | **Vite 6.x** | Webpack, Parcel, Rollup |
+| UI 框架 | **React 18.x** | Vue, Svelte, Solid |
+| 类型系统 | **TypeScript 5.x（严格模式）** | JavaScript, Flow |
+| 样式方案 | **Tailwind CSS 4.x** | CSS Modules, Styled Components, Emotion |
+| 基础组件 | **shadcn/ui + Radix UI** | Ant Design, MUI, Chakra |
+| 编辑器 | **TipTap** | Monaco, Quill, Slate, ProseMirror 直接使用 |
+| 文件树 | **react-arborist** | rc-tree, react-treeview |
+| 布局系统 | **FlexLayout** | react-grid-layout, rc-dock |
+| 命令面板 | **cmdk** | kbar, react-command-palette |
+| 通知 | **sonner** | react-toastify, notistack |
+| 动画 | **Framer Motion** | react-spring, GSAP |
+| 全局状态 | **Zustand** | Redux, MobX, Jotai, Recoil |
+| 服务端状态 | **TanStack Query** | SWR, Apollo Client |
+| 桌面容器 | **Electron 34.x + electron-vite** | Tauri, NW.js |
+
+### 违规处理
+
+- 任何未经批准的技术替换视为**任务失败**
+- Agent 必须在执行前确认使用锁定的技术栈
+- 发现替换行为，代码不予合并
+
+---
+
 ## Purpose
 
 本 Sprint 的目标是：**脱离 Theia 前端框架，构建一个独立的、高质量的 Vite + React + Tailwind 前端**，达到 Cursor/Linear 级别的视觉和交互质量，同时保留 Theia 后端服务。

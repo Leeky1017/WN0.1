@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P6-004 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 Framer Motion）**
+- [ ] `design/01-design-tokens.md` — 动效时长规范
+
 ## 目标
 
 使用 Framer Motion 实现流畅、有意义的过渡动画。

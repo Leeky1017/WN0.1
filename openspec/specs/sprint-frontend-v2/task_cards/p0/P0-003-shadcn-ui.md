@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P0-002 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 shadcn/ui）**
+
 ## 目标
 
 集成 shadcn/ui 基础组件库，并调整样式以符合 Design Tokens。

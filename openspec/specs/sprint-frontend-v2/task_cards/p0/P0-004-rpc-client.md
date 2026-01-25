@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P0-001 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/04-rpc-client.md` — RPC 客户端设计
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+
 ## 目标
 
 实现 WebSocket JSON-RPC 客户端，能够连接 Theia 后端并进行类型安全的 RPC 调用。

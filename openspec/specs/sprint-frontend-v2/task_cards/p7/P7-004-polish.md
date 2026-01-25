@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P7-001 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+
 ## 目标
 
 打磨 UI 细节，确保 hover/focus/active 效果一致且精美。

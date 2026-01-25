@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P0-005 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/03-layout-system.md` — 布局系统设计
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 FlexLayout）**
+
 ## 目标
 
 使用 FlexLayout 实现 IDE 级别的可拖拽布局系统。

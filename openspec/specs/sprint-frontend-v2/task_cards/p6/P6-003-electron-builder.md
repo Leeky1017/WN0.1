@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P6-002 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/05-electron-integration.md` — Electron Builder 配置
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+
 ## 目标
 
 使用 electron-builder 配置生产打包。
