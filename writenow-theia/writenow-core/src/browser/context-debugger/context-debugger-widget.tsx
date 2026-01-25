@@ -10,7 +10,6 @@ import type {
     ContextWritenowRulesGetResponse,
     ContextWritenowSettingsListResponse,
     MemoryInjectionPreviewResponse,
-    RagRetrieveResponse,
 } from '../../common/ipc-generated';
 
 /**

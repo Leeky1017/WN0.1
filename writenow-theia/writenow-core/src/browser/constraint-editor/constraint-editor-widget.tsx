@@ -93,7 +93,8 @@ function ConstraintEditorView(props: {
     const [config, setConfig] = React.useState<ConstraintsConfig | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [isEditing, setIsEditing] = React.useState(false);
-    const [editingRule, setEditingRule] = React.useState<ConstraintRule | null>(null);
+    // Note: editingRule reserved for future edit functionality
+    const [_editingRule, _setEditingRule] = React.useState<ConstraintRule | null>(null);
     const [formState, setFormState] = React.useState<{
         type: ConstraintType;
         level: ConstraintLevel;

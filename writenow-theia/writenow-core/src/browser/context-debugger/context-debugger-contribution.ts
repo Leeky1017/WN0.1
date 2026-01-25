@@ -48,13 +48,12 @@ export class ContextDebuggerContribution implements CommandContribution, MenuCon
 
     registerMenus(menus: MenuModelRegistry): void {
         // Register Developer submenu under View
-        menus.registerSubmenu(DEVELOPER_MENU, '开发者工具', { order: 'z' });
+        menus.registerSubmenu(DEVELOPER_MENU, '开发者工具');
 
         // Register Context Debugger under View > Developer
         menus.registerMenuAction(DEVELOPER_MENU, {
             commandId: ContextDebuggerCommands.OPEN.id,
             label: ContextDebuggerCommands.OPEN.label,
-            order: 'a1',
         });
     }
 }
