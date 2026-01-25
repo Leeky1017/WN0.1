@@ -6,14 +6,14 @@
 |-------|------|--------|------|
 | P0 | 基础设施 | 5 | Pending |
 | P1 | 核心布局 | 4 | Pending |
-| P2 | 编辑器 | 4 | Pending |
+| P2 | 编辑器 | 7 | Pending |
 | P3 | AI 面板 | 4 | Pending |
 | P4 | 命令面板与设置 | 3 | Pending |
 | P5 | 辅助功能 | 3 | Pending |
 | P6 | Electron 打包 | 4 | Pending |
 | P7 | 打磨与优化 | 4 | Pending |
 
-**总计：31 个任务**
+**总计：34 个任务**
 
 ---
 
@@ -52,8 +52,11 @@
 | [P2-002](p2/P2-002-multi-tab.md) | 实现多标签编辑 | P0 | Pending |
 | [P2-003](p2/P2-003-auto-save.md) | 实现文件保存 | P0 | Pending |
 | [P2-004](p2/P2-004-floating-toolbar.md) | 实现浮动工具栏 | P1 | Pending |
+| [P2-005](p2/P2-005-richtext-toolbar.md) | 实现富文本工具栏 | P0 | Pending |
+| [P2-006](p2/P2-006-dual-mode.md) | 实现双模式切换 | P0 | Pending |
+| [P2-007](p2/P2-007-export-formats.md) | 实现多格式导出 | P1 | Pending |
 
-**验收标准**：可以打开、编辑、保存 Markdown 文件。
+**验收标准**：普通用户（不懂 Markdown）可以流畅地创作、编辑、导出文档。
 
 ---
 
