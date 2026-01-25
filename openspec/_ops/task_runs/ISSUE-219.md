@@ -64,3 +64,19 @@
 - Command: `npm run dev`
 - Key output: VITE v7.3.1 ready in 293 ms
 - Evidence: 开发服务器正常启动
+
+### 2026-01-25 修复导入错误
+
+- 问题: `ITabSetRenderValues` 和 `NodeRendererProps` 运行时导入失败
+- 修复: 移除不存在的导出，使用内联类型定义
+- Evidence: 控制台无错误，页面正常渲染
+
+### 2026-01-25 UI 验证（浏览器测试）
+
+- FlexLayout 四区布局: ✅ 正确展示
+- 文件树展示演示数据: ✅ 显示项目文件结构
+- 后端连接: ✅ 自动连接成功，显示项目 ID
+- 面板拖拽: ✅ FlexLayout 支持拖拽重排
+- AI 面板: ✅ 显示占位符内容
+- 欢迎面板: ✅ 显示快速开始选项
+- Evidence: 浏览器截图验证
