@@ -118,11 +118,15 @@ function HeadingDropdown(props: { editor: Editor | null }): React.ReactElement {
 
 /**
  * Link insertion dialog component.
+ *
+ * Why: Uses TipTap's Link extension when available for proper link handling,
+ * with Markdown fallback for compatibility.
  */
 function LinkDialog(props: { editor: Editor | null; onClose: () => void }): React.ReactElement {
     const { editor, onClose } = props;
     const [url, setUrl] = React.useState('');
     const [text, setText] = React.useState('');
+    const hasSelection = React.useRef(false);
 
     React.useEffect(() => {
         // Get selected text as default link text
@@ -130,16 +134,30 @@ function LinkDialog(props: { editor: Editor | null; onClose: () => void }): Reac
             const selection = editor.state.selection;
             const selectedText = editor.state.doc.textBetween(selection.from, selection.to, '');
             setText(selectedText);
+            hasSelection.current = selectedText.length > 0;
         }
     }, [editor]);
 
     const handleInsert = (): void => {
         if (!editor || !url) return;
         
-        if (text) {
-            editor.chain().focus().insertContent(`[${text}](${url})`).run();
+        // Try to use TipTap's Link extension if available
+        const canSetLink = editor.can().setLink?.({ href: url });
+        
+        if (canSetLink && hasSelection.current) {
+            // Use TipTap's native link extension for selected text
+            editor.chain().focus().setLink({ href: url }).run();
+        } else if (canSetLink && text) {
+            // Insert text then wrap with link
+            editor.chain().focus()
+                .insertContent(text)
+                .setTextSelection({ from: editor.state.selection.from - text.length, to: editor.state.selection.from })
+                .setLink({ href: url })
+                .run();
         } else {
-            editor.chain().focus().insertContent(`[${url}](${url})`).run();
+            // Fallback to Markdown format for editors without Link extension
+            const linkText = text || url;
+            editor.chain().focus().insertContent(`[${linkText}](${url})`).run();
         }
         onClose();
     };
@@ -183,6 +201,9 @@ function LinkDialog(props: { editor: Editor | null; onClose: () => void }): Reac
 
 /**
  * Image insertion dialog component.
+ *
+ * Why: Uses TipTap's Image extension when available for proper image handling,
+ * with Markdown fallback for compatibility.
  */
 function ImageDialog(props: { editor: Editor | null; onClose: () => void }): React.ReactElement {
     const { editor, onClose } = props;
@@ -192,7 +213,19 @@ function ImageDialog(props: { editor: Editor | null; onClose: () => void }): Rea
     const handleInsert = (): void => {
         if (!editor || !url) return;
         
-        editor.chain().focus().insertContent(`![${alt || '图片'}](${url})`).run();
+        // Check if TipTap's Image extension is available
+        // We use a type-safe approach by checking the commands registry
+        const commands = editor.commands as Record<string, unknown>;
+        const hasImageExtension = typeof commands.setImage === 'function';
+        
+        if (hasImageExtension) {
+            // Use TipTap's native image extension
+            (editor.chain().focus() as unknown as { setImage: (opts: { src: string; alt?: string }) => { run: () => void } })
+                .setImage({ src: url, alt: alt || undefined }).run();
+        } else {
+            // Fallback to Markdown format for editors without Image extension
+            editor.chain().focus().insertContent(`![${alt || '图片'}](${url})`).run();
+        }
         onClose();
     };
 
@@ -235,6 +268,9 @@ function ImageDialog(props: { editor: Editor | null; onClose: () => void }): Rea
 
 /**
  * Table insertion dialog component.
+ *
+ * Why: Uses TipTap's Table extension when available for proper table editing,
+ * with Markdown fallback for compatibility.
  */
 function TableDialog(props: { editor: Editor | null; onClose: () => void }): React.ReactElement {
     const { editor, onClose } = props;
@@ -244,15 +280,25 @@ function TableDialog(props: { editor: Editor | null; onClose: () => void }): Rea
     const handleInsert = (): void => {
         if (!editor) return;
         
-        // Generate markdown table
-        const header = '| ' + Array(cols).fill('标题').join(' | ') + ' |';
-        const separator = '| ' + Array(cols).fill('---').join(' | ') + ' |';
-        const dataRows = Array(rows - 1).fill(null).map(() => 
-            '| ' + Array(cols).fill('内容').join(' | ') + ' |'
-        );
+        // Check if TipTap's Table extension is available
+        const commands = editor.commands as Record<string, unknown>;
+        const hasTableExtension = typeof commands.insertTable === 'function';
         
-        const tableMarkdown = [header, separator, ...dataRows].join('\n');
-        editor.chain().focus().insertContent('\n' + tableMarkdown + '\n').run();
+        if (hasTableExtension) {
+            // Use TipTap's native table extension
+            (editor.chain().focus() as unknown as { insertTable: (opts: { rows: number; cols: number; withHeaderRow: boolean }) => { run: () => void } })
+                .insertTable({ rows, cols, withHeaderRow: true }).run();
+        } else {
+            // Fallback to Markdown format for editors without Table extension
+            const header = '| ' + Array(cols).fill('标题').join(' | ') + ' |';
+            const separator = '| ' + Array(cols).fill('---').join(' | ') + ' |';
+            const dataRows = Array(rows - 1).fill(null).map(() => 
+                '| ' + Array(cols).fill('内容').join(' | ') + ' |'
+            );
+            
+            const tableMarkdown = [header, separator, ...dataRows].join('\n');
+            editor.chain().focus().insertContent('\n' + tableMarkdown + '\n').run();
+        }
         onClose();
     };
 

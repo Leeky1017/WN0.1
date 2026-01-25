@@ -25,6 +25,54 @@ type EditorContextMenuProps = Readonly<{
 }>;
 
 /**
+ * Clipboard operations using modern Clipboard API with fallback.
+ *
+ * Why: document.execCommand is deprecated. Use navigator.clipboard when available.
+ */
+async function clipboardCut(editor: Editor | null): Promise<void> {
+    if (!editor) return;
+    
+    const { from, to } = editor.state.selection;
+    const text = editor.state.doc.textBetween(from, to, '\n');
+    
+    try {
+        await navigator.clipboard.writeText(text);
+        editor.commands.deleteSelection();
+    } catch {
+        // Fallback: trigger native cut via keyboard event simulation
+        document.execCommand('cut');
+    }
+}
+
+async function clipboardCopy(editor: Editor | null): Promise<void> {
+    if (!editor) return;
+    
+    const { from, to } = editor.state.selection;
+    const text = editor.state.doc.textBetween(from, to, '\n');
+    
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch {
+        // Fallback: trigger native copy
+        document.execCommand('copy');
+    }
+}
+
+async function clipboardPaste(editor: Editor | null): Promise<void> {
+    if (!editor) return;
+    
+    try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+            editor.commands.insertContent(text);
+        }
+    } catch {
+        // Fallback: trigger native paste (requires user gesture)
+        document.execCommand('paste');
+    }
+}
+
+/**
  * EditorContextMenu component.
  *
  * Why: Provides a custom right-click menu for the TipTap editor with
@@ -78,7 +126,7 @@ export function EditorContextMenu(props: EditorContextMenuProps): React.ReactEle
     const hasSelection = editor?.state.selection.from !== editor?.state.selection.to;
 
     const menuItems: ContextMenuItem[] = [
-        // Basic editing
+        // Basic editing - using modern Clipboard API
         {
             id: 'cut',
             label: '剪切',
@@ -86,7 +134,7 @@ export function EditorContextMenu(props: EditorContextMenuProps): React.ReactEle
             shortcut: '⌘X',
             disabled: !hasSelection,
             onClick: () => {
-                document.execCommand('cut');
+                void clipboardCut(editor);
                 onClose();
             },
         },
@@ -97,7 +145,7 @@ export function EditorContextMenu(props: EditorContextMenuProps): React.ReactEle
             shortcut: '⌘C',
             disabled: !hasSelection,
             onClick: () => {
-                document.execCommand('copy');
+                void clipboardCopy(editor);
                 onClose();
             },
         },
@@ -107,7 +155,7 @@ export function EditorContextMenu(props: EditorContextMenuProps): React.ReactEle
             icon: 'clippy',
             shortcut: '⌘V',
             onClick: () => {
-                document.execCommand('paste');
+                void clipboardPaste(editor);
                 onClose();
             },
         },

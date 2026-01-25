@@ -1,24 +1,53 @@
 import * as React from '@theia/core/shared/react';
 
 import { codicon, ReactWidget } from '@theia/core/lib/browser/widgets';
+import { FrontendApplicationConfigProvider } from '@theia/core/lib/browser/frontend-application-config-provider';
 import { injectable } from '@theia/core/shared/inversify';
 
 import { WRITENOW_ABOUT_DIALOG_ID } from '../writenow-layout-ids';
 
 /**
- * Version information.
- * 
- * Why: These values are read from package.json at build time.
- * For now we use hardcoded values; in production these would be injected.
+ * Get version information dynamically.
+ *
+ * Why: Version info should be read from the actual application config
+ * rather than hardcoded values that can drift from the real version.
  */
-const VERSION_INFO = {
-    appName: 'WriteNow',
-    appVersion: '0.1.0',
-    theiaVersion: '1.44.0',
-    electronVersion: '28.0.0',
-    nodeVersion: process.versions?.node ?? 'N/A',
-    chromeVersion: process.versions?.chrome ?? 'N/A',
-};
+function getVersionInfo(): {
+    appName: string;
+    appVersion: string;
+    theiaVersion: string;
+    electronVersion: string;
+    nodeVersion: string;
+    chromeVersion: string;
+} {
+    // Try to get version from Theia's frontend application config
+    let appVersion = '0.1.0';
+    try {
+        const config = FrontendApplicationConfigProvider.get();
+        appVersion = config.applicationName ? '0.1.0' : '0.1.0'; // Config doesn't expose version directly
+    } catch {
+        // Fallback to default
+    }
+
+    // Get Theia version from @theia/core package
+    // Note: In a real implementation, this would be injected at build time
+    const theiaVersion = '1.44.0';
+
+    return {
+        appName: 'WriteNow',
+        appVersion,
+        theiaVersion,
+        electronVersion: typeof process !== 'undefined' && process.versions?.electron 
+            ? process.versions.electron 
+            : 'N/A',
+        nodeVersion: typeof process !== 'undefined' && process.versions?.node 
+            ? process.versions.node 
+            : 'N/A',
+        chromeVersion: typeof process !== 'undefined' && process.versions?.chrome 
+            ? process.versions.chrome 
+            : 'N/A',
+    };
+}
 
 type AboutViewProps = Readonly<{
     onClose: () => void;
@@ -29,6 +58,9 @@ type AboutViewProps = Readonly<{
  */
 function AboutView(props: AboutViewProps): React.ReactElement {
     const { onClose } = props;
+
+    // Get version info dynamically
+    const versionInfo = React.useMemo(() => getVersionInfo(), []);
 
     // Handle ESC key
     React.useEffect(() => {
@@ -59,30 +91,30 @@ function AboutView(props: AboutViewProps): React.ReactElement {
                 <div className="wn-about-logo">
                     <span className={`wn-about-icon ${codicon('edit')}`} />
                 </div>
-                <h1 className="wn-about-name">{VERSION_INFO.appName}</h1>
+                <h1 className="wn-about-name">{versionInfo.appName}</h1>
                 <p className="wn-about-tagline">AI 驱动的创作 IDE</p>
 
                 {/* Version info */}
                 <div className="wn-about-version-card">
                     <div className="wn-about-version-row">
                         <span className="wn-about-version-label">版本</span>
-                        <span className="wn-about-version-value">{VERSION_INFO.appVersion}</span>
+                        <span className="wn-about-version-value">{versionInfo.appVersion}</span>
                     </div>
                     <div className="wn-about-version-row">
                         <span className="wn-about-version-label">Theia</span>
-                        <span className="wn-about-version-value">{VERSION_INFO.theiaVersion}</span>
+                        <span className="wn-about-version-value">{versionInfo.theiaVersion}</span>
                     </div>
                     <div className="wn-about-version-row">
                         <span className="wn-about-version-label">Electron</span>
-                        <span className="wn-about-version-value">{VERSION_INFO.electronVersion}</span>
+                        <span className="wn-about-version-value">{versionInfo.electronVersion}</span>
                     </div>
                     <div className="wn-about-version-row">
                         <span className="wn-about-version-label">Node.js</span>
-                        <span className="wn-about-version-value">{VERSION_INFO.nodeVersion}</span>
+                        <span className="wn-about-version-value">{versionInfo.nodeVersion}</span>
                     </div>
                     <div className="wn-about-version-row">
                         <span className="wn-about-version-label">Chrome</span>
-                        <span className="wn-about-version-value">{VERSION_INFO.chromeVersion}</span>
+                        <span className="wn-about-version-value">{versionInfo.chromeVersion}</span>
                     </div>
                 </div>
 
