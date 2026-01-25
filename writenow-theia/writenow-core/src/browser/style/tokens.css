@@ -136,6 +136,50 @@
 
     --wn-input-height: 30px;
 
+    /* ===== SEMANTIC TOKENS ===== */
+
+    /* Background surfaces */
+    --wn-bg-app: var(--wn-gray-900);
+    --wn-bg-panel: var(--wn-gray-850);
+    --wn-bg-card: var(--wn-gray-800);
+    --wn-bg-input: var(--wn-gray-800);
+    --wn-bg-hover: var(--wn-gray-750);
+    --wn-bg-active: var(--wn-gray-700);
+
+    /* Message bubbles */
+    --wn-bg-message-user: var(--wn-gray-700);
+    --wn-bg-message-assistant: var(--wn-gray-800);
+
+    /* Message action buttons */
+    --wn-bg-message-action: var(--wn-gray-700);
+    --wn-bg-message-action-hover: var(--wn-gray-600);
+
+    /* Slash command menu */
+    --wn-bg-menu: var(--wn-gray-800);
+    --wn-bg-menu-item-hover: var(--wn-gray-700);
+    --wn-bg-menu-item-selected: var(--wn-blue-600);
+
+    /* Text colors */
+    --wn-text-primary: var(--wn-gray-50);
+    --wn-text-secondary: var(--wn-gray-200);
+    --wn-text-tertiary: var(--wn-gray-400);
+    --wn-text-muted: var(--wn-gray-500);
+
+    /* Border colors */
+    --wn-border-default: var(--wn-gray-600);
+    --wn-border-subtle: var(--wn-gray-700);
+    --wn-border-strong: var(--wn-gray-500);
+
+    /* Accent colors */
+    --wn-accent-primary: var(--wn-blue-500);
+    --wn-accent-primary-hover: var(--wn-blue-400);
+
+    /* Diff colors */
+    --wn-diff-insert-bg: rgba(34, 197, 94, 0.2);
+    --wn-diff-insert-text: var(--wn-green-400);
+    --wn-diff-delete-bg: rgba(239, 68, 68, 0.2);
+    --wn-diff-delete-text: var(--wn-red-400);
+
     /* ===== Z-INDEX ===== */
 
     --wn-z-base: 0;

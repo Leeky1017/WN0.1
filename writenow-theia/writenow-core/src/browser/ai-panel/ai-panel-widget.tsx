@@ -53,6 +53,28 @@ type ChatMessage = {
 
 type SelectionSnapshot = { from: number; to: number; text: string };
 
+/**
+ * Slash command definition for quick access to skills.
+ *
+ * Why: Like Cursor, users should be able to type "/" to quickly access common AI actions
+ * without navigating through dropdown menus.
+ */
+type SlashCommand = {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    skillId: string | null;
+};
+
+const SLASH_COMMANDS: readonly SlashCommand[] = [
+    { id: 'polish', name: '/polish', description: '润色文本，优化表达', icon: '✨', skillId: 'pkg.writenow.builtin/1.0.0/polish' },
+    { id: 'expand', name: '/expand', description: '扩写内容，丰富细节', icon: '📝', skillId: 'pkg.writenow.builtin/1.0.0/expand' },
+    { id: 'condense', name: '/condense', description: '精简内容，保留核心', icon: '📋', skillId: 'pkg.writenow.builtin/1.0.0/condense' },
+    { id: 'outline', name: '/outline', description: '生成大纲结构', icon: '📑', skillId: null },
+    { id: 'style', name: '/style', description: '改写风格', icon: '🎨', skillId: null },
+];
+
 function coerceString(value: unknown): string {
     return typeof value === 'string' ? value.trim() : '';
 }
@@ -177,6 +199,106 @@ function renderTemplate(template: string, data: Record<string, string>): string 
     return rendered;
 }
 
+/**
+ * SlashCommandMenu component for quick command selection.
+ *
+ * Why: Provides Cursor-like slash command experience with keyboard navigation.
+ */
+type SlashCommandMenuProps = Readonly<{
+    filter: string;
+    selectedIndex: number;
+    onSelect: (cmd: SlashCommand) => void;
+    onClose: () => void;
+}>;
+
+function SlashCommandMenu(props: SlashCommandMenuProps): React.ReactElement | null {
+    const { filter, selectedIndex, onSelect } = props;
+    // Note: onClose is available via props but currently handled by parent component
+
+    const filtered = React.useMemo(() => {
+        if (!filter) return SLASH_COMMANDS;
+        const lower = filter.toLowerCase();
+        return SLASH_COMMANDS.filter((cmd) =>
+            cmd.id.includes(lower) || cmd.name.includes(lower) || cmd.description.includes(lower)
+        );
+    }, [filter]);
+
+    if (filtered.length === 0) return null;
+
+    return (
+        <div className="wn-ai-slash-menu" data-testid="writenow-ai-slash-menu">
+            <div className="wn-ai-slash-menu-header">快捷命令</div>
+            <div className="wn-ai-slash-menu-list">
+                {filtered.map((cmd, idx) => (
+                    <div
+                        key={cmd.id}
+                        className={`wn-ai-slash-menu-item${idx === selectedIndex ? ' wn-ai-slash-menu-item--selected' : ''}`}
+                        onClick={() => onSelect(cmd)}
+                        data-testid={`writenow-ai-slash-cmd-${cmd.id}`}
+                    >
+                        <div className="wn-ai-slash-menu-item-icon">{cmd.icon}</div>
+                        <div className="wn-ai-slash-menu-item-content">
+                            <div className="wn-ai-slash-menu-item-name">{cmd.name}</div>
+                            <div className="wn-ai-slash-menu-item-desc">{cmd.description}</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/**
+ * MessageBubble component with hover actions.
+ *
+ * Why: Like Cursor/ChatGPT, users should be able to copy or regenerate messages
+ * without leaving the chat flow.
+ */
+type MessageBubbleProps = Readonly<{
+    message: ChatMessage;
+    onCopy: (content: string) => void;
+    onRegenerate?: () => void;
+}>;
+
+function MessageBubble(props: MessageBubbleProps): React.ReactElement {
+    const { message, onCopy, onRegenerate } = props;
+    const isUser = message.role === 'user';
+    const isStreaming = message.status === 'streaming';
+
+    const wrapperClass = `wn-ai-message-wrapper wn-ai-message-wrapper--${message.role}`;
+    const messageClass = `wn-ai-message wn-ai-message--${message.role}${isStreaming ? ' wn-ai-message--streaming' : ''}`;
+
+    return (
+        <div className={wrapperClass} data-testid={`writenow-ai-message-${message.role}`}>
+            <div className="wn-ai-message-actions">
+                <button
+                    type="button"
+                    className="wn-ai-message-action-btn"
+                    onClick={() => onCopy(message.content)}
+                    title="复制"
+                    data-testid="writenow-ai-copy-btn"
+                >
+                    📋
+                </button>
+                {!isUser && onRegenerate && (
+                    <button
+                        type="button"
+                        className="wn-ai-message-action-btn"
+                        onClick={onRegenerate}
+                        title="重新生成"
+                        data-testid="writenow-ai-regenerate-btn"
+                    >
+                        🔄
+                    </button>
+                )}
+            </div>
+            <div className={messageClass}>
+                {message.content || (isStreaming ? '…' : '')}
+            </div>
+        </div>
+    );
+}
+
 type AiPanelViewProps = Readonly<{
     aiPanel: AiPanelService;
     writenow: WritenowFrontendService;
@@ -204,7 +326,13 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
     const [selection, setSelection] = React.useState<SelectionSnapshot | null>(null);
     const [suggestedText, setSuggestedText] = React.useState('');
 
+    // Slash command menu state
+    const [showSlashMenu, setShowSlashMenu] = React.useState(false);
+    const [slashFilter, setSlashFilter] = React.useState('');
+    const [slashSelectedIndex, setSlashSelectedIndex] = React.useState(0);
+
     const historyRef = React.useRef<HTMLDivElement | null>(null);
+    const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
 
     const scrollToBottom = React.useCallback(() => {
         const el = historyRef.current;
@@ -479,20 +607,147 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
      * Why: Build CSS class names dynamically for messages based on role and status.
      * This approach moves styling logic out of inline styles into the CSS file.
      */
-    const getMessageClassName = (m: ChatMessage): string => {
-        const classes = ['wn-ai-message'];
-        classes.push(m.role === 'user' ? 'wn-ai-message--user' : 'wn-ai-message--assistant');
-        if (m.status === 'streaming') classes.push('wn-ai-message--streaming');
-        if (m.status === 'error') classes.push('wn-ai-message--error');
-        return classes.join(' ');
-    };
-
     const getStatusClassName = (): string => {
         const classes = ['wn-ai-status'];
         if (runStatus === 'streaming') classes.push('wn-ai-status--streaming');
         if (runStatus === 'error') classes.push('wn-ai-status--error');
         return classes.join(' ');
     };
+
+    /**
+     * Handle slash command selection.
+     *
+     * Why: When user selects a slash command, we map it to the corresponding skill
+     * and trigger the send action automatically.
+     */
+    const handleSlashCommandSelect = React.useCallback((cmd: SlashCommand) => {
+        setShowSlashMenu(false);
+        setSlashFilter('');
+        setSlashSelectedIndex(0);
+        setInput('');
+
+        if (cmd.skillId) {
+            // Find matching skill in loaded skills
+            const matchingSkill = skills.find((s) => s.id === cmd.skillId);
+            if (matchingSkill) {
+                setSkillId(matchingSkill.id);
+                // Auto-trigger send after skill selection
+                setTimeout(() => {
+                    void onSend();
+                }, 50);
+            } else {
+                setRunError(`技能 ${cmd.skillId} 不可用`);
+            }
+        } else {
+            setRunError(`命令 ${cmd.name} 尚未实现`);
+        }
+    }, [skills, onSend]);
+
+    /**
+     * Handle input changes for slash command detection.
+     *
+     * Why: We need to detect when user types "/" at the start of input
+     * to show the slash command menu.
+     */
+    const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        setInput(value);
+
+        // Detect slash command
+        if (value.startsWith('/')) {
+            setShowSlashMenu(true);
+            setSlashFilter(value.slice(1));
+            setSlashSelectedIndex(0);
+        } else {
+            setShowSlashMenu(false);
+            setSlashFilter('');
+        }
+    }, []);
+
+    /**
+     * Handle keyboard navigation in slash menu.
+     */
+    const handleInputKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Escape') {
+            if (showSlashMenu) {
+                e.preventDefault();
+                setShowSlashMenu(false);
+                setSlashFilter('');
+                setInput('');
+            } else {
+                e.preventDefault();
+                onClosePanel();
+            }
+            return;
+        }
+
+        if (showSlashMenu) {
+            const filtered = slashFilter
+                ? SLASH_COMMANDS.filter((cmd) =>
+                    cmd.id.includes(slashFilter.toLowerCase()) ||
+                    cmd.name.includes(slashFilter.toLowerCase())
+                )
+                : SLASH_COMMANDS;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSlashSelectedIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+                return;
+            }
+
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSlashSelectedIndex((prev) => Math.max(prev - 1, 0));
+                return;
+            }
+
+            if (e.key === 'Enter' && filtered.length > 0) {
+                e.preventDefault();
+                handleSlashCommandSelect(filtered[slashSelectedIndex]);
+                return;
+            }
+
+            if (e.key === 'Tab' && filtered.length > 0) {
+                e.preventDefault();
+                handleSlashCommandSelect(filtered[slashSelectedIndex]);
+                return;
+            }
+        }
+    }, [showSlashMenu, slashFilter, slashSelectedIndex, handleSlashCommandSelect, onClosePanel]);
+
+    /**
+     * Handle copy message to clipboard.
+     */
+    const handleCopyMessage = React.useCallback((content: string) => {
+        void navigator.clipboard.writeText(content).then(() => {
+            notificationService.add('success', '已复制', '消息内容已复制到剪贴板');
+        }).catch(() => {
+            notificationService.add('error', '复制失败', '无法访问剪贴板');
+        });
+    }, [notificationService]);
+
+    /**
+     * Handle regenerate last assistant message.
+     */
+    const handleRegenerate = React.useCallback(() => {
+        if (runStatus === 'streaming') return;
+        // Remove last assistant message and resend
+        setMessages((prev) => {
+            // Find last user message index (compatible with ES2020)
+            let lastUserIdx = -1;
+            for (let i = prev.length - 1; i >= 0; i--) {
+                if (prev[i].role === 'user') {
+                    lastUserIdx = i;
+                    break;
+                }
+            }
+            if (lastUserIdx >= 0) {
+                return prev.slice(0, lastUserIdx + 1);
+            }
+            return prev;
+        });
+        void onSend();
+    }, [runStatus, onSend]);
 
     return (
         <div className="wn-ai-panel-container" data-testid="writenow-ai-panel">
@@ -558,35 +813,69 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
             >
                 {messages.length === 0 && (
                     <div className="wn-ai-history--empty">
-                        Select a SKILL, type an optional instruction, then Send (or select text in the editor and Send).
+                        输入 / 使用快捷命令，或选择技能后发送。支持在编辑器中选择文本后发送。
                     </div>
                 )}
-                {messages.map((m) => (
-                    <div
+                {messages.map((m, idx) => (
+                    <MessageBubble
                         key={m.id}
-                        className={getMessageClassName(m)}
-                        data-testid={`writenow-ai-message-${m.role}`}
-                    >
-                        {m.content || (m.role === 'assistant' && m.status === 'streaming' ? '…' : '')}
-                    </div>
+                        message={m}
+                        onCopy={handleCopyMessage}
+                        onRegenerate={m.role === 'assistant' && idx === messages.length - 1 ? handleRegenerate : undefined}
+                    />
                 ))}
             </div>
 
-            {/* Input area */}
-            <textarea
-                ref={onInputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Instruction (optional). If no editor selection, this will be treated as the input text."
-                className="wn-ai-input"
-                data-testid="writenow-ai-input"
-                onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                        e.preventDefault();
-                        onClosePanel();
-                    }
-                }}
-            />
+            {/* Quick action bar */}
+            <div className="wn-ai-quick-bar">
+                <button
+                    type="button"
+                    className={`wn-ai-quick-btn${showSlashMenu ? ' wn-ai-quick-btn--active' : ''}`}
+                    onClick={() => {
+                        setShowSlashMenu(!showSlashMenu);
+                        setInput(showSlashMenu ? '' : '/');
+                        inputRef.current?.focus();
+                    }}
+                    title="斜杠命令"
+                    data-testid="writenow-ai-slash-trigger"
+                >
+                    / 命令
+                </button>
+                <select
+                    className="wn-ai-model-select"
+                    title="模型选择（即将推出）"
+                    data-testid="writenow-ai-model-select"
+                >
+                    <option value="default">默认模型</option>
+                </select>
+            </div>
+
+            {/* Input area with slash menu */}
+            <div className="wn-ai-input-container">
+                {showSlashMenu && (
+                    <SlashCommandMenu
+                        filter={slashFilter}
+                        selectedIndex={slashSelectedIndex}
+                        onSelect={handleSlashCommandSelect}
+                        onClose={() => {
+                            setShowSlashMenu(false);
+                            setSlashFilter('');
+                        }}
+                    />
+                )}
+                <textarea
+                    ref={(el) => {
+                        inputRef.current = el;
+                        onInputRef(el);
+                    }}
+                    value={input}
+                    onChange={handleInputChange}
+                    placeholder="输入 / 使用快捷命令，或输入指令..."
+                    className="wn-ai-input"
+                    data-testid="writenow-ai-input"
+                    onKeyDown={handleInputKeyDown}
+                />
+            </div>
 
             {/* Diff view for apply/discard */}
             {showDiff && (
