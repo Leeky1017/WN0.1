@@ -4,6 +4,7 @@ import { WidgetFactory, WidgetManager } from '@theia/core/lib/browser/widget-man
 import { inject, injectable } from '@theia/core/shared/inversify';
 
 import { ActiveEditorService } from '../active-editor-service';
+import { NotificationService } from '../notification/notification-widget';
 import { WritenowFrontendService } from '../writenow-frontend-service';
 import { AiPanelService } from './ai-panel-service';
 import { AiPanelWidget } from './ai-panel-widget';
@@ -22,10 +23,11 @@ export class AiPanelWidgetFactory implements WidgetFactory {
         @inject(AiPanelService) private readonly aiPanel: AiPanelService,
         @inject(WritenowFrontendService) private readonly writenow: WritenowFrontendService,
         @inject(ActiveEditorService) private readonly activeEditor: ActiveEditorService,
+        @inject(NotificationService) private readonly notificationService: NotificationService,
     ) {}
 
     async createWidget(): Promise<AiPanelWidget> {
-        return new AiPanelWidget(this.aiPanel, this.writenow, this.activeEditor);
+        return new AiPanelWidget(this.aiPanel, this.writenow, this.activeEditor, this.notificationService);
     }
 }
 

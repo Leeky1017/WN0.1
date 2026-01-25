@@ -13,10 +13,34 @@ import type {
     SkillListItem,
 } from '../../common/ipc-generated';
 import { ActiveEditorService } from '../active-editor-service';
+import { NotificationService } from '../notification/notification-widget';
 import { WritenowFrontendService } from '../writenow-frontend-service';
 import { WRITENOW_AI_PANEL_WIDGET_ID } from '../writenow-layout-ids';
 import { AiPanelService } from './ai-panel-service';
 import { diffChars } from './text-diff';
+
+/**
+ * Send a desktop notification if permitted.
+ *
+ * Why: Like Cursor, users should be notified when AI tasks complete,
+ * especially if they've switched to another window.
+ */
+function sendDesktopNotification(title: string, body: string): void {
+    // Only send if document is not visible (user switched away)
+    if (document.visibilityState === 'visible') return;
+
+    // Check permission
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'denied') return;
+
+    if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/icon.png' });
+        return;
+    }
+
+    // Request permission (won't block, just won't send this time)
+    void Notification.requestPermission();
+}
 
 type RunStatus = 'idle' | 'streaming' | 'done' | 'error' | 'canceled';
 
@@ -157,12 +181,13 @@ type AiPanelViewProps = Readonly<{
     aiPanel: AiPanelService;
     writenow: WritenowFrontendService;
     activeEditor: ActiveEditorService;
+    notificationService: NotificationService;
     onInputRef: (el: HTMLTextAreaElement | null) => void;
     onClosePanel: () => void;
 }>;
 
 function AiPanelView(props: AiPanelViewProps): React.ReactElement {
-    const { aiPanel, writenow, activeEditor, onInputRef, onClosePanel } = props;
+    const { aiPanel, writenow, activeEditor, notificationService, onInputRef, onClosePanel } = props;
 
     const [skills, setSkills] = React.useState<SkillListItem[]>([]);
     const [skillsLoading, setSkillsLoading] = React.useState(false);
@@ -245,6 +270,10 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                     }
                     return [...prev, { id: generateLocalId('assistant'), role: 'assistant', status: 'done', content: event.result.text }];
                 });
+
+                // Notify user that AI task completed (like Cursor)
+                notificationService.add('success', 'AI 任务完成', 'AI 已完成文本处理，点击查看结果');
+                sendDesktopNotification('WriteNow', 'AI 任务已完成');
                 return;
             }
 
@@ -632,6 +661,7 @@ export class AiPanelWidget extends ReactWidget {
         @inject(AiPanelService) private readonly aiPanel: AiPanelService,
         @inject(WritenowFrontendService) private readonly writenow: WritenowFrontendService,
         @inject(ActiveEditorService) private readonly activeEditor: ActiveEditorService,
+        @inject(NotificationService) private readonly notificationService: NotificationService,
     ) {
         super();
         this.id = AiPanelWidget.ID;
@@ -659,6 +689,7 @@ export class AiPanelWidget extends ReactWidget {
                 aiPanel={this.aiPanel}
                 writenow={this.writenow}
                 activeEditor={this.activeEditor}
+                notificationService={this.notificationService}
                 onInputRef={(el) => {
                     this.inputEl = el;
                 }}

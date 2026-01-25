@@ -279,11 +279,15 @@ const AVAILABLE_LANGUAGES = [
 
 /**
  * Language Settings panel component.
+ *
+ * Why: Uses Theia's nls system for proper i18n support.
+ * Saving the language preference stores it in localStorage and can trigger a reload.
  */
 function LanguageSettingsPanel(props: { messageService: MessageService }): React.ReactElement {
     const { messageService } = props;
     const [language, setLanguage] = React.useState<string>('zh-CN');
     const [saving, setSaving] = React.useState<boolean>(false);
+    const [needsReload, setNeedsReload] = React.useState<boolean>(false);
 
     // Load language setting on mount
     React.useEffect(() => {
@@ -304,14 +308,30 @@ function LanguageSettingsPanel(props: { messageService: MessageService }): React
     const handleSave = (): void => {
         setSaving(true);
         try {
+            const previousLanguage = localStorage.getItem('writenow.language');
             localStorage.setItem('writenow.language', language);
-            messageService.info('语言设置已保存，重启后生效');
+
+            // Set Theia's nls locale preference (used by nls.localize)
+            // Theia reads this on startup to determine the UI language
+            localStorage.setItem('nls.locale', language);
+
+            if (previousLanguage && previousLanguage !== language) {
+                setNeedsReload(true);
+                messageService.info('语言设置已保存。点击"立即重启"以应用更改。');
+            } else {
+                messageService.info('语言设置已保存');
+            }
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             messageService.error(`保存失败: ${message}`);
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleReload = (): void => {
+        // Reload the application to apply language change
+        window.location.reload();
     };
 
     return (
@@ -347,6 +367,15 @@ function LanguageSettingsPanel(props: { messageService: MessageService }): React
                 >
                     {saving ? '保存中...' : '保存'}
                 </button>
+                {needsReload && (
+                    <button
+                        type="button"
+                        className="wn-settings-button wn-settings-button--secondary"
+                        onClick={handleReload}
+                    >
+                        立即重启
+                    </button>
+                )}
             </div>
         </div>
     );
