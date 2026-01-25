@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | 无 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/00-overview.md` — 目录结构
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+
 ## 目标
 
 创建独立的 `writenow-frontend/` 项目，使用 Vite + React + TypeScript 技术栈。

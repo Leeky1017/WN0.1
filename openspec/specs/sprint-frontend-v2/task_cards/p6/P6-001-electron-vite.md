@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P5-003 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/05-electron-integration.md` — Electron 集成设计
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 electron-vite）**
+
 ## 目标
 
 使用 electron-vite 配置 Electron 开发环境。

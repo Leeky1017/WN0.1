@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P6-004 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/02-tech-stack.md` — **技术选型（Radix UI 无障碍原语）**
+- [ ] `spec.md` 无障碍 Requirement — WCAG 2.1 AA 标准
+
 ## 目标
 
 优化无障碍支持，确保键盘可完全操作，符合 WCAG 2.1 AA 标准。

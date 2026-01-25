@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P6-001 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/05-electron-integration.md` — 主进程后端启动设计
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+
 ## 目标
 
 在 Electron 主进程中启动 Theia 后端服务。

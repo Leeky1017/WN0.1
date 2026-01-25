@@ -10,6 +10,11 @@
 | 状态 | Pending |
 | 依赖 | P1-001 |
 
+## 必读前置（执行前必须阅读）
+
+- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 react-arborist）**
+- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+
 ## 目标
 
 使用 react-arborist 实现高性能文件树组件。
