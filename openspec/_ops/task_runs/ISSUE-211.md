@@ -2,7 +2,7 @@
 
 - Issue: #211
 - Branch: task/211-richtext-spec
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/212
 
 ## Plan
 
