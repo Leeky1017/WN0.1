@@ -6,11 +6,11 @@
 
 ## Plan
 
-1. 创建 writenow-frontend 项目骨架（Vite + React + TypeScript 严格模式）
-2. 配置 Tailwind CSS 4.x + Design Tokens
-3. 集成 shadcn/ui 基础组件
-4. 实现 RPC 客户端连接 Theia 后端
-5. 验证端到端通路（调用 project:bootstrap）
+- 创建 writenow-frontend 项目骨架（Vite + React + TypeScript 严格模式）
+- 配置 Tailwind CSS 4.x + Design Tokens
+- 集成 shadcn/ui 基础组件
+- 实现 RPC 客户端连接 Theia 后端
+- 验证端到端通路（调用 project:bootstrap）
 
 ## Runs
 
