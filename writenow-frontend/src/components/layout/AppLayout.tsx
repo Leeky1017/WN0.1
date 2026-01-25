@@ -3,10 +3,13 @@
  * 使用 FlexLayout 实现四区布局
  * @see design/03-layout-system.md
  */
-import { useCallback, useMemo, useRef, useEffect } from 'react';
-import { Layout, Model, TabNode, Action, Actions } from 'flexlayout-react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Action, Actions, DockLocation, Layout, Model, TabNode } from 'flexlayout-react';
 import type { PanelComponent } from './layout-config';
+import { LayoutApiProvider } from './layout-api-provider';
+import type { LayoutApi } from './layout-api-context';
 import { loadLayout, saveLayout } from '@/lib/layout/persistence';
+import { useLayoutStore } from '@/stores';
 import { FileTreePanel } from '@/features/file-tree/FileTreePanel';
 import { EditorPanel } from '@/features/editor/EditorPanel';
 import { AIPanelPlaceholder } from '@/features/ai-panel/AIPanelPlaceholder';
@@ -35,7 +38,7 @@ function PanelFactory(node: TabNode): React.ReactNode {
     case 'VersionHistory':
       return (
         <div className="h-full flex items-center justify-center text-[var(--text-muted)]">
-          版本历史（Phase 2 实现）
+          版本历史（Phase 5 实现）
         </div>
       );
     default:
@@ -57,28 +60,92 @@ interface AppLayoutProps {
  */
 export function AppLayout({ className = '' }: AppLayoutProps) {
   const layoutRef = useRef<Layout>(null);
+  const resetToken = useLayoutStore((state) => state.resetToken);
+  const resetLayout = useLayoutStore((state) => state.resetLayout);
+  const refreshHasStoredLayout = useLayoutStore((state) => state.refreshHasStoredLayout);
   
   // 初始化 Model（从 localStorage 加载或使用默认布局）
   const model = useMemo(() => {
+    void resetToken;
     const layoutJson = loadLayout();
     return Model.fromJson(layoutJson);
-  }, []);
+  }, [resetToken]);
   
   // 处理布局变化，保存到 localStorage
   const handleModelChange = useCallback((model: Model) => {
     // 使用 requestIdleCallback 进行防抖保存，避免频繁写入
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => saveLayout(model), { timeout: 1000 });
+      requestIdleCallback(() => {
+        saveLayout(model);
+        refreshHasStoredLayout();
+      }, { timeout: 1000 });
     } else {
-      setTimeout(() => saveLayout(model), 500);
+      setTimeout(() => {
+        saveLayout(model);
+        refreshHasStoredLayout();
+      }, 500);
     }
-  }, []);
+  }, [refreshHasStoredLayout]);
   
   // 处理 Action（可用于拦截特定操作）
   const handleAction = useCallback((action: Action): Action | undefined => {
     // 可以在这里拦截特定 action，例如阻止关闭某些 tab
     return action;
   }, []);
+
+  const openEditorTab = useCallback(
+    (filePath: string) => {
+      const normalizedPath = filePath.trim();
+      if (!normalizedPath) return;
+
+      let existingTabId: string | null = null;
+      model.visitNodes((node) => {
+        if (existingTabId) return;
+        if (node.getType() !== 'tab') return;
+        const tab = node as TabNode;
+        if (tab.getComponent() !== 'Editor') return;
+        const config = tab.getConfig() as { filePath?: unknown } | undefined;
+        if (config?.filePath === normalizedPath) existingTabId = tab.getId();
+      });
+
+      if (existingTabId) {
+        model.doAction(Actions.selectTab(existingTabId));
+        return;
+      }
+
+      const fileName = normalizedPath.split('/').pop() || normalizedPath;
+      model.doAction(
+        Actions.addNode(
+          {
+            type: 'tab',
+            component: 'Editor',
+            name: fileName,
+            config: { filePath: normalizedPath },
+          },
+          'editor',
+          DockLocation.CENTER,
+          -1,
+          true,
+        ),
+      );
+    },
+    [model],
+  );
+
+  const focusAiPanel = useCallback(() => {
+    let aiTabId: string | null = null;
+    model.visitNodes((node) => {
+      if (aiTabId) return;
+      if (node.getType() !== 'tab') return;
+      const tab = node as TabNode;
+      if (tab.getComponent() === 'AIPanel') aiTabId = tab.getId();
+    });
+    if (aiTabId) {
+      model.doAction(Actions.selectTab(aiTabId));
+    }
+  }, [model]);
+
+  const layoutApi = useMemo<LayoutApi>(() => ({ openEditorTab, focusAiPanel }), [focusAiPanel, openEditorTab]);
   
   // 添加键盘快捷键支持
   useEffect(() => {
@@ -86,30 +153,27 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
       // Cmd/Ctrl + \ 重置布局
       if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
         e.preventDefault();
-        if (layoutRef.current) {
-          layoutRef.current.props.model.doAction(
-            Actions.updateModelAttributes({ rootOrientation: 'row' })
-          );
-          console.log('[Layout] Layout reset triggered');
-        }
+        resetLayout();
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [resetLayout]);
 
   return (
-    <div className={`h-full w-full ${className}`}>
-      <Layout
-        ref={layoutRef}
-        model={model}
-        factory={PanelFactory}
-        onModelChange={handleModelChange}
-        onAction={handleAction}
-        realtimeResize={true}
-      />
-    </div>
+    <LayoutApiProvider api={layoutApi}>
+      <div className={`h-full w-full ${className}`}>
+        <Layout
+          ref={layoutRef}
+          model={model}
+          factory={PanelFactory}
+          onModelChange={handleModelChange}
+          onAction={handleAction}
+          realtimeResize={true}
+        />
+      </div>
+    </LayoutApiProvider>
   );
 }
 

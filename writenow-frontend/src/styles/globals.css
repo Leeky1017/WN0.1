@@ -4,6 +4,10 @@
  */
 
 @import './tokens.css';
+@import './themes/midnight.css';
+@import './themes/dark.css';
+@import './themes/light.css';
+@import './themes/high-contrast.css';
 @import 'tailwindcss';
 @import './flexlayout-overrides.css';
 

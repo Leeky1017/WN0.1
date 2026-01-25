@@ -24,8 +24,12 @@ export function subscribeToAiStream(
   onDone: AiStreamDoneHandler,
   onError: AiStreamErrorHandler
 ): () => void {
-  // TODO: Implement actual subscription logic
-  // This requires notification handling from the backend
+  // TODO(P3): Implement actual subscription logic (backend notifications).
+  // Why: Keep a typed placeholder so early phases can compile; real streaming is wired in Phase 3.
+  void onDelta
+  void onDone
+  void onError
+
   console.log(`[AI Stream] Subscribing to run ${runId}`)
   
   // Return unsubscribe function
