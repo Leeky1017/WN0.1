@@ -110,7 +110,7 @@ export class StatsService {
         }
 
         // Fetch updated row
-        const updated = await this.getOrCreateRow(date);
+        const updated = this.getOrCreateRow(date);
         return { stats: updated };
     }
 
