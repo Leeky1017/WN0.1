@@ -13,13 +13,16 @@
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "flexlayout-react": "^0.8.18",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
+    "react-arborist": "^3.4.3",
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "vscode-jsonrpc": "^8.2.1",
-    "vscode-ws-jsonrpc": "^3.5.0"
+    "vscode-ws-jsonrpc": "^3.5.0",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
