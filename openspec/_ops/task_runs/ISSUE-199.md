@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. 实现斜杠命令系统（SlashCommandMenu 组件）
-2. 优化消息气泡样式（右对齐 User、左对齐 AI、Hover 操作按钮）
-3. 补全 Design Tokens（消除硬编码）
+- 实现斜杠命令系统（SlashCommandMenu 组件）
+- 优化消息气泡样式（右对齐 User、左对齐 AI、Hover 操作按钮）
+- 补全 Design Tokens（消除硬编码）
 
 ## Runs
 
