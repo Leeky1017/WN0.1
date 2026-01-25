@@ -17,52 +17,52 @@
 - Acceptance Criteria：验收标准
 - Tests：测试要求
 
-## P0 任务（8 张）
+## P0 任务（8 张）- 全部完成
 
-| ID | 任务名称 | 设计文档 |
-|----|---------|---------|
-| GAP-P0-001 | 设置面板基础 | `02-settings-preferences.md` |
-| GAP-P0-002 | API Key 与模型配置 UI | `02-settings-preferences.md` |
-| GAP-P0-003 | 编辑器工具栏 | `01-editor-features.md` |
-| GAP-P0-004 | 查找/替换功能 | `01-editor-features.md` |
-| GAP-P0-005 | 状态栏字数统计 | `04-status-bar-notifications.md` |
-| GAP-P0-006 | 状态栏 AI 状态 | `04-status-bar-notifications.md` |
-| GAP-P0-007 | 崩溃恢复对话框 | `07-error-handling.md` |
-| GAP-P0-008 | Welcome 页面最近文件 | `03-file-management.md` |
+| ID | 任务名称 | 状态 | Issue/PR |
+|----|---------|------|---------|
+| GAP-P0-001 | 设置面板基础 | done | #178/#179 |
+| GAP-P0-002 | API Key 与模型配置 UI | done | #178/#179 |
+| GAP-P0-003 | 编辑器工具栏 | done | #178/#179 |
+| GAP-P0-004 | 查找/替换功能 | done | #178/#179 |
+| GAP-P0-005 | 状态栏字数统计 | done | #178/#179 |
+| GAP-P0-006 | 状态栏 AI 状态 | done | #178/#179 |
+| GAP-P0-007 | 崩溃恢复对话框 | done | #178/#179 |
+| GAP-P0-008 | Welcome 页面最近文件 | done | #178/#179 |
 
-## P1 任务（10 张）
+## P1 任务（10 张）- 全部完成
 
-| ID | 任务名称 | 设计文档 |
-|----|---------|---------|
-| GAP-P1-001 | 编辑器右键菜单 | `05-context-menus.md` |
-| GAP-P1-002 | 文件树右键菜单增强 | `03-file-management.md` |
-| GAP-P1-003 | 大纲导航面板 | `01-editor-features.md` |
-| GAP-P1-004 | 导出菜单（Markdown/Word/PDF） | `09-backend-exposure.md` |
-| GAP-P1-005 | 语言切换 UI | `02-settings-preferences.md` |
-| GAP-P1-006 | 快捷键速查表 | `06-help-documentation.md` |
-| GAP-P1-007 | 关于对话框 | `06-help-documentation.md` |
-| GAP-P1-008 | 通知中心 | `04-status-bar-notifications.md` |
-| GAP-P1-009 | 图片/表格/链接插入 | `01-editor-features.md` |
-| GAP-P1-010 | 全屏/专注模式 | `01-editor-features.md` |
+| ID | 任务名称 | 状态 | Issue/PR |
+|----|---------|------|---------|
+| GAP-P1-001 | 编辑器右键菜单 | done | #182/#183 |
+| GAP-P1-002 | 文件树右键菜单增强 | done | #182/#183 |
+| GAP-P1-003 | 大纲导航面板 | done | #182/#183 |
+| GAP-P1-004 | 导出菜单（Markdown/Word/PDF） | done | #182/#183 |
+| GAP-P1-005 | 语言切换 UI | done | #182/#183 |
+| GAP-P1-006 | 快捷键速查表 | done | #182/#183 |
+| GAP-P1-007 | 关于对话框 | done | #182/#183 |
+| GAP-P1-008 | 通知中心 | done | #182/#183 |
+| GAP-P1-009 | 图片/表格/链接插入 | done | #182/#183 |
+| GAP-P1-010 | 全屏/专注模式 | done | #182/#183 |
 
-## P2 任务（8 张）
+## P2 任务（8 张）- 全部完成
 
-| ID | 任务名称 | 设计文档 |
-|----|---------|---------|
-| GAP-P2-001 | 可访问性基础（Focus/ARIA） | `08-accessibility.md` |
-| GAP-P2-002 | 高对比度主题 | `08-accessibility.md` |
-| GAP-P2-003 | 角色管理面板 | `09-backend-exposure.md` |
-| GAP-P2-004 | 术语表管理 | `09-backend-exposure.md` |
-| GAP-P2-005 | 写作统计面板 | `09-backend-exposure.md` |
-| GAP-P2-006 | 错误日志查看器 | `07-error-handling.md` |
-| GAP-P2-007 | 用户指南 | `06-help-documentation.md` |
-| GAP-P2-008 | 自动更新 UI | `09-backend-exposure.md` |
+| ID | 任务名称 | 状态 | Issue/PR |
+|----|---------|------|---------|
+| GAP-P2-001 | 可访问性基础（Focus/ARIA） | done | #188/#189 |
+| GAP-P2-002 | 高对比度主题 | done | #188/#189 |
+| GAP-P2-003 | 角色管理面板 | done | #188/#189 |
+| GAP-P2-004 | 术语表管理 | done | #188/#189 |
+| GAP-P2-005 | 写作统计面板 | done | #188/#189 |
+| GAP-P2-006 | 错误日志查看器 | done | #188/#189 |
+| GAP-P2-007 | 用户指南 | done | #188/#189 |
+| GAP-P2-008 | 自动更新 UI | done | #188/#189 |
 
-## P3 任务（4 张）
+## P3 任务（4 张）- 待实现
 
-| ID | 任务名称 | 设计文档 |
-|----|---------|---------|
-| GAP-P3-001 | 上下文调试器 | `09-backend-exposure.md` |
-| GAP-P3-002 | 语义搜索 UI | `09-backend-exposure.md` |
-| GAP-P3-003 | 约束编辑器 | `09-backend-exposure.md` |
-| GAP-P3-004 | 记忆查看器 | `09-backend-exposure.md` |
+| ID | 任务名称 | 状态 | Issue/PR |
+|----|---------|------|---------|
+| GAP-P3-001 | 上下文调试器 | pending | - |
+| GAP-P3-002 | 语义搜索 UI | pending | - |
+| GAP-P3-003 | 约束编辑器 | pending | - |
+| GAP-P3-004 | 记忆查看器 | pending | - |

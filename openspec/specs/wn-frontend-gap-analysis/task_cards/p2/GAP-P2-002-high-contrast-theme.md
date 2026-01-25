@@ -1,6 +1,8 @@
 # GAP-P2-002: 高对比度主题
 
-Status: pending
+Status: done
+Issue: #188
+PR: https://github.com/Leeky1017/WN0.1/pull/189
 
 ## Goal
 

@@ -1,6 +1,8 @@
 # GAP-P1-001: 编辑器右键菜单
 
-Status: pending
+Status: done
+Issue: #182
+PR: https://github.com/Leeky1017/WN0.1/pull/183
 
 ## Goal
 

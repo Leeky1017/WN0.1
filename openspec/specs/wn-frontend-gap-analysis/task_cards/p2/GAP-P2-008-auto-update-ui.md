@@ -1,6 +1,8 @@
 # GAP-P2-008: 自动更新 UI
 
-Status: pending
+Status: done
+Issue: #188
+PR: https://github.com/Leeky1017/WN0.1/pull/189
 
 ## Goal
 

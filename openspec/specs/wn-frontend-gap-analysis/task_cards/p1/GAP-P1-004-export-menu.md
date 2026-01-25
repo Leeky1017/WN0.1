@@ -1,6 +1,8 @@
 # GAP-P1-004: 导出菜单（Markdown/Word/PDF）
 
-Status: pending
+Status: done
+Issue: #182
+PR: https://github.com/Leeky1017/WN0.1/pull/183
 
 ## Goal
 
