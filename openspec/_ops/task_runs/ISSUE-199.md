@@ -2,7 +2,7 @@
 
 - Issue: #199
 - Branch: task/199-theia-ai-panel-ux
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/200
 
 ## Plan
 
