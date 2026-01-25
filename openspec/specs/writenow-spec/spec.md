@@ -871,7 +871,7 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
-### 当前状态（2026-01-24）
+### 当前状态（2026-01-25）
 
 - Sprint 1–5：✅ 已完成
 - Sprint 6：✅ 已完成（核心体验），剩余项已暂停（见下）
@@ -880,6 +880,14 @@ CREATE TABLE settings (
   - Phase 1：✅ 已完成（2026-01-23）
   - Phase 2：✅ 已完成（2026-01-24）
   - Phase 3：✅ 已完成（2026-01-24）
+- Sprint Frontend V2（独立前端重构）：
+  - Phase 0 基础设施：✅ 已完成（2026-01-25）
+    - Vite + React + TypeScript 严格模式
+    - Tailwind CSS 4.x + Design Tokens
+    - shadcn/ui 基础组件
+    - RPC 客户端 + StandaloneFrontendBridge
+    - 端到端验证（project:bootstrap 调用成功）
+  - Phase 1 核心布局：进行中
 - 暂停的工作（待重新排期）：
   - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
   - `openspec/specs/sprint-ide-advanced/spec.md`
