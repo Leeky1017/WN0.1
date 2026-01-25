@@ -93,8 +93,6 @@ function ConstraintEditorView(props: {
     const [config, setConfig] = React.useState<ConstraintsConfig | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [isEditing, setIsEditing] = React.useState(false);
-    // Note: editingRule reserved for future edit functionality
-    const [_editingRule, _setEditingRule] = React.useState<ConstraintRule | null>(null);
     const [formState, setFormState] = React.useState<{
         type: ConstraintType;
         level: ConstraintLevel;
@@ -206,7 +204,6 @@ function ConstraintEditorView(props: {
 
     const handleCancel = (): void => {
         setFormState({ type: 'forbidden_words', level: 'warning', configValue: '' });
-        setEditingRule(null);
         setIsEditing(false);
     };
 
@@ -294,7 +291,6 @@ function ConstraintEditorView(props: {
                         className="wn-settings-button wn-settings-button--primary"
                         onClick={() => {
                             setIsEditing(true);
-                            setEditingRule(null);
                             setFormState({ type: 'forbidden_words', level: 'warning', configValue: '' });
                         }}
                         aria-label={WN_STRINGS.constraintEditorAdd()}
