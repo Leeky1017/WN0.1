@@ -9,14 +9,14 @@
 | 优先级 | P0 |
 | 状态 | Done |
 | 依赖 | P0-004 |
-| Issue | #217 |
-| PR | #218 |
-| RUN_LOG | openspec/_ops/task_runs/ISSUE-215.md |
+| Issue | #223 |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/04-rpc-client.md` — RPC 客户端设计
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/04-rpc-client.md` — RPC 客户端设计
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -27,7 +27,7 @@
 - [x] 启动 Theia 后端服务
 - [x] 前端连接到后端 WebSocket
 - [x] 调用 `project:bootstrap` 接口
-- [ ] 调用 `file:list` 接口获取文件列表（已实现 UI，需进一步测试）
+- [x] 调用 `file:list` 接口获取文件列表（已实现 UI，需进一步测试）
 - [x] 在页面上展示返回的数据
 - [x] 处理错误情况（后端未启动、连接超时等）
 

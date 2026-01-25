@@ -15,7 +15,8 @@ export type PanelComponent =
   | 'Editor'
   | 'AIPanel'
   | 'VersionHistory'
-  | 'Welcome';
+  | 'Welcome'
+  | 'UiShowcase';
 
 /**
  * 默认布局配置
@@ -23,10 +24,8 @@ export type PanelComponent =
  */
 export const defaultLayout: IJsonModel = {
   global: {
-    tabEnableFloat: false,
     tabSetMinWidth: 100,
     tabSetMinHeight: 100,
-    tabSetTabStripHeight: 32,
     tabEnableRename: false,
     splitterSize: 4,
     splitterExtra: 4,
@@ -38,6 +37,7 @@ export const defaultLayout: IJsonModel = {
       // 左侧文件树
       {
         type: 'tabset',
+        id: 'sidebar',
         weight: 20,
         minWidth: 180,
         children: [
@@ -56,6 +56,7 @@ export const defaultLayout: IJsonModel = {
         children: [
           {
             type: 'tabset',
+            id: 'editor',
             weight: 70,
             children: [
               {
@@ -66,23 +67,31 @@ export const defaultLayout: IJsonModel = {
               },
             ],
           },
-          // 底部面板（版本历史等）- 暂时注释，Phase 2+ 启用
-          // {
-          //   type: 'tabset',
-          //   weight: 30,
-          //   children: [
-          //     {
-          //       type: 'tab',
-          //       name: '版本历史',
-          //       component: 'VersionHistory',
-          //     },
-          //   ],
-          // },
+          // 底部面板（版本历史等）- Phase 5 将实现完整功能
+          {
+            type: 'tabset',
+            id: 'bottom',
+            weight: 30,
+            minHeight: 160,
+            children: [
+          {
+            type: 'tab',
+            name: '版本历史',
+            component: 'VersionHistory',
+          },
+          {
+            type: 'tab',
+            name: '组件',
+            component: 'UiShowcase',
+          },
+        ],
+      },
         ],
       },
       // 右侧 AI 面板
       {
         type: 'tabset',
+        id: 'ai',
         weight: 20,
         minWidth: 280,
         children: [

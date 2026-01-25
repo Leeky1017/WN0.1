@@ -7,6 +7,7 @@ import type { NodeApi, TreeApi } from 'react-arborist';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { FileIcon } from './FileIcon';
 import type { FileNode as FileNodeType } from './types';
+import { useFileTreeContext } from './fileTreeContext';
 
 /**
  * react-arborist NodeRendererProps 类型定义
@@ -28,6 +29,7 @@ export function FileNode({ node, style, dragHandle }: FileNodeProps) {
   const isOpen = node.isOpen;
   const isSelected = node.isSelected;
   const isEditing = node.isEditing;
+  const { openContextMenu } = useFileTreeContext();
 
   return (
     <div
@@ -50,9 +52,14 @@ export function FileNode({ node, style, dragHandle }: FileNodeProps) {
       }}
       onDoubleClick={() => {
         if (!isFolder) {
-          // TODO: 打开文件编辑
-          console.log('[FileTree] Open file:', data.path);
+          node.activate();
         }
+      }}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        node.select();
+        openContextMenu(node.data, { x: event.clientX, y: event.clientY });
       }}
     >
       {/* 展开/折叠图标 */}

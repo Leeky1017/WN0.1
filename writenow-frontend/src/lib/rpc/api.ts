@@ -15,14 +15,16 @@ import { rpcClient } from './client'
  * Custom error class for RPC errors
  */
 export class RpcError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public retryable?: boolean,
-    public details?: unknown
-  ) {
+  public code: string
+  public retryable?: boolean
+  public details?: unknown
+
+  constructor(code: string, message: string, retryable?: boolean, details?: unknown) {
     super(message)
     this.name = 'RpcError'
+    this.code = code
+    this.retryable = retryable
+    this.details = details
   }
 
   static fromIpcError(error: IpcError): RpcError {

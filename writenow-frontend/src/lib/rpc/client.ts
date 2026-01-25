@@ -21,21 +21,33 @@ class RpcClient {
   private reconnectDelay = 5000
   private listeners: Set<RpcConnectionListener> = new Set()
   private currentStatus: RpcConnectionStatus = 'disconnected'
+  private connectInFlight: Promise<void> | null = null
+  private connectUrl: string | null = null
 
   /**
    * Connect to the backend WebSocket server
    * @param url - WebSocket URL (e.g., ws://localhost:3000)
    */
   async connect(url: string): Promise<void> {
+    if (this.currentStatus === 'connected' && this.connection) {
+      return
+    }
+
+    if (this.currentStatus === 'connecting' && this.connectInFlight && this.connectUrl === url) {
+      return this.connectInFlight
+    }
+
     this.setStatus('connecting')
-    
-    return new Promise((resolve, reject) => {
+    this.connectUrl = url
+
+    this.connectInFlight = new Promise((resolve, reject) => {
       try {
         const socket = new WebSocket(url)
         
         socket.onerror = (error) => {
           console.error('[RPC] WebSocket error:', error)
           this.setStatus('error')
+          this.connectInFlight = null
           reject(new Error('WebSocket connection failed'))
         }
         
@@ -43,6 +55,7 @@ class RpcClient {
           console.log('[RPC] WebSocket closed')
           this.connection = null
           this.setStatus('disconnected')
+          this.connectInFlight = null
           this.scheduleReconnect(url)
         }
         
@@ -53,15 +66,19 @@ class RpcClient {
             this.reconnectAttempts = 0
             connection.listen()
             this.setStatus('connected')
+            this.connectInFlight = null
             console.log('[RPC] Connected to backend')
             resolve()
           },
         })
       } catch (error) {
         this.setStatus('error')
+        this.connectInFlight = null
         reject(error)
       }
     })
+
+    return this.connectInFlight
   }
 
   /**

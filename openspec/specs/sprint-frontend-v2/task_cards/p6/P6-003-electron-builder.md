@@ -7,13 +7,16 @@
 | ID | P6-003 |
 | Phase | 6 - Electron 打包 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P6-002 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/05-electron-integration.md` — Electron Builder 配置
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/05-electron-integration.md` — Electron Builder 配置
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -21,21 +24,21 @@
 
 ## 任务清单
 
-- [ ] 安装 electron-builder 依赖
-- [ ] 创建 `electron-builder.json5` 配置文件
-- [ ] 配置 Windows NSIS 打包
-- [ ] 配置 macOS DMG 打包
-- [ ] 配置 Linux AppImage 打包
-- [ ] 配置应用图标
-- [ ] 配置后端文件打包
-- [ ] 测试打包产物
+- [x] 安装 electron-builder 依赖
+- [x] 创建 `electron-builder.json5` 配置文件
+- [x] 配置 Windows NSIS 打包
+- [x] 配置 macOS DMG 打包
+- [x] 配置 Linux AppImage 打包
+- [x] 配置应用图标
+- [x] 配置后端文件打包
+- [x] 测试打包产物
 
 ## 验收标准
 
-- [ ] 三平台打包成功
-- [ ] 安装包可正常安装
-- [ ] 安装后应用可启动
-- [ ] 后端正确包含在安装包中
+- [x] 三平台打包成功
+- [x] 安装包可正常安装
+- [x] 安装后应用可启动
+- [x] 后端正确包含在安装包中
 
 ## 产出
 

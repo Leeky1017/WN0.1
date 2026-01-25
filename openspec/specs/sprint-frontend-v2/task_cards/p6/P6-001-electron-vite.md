@@ -7,13 +7,16 @@
 | ID | P6-001 |
 | Phase | 6 - Electron 打包 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P5-003 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/05-electron-integration.md` — Electron 集成设计
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 electron-vite）**
+- [x] `design/05-electron-integration.md` — Electron 集成设计
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 electron-vite）**
 
 ## 目标
 
@@ -21,19 +24,19 @@
 
 ## 任务清单
 
-- [ ] 安装 electron 和 electron-vite 依赖
-- [ ] 创建 `electron.vite.config.ts`
-- [ ] 创建 `electron/main.ts` 主进程入口
-- [ ] 创建 `electron/preload.ts` 预加载脚本
-- [ ] 配置开发脚本（`npm run dev:electron`）
-- [ ] 验证 HMR 工作正常
+- [x] 安装 electron 和 electron-vite 依赖
+- [x] 创建 `electron.vite.config.ts`
+- [x] 创建 `electron/main.ts` 主进程入口
+- [x] 创建 `electron/preload.ts` 预加载脚本
+- [x] 配置开发脚本（`npm run dev:electron`）
+- [x] 验证 HMR 工作正常
 
 ## 验收标准
 
-- [ ] Electron 窗口可启动
-- [ ] 渲染进程加载前端页面
-- [ ] HMR 正常工作
-- [ ] DevTools 可打开
+- [x] Electron 窗口可启动
+- [x] 渲染进程加载前端页面
+- [x] HMR 正常工作
+- [x] DevTools 可打开
 
 ## 产出
 

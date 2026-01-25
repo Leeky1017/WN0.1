@@ -15,8 +15,15 @@ nodeConfig.config.externals = {
     'sqlite-vec': 'commonjs2 sqlite-vec'
 };
 
+// Why: The backend embedding service spawns a Node worker thread by resolving `embedding-worker.js`
+// relative to the backend bundle directory. Ensure webpack emits that worker entry so runtime
+// indexing does not crash in Electron/standalone mode.
+nodeConfig.config.entry = {
+    ...(nodeConfig.config.entry || {}),
+    'embedding-worker': require.resolve('writenow-core/lib/node/embedding/embedding-worker'),
+};
+
 module.exports = [
     ...configs,
     nodeConfig.config
 ];
-

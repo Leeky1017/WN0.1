@@ -7,13 +7,16 @@
 | ID | P5-003 |
 | Phase | 5 - 辅助功能 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P4-001 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
-- [ ] `spec.md` 命令面板 Requirement — 快捷键需求
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `spec.md` 命令面板 Requirement — 快捷键需求
 
 ## 目标
 
@@ -21,18 +24,18 @@
 
 ## 任务清单
 
-- [ ] 安装 react-hotkeys-hook 依赖
-- [ ] 定义快捷键映射表
-- [ ] 实现快捷键提示（在命令面板中显示）
-- [ ] 处理 Windows/Mac 按键差异
-- [ ] 避免与编辑器快捷键冲突
-- [ ] 实现快捷键自定义（可选）
+- [x] 安装 react-hotkeys-hook 依赖
+- [x] 定义快捷键映射表
+- [x] 实现快捷键提示（在命令面板中显示）
+- [x] 处理 Windows/Mac 按键差异
+- [x] 避免与编辑器快捷键冲突
+- [x] 实现快捷键自定义（可选）
 
 ## 验收标准
 
-- [ ] 所有定义的快捷键生效
-- [ ] Windows/Mac 按键正确
-- [ ] 不与编辑器冲突
+- [x] 所有定义的快捷键生效
+- [x] Windows/Mac 按键正确
+- [x] 不与编辑器冲突
 
 ## 产出
 

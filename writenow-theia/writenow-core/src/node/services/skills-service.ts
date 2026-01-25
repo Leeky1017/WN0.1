@@ -158,9 +158,13 @@ function derivePackageId(packagesDir: string, filePath: string): string | null {
 }
 
 function normalizeBuiltinPackagesDir(): string {
-    // Why: Theia packaging may relocate the working directory; resolve builtin skills relative to the extension path.
-    const writenowCoreDir = path.resolve(__dirname, '..', '..', '..');
-    const repoRoot = path.resolve(writenowCoreDir, '..', '..');
+    const envDir = coerceString(process.env.WN_SKILLS_PACKAGES_DIR);
+    if (envDir) return envDir;
+
+    // Why: When running from the Theia backend bundle (`browser-app/lib/backend`), `__dirname` can be rewritten by
+    // webpack and point at an unstable location. Prefer the backend working directory (`browser-app`) to resolve the
+    // monorepo root deterministically.
+    const repoRoot = path.resolve(process.cwd(), '..', '..');
     return path.join(repoRoot, 'electron', 'skills', 'packages');
 }
 

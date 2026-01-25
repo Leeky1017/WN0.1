@@ -7,13 +7,16 @@
 | ID | P1-003 |
 | Phase | 1 - 核心布局 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P1-001 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -21,19 +24,19 @@
 
 ## 任务清单
 
-- [ ] 创建 `components/layout/StatusBar.tsx`
-- [ ] 实现字数统计显示
-- [ ] 实现 AI 状态显示（空闲/思考中/流式输出）
-- [ ] 实现保存状态显示（已保存/保存中/未保存）
-- [ ] 实现光标位置显示（行:列）
-- [ ] 实现文档语言/格式显示
+- [x] 创建 `components/layout/StatusBar.tsx`
+- [x] 实现字数统计显示
+- [x] 实现 AI 状态显示（空闲/思考中/流式输出）
+- [x] 实现保存状态显示（已保存/保存中/未保存）
+- [x] 实现光标位置显示（行:列）
+- [x] 实现文档语言/格式显示
 
 ## 验收标准
 
-- [ ] 状态栏固定在底部
-- [ ] 字数实时更新
-- [ ] AI 状态正确反映
-- [ ] 保存状态正确反映
+- [x] 状态栏固定在底部
+- [x] 字数实时更新
+- [x] AI 状态正确反映
+- [x] 保存状态正确反映
 
 ## 产出
 

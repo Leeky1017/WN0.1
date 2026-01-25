@@ -6,6 +6,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 
 - 本规范：Active（持续更新的权威基线）
 - 架构主线：Eclipse Theia（✅ 迁移完成：Phase 0–3，2026-01-24）
+- 前端基线：`writenow-frontend/`（✅ Frontend V2 Phase 0–6 完成：2026-01-26；Electron 34 + Vite 6 + React 18）
 - 代码基线：`writenow-theia/`（production Theia workspace：browser + electron + writenow-core extension）
 - Legacy 清理：`theia-poc/` 已移除；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/`（contract SSOT）+ `skills/`（builtin packages）
 - 治理与交付规范：`AGENTS.md`
@@ -605,23 +606,26 @@ MVP 阶段采用"格式模板导出 + 剪贴板适配"方案。
 
 ## 四、系统架构
 
-### 架构：Eclipse Theia（已完成迁移）
+### 架构：Theia Backend + 独立前端（Frontend V2）
 
-WriteNow 当前以 **Eclipse Theia** 为唯一 IDE/前端基线（browser + electron targets），不再维护旧的“自建 Electron + React + TipTap”独立前端栈。
+WriteNow 保留 **Eclipse Theia** 作为后端基线（Theia backend + writenow-core extension），并在 Frontend V2 中引入独立前端 `writenow-frontend/`（Vite + React + Tailwind）作为产品 UI baseline，通过 WebSocket JSON-RPC（`/standalone-rpc`）复用既有后端服务。
 
-- 框架层：Eclipse Theia（workspace/shell/命令系统/扩展机制）。
-- 编辑器层：TipTap（作为 Theia Editor Widget / ReactWidget 嵌入）。
+- 前端层：`writenow-frontend/`（Vite + React + Tailwind + shadcn/ui + TipTap + FlexLayout）。
+- 桌面层：Electron（启动 Theia backend，加载独立前端 UI）。
 - 后端层：Theia backend（Node）承载 SQLite/better-sqlite3/sqlite-vec、RAG、Embedding、Skills 等服务。
 - 合约与类型：保留 contract pipeline（`electron/ipc/**` → 生成 `src/types/ipc-generated.ts` 与 `writenow-theia/writenow-core/src/common/ipc-generated.ts`）。
-- 代码基线清理：移除 `theia-poc/` 与 legacy renderer UI；仓库不再双栈并存。
+- 迁移策略：Theia frontend（widget/shell）不再作为产品 UI baseline；后续以独立前端为主线迭代。
 
 ### 技术栈
 
 | 层次 | 技术 | 说明 |
 |------|------|------|
-| 框架层 | Eclipse Theia 1.67.0 | IDE 框架（browser + electron targets） |
-| 前端框架 | React + TypeScript | Theia Widgets / Editor Widget（严格模式） |
-| 通信 | Theia JSON-RPC (WebSocket) | frontend ↔ backend |
+| 后端基线 | Eclipse Theia 1.67.0 | Theia backend + extension（保留） |
+| 独立前端 | Vite 6 + React 18 + TypeScript | `writenow-frontend/`（严格模式） |
+| 样式 | Tailwind CSS 4.x + shadcn/ui + Radix UI | Design Tokens + 多主题 |
+| 编辑器 | TipTap | 富文本默认 + Markdown 序列化 |
+| 布局系统 | FlexLayout | IDE 级拖拽布局 |
+| 通信 | WebSocket JSON-RPC (Theia) | `writenow-frontend` ↔ backend（`/standalone-rpc`） |
 | 构建工具 | Yarn (Classic) + Lerna | `writenow-theia/` 工作区 |
 | 本地数据 | SQLite (better-sqlite3) | backend 持久化（含 FTS5） |
 | 向量存储 | sqlite-vec | backend 扩展 |
@@ -634,7 +638,7 @@ WriteNow 当前以 **Eclipse Theia** 为唯一 IDE/前端基线（browser + elec
 |------|------|-------|------|
 | Windows 10/11 | ✅ | **首要支持** | 主要开发测试平台 |
 | macOS 10.15+ | ✅ | 次要支持 | 需要 Cmd 键适配 |
-| Linux | 🔄 | 未来考虑 | AppImage 格式 |
+| Linux | ✅ | 次要支持 | AppImage 格式（electron-builder） |
 
 ### AI 服务配置
 
@@ -871,7 +875,7 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
-### 当前状态（2026-01-25）
+### 当前状态（2026-01-26）
 
 - Sprint 1–5：✅ 已完成
 - Sprint 6：✅ 已完成（核心体验），剩余项已暂停（见下）
@@ -881,18 +885,19 @@ CREATE TABLE settings (
   - Phase 2：✅ 已完成（2026-01-24）
   - Phase 3：✅ 已完成（2026-01-24）
 - Sprint Frontend V2（独立前端重构）：
-  - Phase 0 基础设施：✅ 已完成（2026-01-25）
-    - Vite + React + TypeScript 严格模式
-    - Tailwind CSS 4.x + Design Tokens
-    - shadcn/ui 基础组件
-    - RPC 客户端 + StandaloneFrontendBridge
-    - 端到端验证（project:bootstrap 调用成功）
-  - Phase 1 核心布局：进行中
+  - Phase 0–6：✅ 已完成（2026-01-26）
+    - P0：项目骨架 + Tokens + shadcn/ui + RPC + E2E 通路
+    - P1：FlexLayout 四区布局 + 文件树 + StatusBar + 布局持久化
+    - P2：TipTap 编辑器（富文本默认）+ 多标签 + 自动保存/手动保存 + 导出（docx/pdf/html）
+    - P3：AI 面板（skills/流式/取消）+ Diff + 斜杠命令
+    - P4：cmdk 命令面板 + 设置面板 + 主题切换持久化
+    - P5：版本历史 + sonner 通知 + 全局快捷键
+    - P6：Electron（启动后端 + electron-vite + electron-builder 配置）+ 端到端 E2E（create/edit/autosave、theme persist、AI 缺 key 稳定错误）
 - 暂停的工作（待重新排期）：
   - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
   - `openspec/specs/sprint-ide-advanced/spec.md`
 - 已废弃：
-  - `openspec/specs/wn-frontend-deep-remediation/spec.md`（legacy React 前端已移除；UI baseline 为 Theia）
+  - `openspec/specs/wn-frontend-deep-remediation/spec.md`（legacy remediation 计划已失效；UI baseline 已切换为 `writenow-frontend/`）
 
 ### Sprint 1：可用的编辑器（1-2周）✅ 已完成
 - [x] TipTap 编辑器集成

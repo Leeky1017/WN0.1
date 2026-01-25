@@ -6,7 +6,6 @@ import {
   FileText,
   FileCode,
   FileJson,
-  Image,
   File,
   Folder,
   FolderOpen,

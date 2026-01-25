@@ -54,12 +54,7 @@ export function useRpcConnection(
   }, [])
 
   const connect = useCallback(async () => {
-    setError(null)
-    try {
-      await rpcClient.connect(url)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Connection failed')
-    }
+    await rpcClient.connect(url)
   }, [url])
 
   const disconnect = useCallback(() => {
@@ -68,7 +63,9 @@ export function useRpcConnection(
 
   useEffect(() => {
     if (autoConnect && status === 'disconnected') {
-      connect()
+      void connect().catch(() => {
+        // Why: Error state is tracked via rpcClient status listeners; avoid setState in this effect.
+      })
     }
   }, [autoConnect, status, connect])
 

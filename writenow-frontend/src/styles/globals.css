@@ -4,6 +4,10 @@
  */
 
 @import './tokens.css';
+@import './themes/midnight.css';
+@import './themes/dark.css';
+@import './themes/light.css';
+@import './themes/high-contrast.css';
 @import 'tailwindcss';
 @import './flexlayout-overrides.css';
 
@@ -92,6 +96,78 @@ pre,
 samp {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+}
+
+/* ===== TipTap editor (Phase 2) ===== */
+
+.wn-tiptap-editor {
+  /* Why: Match Cursor/Linear readability defaults while staying theme-driven. */
+  line-height: 1.75;
+}
+
+.wn-tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+}
+
+.wn-tiptap-editor a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wn-tiptap-editor blockquote {
+  border-left: 3px solid var(--border-default);
+  padding-left: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.wn-tiptap-editor pre {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  overflow: auto;
+}
+
+.wn-tiptap-editor code {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0 4px;
+}
+
+.wn-tiptap-editor hr {
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  margin: var(--space-4) 0;
+}
+
+.wn-tiptap-editor table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.wn-tiptap-editor th,
+.wn-tiptap-editor td {
+  border: 1px solid var(--border-subtle);
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+.wn-tiptap-editor th {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.wn-tiptap-editor img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
 }
 
 /* ===== 禁用样式 ===== */

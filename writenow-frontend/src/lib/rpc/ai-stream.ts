@@ -1,35 +1,45 @@
 /**
- * AI Stream subscription utilities
- * @see design/04-rpc-client.md
+ * AI stream subscription utilities (Theia JSON-RPC)
+ * Why: AI streaming is delivered as backend->frontend notifications (`onStreamEvent`).
  */
 
-// TODO: Implement AI streaming when integrating AI panel
-// This is a placeholder for the AI stream subscription
+import type { AiStreamEvent } from '@/types/theia-ai';
 
-export type AiStreamDeltaHandler = (text: string) => void
-export type AiStreamDoneHandler = (result: string) => void
-export type AiStreamErrorHandler = (error: Error) => void
+import { aiClient } from './ai-client';
+
+export type AiStreamDeltaHandler = (text: string) => void;
+export type AiStreamDoneHandler = (result: string) => void;
+export type AiStreamErrorHandler = (error: Error) => void;
+
+function toError(event: Extract<AiStreamEvent, { type: 'error' }>): Error {
+  const err = new Error(event.error.message);
+  err.name = event.error.code;
+  return err;
+}
 
 /**
- * Subscribe to AI stream events
- * @param runId - The AI run ID to subscribe to
- * @param onDelta - Called for each delta (partial response)
- * @param onDone - Called when streaming is complete
- * @param onError - Called on error
- * @returns Unsubscribe function
+ * Subscribe to AI stream events for a run.
+ *
+ * Note: Callers must ensure the AI client is connected before subscribing.
  */
 export function subscribeToAiStream(
   runId: string,
   onDelta: AiStreamDeltaHandler,
   onDone: AiStreamDoneHandler,
-  onError: AiStreamErrorHandler
+  onError: AiStreamErrorHandler,
 ): () => void {
-  // TODO: Implement actual subscription logic
-  // This requires notification handling from the backend
-  console.log(`[AI Stream] Subscribing to run ${runId}`)
-  
-  // Return unsubscribe function
-  return () => {
-    console.log(`[AI Stream] Unsubscribing from run ${runId}`)
+  const normalizedRunId = runId.trim();
+  if (!normalizedRunId) {
+    throw new Error('runId is empty');
   }
+
+  const unsubscribe = aiClient.onStreamEvent((event) => {
+    if (event.runId !== normalizedRunId) return;
+    if (event.type === 'delta') onDelta(event.text);
+    if (event.type === 'done') onDone(event.result.text);
+    if (event.type === 'error') onError(toError(event));
+  });
+
+  return unsubscribe;
 }
+

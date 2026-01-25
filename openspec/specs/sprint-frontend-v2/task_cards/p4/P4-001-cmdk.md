@@ -7,13 +7,16 @@
 | ID | P4-001 |
 | Phase | 4 - 命令面板与设置 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | https://github.com/Leeky1017/WN0.1/pull/224 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P3-004 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 cmdk）**
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 cmdk）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
 
 ## 目标
 
@@ -21,21 +24,21 @@
 
 ## 任务清单
 
-- [ ] 安装 cmdk 依赖
-- [ ] 创建命令面板组件
-- [ ] 实现 Cmd+K 全局快捷键触发
-- [ ] 实现模糊搜索
-- [ ] 实现分组展示（文件/命令/SKILL）
-- [ ] 实现最近使用记录
-- [ ] 实现键盘导航
-- [ ] 调整样式符合 Design Tokens
+- [x] 安装 cmdk 依赖
+- [x] 创建命令面板组件
+- [x] 实现 Cmd+K 全局快捷键触发
+- [x] 实现模糊搜索
+- [x] 实现分组展示（文件/命令/SKILL）
+- [x] 实现最近使用记录
+- [x] 实现键盘导航
+- [x] 调整样式符合 Design Tokens
 
 ## 验收标准
 
-- [ ] Cmd+K 打开命令面板
-- [ ] 搜索实时过滤
-- [ ] 结果分组展示
-- [ ] 键盘可完全操作
+- [x] Cmd+K 打开命令面板
+- [x] 搜索实时过滤
+- [x] 结果分组展示
+- [x] 键盘可完全操作
 
 ## 产出
 
