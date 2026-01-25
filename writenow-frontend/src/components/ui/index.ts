@@ -9,6 +9,9 @@ export type { ButtonProps } from './button'
 export { Input } from './input'
 export type { InputProps } from './input'
 
+export { Textarea } from './textarea'
+export type { TextareaProps } from './textarea'
+
 export {
   Card,
   CardHeader,
@@ -67,6 +70,7 @@ export {
   SelectScrollDownButton,
 } from './select'
 export { Switch } from './switch'
+export { Toaster } from './toaster'
 
 export {
   ContextMenu,

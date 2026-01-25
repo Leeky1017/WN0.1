@@ -4,21 +4,66 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { Editor } from '@tiptap/core';
 
 import { invoke } from '@/lib/rpc';
 import { useRpcConnection } from '@/lib/hooks';
-import { useEditorFilesStore, useEditorModeStore, useStatusBarStore } from '@/stores';
+import { useEditorFilesStore } from '@/stores/editorFilesStore';
+import { useEditorModeStore } from '@/stores/editorModeStore';
+import { useEditorRuntimeStore } from '@/stores/editorRuntimeStore';
+import { useStatusBarStore } from '@/stores/statusBarStore';
 import { computeTextStats } from '@/lib/editor/text-stats';
 import { useLayoutApi } from '@/components/layout';
+import { Button, Input } from '@/components/ui';
 
 import { TipTapEditor } from '@/components/editor/TipTapEditor';
 import { EditorToolbar } from '@/components/editor/EditorToolbar';
 import { FloatingToolbar } from '@/components/editor/FloatingToolbar';
 import { ExportDialog } from '@/features/export/ExportDialog';
+import { useAISkill } from '@/features/ai-panel/useAISkill';
 
 interface EditorPanelProps {
   filePath?: string;
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        reject(new Error('FileReader returned a non-string result'));
+        return;
+      }
+      resolve(result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function findFirstImageFile(files: FileList | null | undefined): File | null {
+  if (!files || files.length === 0) return null;
+  for (const file of Array.from(files)) {
+    if (file.type.startsWith('image/')) return file;
+  }
+  return null;
+}
+
+function insertImage(editor: Editor, src: string, alt?: string, pos?: number): void {
+  type ImageChain = {
+    focus: () => ImageChain;
+    setTextSelection: (pos: number) => ImageChain;
+    setImage: (opts: { src: string; alt?: string }) => ImageChain;
+    run: () => void;
+  };
+
+  const chain = editor.chain().focus() as unknown as ImageChain;
+  if (typeof pos === 'number') {
+    chain.setTextSelection(pos);
+  }
+  chain.setImage({ src, ...(alt ? { alt } : {}) }).run();
 }
 
 /**
@@ -39,12 +84,24 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
   const setWordCount = useStatusBarStore((s) => s.setWordCount);
   const setCharCount = useStatusBarStore((s) => s.setCharCount);
 
+  const setActiveEditor = useEditorRuntimeStore((s) => s.setActiveEditor);
+  const setSelection = useEditorRuntimeStore((s) => s.setSelection);
+  const clearForFile = useEditorRuntimeStore((s) => s.clearForFile);
+
+  const { sendMessage } = useAISkill();
+
   const [editor, setEditor] = useState<Editor | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+
+  const [inlineAiOpen, setInlineAiOpen] = useState(false);
+  const [inlineAiInput, setInlineAiInput] = useState('');
+  const [inlineAiPosition, setInlineAiPosition] = useState<{ x: number; y: number } | null>(null);
+
+  const inlineAiInputRef = useRef<HTMLInputElement | null>(null);
 
   const [content, setContent] = useState('');
   const [contentVersion, setContentVersion] = useState(0);
@@ -71,6 +128,21 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
     }
   }, []);
 
+  const isEditorActive = useCallback(
+    (path: string): boolean => {
+      const normalized = path.trim();
+      if (!normalized) return false;
+
+      const runtime = useEditorRuntimeStore.getState();
+      if (runtime.activeFilePath === normalized) return true;
+
+      // Why: Focus can precede `activeFilePath` initialization (e.g. tab auto-focus). Treat the focused editor as active
+      // so StatusBar + AI selection stay in sync with user input.
+      return Boolean(editor?.view?.hasFocus());
+    },
+    [editor],
+  );
+
   const setDirty = useCallback(
     (dirty: boolean) => {
       const p = (filePath ?? '').trim();
@@ -79,10 +151,12 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
       isDirtyRef.current = dirty;
 
       upsertFile(p, { isDirty: dirty, saveStatus: dirty ? 'unsaved' : 'saved' });
-      setSaveStatus(dirty ? 'unsaved' : 'saved');
+      if (isEditorActive(p)) {
+        setSaveStatus(dirty ? 'unsaved' : 'saved');
+      }
       setEditorTabDirty(p, dirty);
     },
-    [filePath, setEditorTabDirty, setSaveStatus, upsertFile],
+    [filePath, isEditorActive, setEditorTabDirty, setSaveStatus, upsertFile],
   );
 
   const setSavingStatus = useCallback(
@@ -90,9 +164,11 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
       const p = (filePath ?? '').trim();
       if (!p) return;
       upsertFile(p, { saveStatus: status });
-      setSaveStatus(status);
+      if (isEditorActive(p)) {
+        setSaveStatus(status);
+      }
     },
-    [filePath, setSaveStatus, upsertFile],
+    [filePath, isEditorActive, setSaveStatus, upsertFile],
   );
 
   const saveLatest = useCallback(
@@ -173,14 +249,76 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
   const handleFocusChanged = useCallback(
     (focused: boolean) => {
       if (!focused || !editor) return;
+      const p = (filePath ?? '').trim();
+      if (p) setActiveEditor(p, editor);
+      if (p) {
+        const fileState = useEditorFilesStore.getState().byPath[p];
+        if (fileState?.saveStatus) setSaveStatus(fileState.saveStatus);
+      }
       // Ensure status bar reflects the focused editor.
       const text = editor.state.doc.textContent;
       const stats = computeTextStats(text);
       setWordCount(stats.words);
       setCharCount(stats.chars);
     },
-    [editor, setCharCount, setWordCount],
+    [editor, filePath, setActiveEditor, setCharCount, setSaveStatus, setWordCount],
   );
+
+  /**
+   * Why: Inline AI must appear near the current cursor without leaving the editor context.
+   */
+  const openInlineAi = useCallback(() => {
+    if (!editor) return;
+    const container = editorViewportRef.current;
+    if (!container) return;
+
+    try {
+      const pos = editor.state.selection.from;
+      const coords = editor.view.coordsAtPos(pos);
+      const rect = container.getBoundingClientRect();
+      setInlineAiPosition({
+        x: Math.max(12, coords.left - rect.left),
+        y: Math.max(12, coords.top - rect.top - 12),
+      });
+      setInlineAiInput('');
+      setInlineAiOpen(true);
+    } catch (error) {
+      console.warn('[InlineAI] failed to open:', error);
+    }
+  }, [editor]);
+
+  /**
+   * Why: Inline AI should forward requests to the shared AI pipeline and focus the panel for output.
+   */
+  const handleInlineSend = useCallback(async () => {
+    await sendMessage(inlineAiInput);
+    setInlineAiOpen(false);
+    setInlineAiInput('');
+    focusAiPanel();
+  }, [focusAiPanel, inlineAiInput, sendMessage]);
+
+  /**
+   * Why: Inline AI needs local key handling (Enter to send, Esc to close) without bubbling to the editor.
+   */
+  const handleInlineKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setInlineAiOpen(false);
+        return;
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        void handleInlineSend();
+      }
+    },
+    [handleInlineSend],
+  );
+
+  useEffect(() => {
+    if (!inlineAiOpen) return;
+    inlineAiInputRef.current?.focus();
+  }, [inlineAiOpen]);
 
   // Load file content when filePath changes.
   useEffect(() => {
@@ -203,11 +341,15 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
         isDirtyRef.current = false;
         setEditorTabDirty(p, false);
         upsertFile(p, { isDirty: false, saveStatus: 'saved' });
-        setSaveStatus('saved');
+        if (useEditorRuntimeStore.getState().activeFilePath === p) {
+          setSaveStatus('saved');
+        }
 
         const stats = computeTextStats(res.content);
-        setWordCount(stats.words);
-        setCharCount(stats.chars);
+        if (useEditorRuntimeStore.getState().activeFilePath === p) {
+          setWordCount(stats.words);
+          setCharCount(stats.chars);
+        }
       })
       .catch((err) => {
         if (canceled) return;
@@ -227,7 +369,17 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
   useEffect(() => {
     if (!editor) return;
 
+    const isActiveForStatusBar = (): boolean => {
+      const p = (filePath ?? '').trim();
+      if (!p) return false;
+      if (useEditorRuntimeStore.getState().activeFilePath === p) return true;
+      return editor.view.hasFocus();
+    };
+
     const updateCursor = () => {
+      const p = (filePath ?? '').trim();
+      if (!p) return;
+      if (!isActiveForStatusBar()) return;
       const pos = editor.state.selection.$from.pos;
       const before = editor.state.doc.textBetween(0, pos, '\n', '\n');
       const lines = before.split('\n');
@@ -236,7 +388,23 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
       setCursorPosition({ line, column });
     };
 
+    const updateSelection = () => {
+      const p = (filePath ?? '').trim();
+      if (!p) return;
+      if (!isActiveForStatusBar()) return;
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        setSelection(null);
+        return;
+      }
+      const text = editor.state.doc.textBetween(from, to, '\n', '\n');
+      setSelection({ filePath: p, from, to, text, updatedAt: Date.now() });
+    };
+
     const updateStats = () => {
+      const p = (filePath ?? '').trim();
+      if (!p) return;
+      if (!isActiveForStatusBar()) return;
       const text = editor.state.doc.textContent;
       const stats = computeTextStats(text);
       setWordCount(stats.words);
@@ -245,24 +413,63 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
 
     const handleDomKeyDown = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
-      if (e.key.toLowerCase() !== 's') return;
-      e.preventDefault();
-      void saveLatest('manual');
+      const key = e.key.toLowerCase();
+      if (key === 's') {
+        e.preventDefault();
+        void saveLatest('manual');
+      }
+      if (key === 'k' && !e.shiftKey) {
+        e.preventDefault();
+        openInlineAi();
+      }
+    };
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const file = findFirstImageFile(event.clipboardData?.files);
+      if (!file) return;
+
+      event.preventDefault();
+      void readFileAsDataUrl(file)
+        .then((src) => insertImage(editor, src, file.name))
+        .catch((error) => {
+          console.warn('[Editor] paste image failed:', error);
+        });
+    };
+
+    const handleDrop = (event: DragEvent) => {
+      const file = findFirstImageFile(event.dataTransfer?.files);
+      if (!file) return;
+
+      event.preventDefault();
+      const coords = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
+      const pos = coords?.pos;
+      void readFileAsDataUrl(file)
+        .then((src) => insertImage(editor, src, file.name, typeof pos === 'number' ? pos : undefined))
+        .catch((error) => {
+          console.warn('[Editor] drop image failed:', error);
+        });
     };
 
     updateCursor();
+    updateSelection();
     updateStats();
     editor.on('selectionUpdate', updateCursor);
+    editor.on('selectionUpdate', updateSelection);
     editor.on('update', updateStats);
 
     editor.view.dom.addEventListener('keydown', handleDomKeyDown);
+    editor.view.dom.addEventListener('paste', handlePaste);
+    editor.view.dom.addEventListener('drop', handleDrop);
 
     return () => {
       editor.off('selectionUpdate', updateCursor);
+      editor.off('selectionUpdate', updateSelection);
       editor.off('update', updateStats);
       editor.view.dom.removeEventListener('keydown', handleDomKeyDown);
+      editor.view.dom.removeEventListener('paste', handlePaste);
+      editor.view.dom.removeEventListener('drop', handleDrop);
     };
-  }, [editor, saveLatest, setCharCount, setCursorPosition, setWordCount]);
+  }, [editor, filePath, openInlineAi, saveLatest, setCharCount, setCursorPosition, setSelection, setWordCount]);
 
   // Best-effort periodic snapshots for recovery.
   useEffect(() => {
@@ -293,6 +500,19 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
 
   // Cleanup timers on unmount.
   useEffect(() => clearAutosaveTimer, [clearAutosaveTimer]);
+
+  // Re-apply current markdown when switching richtext/markdown mode.
+  useEffect(() => {
+    const p = (filePath ?? '').trim();
+    if (!p) return;
+    setContentVersion((v) => v + 1);
+  }, [filePath, mode]);
+
+  useEffect(() => {
+    const p = (filePath ?? '').trim();
+    if (!p) return;
+    return () => clearForFile(p);
+  }, [clearForFile, filePath]);
 
   if (!filePath) {
     return (
@@ -330,13 +550,38 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
         ) : (
           <>
             <TipTapEditor
-              content={content}
+              content={latestMarkdownRef.current || content}
               contentVersion={contentVersion}
               mode={mode}
               onEditorReady={handleEditorReady}
               onFocusChanged={handleFocusChanged}
               onMarkdownChanged={handleMarkdownChanged}
             />
+
+            {inlineAiOpen && inlineAiPosition && (
+              <div
+                className="absolute z-30 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-panel)] p-2 shadow-xl"
+                style={{
+                  left: `${inlineAiPosition.x}px`,
+                  top: `${inlineAiPosition.y}px`,
+                  transform: 'translateY(-100%)',
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Input
+                    ref={inlineAiInputRef}
+                    value={inlineAiInput}
+                    placeholder="内联 AI 指令…"
+                    onChange={(event) => setInlineAiInput(event.target.value)}
+                    onKeyDown={handleInlineKeyDown}
+                  />
+                  <Button type="button" size="sm" onClick={() => void handleInlineSend()}>
+                    发送
+                  </Button>
+                </div>
+                <div className="mt-1 text-[10px] text-[var(--text-muted)]">Enter 发送 · Esc 关闭</div>
+              </div>
+            )}
 
             <FloatingToolbar editor={editor} containerEl={editorViewportRef.current} onRequestFocusAi={focusAiPanel} />
           </>

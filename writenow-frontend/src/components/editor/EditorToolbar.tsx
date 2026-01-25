@@ -14,6 +14,9 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
   Image as ImageIcon,
   Italic,
   Link2,
@@ -36,13 +39,16 @@ import type { EditorMode } from '@/stores';
 import { ModeSwitch } from './ModeSwitch';
 import { ToolbarButton } from './ToolbarButton';
 
-type HeadingValue = 'paragraph' | 'h1' | 'h2' | 'h3';
+type HeadingValue = 'paragraph' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 function getCurrentHeading(editor: Editor | null): HeadingValue {
   if (!editor) return 'paragraph';
   if (editor.isActive('heading', { level: 1 })) return 'h1';
   if (editor.isActive('heading', { level: 2 })) return 'h2';
   if (editor.isActive('heading', { level: 3 })) return 'h3';
+  if (editor.isActive('heading', { level: 4 })) return 'h4';
+  if (editor.isActive('heading', { level: 5 })) return 'h5';
+  if (editor.isActive('heading', { level: 6 })) return 'h6';
   return 'paragraph';
 }
 
@@ -51,13 +57,40 @@ function setHeading(editor: Editor, value: HeadingValue): void {
     editor.chain().focus().setParagraph().run();
     return;
   }
-  const level = value === 'h1' ? 1 : value === 'h2' ? 2 : 3;
+  const level =
+    value === 'h1'
+      ? 1
+      : value === 'h2'
+        ? 2
+        : value === 'h3'
+          ? 3
+          : value === 'h4'
+            ? 4
+            : value === 'h5'
+              ? 5
+              : 6;
   editor.chain().focus().toggleHeading({ level }).run();
 }
 
 function getSelectedText(editor: Editor): string {
   const selection = editor.state.selection;
   return editor.state.doc.textBetween(selection.from, selection.to, ' ');
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        reject(new Error('FileReader returned a non-string result'));
+        return;
+      }
+      resolve(result);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 export interface EditorToolbarProps {
@@ -177,6 +210,21 @@ export function EditorToolbar(props: EditorToolbarProps) {
               <SelectItem value="h3">
                 <span className="inline-flex items-center gap-2">
                   <Heading3 className="w-3.5 h-3.5" /> 标题 3
+                </span>
+              </SelectItem>
+              <SelectItem value="h4">
+                <span className="inline-flex items-center gap-2">
+                  <Heading4 className="w-3.5 h-3.5" /> 标题 4
+                </span>
+              </SelectItem>
+              <SelectItem value="h5">
+                <span className="inline-flex items-center gap-2">
+                  <Heading5 className="w-3.5 h-3.5" /> 标题 5
+                </span>
+              </SelectItem>
+              <SelectItem value="h6">
+                <span className="inline-flex items-center gap-2">
+                  <Heading6 className="w-3.5 h-3.5" /> 标题 6
                 </span>
               </SelectItem>
             </SelectContent>
@@ -374,6 +422,30 @@ export function EditorToolbar(props: EditorToolbarProps) {
             <div className="space-y-1">
               <div className="text-xs text-[var(--text-muted)]">图片 URL</div>
               <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs text-[var(--text-muted)]">本地上传</div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0] ?? null;
+                  event.currentTarget.value = '';
+                  if (!file || !editor) return;
+
+                  const alt = imageAlt.trim() || file.name;
+                  void readFileAsDataUrl(file)
+                    .then((src) => {
+                      (editor.chain().focus() as unknown as { setImage: (opts: { src: string; alt?: string }) => { run: () => void } })
+                        .setImage({ src, ...(alt ? { alt } : {}) })
+                        .run();
+                      setImageOpen(false);
+                    })
+                    .catch((error) => {
+                      console.warn('[EditorToolbar] Failed to insert image from file:', error);
+                    });
+                }}
+              />
             </div>
             <div className="space-y-1">
               <div className="text-xs text-[var(--text-muted)]">描述（可选）</div>

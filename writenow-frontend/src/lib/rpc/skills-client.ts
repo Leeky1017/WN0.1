@@ -1,0 +1,44 @@
+/**
+ * Skills JSON-RPC client (Theia backend)
+ * Why: Standalone frontend needs skills list/definitions for slash commands and prompt construction.
+ */
+
+import type { IpcResponse, SkillListRequest, SkillListResponse, SkillReadRequest, SkillReadResponse } from '@/types/ipc-generated';
+
+import { JsonRpcWebSocketClient, type JsonRpcConnectionStatus, type JsonRpcStatusListener } from './jsonrpc-client';
+
+const DEFAULT_SKILLS_URL = 'ws://localhost:3000/standalone-rpc';
+
+export class SkillsJsonRpcClient {
+  private readonly client = new JsonRpcWebSocketClient();
+
+  get status(): JsonRpcConnectionStatus {
+    return this.client.status;
+  }
+
+  get isConnected(): boolean {
+    return this.client.isConnected;
+  }
+
+  onStatusChange(listener: JsonRpcStatusListener): () => void {
+    return this.client.onStatusChange(listener);
+  }
+
+  async connect(url: string = DEFAULT_SKILLS_URL): Promise<void> {
+    await this.client.connect(url);
+  }
+
+  disconnect(): void {
+    this.client.disconnect();
+  }
+
+  async listSkills(request: SkillListRequest): Promise<IpcResponse<SkillListResponse>> {
+    return await this.client.sendRequest<IpcResponse<SkillListResponse>>('listSkills', request);
+  }
+
+  async getSkill(request: SkillReadRequest): Promise<IpcResponse<SkillReadResponse>> {
+    return await this.client.sendRequest<IpcResponse<SkillReadResponse>>('getSkill', request);
+  }
+}
+
+export const skillsClient = new SkillsJsonRpcClient();

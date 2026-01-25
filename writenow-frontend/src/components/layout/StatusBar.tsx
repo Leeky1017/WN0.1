@@ -137,7 +137,10 @@ export function StatusBar() {
   } = useStatusBarStore();
 
   return (
-    <div className="h-6 bg-[var(--bg-sidebar)] border-t border-[var(--border-subtle)] flex items-center justify-between px-4 text-[var(--text-muted)] text-xs select-none">
+    <div
+      className="h-6 bg-[var(--bg-sidebar)] border-t border-[var(--border-subtle)] flex items-center justify-between px-4 text-[var(--text-muted)] text-xs select-none"
+      data-testid="statusbar"
+    >
       {/* Left Section */}
       <div className="flex items-center">
         <StatusItem>

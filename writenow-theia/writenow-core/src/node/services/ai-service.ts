@@ -100,8 +100,16 @@ function resolveBaseUrl(): string {
 }
 
 function resolveApiKey(): string | null {
-    const env = coerceString(process.env.WN_AI_API_KEY) || coerceString(process.env.ANTHROPIC_API_KEY);
-    return env || null;
+    // Why: `WN_AI_API_KEY` is the app-level override. If it is present (even empty), treat it as the single source
+    // of truth and do NOT fall back to `ANTHROPIC_API_KEY`. This keeps E2E and desktop configs deterministic.
+    const wnRaw = typeof process.env.WN_AI_API_KEY === 'string' ? process.env.WN_AI_API_KEY : null;
+    if (wnRaw !== null) {
+        const wn = wnRaw.trim();
+        return wn || null;
+    }
+
+    const fallback = coerceString(process.env.ANTHROPIC_API_KEY);
+    return fallback || null;
 }
 
 function resolveModel(fallback: string | null): string {

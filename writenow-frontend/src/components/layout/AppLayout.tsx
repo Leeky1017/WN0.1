@@ -3,17 +3,21 @@
  * 使用 FlexLayout 实现四区布局
  * @see design/03-layout-system.md
  */
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Action, Actions, DockLocation, Layout, Model, TabNode } from 'flexlayout-react';
+import type { BorderNode, TabSetNode } from 'flexlayout-react';
 import type { PanelComponent } from './layout-config';
 import { LayoutApiProvider } from './layout-api-provider';
 import type { LayoutApi } from './layout-api-context';
 import { loadLayout, saveLayout } from '@/lib/layout/persistence';
-import { useEditorFilesStore, useLayoutStore } from '@/stores';
+import { useEditorFilesStore, useEditorRuntimeStore, useLayoutStore } from '@/stores';
 import { FileTreePanel } from '@/features/file-tree/FileTreePanel';
 import { EditorPanel } from '@/features/editor/EditorPanel';
-import { AIPanelPlaceholder } from '@/features/ai-panel/AIPanelPlaceholder';
+import { AIPanel } from '@/features/ai-panel/AIPanel';
 import { WelcomePanel } from '@/features/editor/WelcomePanel';
+import { VersionHistoryPanel } from '@/features/version-history/VersionHistoryPanel';
+import { UiShowcasePanel } from '@/features/dev/UiShowcasePanel';
+import { TabContextMenu, type TabContextMenuAction } from './TabContextMenu';
 
 // 导入 FlexLayout 样式
 import 'flexlayout-react/style/dark.css';
@@ -32,15 +36,13 @@ function PanelFactory(node: TabNode): React.ReactNode {
     case 'Editor':
       return <EditorPanel filePath={node.getConfig()?.filePath as string | undefined} />;
     case 'AIPanel':
-      return <AIPanelPlaceholder />;
+      return <AIPanel />;
     case 'Welcome':
       return <WelcomePanel />;
     case 'VersionHistory':
-      return (
-        <div className="h-full flex items-center justify-center text-[var(--text-muted)]">
-          版本历史（Phase 5 实现）
-        </div>
-      );
+      return <VersionHistoryPanel />;
+    case 'UiShowcase':
+      return <UiShowcasePanel />;
     default:
       return (
         <div className="h-full flex items-center justify-center text-[var(--text-muted)]">
@@ -53,16 +55,27 @@ function PanelFactory(node: TabNode): React.ReactNode {
 interface AppLayoutProps {
   /** 可选的初始布局配置，不传则从 localStorage 加载 */
   className?: string;
+  /**
+   * Optional callback to expose the LayoutApi to app-level overlays (cmdk/settings).
+   * Why: Overlays are rendered outside FlexLayout's PanelFactory but still need explicit access to layout actions.
+   */
+  onApiReady?: (api: LayoutApi) => void;
 }
 
 /**
  * 主应用布局组件
  */
-export function AppLayout({ className = '' }: AppLayoutProps) {
+export function AppLayout({ className = '', onApiReady }: AppLayoutProps) {
   const layoutRef = useRef<Layout>(null);
   const resetToken = useLayoutStore((state) => state.resetToken);
   const resetLayout = useLayoutStore((state) => state.resetLayout);
   const refreshHasStoredLayout = useLayoutStore((state) => state.refreshHasStoredLayout);
+
+  const [tabContextMenu, setTabContextMenu] = useState<{
+    tabId: string;
+    tabsetId: string | null;
+    position: { x: number; y: number };
+  } | null>(null);
   
   // 初始化 Model（从 localStorage 加载或使用默认布局）
   const model = useMemo(() => {
@@ -108,6 +121,7 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
             // Remove cached state once the tab is allowed to close.
             if (filePath) {
               useEditorFilesStore.getState().remove(filePath);
+              useEditorRuntimeStore.getState().clearForFile(filePath);
             }
           }
         }
@@ -116,6 +130,62 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
 
     return action;
   }, [model]);
+
+  const closeTabContextMenu = useCallback(() => {
+    setTabContextMenu(null);
+  }, []);
+
+  const handleTabContextMenuAction = useCallback(
+    (action: TabContextMenuAction) => {
+      const menu = tabContextMenu;
+      if (!menu) return;
+      closeTabContextMenu();
+
+      if (action === 'close') {
+        model.doAction(Actions.deleteTab(menu.tabId));
+        return;
+      }
+
+      const tabsetId = menu.tabsetId;
+      if (!tabsetId) return;
+      const node = model.getNodeById(tabsetId);
+      if (!node || node.getType() !== 'tabset') return;
+
+      const tabs = node
+        .getChildren()
+        .filter((child): child is TabNode => child.getType() === 'tab')
+        .filter((tab) => tab.getComponent() === 'Editor');
+
+      const toClose =
+        action === 'close-all'
+          ? tabs
+          : tabs.filter((tab) => tab.getId() !== menu.tabId);
+
+      for (const tab of toClose) {
+        model.doAction(Actions.deleteTab(tab.getId()));
+      }
+    },
+    [closeTabContextMenu, model, tabContextMenu],
+  );
+
+  const handleLayoutContextMenu = useCallback(
+    (node: TabNode | TabSetNode | BorderNode, event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+      // Only add editor tab actions for now.
+      if (node.getType() !== 'tab') return;
+      const tab = node as TabNode;
+      if (tab.getComponent() !== 'Editor') return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      setTabContextMenu({
+        tabId: tab.getId(),
+        tabsetId: tab.getParent()?.getId() ?? null,
+        position: { x: event.clientX, y: event.clientY },
+      });
+    },
+    [],
+  );
 
   const openEditorTab = useCallback(
     (filePath: string) => {
@@ -196,6 +266,10 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
     () => ({ openEditorTab, focusAiPanel, setEditorTabDirty }),
     [focusAiPanel, openEditorTab, setEditorTabDirty],
   );
+
+  useEffect(() => {
+    onApiReady?.(layoutApi);
+  }, [layoutApi, onApiReady]);
   
   // 添加键盘快捷键支持
   useEffect(() => {
@@ -205,11 +279,39 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
         e.preventDefault();
         resetLayout();
       }
+
+      // Ctrl+Tab 切换编辑器标签页（在当前活跃 tabset 内循环）
+      if (e.ctrlKey && e.key === 'Tab') {
+        const tabset = model.getActiveTabset();
+        if (!tabset) return;
+
+        const tabs = tabset
+          .getChildren()
+          .filter((child): child is TabNode => child.getType() === 'tab');
+        if (tabs.length <= 1) return;
+
+        const isEditorTabset = tabs.some((tab) => {
+          const component = tab.getComponent() as PanelComponent;
+          return component === 'Editor' || component === 'Welcome';
+        });
+        if (!isEditorTabset) return;
+
+        const selected = tabset.getSelectedNode();
+        if (!selected || selected.getType() !== 'tab') return;
+
+        const currentIndex = tabs.findIndex((tab) => tab.getId() === selected.getId());
+        if (currentIndex < 0) return;
+
+        e.preventDefault();
+        const offset = e.shiftKey ? -1 : 1;
+        const nextIndex = (currentIndex + offset + tabs.length) % tabs.length;
+        model.doAction(Actions.selectTab(tabs[nextIndex].getId()));
+      }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [resetLayout]);
+  }, [model, resetLayout]);
 
   return (
     <LayoutApiProvider api={layoutApi}>
@@ -220,9 +322,18 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
           factory={PanelFactory}
           onModelChange={handleModelChange}
           onAction={handleAction}
+          onContextMenu={handleLayoutContextMenu}
           realtimeResize={true}
         />
       </div>
+
+      {tabContextMenu && (
+        <TabContextMenu
+          position={tabContextMenu.position}
+          onClose={closeTabContextMenu}
+          onAction={handleTabContextMenuAction}
+        />
+      )}
     </LayoutApiProvider>
   );
 }

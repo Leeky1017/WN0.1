@@ -15,7 +15,8 @@ export type PanelComponent =
   | 'Editor'
   | 'AIPanel'
   | 'VersionHistory'
-  | 'Welcome';
+  | 'Welcome'
+  | 'UiShowcase';
 
 /**
  * 默认布局配置
@@ -73,13 +74,18 @@ export const defaultLayout: IJsonModel = {
             weight: 30,
             minHeight: 160,
             children: [
-              {
-                type: 'tab',
-                name: '版本历史',
-                component: 'VersionHistory',
-              },
-            ],
+          {
+            type: 'tab',
+            name: '版本历史',
+            component: 'VersionHistory',
           },
+          {
+            type: 'tab',
+            name: '组件',
+            component: 'UiShowcase',
+          },
+        ],
+      },
         ],
       },
       // 右侧 AI 面板

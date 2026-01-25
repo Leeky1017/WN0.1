@@ -141,6 +141,18 @@ export function ExportDialog(props: ExportDialogProps) {
 
           <button
             type="button"
+            className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-panel)] p-3 hover:bg-[var(--bg-hover)]"
+            onClick={() => downloadBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), `${baseName}.txt`)}
+          >
+            <FileText className="w-5 h-5 text-[var(--text-muted)]" />
+            <div className="text-left">
+              <div className="text-sm font-medium text-[var(--text-primary)]">纯文本</div>
+              <div className="text-xs text-[var(--text-muted)]">下载 .txt 文件</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
             className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-panel)] p-3 hover:bg-[var(--bg-hover)] disabled:opacity-50"
             onClick={() => void runBackendExport('docx')}
             disabled={busy !== null}

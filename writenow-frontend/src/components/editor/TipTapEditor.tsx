@@ -8,9 +8,25 @@
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import type { Editor } from '@tiptap/core';
+import type { Editor, InputRule } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Document from '@tiptap/extension-document';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import HardBreak from '@tiptap/extension-hard-break';
+import Bold from '@tiptap/extension-bold';
+import Italic from '@tiptap/extension-italic';
+import Strike from '@tiptap/extension-strike';
+import Code from '@tiptap/extension-code';
+import Heading from '@tiptap/extension-heading';
+import Blockquote from '@tiptap/extension-blockquote';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
+import CodeBlock from '@tiptap/extension-code-block';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import { UndoRedo } from '@tiptap/extensions';
 import { Markdown } from '@tiptap/markdown';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
@@ -26,6 +42,68 @@ import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 
 import type { EditorMode } from '@/stores';
+
+const EMPTY_INPUT_RULES: InputRule[] = [];
+
+const RichHeading = Heading.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichBlockquote = Blockquote.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichBulletList = BulletList.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichOrderedList = OrderedList.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichCodeBlock = CodeBlock.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichHorizontalRule = HorizontalRule.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichBold = Bold.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichItalic = Italic.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichStrike = Strike.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
+
+const RichCode = Code.extend({
+  addInputRules() {
+    return EMPTY_INPUT_RULES;
+  },
+});
 
 function getMarkdownFromEditor(editor: Editor): string {
   const maybe = editor as unknown as {
@@ -58,10 +136,34 @@ export function TipTapEditor(props: TipTapEditorProps) {
 
   const extensions = useMemo(
     () => [
-      StarterKit,
-      Markdown.configure({
-        indentation: { style: 'space', size: 2 },
-      }),
+          ...(mode === 'markdown'
+        ? [
+            StarterKit,
+            Markdown.configure({
+              indentation: { style: 'space', size: 2 },
+            }),
+          ]
+        : [
+            Document,
+            Paragraph,
+            Text,
+            UndoRedo,
+            HardBreak,
+            RichHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
+            RichBold,
+            RichItalic,
+            RichStrike,
+            RichCode,
+            RichBlockquote,
+            ListItem,
+            RichBulletList,
+            RichOrderedList,
+            RichCodeBlock,
+            RichHorizontalRule,
+            Markdown.configure({
+              indentation: { style: 'space', size: 2 },
+            }),
+          ]),
       Underline,
       Link.configure({
         openOnClick: false,
@@ -106,6 +208,7 @@ export function TipTapEditor(props: TipTapEditorProps) {
           class:
             'wn-tiptap-editor h-full w-full px-6 py-5 outline-none text-[var(--text-primary)]',
           'data-editor-mode': mode,
+          'data-testid': 'tiptap-editor',
         },
         handleDOMEvents: {
           focus: () => {
