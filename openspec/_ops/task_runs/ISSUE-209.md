@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. 根据 `前端重构任务内容.md` 创建完整的 OpenSpec 规范
-2. 创建 spec.md、design/、task_cards/ 完整结构
-3. 确保规范符合 OpenSpec 格式要求
+- 根据 `前端重构任务内容.md` 创建完整的 OpenSpec 规范
+- 创建 spec.md、design/、task_cards/ 完整结构
+- 确保规范符合 OpenSpec 格式要求
 
 ## Runs
 
