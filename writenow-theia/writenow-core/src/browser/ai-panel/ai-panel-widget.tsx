@@ -21,15 +21,9 @@ import { diffChars } from './text-diff';
 
 /**
  * Send a desktop notification if permitted.
- *
- * Why: Like Cursor, users should be notified when AI tasks complete,
- * especially if they've switched to another window.
  */
 function sendDesktopNotification(title: string, body: string): void {
-    // Only send if document is not visible (user switched away)
     if (document.visibilityState === 'visible') return;
-
-    // Check permission
     if (!('Notification' in window)) return;
     if (Notification.permission === 'denied') return;
 
@@ -38,7 +32,6 @@ function sendDesktopNotification(title: string, body: string): void {
         return;
     }
 
-    // Request permission (won't block, just won't send this time)
     void Notification.requestPermission();
 }
 
@@ -55,24 +48,20 @@ type SelectionSnapshot = { from: number; to: number; text: string };
 
 /**
  * Slash command definition for quick access to skills.
- *
- * Why: Like Cursor, users should be able to type "/" to quickly access common AI actions
- * without navigating through dropdown menus.
  */
 type SlashCommand = {
     id: string;
     name: string;
     description: string;
-    icon: string;
     skillId: string | null;
 };
 
 const SLASH_COMMANDS: readonly SlashCommand[] = [
-    { id: 'polish', name: '/polish', description: '润色文本，优化表达', icon: '✨', skillId: 'pkg.writenow.builtin/1.0.0/polish' },
-    { id: 'expand', name: '/expand', description: '扩写内容，丰富细节', icon: '📝', skillId: 'pkg.writenow.builtin/1.0.0/expand' },
-    { id: 'condense', name: '/condense', description: '精简内容，保留核心', icon: '📋', skillId: 'pkg.writenow.builtin/1.0.0/condense' },
-    { id: 'outline', name: '/outline', description: '生成大纲结构', icon: '📑', skillId: null },
-    { id: 'style', name: '/style', description: '改写风格', icon: '🎨', skillId: null },
+    { id: 'polish', name: '/polish', description: '润色文本，优化表达', skillId: 'pkg.writenow.builtin/1.0.0/polish' },
+    { id: 'expand', name: '/expand', description: '扩写内容，丰富细节', skillId: 'pkg.writenow.builtin/1.0.0/expand' },
+    { id: 'condense', name: '/condense', description: '精简内容，保留核心', skillId: 'pkg.writenow.builtin/1.0.0/condense' },
+    { id: 'outline', name: '/outline', description: '生成大纲结构', skillId: null },
+    { id: 'style', name: '/style', description: '改写风格', skillId: null },
 ];
 
 function coerceString(value: unknown): string {
@@ -95,7 +84,6 @@ function formatIpcError(error: IpcError): string {
 
 function formatRagContext(response: RagRetrieveResponse): string {
     const parts: string[] = [];
-
     const passages = Array.isArray(response.passages) ? response.passages : [];
     const characters = Array.isArray(response.characters) ? response.characters : [];
     const settings = Array.isArray(response.settings) ? response.settings : [];
@@ -133,7 +121,11 @@ function formatRagContext(response: RagRetrieveResponse): string {
     return parts.join('\n').trim();
 }
 
-function formatKnowledgeGraphContext(entities: readonly KnowledgeGraphEntity[], relations: readonly KnowledgeGraphRelation[], targetText: string): string {
+function formatKnowledgeGraphContext(
+    entities: readonly KnowledgeGraphEntity[],
+    relations: readonly KnowledgeGraphRelation[],
+    targetText: string
+): string {
     const haystack = typeof targetText === 'string' ? targetText : '';
     if (!haystack.trim()) return '';
 
@@ -181,11 +173,7 @@ function formatKnowledgeGraphContext(entities: readonly KnowledgeGraphEntity[], 
 function renderTemplate(template: string, data: Record<string, string>): string {
     const normalized = (typeof template === 'string' ? template : '').replace(/\r\n/g, '\n');
 
-    // Why: Support the minimal Mustache subset used by SKILL.md templates:
-    // - {{var}} interpolation
-    // - {{#var}} ... {{/var}} conditional sections (truthy if `data[var]` is non-empty)
     let rendered = normalized;
-
     const sectionRe = /{{#([a-zA-Z0-9_]+)}}([\s\S]*?){{\/\1}}/g;
     rendered = rendered.replace(sectionRe, (_match: string, key: string, inner: string) => {
         const value = data[key] ?? '';
@@ -200,26 +188,22 @@ function renderTemplate(template: string, data: Record<string, string>): string 
 }
 
 /**
- * SlashCommandMenu component for quick command selection.
- *
- * Why: Provides Cursor-like slash command experience with keyboard navigation.
+ * Slash command menu component.
  */
 type SlashCommandMenuProps = Readonly<{
     filter: string;
     selectedIndex: number;
     onSelect: (cmd: SlashCommand) => void;
-    onClose: () => void;
 }>;
 
 function SlashCommandMenu(props: SlashCommandMenuProps): React.ReactElement | null {
     const { filter, selectedIndex, onSelect } = props;
-    // Note: onClose is available via props but currently handled by parent component
 
     const filtered = React.useMemo(() => {
         if (!filter) return SLASH_COMMANDS;
         const lower = filter.toLowerCase();
-        return SLASH_COMMANDS.filter((cmd) =>
-            cmd.id.includes(lower) || cmd.name.includes(lower) || cmd.description.includes(lower)
+        return SLASH_COMMANDS.filter(
+            (cmd) => cmd.id.includes(lower) || cmd.name.includes(lower) || cmd.description.includes(lower)
         );
     }, [filter]);
 
@@ -227,7 +211,7 @@ function SlashCommandMenu(props: SlashCommandMenuProps): React.ReactElement | nu
 
     return (
         <div className="wn-ai-slash-menu" data-testid="writenow-ai-slash-menu">
-            <div className="wn-ai-slash-menu-header">快捷命令</div>
+            <div className="wn-ai-slash-menu-header">Commands</div>
             <div className="wn-ai-slash-menu-list">
                 {filtered.map((cmd, idx) => (
                     <div
@@ -236,7 +220,7 @@ function SlashCommandMenu(props: SlashCommandMenuProps): React.ReactElement | nu
                         onClick={() => onSelect(cmd)}
                         data-testid={`writenow-ai-slash-cmd-${cmd.id}`}
                     >
-                        <div className="wn-ai-slash-menu-item-icon">{cmd.icon}</div>
+                        <div className="wn-ai-slash-menu-item-icon">/</div>
                         <div className="wn-ai-slash-menu-item-content">
                             <div className="wn-ai-slash-menu-item-name">{cmd.name}</div>
                             <div className="wn-ai-slash-menu-item-desc">{cmd.description}</div>
@@ -249,52 +233,42 @@ function SlashCommandMenu(props: SlashCommandMenuProps): React.ReactElement | nu
 }
 
 /**
- * MessageBubble component with hover actions.
- *
- * Why: Like Cursor/ChatGPT, users should be able to copy or regenerate messages
- * without leaving the chat flow.
+ * Message block component - Cursor style with YOU/AI labels.
  */
-type MessageBubbleProps = Readonly<{
+type MessageBlockProps = Readonly<{
     message: ChatMessage;
     onCopy: (content: string) => void;
-    onRegenerate?: () => void;
 }>;
 
-function MessageBubble(props: MessageBubbleProps): React.ReactElement {
-    const { message, onCopy, onRegenerate } = props;
+function MessageBlock(props: MessageBlockProps): React.ReactElement {
+    const { message, onCopy } = props;
     const isUser = message.role === 'user';
     const isStreaming = message.status === 'streaming';
 
-    const wrapperClass = `wn-ai-message-wrapper wn-ai-message-wrapper--${message.role}`;
-    const messageClass = `wn-ai-message wn-ai-message--${message.role}${isStreaming ? ' wn-ai-message--streaming' : ''}`;
+    const blockClass = `wn-ai-message-block wn-ai-message-block--${message.role}${isStreaming ? ' wn-ai-message-block--streaming' : ''}`;
+    const label = isUser ? 'YOU' : 'AI';
 
     return (
-        <div className={wrapperClass} data-testid={`writenow-ai-message-${message.role}`}>
-            <div className="wn-ai-message-actions">
-                <button
-                    type="button"
-                    className="wn-ai-message-action-btn"
-                    onClick={() => onCopy(message.content)}
-                    title="复制"
-                    data-testid="writenow-ai-copy-btn"
-                >
-                    📋
-                </button>
-                {!isUser && onRegenerate && (
-                    <button
-                        type="button"
-                        className="wn-ai-message-action-btn"
-                        onClick={onRegenerate}
-                        title="重新生成"
-                        data-testid="writenow-ai-regenerate-btn"
-                    >
-                        🔄
-                    </button>
-                )}
-            </div>
-            <div className={messageClass}>
-                {message.content || (isStreaming ? '…' : '')}
-            </div>
+        <div className={blockClass} data-testid={`writenow-ai-message-${message.role}`}>
+            <div className="wn-ai-message-label">{label}</div>
+            <div className="wn-ai-message-text">{message.content || (isStreaming ? '' : '')}</div>
+            {!isStreaming && message.content && (
+                <div className="wn-ai-code-block" style={{ marginTop: '12px' }}>
+                    <div className="wn-ai-code-header">
+                        <span className="wn-ai-code-lang">Output</span>
+                        <div className="wn-ai-code-actions">
+                            <button
+                                type="button"
+                                className="wn-ai-code-action"
+                                onClick={() => onCopy(message.content)}
+                                data-testid="writenow-ai-copy-btn"
+                            >
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -313,7 +287,6 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
 
     const [skills, setSkills] = React.useState<SkillListItem[]>([]);
     const [skillsLoading, setSkillsLoading] = React.useState(false);
-    const [skillsError, setSkillsError] = React.useState<string | null>(null);
     const [skillId, setSkillId] = React.useState<string>('');
 
     const [input, setInput] = React.useState('');
@@ -326,7 +299,6 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
     const [selection, setSelection] = React.useState<SelectionSnapshot | null>(null);
     const [suggestedText, setSuggestedText] = React.useState('');
 
-    // Slash command menu state
     const [showSlashMenu, setShowSlashMenu] = React.useState(false);
     const [slashFilter, setSlashFilter] = React.useState('');
     const [slashSelectedIndex, setSlashSelectedIndex] = React.useState(0);
@@ -346,13 +318,11 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
 
     React.useEffect(() => {
         setSkillsLoading(true);
-        setSkillsError(null);
 
         void aiPanel
             .listSkills({})
             .then((res) => {
                 if (!res.ok) {
-                    setSkillsError(formatIpcError(res.error));
                     setSkills([]);
                     return;
                 }
@@ -362,12 +332,10 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                     setSkillId(list[0].id);
                 }
             })
-            .catch((error: unknown) => {
-                setSkillsError(error instanceof Error ? error.message : String(error));
+            .catch(() => {
                 setSkills([]);
             })
             .finally(() => setSkillsLoading(false));
-        // Why: load once on mount; list refresh can be wired to future skills change notifications.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -382,7 +350,10 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                     if (last && last.role === 'assistant' && last.status === 'streaming') {
                         return [...prev.slice(0, -1), { ...last, content: last.content + event.text }];
                     }
-                    return [...prev, { id: generateLocalId('assistant'), role: 'assistant', status: 'streaming', content: event.text }];
+                    return [
+                        ...prev,
+                        { id: generateLocalId('assistant'), role: 'assistant', status: 'streaming', content: event.text },
+                    ];
                 });
                 return;
             }
@@ -396,11 +367,13 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                     if (last && last.role === 'assistant') {
                         return [...prev.slice(0, -1), { ...last, status: 'done', content: event.result.text }];
                     }
-                    return [...prev, { id: generateLocalId('assistant'), role: 'assistant', status: 'done', content: event.result.text }];
+                    return [
+                        ...prev,
+                        { id: generateLocalId('assistant'), role: 'assistant', status: 'done', content: event.result.text },
+                    ];
                 });
 
-                // Notify user that AI task completed (like Cursor)
-                notificationService.add('success', 'AI 任务完成', 'AI 已完成文本处理，点击查看结果');
+                notificationService.add('success', 'AI 任务完成', 'AI 已完成文本处理');
                 sendDesktopNotification('WriteNow', 'AI 任务已完成');
                 return;
             }
@@ -420,7 +393,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
             }
         });
         return () => disposable.dispose();
-    }, [aiPanel, runId]);
+    }, [aiPanel, runId, notificationService]);
 
     const resolveSelectionSnapshot = React.useCallback((): SelectionSnapshot | null => {
         const editor = activeEditor.getActive();
@@ -485,7 +458,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         const userTemplate = typeof prompt?.user === 'string' ? prompt.user : '';
         if (!systemTemplate.trim() || !userTemplate.trim()) {
             setRunStatus('error');
-            setRunError('Skill prompt is invalid (missing prompt.system or prompt.user).');
+            setRunError('Skill prompt is invalid.');
             return;
         }
 
@@ -500,7 +473,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                 ragContext = formatRagContext(ragRes.data);
             }
         } catch {
-            // ignore: RAG is optional for initial panel usage.
+            // RAG is optional
         }
 
         let kgContext = '';
@@ -513,10 +486,13 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                 }
             }
         } catch {
-            // ignore: KG is optional for initial panel usage.
+            // KG is optional
         }
 
-        const contextCombined = [instruction, ragContext, kgContext].map((s) => s.trim()).filter(Boolean).join('\n\n');
+        const contextCombined = [instruction, ragContext, kgContext]
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .join('\n\n');
         const userContent = renderTemplate(userTemplate, {
             text: targetText,
             context: contextCombined,
@@ -546,7 +522,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         try {
             await aiPanel.cancel({ runId });
         } catch {
-            // ignore: backend will emit terminal error anyway.
+            // ignore
         }
     }, [aiPanel, runId, runStatus]);
 
@@ -569,8 +545,6 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         }
         if (!suggestedText.trim()) return;
 
-        // Why: Version history is WriteNow's safety net for AI-assisted edits.
-        // We snapshot both the pre-apply and post-apply document so users can diff/rollback.
         const reason = skillId ? `ai:${skillId}` : 'ai';
         const before = editor.getMarkdown();
         const pre = await writenow.invokeResponse('version:create', {
@@ -601,59 +575,37 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         onDiscard();
     }, [activeEditor, onDiscard, runStatus, selection, skillId, suggestedText, writenow]);
 
-    const showDiff = runStatus === 'done' && Boolean(selection) && Boolean(selection?.text.trim()) && Boolean(suggestedText.trim());
+    const showDiff =
+        runStatus === 'done' && Boolean(selection) && Boolean(selection?.text.trim()) && Boolean(suggestedText.trim());
 
-    /**
-     * Why: Build CSS class names dynamically for messages based on role and status.
-     * This approach moves styling logic out of inline styles into the CSS file.
-     */
-    const getStatusClassName = (): string => {
-        const classes = ['wn-ai-status'];
-        if (runStatus === 'streaming') classes.push('wn-ai-status--streaming');
-        if (runStatus === 'error') classes.push('wn-ai-status--error');
-        return classes.join(' ');
-    };
+    const handleSlashCommandSelect = React.useCallback(
+        (cmd: SlashCommand) => {
+            setShowSlashMenu(false);
+            setSlashFilter('');
+            setSlashSelectedIndex(0);
+            setInput('');
 
-    /**
-     * Handle slash command selection.
-     *
-     * Why: When user selects a slash command, we map it to the corresponding skill
-     * and trigger the send action automatically.
-     */
-    const handleSlashCommandSelect = React.useCallback((cmd: SlashCommand) => {
-        setShowSlashMenu(false);
-        setSlashFilter('');
-        setSlashSelectedIndex(0);
-        setInput('');
-
-        if (cmd.skillId) {
-            // Find matching skill in loaded skills
-            const matchingSkill = skills.find((s) => s.id === cmd.skillId);
-            if (matchingSkill) {
-                setSkillId(matchingSkill.id);
-                // Auto-trigger send after skill selection
-                setTimeout(() => {
-                    void onSend();
-                }, 50);
+            if (cmd.skillId) {
+                const matchingSkill = skills.find((s) => s.id === cmd.skillId);
+                if (matchingSkill) {
+                    setSkillId(matchingSkill.id);
+                    setTimeout(() => {
+                        void onSend();
+                    }, 50);
+                } else {
+                    setRunError(`Skill ${cmd.skillId} not available`);
+                }
             } else {
-                setRunError(`技能 ${cmd.skillId} 不可用`);
+                setRunError(`Command ${cmd.name} not implemented`);
             }
-        } else {
-            setRunError(`命令 ${cmd.name} 尚未实现`);
-        }
-    }, [skills, onSend]);
+        },
+        [skills, onSend]
+    );
 
-    /**
-     * Handle input changes for slash command detection.
-     *
-     * Why: We need to detect when user types "/" at the start of input
-     * to show the slash command menu.
-     */
     const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         setInput(value);
 
-        // Detect slash command
         if (value.startsWith('/')) {
             setShowSlashMenu(true);
             setSlashFilter(value.slice(1));
@@ -664,220 +616,95 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
         }
     }, []);
 
-    /**
-     * Handle keyboard navigation in slash menu.
-     */
-    const handleInputKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Escape') {
+    const handleInputKeyDown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+            if (e.key === 'Escape') {
+                if (showSlashMenu) {
+                    e.preventDefault();
+                    setShowSlashMenu(false);
+                    setSlashFilter('');
+                    setInput('');
+                } else {
+                    e.preventDefault();
+                    onClosePanel();
+                }
+                return;
+            }
+
             if (showSlashMenu) {
-                e.preventDefault();
-                setShowSlashMenu(false);
-                setSlashFilter('');
-                setInput('');
-            } else {
-                e.preventDefault();
-                onClosePanel();
-            }
-            return;
-        }
+                const filtered = slashFilter
+                    ? SLASH_COMMANDS.filter(
+                          (cmd) =>
+                              cmd.id.includes(slashFilter.toLowerCase()) || cmd.name.includes(slashFilter.toLowerCase())
+                      )
+                    : SLASH_COMMANDS;
 
-        if (showSlashMenu) {
-            const filtered = slashFilter
-                ? SLASH_COMMANDS.filter((cmd) =>
-                    cmd.id.includes(slashFilter.toLowerCase()) ||
-                    cmd.name.includes(slashFilter.toLowerCase())
-                )
-                : SLASH_COMMANDS;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSlashSelectedIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+                    return;
+                }
 
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setSlashSelectedIndex((prev) => Math.min(prev + 1, filtered.length - 1));
-                return;
-            }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSlashSelectedIndex((prev) => Math.max(prev - 1, 0));
+                    return;
+                }
 
-            if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                setSlashSelectedIndex((prev) => Math.max(prev - 1, 0));
-                return;
-            }
-
-            if (e.key === 'Enter' && filtered.length > 0) {
-                e.preventDefault();
-                handleSlashCommandSelect(filtered[slashSelectedIndex]);
-                return;
-            }
-
-            if (e.key === 'Tab' && filtered.length > 0) {
-                e.preventDefault();
-                handleSlashCommandSelect(filtered[slashSelectedIndex]);
-                return;
-            }
-        }
-    }, [showSlashMenu, slashFilter, slashSelectedIndex, handleSlashCommandSelect, onClosePanel]);
-
-    /**
-     * Handle copy message to clipboard.
-     */
-    const handleCopyMessage = React.useCallback((content: string) => {
-        void navigator.clipboard.writeText(content).then(() => {
-            notificationService.add('success', '已复制', '消息内容已复制到剪贴板');
-        }).catch(() => {
-            notificationService.add('error', '复制失败', '无法访问剪贴板');
-        });
-    }, [notificationService]);
-
-    /**
-     * Handle regenerate last assistant message.
-     */
-    const handleRegenerate = React.useCallback(() => {
-        if (runStatus === 'streaming') return;
-        // Remove last assistant message and resend
-        setMessages((prev) => {
-            // Find last user message index (compatible with ES2020)
-            let lastUserIdx = -1;
-            for (let i = prev.length - 1; i >= 0; i--) {
-                if (prev[i].role === 'user') {
-                    lastUserIdx = i;
-                    break;
+                if ((e.key === 'Enter' || e.key === 'Tab') && filtered.length > 0) {
+                    e.preventDefault();
+                    handleSlashCommandSelect(filtered[slashSelectedIndex]);
+                    return;
                 }
             }
-            if (lastUserIdx >= 0) {
-                return prev.slice(0, lastUserIdx + 1);
+
+            if (e.key === 'Enter' && !e.shiftKey && !showSlashMenu) {
+                e.preventDefault();
+                void onSend();
             }
-            return prev;
-        });
-        void onSend();
-    }, [runStatus, onSend]);
+        },
+        [showSlashMenu, slashFilter, slashSelectedIndex, handleSlashCommandSelect, onClosePanel, onSend]
+    );
+
+    const handleCopyMessage = React.useCallback(
+        (content: string) => {
+            void navigator.clipboard
+                .writeText(content)
+                .then(() => {
+                    notificationService.add('success', 'Copied', 'Content copied to clipboard');
+                })
+                .catch(() => {
+                    notificationService.add('error', 'Copy failed', 'Cannot access clipboard');
+                });
+        },
+        [notificationService]
+    );
 
     return (
         <div className="wn-ai-panel-container" data-testid="writenow-ai-panel">
-            {/* Skill selector bar */}
-            <div className="wn-ai-skill-bar">
-                <select
-                    value={skillId}
-                    onChange={(e) => setSkillId(e.target.value)}
-                    className="wn-ai-skill-select"
-                    disabled={skillsLoading}
-                    data-testid="writenow-ai-skill-select"
-                >
-                    {skills.map((skill) => (
-                        <option key={skill.id} value={skill.id}>
-                            {skill.name}
-                        </option>
-                    ))}
-                </select>
-                <button
-                    type="button"
-                    className="wn-ai-button wn-ai-button--primary"
-                    onClick={() => void onSend()}
-                    disabled={skillsLoading || runStatus === 'streaming'}
-                    data-testid="writenow-ai-send"
-                >
-                    Send
-                </button>
-                <button
-                    type="button"
-                    className="wn-ai-button wn-ai-button--secondary"
-                    onClick={() => void onStop()}
-                    disabled={runStatus !== 'streaming'}
-                    data-testid="writenow-ai-stop"
-                >
-                    Stop
-                </button>
+            {/* Header */}
+            <div className="wn-ai-header">
+                <span className="wn-ai-header-title">AI</span>
             </div>
 
-            {/* Error displays */}
-            {skillsError && (
-                <div className="wn-ai-error" data-testid="writenow-ai-skills-error">
-                    {skillsError}
-                </div>
-            )}
-
+            {/* Error display */}
             {runError && (
                 <div className="wn-ai-error" data-testid="writenow-ai-run-error">
                     {runError}
                 </div>
             )}
 
-            {/* Status indicator */}
-            <div className={getStatusClassName()} data-testid="writenow-ai-status">
-                Status: {runStatus}
-                {runId ? ` (${runId})` : ''}
-            </div>
-
             {/* Chat history */}
-            <div
-                ref={historyRef}
-                className="wn-ai-history"
-                data-testid="writenow-ai-history"
-            >
+            <div ref={historyRef} className="wn-ai-history" data-testid="writenow-ai-history">
                 {messages.length === 0 && (
-                    <div className="wn-ai-history--empty">
-                        输入 / 使用快捷命令，或选择技能后发送。支持在编辑器中选择文本后发送。
-                    </div>
+                    <div className="wn-ai-history--empty">Type / for commands, or ask anything...</div>
                 )}
-                {messages.map((m, idx) => (
-                    <MessageBubble
-                        key={m.id}
-                        message={m}
-                        onCopy={handleCopyMessage}
-                        onRegenerate={m.role === 'assistant' && idx === messages.length - 1 ? handleRegenerate : undefined}
-                    />
+                {messages.map((m) => (
+                    <MessageBlock key={m.id} message={m} onCopy={handleCopyMessage} />
                 ))}
             </div>
 
-            {/* Quick action bar */}
-            <div className="wn-ai-quick-bar">
-                <button
-                    type="button"
-                    className={`wn-ai-quick-btn${showSlashMenu ? ' wn-ai-quick-btn--active' : ''}`}
-                    onClick={() => {
-                        setShowSlashMenu(!showSlashMenu);
-                        setInput(showSlashMenu ? '' : '/');
-                        inputRef.current?.focus();
-                    }}
-                    title="斜杠命令"
-                    data-testid="writenow-ai-slash-trigger"
-                >
-                    / 命令
-                </button>
-                <select
-                    className="wn-ai-model-select"
-                    title="模型选择（即将推出）"
-                    data-testid="writenow-ai-model-select"
-                >
-                    <option value="default">默认模型</option>
-                </select>
-            </div>
-
-            {/* Input area with slash menu */}
-            <div className="wn-ai-input-container">
-                {showSlashMenu && (
-                    <SlashCommandMenu
-                        filter={slashFilter}
-                        selectedIndex={slashSelectedIndex}
-                        onSelect={handleSlashCommandSelect}
-                        onClose={() => {
-                            setShowSlashMenu(false);
-                            setSlashFilter('');
-                        }}
-                    />
-                )}
-                <textarea
-                    ref={(el) => {
-                        inputRef.current = el;
-                        onInputRef(el);
-                    }}
-                    value={input}
-                    onChange={handleInputChange}
-                    placeholder="输入 / 使用快捷命令，或输入指令..."
-                    className="wn-ai-input"
-                    data-testid="writenow-ai-input"
-                    onKeyDown={handleInputKeyDown}
-                />
-            </div>
-
-            {/* Diff view for apply/discard */}
+            {/* Diff view */}
             {showDiff && (
                 <div className="wn-ai-diff" data-testid="writenow-ai-diff">
                     <div className="wn-ai-diff-actions">
@@ -906,10 +733,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                                 {diffChars(selection!.text, suggestedText).map((seg, idx) => {
                                     if (seg.op === 'insert') return null;
                                     return (
-                                        <span
-                                            key={idx}
-                                            className={seg.op === 'delete' ? 'wn-ai-diff-delete' : ''}
-                                        >
+                                        <span key={idx} className={seg.op === 'delete' ? 'wn-ai-diff-delete' : ''}>
                                             {seg.text}
                                         </span>
                                     );
@@ -923,10 +747,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                                 {diffChars(selection!.text, suggestedText).map((seg, idx) => {
                                     if (seg.op === 'delete') return null;
                                     return (
-                                        <span
-                                            key={idx}
-                                            className={seg.op === 'insert' ? 'wn-ai-diff-insert' : ''}
-                                        >
+                                        <span key={idx} className={seg.op === 'insert' ? 'wn-ai-diff-insert' : ''}>
                                             {seg.text}
                                         </span>
                                     );
@@ -936,6 +757,108 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
                     </div>
                 </div>
             )}
+
+            {/* Input section - Input first design */}
+            <div className="wn-ai-input-section">
+                <div className="wn-ai-input-container">
+                    {/* Slash menu */}
+                    {showSlashMenu && (
+                        <SlashCommandMenu
+                            filter={slashFilter}
+                            selectedIndex={slashSelectedIndex}
+                            onSelect={handleSlashCommandSelect}
+                        />
+                    )}
+
+                    {/* Textarea wrapper - input first */}
+                    <div className="wn-ai-textarea-wrapper">
+                        <textarea
+                            ref={(el) => {
+                                inputRef.current = el;
+                                onInputRef(el);
+                            }}
+                            value={input}
+                            onChange={handleInputChange}
+                            placeholder="Ask anything..."
+                            className="wn-ai-input"
+                            data-testid="writenow-ai-input"
+                            onKeyDown={handleInputKeyDown}
+                        />
+                    </div>
+
+                    {/* Toolbar - controls at bottom */}
+                    <div className="wn-ai-toolbar">
+                        <div className="wn-ai-toolbar-left">
+                            {/* Mode button */}
+                            <button type="button" className="wn-ai-mode-btn" data-testid="writenow-ai-mode-btn">
+                                <span>Agent</span>
+                                <i className="arrow" />
+                            </button>
+
+                            <div className="wn-ai-separator" />
+
+                            {/* Model selector */}
+                            <button type="button" className="wn-ai-opt-btn" data-testid="writenow-ai-model-btn">
+                                <span>Opus 4.5</span>
+                                <i className="arrow" />
+                            </button>
+
+                            {/* Skills selector */}
+                            <button
+                                type="button"
+                                className="wn-ai-opt-btn"
+                                onClick={() => {
+                                    const next = skills[(skills.findIndex((s) => s.id === skillId) + 1) % skills.length];
+                                    if (next) setSkillId(next.id);
+                                }}
+                                disabled={skillsLoading}
+                                data-testid="writenow-ai-skills-btn"
+                            >
+                                <span>Skills</span>
+                                <i className="arrow" />
+                            </button>
+                        </div>
+
+                        <div className="wn-ai-toolbar-right">
+                            {/* Attachment button */}
+                            <button type="button" className="wn-ai-icon-btn" title="Attach file">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                                </svg>
+                            </button>
+
+                            {/* Stop button (when streaming) */}
+                            {runStatus === 'streaming' && (
+                                <button
+                                    type="button"
+                                    className="wn-ai-icon-btn"
+                                    onClick={() => void onStop()}
+                                    title="Stop"
+                                    data-testid="writenow-ai-stop"
+                                >
+                                    <svg viewBox="0 0 24 24">
+                                        <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+                                    </svg>
+                                </button>
+                            )}
+
+                            {/* Send button */}
+                            <button
+                                type="button"
+                                className="wn-ai-send-btn"
+                                onClick={() => void onSend()}
+                                disabled={runStatus === 'streaming'}
+                                data-testid="writenow-ai-send"
+                            >
+                                <svg viewBox="0 0 24 24">
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                    <polyline points="12 5 19 12 12 19" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
@@ -950,12 +873,12 @@ export class AiPanelWidget extends ReactWidget {
         @inject(AiPanelService) private readonly aiPanel: AiPanelService,
         @inject(WritenowFrontendService) private readonly writenow: WritenowFrontendService,
         @inject(ActiveEditorService) private readonly activeEditor: ActiveEditorService,
-        @inject(NotificationService) private readonly notificationService: NotificationService,
+        @inject(NotificationService) private readonly notificationService: NotificationService
     ) {
         super();
         this.id = AiPanelWidget.ID;
-        this.title.label = 'AI Panel';
-        this.title.caption = 'WriteNow AI Panel';
+        this.title.label = 'AI';
+        this.title.caption = 'WriteNow AI';
         this.title.iconClass = codicon('sparkle');
         this.title.closable = true;
         this.addClass('writenow-ai-panel');
@@ -963,11 +886,6 @@ export class AiPanelWidget extends ReactWidget {
         this.update();
     }
 
-    /**
-     * Focus the input field inside the panel.
-     *
-     * Why: Ctrl/Cmd+K should open the panel and place the caret immediately for fast iteration.
-     */
     focusInput(): void {
         this.inputEl?.focus();
     }
