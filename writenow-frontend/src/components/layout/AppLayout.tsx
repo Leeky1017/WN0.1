@@ -4,7 +4,7 @@
  * @see design/03-layout-system.md
  */
 import { useCallback, useMemo, useRef, useEffect } from 'react';
-import { Layout, Model, TabNode, ITabSetRenderValues, Action, Actions } from 'flexlayout-react';
+import { Layout, Model, TabNode, Action, Actions } from 'flexlayout-react';
 import type { PanelComponent } from './layout-config';
 import { loadLayout, saveLayout } from '@/lib/layout/persistence';
 import { FileTreePanel } from '@/features/file-tree/FileTreePanel';
@@ -47,21 +47,6 @@ function PanelFactory(node: TabNode): React.ReactNode {
   }
 }
 
-/**
- * 自定义 TabSet 头部渲染
- * 可添加 toolbar 按钮等
- */
-function renderTabSet(
-  _node: TabNode | undefined,
-  renderValues: ITabSetRenderValues
-): void {
-  // 可以在这里添加自定义按钮
-  // renderValues.buttons.push(<CustomButton key="custom" />);
-  
-  // 保留默认行为
-  void renderValues;
-}
-
 interface AppLayoutProps {
   /** 可选的初始布局配置，不传则从 localStorage 加载 */
   className?: string;
@@ -102,7 +87,6 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
       if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
         e.preventDefault();
         if (layoutRef.current) {
-          const defaultLayoutJson = loadLayout();
           layoutRef.current.props.model.doAction(
             Actions.updateModelAttributes({ rootOrientation: 'row' })
           );
@@ -123,7 +107,6 @@ export function AppLayout({ className = '' }: AppLayoutProps) {
         factory={PanelFactory}
         onModelChange={handleModelChange}
         onAction={handleAction}
-        onRenderTabSet={renderTabSet}
         realtimeResize={true}
       />
     </div>

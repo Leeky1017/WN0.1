@@ -2,13 +2,21 @@
  * FileNode - 文件树节点渲染组件
  * 用于 react-arborist 的自定义节点渲染
  */
-import { NodeRendererProps } from 'react-arborist';
+import type { CSSProperties } from 'react';
+import type { NodeApi, TreeApi } from 'react-arborist';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { FileIcon } from './FileIcon';
 import type { FileNode as FileNodeType } from './types';
 
-interface FileNodeProps extends NodeRendererProps<FileNodeType> {
-  // 额外的 props 可以在这里添加
+/**
+ * react-arborist NodeRendererProps 类型定义
+ */
+interface FileNodeProps {
+  style: CSSProperties;
+  node: NodeApi<FileNodeType>;
+  tree: TreeApi<FileNodeType>;
+  dragHandle?: (el: HTMLDivElement | null) => void;
+  preview?: boolean;
 }
 
 /**
