@@ -5,6 +5,7 @@ import { MessageService } from '@theia/core/lib/common/message-service';
 
 import { WRITENOW_TERMINOLOGY_WIDGET_ID } from '../writenow-layout-ids';
 import { WritenowFrontendService } from '../writenow-frontend-service';
+import { WN_STRINGS } from '../i18n/nls';
 import type { ConstraintsConfig, ConstraintRule } from '../../common/ipc-generated';
 
 /**
@@ -55,7 +56,7 @@ function TerminologyView(props: {
                     setEntries(loadedEntries);
                 }
             } catch (error) {
-                messageService.error(`加载术语表失败: ${String(error)}`);
+                messageService.error(WN_STRINGS.terminologyLoadFailed(String(error)));
             } finally {
                 setLoading(false);
             }
@@ -68,7 +69,7 @@ function TerminologyView(props: {
             // Get current config
             const getRes = await frontendService.invokeResponse('constraints:get', {});
             if (!getRes.ok) {
-                messageService.error(`获取配置失败: ${getRes.error.message}`);
+                messageService.error(WN_STRINGS.terminologyConfigFailed(getRes.error.message));
                 return false;
             }
 
@@ -100,20 +101,20 @@ function TerminologyView(props: {
             const setRes = await frontendService.invokeResponse('constraints:set', { config });
 
             if (!setRes.ok) {
-                messageService.error(`保存失败: ${setRes.error.message}`);
+                messageService.error(WN_STRINGS.terminologySaveFailed(setRes.error.message));
                 return false;
             }
 
             return true;
         } catch (error) {
-            messageService.error(`保存失败: ${String(error)}`);
+            messageService.error(WN_STRINGS.terminologySaveFailed(String(error)));
             return false;
         }
     };
 
     const handleCreate = async (): Promise<void> => {
         if (!formState.term.trim()) {
-            messageService.warn('请输入术语');
+            messageService.warn(WN_STRINGS.terminologyTermRequired());
             return;
         }
 
@@ -133,7 +134,7 @@ function TerminologyView(props: {
             setEntries(newEntries);
             setFormState({ term: '', aliases: '', definition: '' });
             setIsEditing(false);
-            messageService.info('术语添加成功');
+            messageService.info(WN_STRINGS.terminologyAddSuccess());
         }
     };
 
@@ -159,7 +160,7 @@ function TerminologyView(props: {
             setFormState({ term: '', aliases: '', definition: '' });
             setEditingEntry(null);
             setIsEditing(false);
-            messageService.info('术语更新成功');
+            messageService.info(WN_STRINGS.terminologyUpdateSuccess());
         }
     };
 
@@ -168,7 +169,7 @@ function TerminologyView(props: {
         const success = await saveEntries(newEntries);
         if (success) {
             setEntries(newEntries);
-            messageService.info('术语删除成功');
+            messageService.info(WN_STRINGS.terminologyDeleteSuccess());
         }
     };
 
@@ -201,19 +202,19 @@ function TerminologyView(props: {
 
     if (loading) {
         return (
-            <div className="wn-p2-widget wn-terminology-widget" role="region" aria-label="术语表">
+            <div className="wn-p2-widget wn-terminology-widget" role="region" aria-label={WN_STRINGS.terminologyPanel()}>
                 <div className="wn-empty-state">
                     <span className={codicon('loading') + ' codicon-modifier-spin'} />
-                    <p>加载中...</p>
+                    <p>{WN_STRINGS.loading()}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="wn-p2-widget wn-terminology-widget" role="region" aria-label="术语表">
+        <div className="wn-p2-widget wn-terminology-widget" role="region" aria-label={WN_STRINGS.terminologyPanel()}>
             <header className="wn-p2-widget-header">
-                <h2 className="wn-p2-widget-title">术语表</h2>
+                <h2 className="wn-p2-widget-title">{WN_STRINGS.terminologyPanel()}</h2>
                 <div className="wn-p2-widget-actions">
                     <button
                         type="button"
@@ -223,9 +224,9 @@ function TerminologyView(props: {
                             setEditingEntry(null);
                             setFormState({ term: '', aliases: '', definition: '' });
                         }}
-                        aria-label="添加术语"
+                        aria-label={WN_STRINGS.terminologyAdd()}
                     >
-                        <span className={codicon('add')} /> 添加
+                        <span className={codicon('add')} /> {WN_STRINGS.add()}
                     </button>
                 </div>
             </header>
@@ -235,7 +236,7 @@ function TerminologyView(props: {
                     <div className="wn-terminology-form">
                         <div className="wn-settings-field">
                             <label className="wn-settings-label" htmlFor="term-name">
-                                术语 *
+                                {WN_STRINGS.terminologyTerm()} *
                             </label>
                             <input
                                 id="term-name"
@@ -245,14 +246,14 @@ function TerminologyView(props: {
                                 onChange={(e) =>
                                     setFormState((prev) => ({ ...prev, term: e.target.value }))
                                 }
-                                placeholder="术语名称"
+                                placeholder={WN_STRINGS.terminologyTermPlaceholder()}
                                 aria-required="true"
                             />
                         </div>
 
                         <div className="wn-settings-field">
                             <label className="wn-settings-label" htmlFor="term-aliases">
-                                别名（逗号分隔）
+                                {WN_STRINGS.terminologyAliases()}
                             </label>
                             <input
                                 id="term-aliases"
@@ -262,13 +263,13 @@ function TerminologyView(props: {
                                 onChange={(e) =>
                                     setFormState((prev) => ({ ...prev, aliases: e.target.value }))
                                 }
-                                placeholder="别名1, 别名2, ..."
+                                placeholder={WN_STRINGS.terminologyAliasesPlaceholder()}
                             />
                         </div>
 
                         <div className="wn-settings-field">
                             <label className="wn-settings-label" htmlFor="term-definition">
-                                定义
+                                {WN_STRINGS.terminologyDefinition()}
                             </label>
                             <textarea
                                 id="term-definition"
@@ -278,7 +279,7 @@ function TerminologyView(props: {
                                 onChange={(e) =>
                                     setFormState((prev) => ({ ...prev, definition: e.target.value }))
                                 }
-                                placeholder="术语的定义或解释..."
+                                placeholder={WN_STRINGS.terminologyDefinitionPlaceholder()}
                             />
                         </div>
 
@@ -288,14 +289,14 @@ function TerminologyView(props: {
                                 className="wn-settings-button"
                                 onClick={handleCancel}
                             >
-                                取消
+                                {WN_STRINGS.cancel()}
                             </button>
                             <button
                                 type="button"
                                 className="wn-settings-button wn-settings-button--primary"
                                 onClick={editingEntry ? handleUpdate : handleCreate}
                             >
-                                {editingEntry ? '保存' : '添加'}
+                                {editingEntry ? WN_STRINGS.save() : WN_STRINGS.add()}
                             </button>
                         </div>
                     </div>
@@ -305,10 +306,10 @@ function TerminologyView(props: {
                             <input
                                 type="text"
                                 className="wn-settings-input"
-                                placeholder="搜索术语..."
+                                placeholder={WN_STRINGS.terminologySearch()}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                aria-label="搜索术语"
+                                aria-label={WN_STRINGS.terminologySearch()}
                             />
                         </div>
 
@@ -316,10 +317,10 @@ function TerminologyView(props: {
                             <div className="wn-empty-state">
                                 <span className={codicon('book') + ' wn-empty-state-icon'} />
                                 <p className="wn-empty-state-title">
-                                    {searchQuery ? '未找到匹配的术语' : '暂无术语'}
+                                    {searchQuery ? WN_STRINGS.terminologyNoMatch() : WN_STRINGS.terminologyEmpty()}
                                 </p>
                                 <p className="wn-empty-state-description">
-                                    添加术语来统一作品中的专有名词
+                                    {WN_STRINGS.terminologyEmptyHint()}
                                 </p>
                             </div>
                         ) : (
@@ -337,7 +338,7 @@ function TerminologyView(props: {
                                                     type="button"
                                                     className="wn-settings-icon-button"
                                                     onClick={() => handleEdit(entry)}
-                                                    aria-label={`编辑 ${entry.term}`}
+                                                    aria-label={`${WN_STRINGS.edit()} ${entry.term}`}
                                                 >
                                                     <span className={codicon('edit')} />
                                                 </button>
@@ -345,7 +346,7 @@ function TerminologyView(props: {
                                                     type="button"
                                                     className="wn-settings-icon-button"
                                                     onClick={() => handleDelete(entry.id)}
-                                                    aria-label={`删除 ${entry.term}`}
+                                                    aria-label={`${WN_STRINGS.delete()} ${entry.term}`}
                                                 >
                                                     <span className={codicon('trash')} />
                                                 </button>
@@ -358,7 +359,7 @@ function TerminologyView(props: {
                                         )}
                                         {entry.aliases.length > 0 && (
                                             <div className="wn-terminology-aliases">
-                                                别名：{entry.aliases.join('、')}
+                                                {WN_STRINGS.terminologyAliasPrefix()}{entry.aliases.join('、')}
                                             </div>
                                         )}
                                     </div>
@@ -384,8 +385,8 @@ export class TerminologyWidget extends ReactWidget {
     ) {
         super();
         this.id = TerminologyWidget.ID;
-        this.title.label = '术语表';
-        this.title.caption = '管理作品术语';
+        this.title.label = WN_STRINGS.terminologyPanel();
+        this.title.caption = WN_STRINGS.terminologyPanelCaption();
         this.title.iconClass = codicon('book');
         this.title.closable = true;
         this.addClass('writenow-terminology');

@@ -4,6 +4,7 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import { MessageService } from '@theia/core/lib/common/message-service';
 
 import { WritenowFrontendService } from '../writenow-frontend-service';
+import { WN_STRINGS } from '../i18n/nls';
 
 /**
  * Update notification contribution (P2-008).
@@ -64,8 +65,8 @@ export class UpdateContribution implements FrontendApplicationContribution {
         notification.innerHTML = `
             <div class="wn-update-header">
                 <span class="codicon codicon-cloud-download wn-update-icon" aria-hidden="true"></span>
-                <span class="wn-update-title" id="update-title">有新版本可用</span>
-                <button type="button" class="wn-update-close" aria-label="关闭">
+                <span class="wn-update-title" id="update-title">${WN_STRINGS.updateAvailable()}</span>
+                <button type="button" class="wn-update-close" aria-label="${WN_STRINGS.updateClose()}">
                     <span class="codicon codicon-close" aria-hidden="true"></span>
                 </button>
             </div>
@@ -78,13 +79,13 @@ export class UpdateContribution implements FrontendApplicationContribution {
             </div>
             <div class="wn-update-actions">
                 <button type="button" class="wn-update-btn wn-update-btn--secondary" data-action="skip">
-                    跳过此版本
+                    ${WN_STRINGS.updateSkip()}
                 </button>
                 <button type="button" class="wn-update-btn wn-update-btn--secondary" data-action="later">
-                    稍后提醒
+                    ${WN_STRINGS.updateLater()}
                 </button>
                 <button type="button" class="wn-update-btn wn-update-btn--primary" data-action="download">
-                    下载更新
+                    ${WN_STRINGS.updateDownload()}
                 </button>
             </div>
         `;
@@ -132,7 +133,7 @@ export class UpdateContribution implements FrontendApplicationContribution {
         try {
             const res = await this.frontendService.invokeResponse('update:skipVersion', { version });
             if (res.ok) {
-                this.messageService.info(`已跳过版本 ${version}`);
+                this.messageService.info(WN_STRINGS.updateSkipped(version));
                 this.hideNotification();
             }
         } catch (error) {
@@ -153,17 +154,17 @@ export class UpdateContribution implements FrontendApplicationContribution {
         }
         if (downloadBtn) {
             downloadBtn.disabled = true;
-            downloadBtn.textContent = '下载中...';
+            downloadBtn.textContent = WN_STRINGS.updateDownloading();
         }
 
         try {
             const res = await this.frontendService.invokeResponse('update:download', { version });
 
             if (!res.ok) {
-                this.messageService.error(`下载失败: ${res.error.message}`);
+                this.messageService.error(WN_STRINGS.updateDownloadFailed(res.error.message));
                 if (downloadBtn) {
                     downloadBtn.disabled = false;
-                    downloadBtn.textContent = '重试下载';
+                    downloadBtn.textContent = WN_STRINGS.updateRetry();
                 }
                 return;
             }
@@ -181,7 +182,7 @@ export class UpdateContribution implements FrontendApplicationContribution {
 
                     if (state.status === 'downloaded') {
                         if (downloadBtn) {
-                            downloadBtn.textContent = '安装并重启';
+                            downloadBtn.textContent = WN_STRINGS.updateInstall();
                             downloadBtn.disabled = false;
                             downloadBtn.dataset.action = 'install';
                             downloadBtn.onclick = () => void this.installUpdate(downloadId);
@@ -189,10 +190,10 @@ export class UpdateContribution implements FrontendApplicationContribution {
                     } else if (state.status === 'downloading') {
                         setTimeout(() => void pollProgress(), 500);
                     } else if (state.status === 'error') {
-                        this.messageService.error(`下载失败: ${state.error?.message ?? '未知错误'}`);
+                        this.messageService.error(WN_STRINGS.updateDownloadFailed(state.error?.message ?? WN_STRINGS.updateUnknownError()));
                         if (downloadBtn) {
                             downloadBtn.disabled = false;
-                            downloadBtn.textContent = '重试下载';
+                            downloadBtn.textContent = WN_STRINGS.updateRetry();
                         }
                     }
                 }
@@ -200,10 +201,10 @@ export class UpdateContribution implements FrontendApplicationContribution {
 
             await pollProgress();
         } catch (error) {
-            this.messageService.error(`下载失败: ${String(error)}`);
+            this.messageService.error(WN_STRINGS.updateDownloadFailed(String(error)));
             if (downloadBtn) {
                 downloadBtn.disabled = false;
-                downloadBtn.textContent = '重试下载';
+                downloadBtn.textContent = WN_STRINGS.updateRetry();
             }
         }
     }
@@ -216,10 +217,10 @@ export class UpdateContribution implements FrontendApplicationContribution {
             const res = await this.frontendService.invokeResponse('update:install', { downloadId });
 
             if (res.ok && res.data.willRestart) {
-                this.messageService.info('正在安装更新，应用将重启...');
+                this.messageService.info(WN_STRINGS.updateInstalling());
             }
         } catch (error) {
-            this.messageService.error(`安装失败: ${String(error)}`);
+            this.messageService.error(WN_STRINGS.updateInstallFailed(String(error)));
         }
     }
 }

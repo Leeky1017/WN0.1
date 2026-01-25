@@ -5,18 +5,19 @@ import { MessageService } from '@theia/core/lib/common/message-service';
 
 import { WRITENOW_STATS_WIDGET_ID } from '../writenow-layout-ids';
 import { WritenowFrontendService } from '../writenow-frontend-service';
+import { WN_STRINGS } from '../i18n/nls';
 import type { WritingStatsRow } from '../../common/ipc-generated';
 
 /**
- * Format minutes to hours and minutes.
+ * Format minutes to hours and minutes using i18n.
  */
 function formatMinutes(minutes: number): string {
     if (minutes < 60) {
-        return `${minutes} 分钟`;
+        return WN_STRINGS.statsMinutes(minutes);
     }
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return mins > 0 ? `${hours} 小时 ${mins} 分钟` : `${hours} 小时`;
+    return mins > 0 ? WN_STRINGS.statsHoursMinutes(hours, mins) : WN_STRINGS.statsHours(hours);
 }
 
 /**
@@ -57,7 +58,7 @@ function StatsView(props: {
                     setRangeStats(rangeRes.data.items);
                 }
             } catch (error) {
-                messageService.error(`加载统计数据失败: ${String(error)}`);
+                messageService.error(WN_STRINGS.statsLoadFailed(String(error)));
             } finally {
                 setLoading(false);
             }
@@ -90,19 +91,19 @@ function StatsView(props: {
 
     if (loading) {
         return (
-            <div className="wn-p2-widget wn-stats-widget" role="region" aria-label="写作统计">
+            <div className="wn-p2-widget wn-stats-widget" role="region" aria-label={WN_STRINGS.statsPanel()}>
                 <div className="wn-empty-state">
                     <span className={codicon('loading') + ' codicon-modifier-spin'} />
-                    <p>加载中...</p>
+                    <p>{WN_STRINGS.loading()}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="wn-p2-widget wn-stats-widget" role="region" aria-label="写作统计">
+        <div className="wn-p2-widget wn-stats-widget" role="region" aria-label={WN_STRINGS.statsPanel()}>
             <header className="wn-p2-widget-header">
-                <h2 className="wn-p2-widget-title">写作统计</h2>
+                <h2 className="wn-p2-widget-title">{WN_STRINGS.statsPanel()}</h2>
                 <div className="wn-p2-widget-actions">
                     <button
                         type="button"
@@ -110,7 +111,7 @@ function StatsView(props: {
                         onClick={() => setRange('week')}
                         aria-pressed={range === 'week'}
                     >
-                        近 7 天
+                        {WN_STRINGS.statsLast7Days()}
                     </button>
                     <button
                         type="button"
@@ -118,7 +119,7 @@ function StatsView(props: {
                         onClick={() => setRange('month')}
                         aria-pressed={range === 'month'}
                     >
-                        近 30 天
+                        {WN_STRINGS.statsLast30Days()}
                     </button>
                 </div>
             </header>
@@ -126,25 +127,25 @@ function StatsView(props: {
             <div className="wn-p2-widget-content">
                 {/* Today's Stats */}
                 <div className="wn-stats-card">
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>今日数据</h3>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>{WN_STRINGS.statsToday()}</h3>
                     <div className="wn-stats-grid">
                         <div className="wn-stats-item">
                             <div className="wn-stats-value">{todayStats?.wordCount ?? 0}</div>
-                            <div className="wn-stats-label">字数</div>
+                            <div className="wn-stats-label">{WN_STRINGS.statsWordCount()}</div>
                         </div>
                         <div className="wn-stats-item">
                             <div className="wn-stats-value">
                                 {formatMinutes(todayStats?.writingMinutes ?? 0)}
                             </div>
-                            <div className="wn-stats-label">写作时长</div>
+                            <div className="wn-stats-label">{WN_STRINGS.statsWritingDuration()}</div>
                         </div>
                         <div className="wn-stats-item">
                             <div className="wn-stats-value">{todayStats?.articlesCreated ?? 0}</div>
-                            <div className="wn-stats-label">新建文档</div>
+                            <div className="wn-stats-label">{WN_STRINGS.statsNewDocs()}</div>
                         </div>
                         <div className="wn-stats-item">
                             <div className="wn-stats-value">{todayStats?.skillsUsed ?? 0}</div>
-                            <div className="wn-stats-label">AI 技能</div>
+                            <div className="wn-stats-label">{WN_STRINGS.statsAiSkills()}</div>
                         </div>
                     </div>
                 </div>
@@ -152,28 +153,28 @@ function StatsView(props: {
                 {/* Range Stats Summary */}
                 <div className="wn-stats-card">
                     <h3 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-                        {range === 'week' ? '近 7 天' : '近 30 天'}汇总
+                        {WN_STRINGS.statsSummary(range === 'week' ? WN_STRINGS.statsLast7Days() : WN_STRINGS.statsLast30Days())}
                     </h3>
                     <div className="wn-stats-grid">
                         <div className="wn-stats-item">
                             <div className="wn-stats-value">{totals.wordCount.toLocaleString()}</div>
-                            <div className="wn-stats-label">总字数</div>
+                            <div className="wn-stats-label">{WN_STRINGS.statsTotalWords()}</div>
                         </div>
                         <div className="wn-stats-item">
                             <div className="wn-stats-value">
                                 {formatMinutes(totals.writingMinutes)}
                             </div>
-                            <div className="wn-stats-label">总时长</div>
+                            <div className="wn-stats-label">{WN_STRINGS.statsTotalDuration()}</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Simple Bar Chart */}
                 <div className="wn-stats-card">
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>字数趋势</h3>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>{WN_STRINGS.statsTrend()}</h3>
                     {chartData.length === 0 ? (
                         <div className="wn-empty-state" style={{ padding: '24px' }}>
-                            <p>暂无数据</p>
+                            <p>{WN_STRINGS.noData()}</p>
                         </div>
                     ) : (
                         <div
@@ -185,7 +186,7 @@ function StatsView(props: {
                                 padding: '8px 0',
                             }}
                             role="img"
-                            aria-label="字数趋势图表"
+                            aria-label={WN_STRINGS.statsTrendAria()}
                         >
                             {chartData.map((item, index) => (
                                 <div
@@ -207,7 +208,7 @@ function StatsView(props: {
                                             borderRadius: '2px 2px 0 0',
                                             transition: 'height 0.3s',
                                         }}
-                                        title={`${item.date}: ${item.wordCount} 字`}
+                                        title={WN_STRINGS.statsBarTitle(item.date, item.wordCount)}
                                     />
                                     <span
                                         style={{
@@ -245,8 +246,8 @@ export class StatsWidget extends ReactWidget {
     ) {
         super();
         this.id = StatsWidget.ID;
-        this.title.label = '写作统计';
-        this.title.caption = '查看写作数据统计';
+        this.title.label = WN_STRINGS.statsPanel();
+        this.title.caption = WN_STRINGS.statsPanelCaption();
         this.title.iconClass = codicon('graph');
         this.title.closable = true;
         this.addClass('writenow-stats');
