@@ -2,8 +2,15 @@ import * as React from '@theia/core/shared/react';
 import { codicon } from '@theia/core/lib/browser/widgets';
 import type { Editor } from '@tiptap/core';
 
+type EditorFormat = 'markdown' | 'richtext';
+type ViewMode = 'edit' | 'preview' | 'split';
+
 type EditorToolbarProps = Readonly<{
     editor: Editor | null;
+    format?: EditorFormat;
+    viewMode?: ViewMode;
+    onFormatChange?: (format: EditorFormat) => void;
+    onViewModeChange?: (mode: ViewMode) => void;
 }>;
 
 type ToolbarButtonProps = Readonly<{
@@ -349,13 +356,138 @@ function TableDialog(props: { editor: Editor | null; onClose: () => void }): Rea
 type InsertDialogType = 'link' | 'image' | 'table' | null;
 
 /**
+ * Word count and reading time display component.
+ */
+function WordCountDisplay(props: { editor: Editor | null }): React.ReactElement {
+    const { editor } = props;
+    const [stats, setStats] = React.useState({ chars: 0, words: 0, readingTime: 0 });
+
+    React.useEffect(() => {
+        if (!editor) {
+            setStats({ chars: 0, words: 0, readingTime: 0 });
+            return;
+        }
+
+        const updateStats = (): void => {
+            const text = editor.state.doc.textContent;
+            const chars = text.length;
+            // Chinese word count: treat each CJK character as one word
+            const cjkChars = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) ?? []).length;
+            const nonCjkWords = text
+                .replace(/[\u4e00-\u9fff\u3400-\u4dbf]/g, ' ')
+                .split(/\s+/)
+                .filter(w => w.length > 0).length;
+            const words = cjkChars + nonCjkWords;
+            // Reading time: ~300 words/min for Chinese, ~200 words/min for English
+            const readingTime = Math.ceil(words / 250);
+            setStats({ chars, words, readingTime });
+        };
+
+        updateStats();
+        editor.on('update', updateStats);
+        return () => { editor.off('update', updateStats); };
+    }, [editor]);
+
+    return (
+        <div className="wn-toolbar-stats" data-testid="writenow-word-count">
+            <span className="wn-toolbar-stat" title="字数">
+                <span className={codicon('symbol-text')} />
+                <span>{stats.words}</span>
+            </span>
+            <span className="wn-toolbar-stat" title="阅读时长">
+                <span className={codicon('clock')} />
+                <span>{stats.readingTime} min</span>
+            </span>
+        </div>
+    );
+}
+
+/**
+ * Format mode toggle (Markdown / Rich Text).
+ */
+function FormatModeToggle(props: {
+    format: EditorFormat;
+    onChange: (format: EditorFormat) => void;
+}): React.ReactElement {
+    const { format, onChange } = props;
+
+    return (
+        <div className="wn-toolbar-toggle" data-testid="writenow-format-toggle">
+            <button
+                type="button"
+                className={`wn-toolbar-toggle-btn ${format === 'markdown' ? 'wn-toolbar-toggle-btn--active' : ''}`}
+                onClick={() => onChange('markdown')}
+                title="Markdown 模式"
+            >
+                <span className={codicon('markdown')} />
+                <span>MD</span>
+            </button>
+            <button
+                type="button"
+                className={`wn-toolbar-toggle-btn ${format === 'richtext' ? 'wn-toolbar-toggle-btn--active' : ''}`}
+                onClick={() => onChange('richtext')}
+                title="富文本模式"
+            >
+                <span className={codicon('file-text')} />
+                <span>Word</span>
+            </button>
+        </div>
+    );
+}
+
+/**
+ * View mode toggle (Edit / Preview / Split).
+ */
+function ViewModeToggle(props: {
+    mode: ViewMode;
+    onChange: (mode: ViewMode) => void;
+}): React.ReactElement {
+    const { mode, onChange } = props;
+
+    return (
+        <div className="wn-toolbar-toggle" data-testid="writenow-view-toggle">
+            <button
+                type="button"
+                className={`wn-toolbar-toggle-btn ${mode === 'edit' ? 'wn-toolbar-toggle-btn--active' : ''}`}
+                onClick={() => onChange('edit')}
+                title="编辑模式"
+            >
+                <span className={codicon('edit')} />
+            </button>
+            <button
+                type="button"
+                className={`wn-toolbar-toggle-btn ${mode === 'preview' ? 'wn-toolbar-toggle-btn--active' : ''}`}
+                onClick={() => onChange('preview')}
+                title="预览模式"
+            >
+                <span className={codicon('open-preview')} />
+            </button>
+            <button
+                type="button"
+                className={`wn-toolbar-toggle-btn ${mode === 'split' ? 'wn-toolbar-toggle-btn--active' : ''}`}
+                onClick={() => onChange('split')}
+                title="分屏模式"
+            >
+                <span className={codicon('split-horizontal')} />
+            </button>
+        </div>
+    );
+}
+
+/**
  * Editor toolbar component.
  *
  * Why: Provides visual formatting controls for users who prefer clicking over keyboard shortcuts.
  * Reflects current selection state via TipTap's isActive() API.
  */
 export function EditorToolbar(props: EditorToolbarProps): React.ReactElement {
-    const { editor } = props;
+    const {
+        editor,
+        format = 'markdown',
+        viewMode = 'edit',
+        onFormatChange,
+        onViewModeChange,
+    } = props;
     const [activeDialog, setActiveDialog] = React.useState<InsertDialogType>(null);
 
     // Force re-render when editor state changes
@@ -500,6 +632,26 @@ export function EditorToolbar(props: EditorToolbarProps): React.ReactElement {
             {activeDialog === 'link' && <LinkDialog editor={editor} onClose={closeDialog} />}
             {activeDialog === 'image' && <ImageDialog editor={editor} onClose={closeDialog} />}
             {activeDialog === 'table' && <TableDialog editor={editor} onClose={closeDialog} />}
+
+            {/* Spacer */}
+            <div className="wn-toolbar-spacer" />
+
+            {/* Format mode toggle */}
+            {onFormatChange && (
+                <FormatModeToggle format={format} onChange={onFormatChange} />
+            )}
+
+            <ToolbarSeparator />
+
+            {/* View mode toggle */}
+            {onViewModeChange && (
+                <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
+            )}
+
+            <ToolbarSeparator />
+
+            {/* Word count and reading time */}
+            <WordCountDisplay editor={editor} />
         </div>
     );
 }

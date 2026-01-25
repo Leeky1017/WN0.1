@@ -682,9 +682,20 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
 
     return (
         <div className="wn-ai-panel-container" data-testid="writenow-ai-panel">
-            {/* Header */}
+            {/* Header with collapse button */}
             <div className="wn-ai-header">
                 <span className="wn-ai-header-title">AI</span>
+                <button
+                    type="button"
+                    className="wn-ai-header-collapse"
+                    onClick={onClosePanel}
+                    title="Collapse AI Panel (Esc)"
+                    data-testid="writenow-ai-collapse-btn"
+                >
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                </button>
             </div>
 
             {/* Error display */}

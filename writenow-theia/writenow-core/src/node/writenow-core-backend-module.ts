@@ -20,12 +20,15 @@ import { AiService as AiServiceImpl } from './services/ai-service';
 import { ContextService } from './services/context-service';
 import { FilesService } from './services/files-service';
 import { EmbeddingRpcService } from './services/embedding-rpc-service';
+import { ExportService } from './services/export-service';
 import { IndexService } from './services/index-service';
 import { KnowledgeGraphService } from './services/knowledge-graph-service';
 import { ProjectsService } from './services/projects-service';
 import { SearchService } from './services/search-service';
 import { RetrievalService } from './services/retrieval-service';
 import { SkillsService as SkillsServiceImpl } from './services/skills-service';
+import { SnapshotService } from './services/snapshot-service';
+import { StatsService } from './services/stats-service';
 import { VersionService } from './services/version-service';
 import { WritenowCoreBackendContribution } from './writenow-core-backend-contribution';
 import { WritenowBackendService } from './writenow-backend-service';
@@ -51,6 +54,9 @@ export default new ContainerModule(bind => {
     bind(RetrievalService).toSelf().inSingletonScope();
     bind(SearchService).toSelf().inSingletonScope();
     bind(ContextService).toSelf().inSingletonScope();
+    bind(StatsService).toSelf().inSingletonScope();
+    bind(SnapshotService).toSelf().inSingletonScope();
+    bind(ExportService).toSelf().inSingletonScope();
 
     bind(SkillsServiceToken).to(SkillsServiceImpl).inSingletonScope();
     bind(AIServiceToken).to(AiServiceImpl).inSingletonScope();

@@ -6,15 +6,18 @@ import type { WritenowRpcService } from '../common/writenow-protocol';
 
 import { TheiaInvokeRegistry, toIpcError } from './theia-invoke-adapter';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
+import { ContextService } from './services/context-service';
+import { EmbeddingRpcService } from './services/embedding-rpc-service';
+import { ExportService } from './services/export-service';
 import { FilesService } from './services/files-service';
 import { IndexService } from './services/index-service';
-import { EmbeddingRpcService } from './services/embedding-rpc-service';
-import { ProjectsService } from './services/projects-service';
 import { KnowledgeGraphService } from './services/knowledge-graph-service';
+import { ProjectsService } from './services/projects-service';
 import { RetrievalService } from './services/retrieval-service';
 import { SearchService } from './services/search-service';
+import { SnapshotService } from './services/snapshot-service';
+import { StatsService } from './services/stats-service';
 import { VersionService } from './services/version-service';
-import { ContextService } from './services/context-service';
 
 @injectable()
 export class WritenowBackendService implements WritenowRpcService {
@@ -32,6 +35,9 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(RetrievalService) retrievalService: RetrievalService,
         @inject(SearchService) searchService: SearchService,
         @inject(ContextService) contextService: ContextService,
+        @inject(StatsService) statsService: StatsService,
+        @inject(SnapshotService) snapshotService: SnapshotService,
+        @inject(ExportService) exportService: ExportService,
     ) {
         // Why: Task 009 requires the DB to be initialized at backend startup (not lazily on first request),
         // so failures surface early and are actionable.
@@ -45,6 +51,20 @@ export class WritenowBackendService implements WritenowRpcService {
         retrievalService.register(this.registry);
         searchService.register(this.registry);
         contextService.register(this.registry);
+
+        // Stats service (stats:getToday, stats:getRange, stats:increment)
+        this.registry.set('stats:getToday', async (_event, payload) => statsService.getToday(payload as never));
+        this.registry.set('stats:getRange', async (_event, payload) => statsService.getRange(payload as never));
+        this.registry.set('stats:increment', async (_event, payload) => statsService.increment(payload as never));
+
+        // Snapshot service (file:snapshot:latest, file:snapshot:write)
+        this.registry.set('file:snapshot:latest', async (_event, payload) => snapshotService.getLatestSnapshot(payload as never));
+        this.registry.set('file:snapshot:write', async (_event, payload) => snapshotService.writeSnapshot(payload as never));
+
+        // Export service (export:markdown, export:docx, export:pdf)
+        this.registry.set('export:markdown', async (_event, payload) => exportService.exportMarkdown(payload as never));
+        this.registry.set('export:docx', async (_event, payload) => exportService.exportDocx(payload as never));
+        this.registry.set('export:pdf', async (_event, payload) => exportService.exportPdf(payload as never));
     }
 
     async invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>> {
