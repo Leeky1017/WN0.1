@@ -7,13 +7,16 @@
 | ID | P1-001 |
 | Phase | 1 - 核心布局 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P0-005 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/03-layout-system.md` — 布局系统设计
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 FlexLayout）**
+- [x] `design/03-layout-system.md` — 布局系统设计
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 FlexLayout）**
 
 ## 目标
 
@@ -21,20 +24,20 @@
 
 ## 任务清单
 
-- [ ] 安装 FlexLayout 依赖
-- [ ] 创建 `components/layout/AppLayout.tsx`
-- [ ] 定义默认布局配置（四区布局）
-- [ ] 实现面板工厂函数（根据组件类型渲染面板）
-- [ ] 添加面板拖拽、调整大小功能
-- [ ] 添加面板最大化、最小化功能
-- [ ] 调整 FlexLayout 样式以符合 Design Tokens
+- [x] 安装 FlexLayout 依赖
+- [x] 创建 `components/layout/AppLayout.tsx`
+- [x] 定义默认布局配置（四区布局）
+- [x] 实现面板工厂函数（根据组件类型渲染面板）
+- [x] 添加面板拖拽、调整大小功能
+- [x] 添加面板最大化、最小化功能
+- [x] 调整 FlexLayout 样式以符合 Design Tokens
 
 ## 验收标准
 
-- [ ] 四区布局正确展示
-- [ ] 面板可拖拽重排
-- [ ] 面板边缘可调整大小
-- [ ] 双击标题栏可最大化
+- [x] 四区布局正确展示
+- [x] 面板可拖拽重排
+- [x] 面板边缘可调整大小
+- [x] 双击标题栏可最大化
 
 ## 产出
 

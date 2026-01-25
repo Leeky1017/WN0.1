@@ -7,13 +7,16 @@
 | ID | P0-002 |
 | Phase | 0 - 基础设施 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P0-001 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -21,18 +24,18 @@
 
 ## 任务清单
 
-- [ ] 安装 Tailwind CSS 4.x
-- [ ] 创建 `styles/tokens.css`（Design Tokens）
-- [ ] 创建 `styles/globals.css`（全局样式）
-- [ ] 配置 `tailwind.config.ts`
-- [ ] 创建 `styles/themes/` 主题目录
-- [ ] 实现 Midnight 深色主题（默认）
+- [x] 安装 Tailwind CSS 4.x
+- [x] 创建 `styles/tokens.css`（Design Tokens）
+- [x] 创建 `styles/globals.css`（全局样式）
+- [x] 配置 `tailwind.config.ts`
+- [x] 创建 `styles/themes/` 主题目录
+- [x] 实现 Midnight 深色主题（默认）
 
 ## 验收标准
 
-- [ ] Design Tokens CSS 变量定义完整
-- [ ] Tailwind 可正常编译
-- [ ] 深色主题正确应用
+- [x] Design Tokens CSS 变量定义完整
+- [x] Tailwind 可正常编译
+- [x] 深色主题正确应用
 
 ## 产出
 

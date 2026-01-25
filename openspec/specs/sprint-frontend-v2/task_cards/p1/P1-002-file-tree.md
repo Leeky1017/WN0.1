@@ -7,13 +7,16 @@
 | ID | P1-002 |
 | Phase | 1 - 核心布局 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P1-001 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 react-arborist）**
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 react-arborist）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
 
 ## 目标
 
@@ -21,21 +24,21 @@
 
 ## 任务清单
 
-- [ ] 安装 react-arborist 依赖
-- [ ] 创建 `features/file-tree/FileTree.tsx`
-- [ ] 实现虚拟化渲染（支持万级文件）
-- [ ] 实现文件/文件夹图标系统（使用 Lucide）
-- [ ] 实现右键菜单（新建/重命名/删除）
-- [ ] 实现内联重命名（双击或 F2）
-- [ ] 实现拖拽排序
-- [ ] 调用后端 `file:list` 获取文件列表
+- [x] 安装 react-arborist 依赖
+- [x] 创建 `features/file-tree/FileTree.tsx`
+- [x] 实现虚拟化渲染（支持万级文件）
+- [x] 实现文件/文件夹图标系统（使用 Lucide）
+- [x] 实现右键菜单（新建/重命名/删除）
+- [x] 实现内联重命名（双击或 F2）
+- [x] 实现拖拽排序
+- [x] 调用后端 `file:list` 获取文件列表
 
 ## 验收标准
 
-- [ ] 文件树正确展示项目结构
-- [ ] 大量文件时滚动流畅
-- [ ] 右键菜单操作生效
-- [ ] 内联重命名可用
+- [x] 文件树正确展示项目结构
+- [x] 大量文件时滚动流畅
+- [x] 右键菜单操作生效
+- [x] 内联重命名可用
 
 ## 产出
 

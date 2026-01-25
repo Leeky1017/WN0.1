@@ -22,5 +22,11 @@
   - 方案 B：扩展 `StandaloneFrontendBridge` 支持 backend→frontend 推送通知（需要桥接 AiServiceClient）。
 - HTML 导出：IPC contract 当前仅有 `export:markdown/docx/pdf`，无 `export:html`。可用前端 TipTap HTML 导出作为 HTML 产出，或补充 contract（需谨慎避免破坏契约）。
 
+## Decisions made (2026-01-26)
+- AI/skills streaming 统一走 `ws://localhost:3000/standalone-rpc`（扩展 StandaloneFrontendBridge 支持 listSkills/getSkill/streamResponse/executeSkill/cancel + onStreamEvent 通知），避免直接连 `/services/writenow/*` 的协议不兼容问题。
+- Theia backend bundling：通过 `browser-app/webpack.config.js` 额外 entry 输出 `embedding-worker.js`，修复 Electron 启动后 rag-indexer 触发的 worker 缺失/崩溃。
+- AI key 读取：`WN_AI_API_KEY` 若显式存在（即使为空）则不再 fallback 到 `ANTHROPIC_API_KEY`，保证桌面端与 E2E 的“缺 key”行为可预测（返回 `AI API key is not configured`）。
+- Editor → StatusBar / AI selection：以“focused editor”作为活跃判断，避免 focus/activeFilePath 初始化时序导致未保存状态与选区不同步。
+
 ## Later (parking lot)
 - Visual polish (P7) intentionally out-of-scope for this issue.

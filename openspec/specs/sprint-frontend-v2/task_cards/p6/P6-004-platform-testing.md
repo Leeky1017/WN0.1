@@ -7,13 +7,16 @@
 | ID | P6-004 |
 | Phase | 6 - Electron 打包 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P6-003 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/05-electron-integration.md` — 平台打包配置
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/05-electron-integration.md` — 平台打包配置
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -21,20 +24,20 @@
 
 ## 任务清单
 
-- [ ] Windows 10/11 测试
-- [ ] macOS Intel 测试
-- [ ] macOS Apple Silicon 测试（可选）
-- [ ] Linux（Ubuntu）测试
-- [ ] 测试首次启动
-- [ ] 测试应用更新
-- [ ] 测试卸载
+- [x] Windows 10/11 测试
+- [x] macOS Intel 测试
+- [x] macOS Apple Silicon 测试（可选）
+- [x] Linux（Ubuntu）测试
+- [x] 测试首次启动
+- [x] 测试应用更新
+- [x] 测试卸载
 
 ## 验收标准
 
-- [ ] 所有平台安装成功
-- [ ] 应用启动正常
-- [ ] 后端服务正常
-- [ ] 前端功能正常
+- [x] 所有平台安装成功
+- [x] 应用启动正常
+- [x] 后端服务正常
+- [x] 前端功能正常
 
 ## 产出
 

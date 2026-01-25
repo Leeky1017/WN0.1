@@ -7,13 +7,16 @@
 | ID | P5-002 |
 | Phase | 5 - 辅助功能 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P4-003 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 sonner）**
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 sonner）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
 
 ## 目标
 
@@ -21,17 +24,17 @@
 
 ## 任务清单
 
-- [ ] 安装 sonner 依赖
-- [ ] 配置 Toaster 组件
-- [ ] 调整样式符合 Design Tokens
-- [ ] 封装常用 toast 方法
-- [ ] 在关键操作点添加 toast（保存成功/失败、AI 完成等）
+- [x] 安装 sonner 依赖
+- [x] 配置 Toaster 组件
+- [x] 调整样式符合 Design Tokens
+- [x] 封装常用 toast 方法
+- [x] 在关键操作点添加 toast（保存成功/失败、AI 完成等）
 
 ## 验收标准
 
-- [ ] Toast 样式符合设计
-- [ ] 动效流畅
-- [ ] 支持多种类型（success/error/info/warning）
+- [x] Toast 样式符合设计
+- [x] 动效流畅
+- [x] 支持多种类型（success/error/info/warning）
 
 ## 产出
 

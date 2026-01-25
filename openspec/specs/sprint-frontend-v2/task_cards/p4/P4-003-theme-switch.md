@@ -7,13 +7,16 @@
 | ID | P4-003 |
 | Phase | 4 - 命令面板与设置 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P4-002 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/01-design-tokens.md` — 主题定义与切换
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/01-design-tokens.md` — 主题定义与切换
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -21,18 +24,18 @@
 
 ## 任务清单
 
-- [ ] 定义主题变量集（Midnight/Dark/Light/High Contrast）
-- [ ] 实现主题切换逻辑
-- [ ] 实现即时预览（无需刷新）
-- [ ] 实现主题持久化
-- [ ] 支持跟随系统主题
+- [x] 定义主题变量集（Midnight/Dark/Light/High Contrast）
+- [x] 实现主题切换逻辑
+- [x] 实现即时预览（无需刷新）
+- [x] 实现主题持久化
+- [x] 支持跟随系统主题
 
 ## 验收标准
 
-- [ ] 主题可切换
-- [ ] 切换即时生效
-- [ ] 重启后主题保持
-- [ ] 跟随系统可选
+- [x] 主题可切换
+- [x] 切换即时生效
+- [x] 重启后主题保持
+- [x] 跟随系统可选
 
 ## 产出
 

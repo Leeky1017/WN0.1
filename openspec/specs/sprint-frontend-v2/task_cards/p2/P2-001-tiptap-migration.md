@@ -7,13 +7,16 @@
 | ID | P2-001 |
 | Phase | 2 - 编辑器 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P1-004 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 TipTap）**
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 TipTap）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
 
 ## 目标
 
@@ -21,20 +24,20 @@
 
 ## 任务清单
 
-- [ ] 安装 TipTap 相关依赖
-- [ ] 复制/迁移现有编辑器组件
-- [ ] 配置 TipTap 扩展（Markdown、代码块、表格等）
-- [ ] 实现文件打开功能（调用 `file:read`）
-- [ ] 实现文件保存功能（调用 `file:write`）
-- [ ] 调整编辑器样式以符合 Design Tokens
-- [ ] 实现 Markdown 所见即所得模式
+- [x] 安装 TipTap 相关依赖
+- [x] 复制/迁移现有编辑器组件
+- [x] 配置 TipTap 扩展（Markdown、代码块、表格等）
+- [x] 实现文件打开功能（调用 `file:read`）
+- [x] 实现文件保存功能（调用 `file:write`）
+- [x] 调整编辑器样式以符合 Design Tokens
+- [x] 实现 Markdown 所见即所得模式
 
 ## 验收标准
 
-- [ ] 可以打开 `.md` 文件
-- [ ] 编辑内容实时渲染
-- [ ] 可以保存文件
-- [ ] Markdown 语法正确渲染
+- [x] 可以打开 `.md` 文件
+- [x] 编辑内容实时渲染
+- [x] 可以保存文件
+- [x] Markdown 语法正确渲染
 
 ## 产出
 

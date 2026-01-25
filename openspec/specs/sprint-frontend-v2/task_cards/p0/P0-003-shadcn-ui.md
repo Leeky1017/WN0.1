@@ -7,13 +7,16 @@
 | ID | P0-003 |
 | Phase | 0 - 基础设施 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P0-002 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/01-design-tokens.md` — Design Tokens 规范
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换 shadcn/ui）**
+- [x] `design/01-design-tokens.md` — Design Tokens 规范
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换 shadcn/ui）**
 
 ## 目标
 
@@ -21,17 +24,17 @@
 
 ## 任务清单
 
-- [ ] 初始化 shadcn/ui（`npx shadcn@latest init`）
-- [ ] 安装基础组件：Button、Input、Card、Dialog、Dropdown
-- [ ] 安装扩展组件：Tabs、Tooltip、ScrollArea、Separator
-- [ ] 调整组件样式以使用 Design Tokens
-- [ ] 创建组件展示页面验证效果
+- [x] 初始化 shadcn/ui（`npx shadcn@latest init`）
+- [x] 安装基础组件：Button、Input、Card、Dialog、Dropdown
+- [x] 安装扩展组件：Tabs、Tooltip、ScrollArea、Separator
+- [x] 调整组件样式以使用 Design Tokens
+- [x] 创建组件展示页面验证效果
 
 ## 验收标准
 
-- [ ] 所有基础组件可正常渲染
-- [ ] 组件样式符合 Cursor/Linear 风格
-- [ ] 键盘导航正常工作
+- [x] 所有基础组件可正常渲染
+- [x] 组件样式符合 Cursor/Linear 风格
+- [x] 键盘导航正常工作
 
 ## 产出
 

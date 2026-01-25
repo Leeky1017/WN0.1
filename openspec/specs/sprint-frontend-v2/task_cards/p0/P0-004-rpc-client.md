@@ -7,13 +7,16 @@
 | ID | P0-004 |
 | Phase | 0 - 基础设施 |
 | 优先级 | P0 |
-| 状态 | Pending |
+| 状态 | Done |
+| Issue | #223 |
+| PR | TBD |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-223.md |
 | 依赖 | P0-001 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `design/04-rpc-client.md` — RPC 客户端设计
-- [ ] `design/02-tech-stack.md` — **技术选型（禁止替换）**
+- [x] `design/04-rpc-client.md` — RPC 客户端设计
+- [x] `design/02-tech-stack.md` — **技术选型（禁止替换）**
 
 ## 目标
 
@@ -21,18 +24,18 @@
 
 ## 任务清单
 
-- [ ] 安装 `vscode-ws-jsonrpc` 依赖
-- [ ] 复制 IPC 类型定义到前端（`src/types/ipc-generated.ts`）
-- [ ] 实现 `lib/rpc/client.ts`（RPC 客户端核心）
-- [ ] 实现 `lib/rpc/api.ts`（类型安全调用封装）
-- [ ] 实现 `lib/rpc/ai-stream.ts`（AI 流式推送订阅）
-- [ ] 创建 RPC 连接状态 Hook
+- [x] 安装 `vscode-ws-jsonrpc` 依赖
+- [x] 复制 IPC 类型定义到前端（`src/types/ipc-generated.ts`）
+- [x] 实现 `lib/rpc/client.ts`（RPC 客户端核心）
+- [x] 实现 `lib/rpc/api.ts`（类型安全调用封装）
+- [x] 实现 `lib/rpc/ai-stream.ts`（AI 流式推送订阅）
+- [x] 创建 RPC 连接状态 Hook
 
 ## 验收标准
 
-- [ ] 能够成功连接到 Theia 后端
-- [ ] `invoke` 函数类型推导正确
-- [ ] 连接断开时有重连机制
+- [x] 能够成功连接到 Theia 后端
+- [x] `invoke` 函数类型推导正确
+- [x] 连接断开时有重连机制
 
 ## 产出
 
