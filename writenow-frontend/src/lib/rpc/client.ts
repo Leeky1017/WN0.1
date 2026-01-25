@@ -3,7 +3,8 @@
  * @see design/04-rpc-client.md
  */
 
-import { listen, MessageConnection } from 'vscode-ws-jsonrpc'
+import { listen } from 'vscode-ws-jsonrpc'
+import type { MessageConnection } from 'vscode-jsonrpc'
 import type { IpcResponse } from '@/types/ipc-generated'
 
 export type RpcConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error'

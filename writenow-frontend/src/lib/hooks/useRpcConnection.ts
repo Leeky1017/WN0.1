@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { rpcClient, type RpcConnectionStatus } from '@/lib/rpc'
 
-const DEFAULT_WS_URL = 'ws://localhost:3000'
+const DEFAULT_WS_URL = 'ws://localhost:3000/standalone-rpc'
 
 export interface UseRpcConnectionOptions {
   /** WebSocket URL to connect to */

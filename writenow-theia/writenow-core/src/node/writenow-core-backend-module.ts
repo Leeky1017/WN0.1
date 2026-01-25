@@ -32,11 +32,16 @@ import { StatsService } from './services/stats-service';
 import { VersionService } from './services/version-service';
 import { WritenowCoreBackendContribution } from './writenow-core-backend-contribution';
 import { WritenowBackendService } from './writenow-backend-service';
+import { StandaloneFrontendBridge } from './standalone-frontend-bridge';
 import { WRITENOW_DATA_DIR } from './writenow-data-dir';
 
 export default new ContainerModule(bind => {
     bind(WritenowCoreBackendContribution).toSelf().inSingletonScope();
     bind(BackendApplicationContribution).toService(WritenowCoreBackendContribution);
+
+    // Standalone frontend bridge for writenow-frontend
+    bind(StandaloneFrontendBridge).toSelf().inSingletonScope();
+    bind(BackendApplicationContribution).toService(StandaloneFrontendBridge);
 
     const dataDirEnv = typeof process.env.WRITENOW_THEIA_DATA_DIR === 'string' ? process.env.WRITENOW_THEIA_DATA_DIR.trim() : '';
     const dataDir = dataDirEnv || path.join(os.homedir(), '.writenow-theia');

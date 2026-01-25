@@ -107,7 +107,7 @@ function App() {
           <CardContent>
             <div className="flex items-center gap-4">
               <Input
-                value="ws://localhost:3000"
+                value="ws://localhost:3000/standalone-rpc"
                 readOnly
                 className="flex-1"
               />
