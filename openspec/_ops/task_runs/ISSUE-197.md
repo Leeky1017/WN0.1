@@ -2,7 +2,7 @@
 
 - Issue: #197
 - Branch: task/197-frontend-qa
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/198
 
 ## Plan
 
