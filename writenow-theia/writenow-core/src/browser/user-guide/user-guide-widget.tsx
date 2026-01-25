@@ -3,6 +3,7 @@ import { codicon, ReactWidget } from '@theia/core/lib/browser/widgets';
 import { injectable } from '@theia/core/shared/inversify';
 
 import { WRITENOW_USER_GUIDE_WIDGET_ID } from '../writenow-layout-ids';
+import { WN_STRINGS } from '../i18n/nls';
 
 /**
  * User guide section.
@@ -341,22 +342,22 @@ function UserGuideView(): React.ReactElement {
     const currentSection = GUIDE_SECTIONS.find((s) => s.id === activeSection) ?? GUIDE_SECTIONS[0];
 
     return (
-        <div className="wn-p2-widget wn-user-guide" role="region" aria-label="用户指南">
+        <div className="wn-p2-widget wn-user-guide" role="region" aria-label={WN_STRINGS.userGuide()}>
             <header className="wn-p2-widget-header">
-                <h2 className="wn-p2-widget-title">用户指南</h2>
+                <h2 className="wn-p2-widget-title">{WN_STRINGS.userGuide()}</h2>
             </header>
 
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                 {/* Sidebar */}
-                <nav className="wn-user-guide-sidebar" role="navigation" aria-label="指南目录">
+                <nav className="wn-user-guide-sidebar" role="navigation" aria-label={WN_STRINGS.userGuideNav()}>
                     <div style={{ padding: 'var(--wn-space-2)' }}>
                         <input
                             type="text"
                             className="wn-settings-input"
-                            placeholder="搜索..."
+                            placeholder={WN_STRINGS.userGuideSearch()}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            aria-label="搜索指南"
+                            aria-label={WN_STRINGS.userGuideSearch()}
                         />
                     </div>
                     {filteredSections.map((section) => (
@@ -388,8 +389,8 @@ export class UserGuideWidget extends ReactWidget {
     constructor() {
         super();
         this.id = UserGuideWidget.ID;
-        this.title.label = '用户指南';
-        this.title.caption = 'WriteNow 使用指南';
+        this.title.label = WN_STRINGS.userGuide();
+        this.title.caption = WN_STRINGS.userGuideCaption();
         this.title.iconClass = codicon('book');
         this.title.closable = true;
         this.addClass('writenow-user-guide');

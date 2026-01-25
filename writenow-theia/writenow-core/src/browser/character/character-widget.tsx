@@ -5,6 +5,7 @@ import { MessageService } from '@theia/core/lib/common/message-service';
 
 import { WRITENOW_CHARACTER_WIDGET_ID } from '../writenow-layout-ids';
 import { WritenowFrontendService } from '../writenow-frontend-service';
+import { WN_STRINGS } from '../i18n/nls';
 import type { Character } from '../../common/ipc-generated';
 
 /**
@@ -59,7 +60,7 @@ function CharacterView(props: {
                     setCharacters(res.data.characters);
                 }
             } catch (error) {
-                messageService.error(`加载角色失败: ${String(error)}`);
+                messageService.error(WN_STRINGS.characterLoadFailed(String(error)));
             } finally {
                 setLoading(false);
             }
@@ -69,7 +70,7 @@ function CharacterView(props: {
 
     const handleCreate = async (): Promise<void> => {
         if (!projectId || !formState.name.trim()) {
-            messageService.warn('请输入角色名称');
+            messageService.warn(WN_STRINGS.characterNameRequired());
             return;
         }
 
@@ -84,12 +85,12 @@ function CharacterView(props: {
                 setCharacters((prev) => [...prev, res.data.character]);
                 setFormState(INITIAL_FORM_STATE);
                 setIsEditing(false);
-                messageService.info('角色创建成功');
+                messageService.info(WN_STRINGS.characterCreateSuccess());
             } else {
-                messageService.error(`创建失败: ${res.error.message}`);
+                messageService.error(WN_STRINGS.characterCreateFailed(res.error.message));
             }
         } catch (error) {
-            messageService.error(`创建失败: ${String(error)}`);
+            messageService.error(WN_STRINGS.characterCreateFailed(String(error)));
         }
     };
 
@@ -113,12 +114,12 @@ function CharacterView(props: {
                 setFormState(INITIAL_FORM_STATE);
                 setSelectedId(null);
                 setIsEditing(false);
-                messageService.info('角色更新成功');
+                messageService.info(WN_STRINGS.characterUpdateSuccess());
             } else {
-                messageService.error(`更新失败: ${res.error.message}`);
+                messageService.error(WN_STRINGS.characterUpdateFailed(res.error.message));
             }
         } catch (error) {
-            messageService.error(`更新失败: ${String(error)}`);
+            messageService.error(WN_STRINGS.characterUpdateFailed(String(error)));
         }
     };
 
@@ -134,12 +135,12 @@ function CharacterView(props: {
                     setFormState(INITIAL_FORM_STATE);
                     setIsEditing(false);
                 }
-                messageService.info('角色删除成功');
+                messageService.info(WN_STRINGS.characterDeleteSuccess());
             } else {
-                messageService.error(`删除失败: ${res.error.message}`);
+                messageService.error(WN_STRINGS.characterDeleteFailed(res.error.message));
             }
         } catch (error) {
-            messageService.error(`删除失败: ${String(error)}`);
+            messageService.error(WN_STRINGS.characterDeleteFailed(String(error)));
         }
     };
 
@@ -176,10 +177,10 @@ function CharacterView(props: {
 
     if (loading) {
         return (
-            <div className="wn-p2-widget wn-character-widget" role="region" aria-label="角色管理">
+            <div className="wn-p2-widget wn-character-widget" role="region" aria-label={WN_STRINGS.characterPanel()}>
                 <div className="wn-empty-state">
                     <span className={codicon('loading') + ' codicon-modifier-spin'} />
-                    <p>加载中...</p>
+                    <p>{WN_STRINGS.loading()}</p>
                 </div>
             </div>
         );
@@ -187,19 +188,19 @@ function CharacterView(props: {
 
     if (!projectId) {
         return (
-            <div className="wn-p2-widget wn-character-widget" role="region" aria-label="角色管理">
+            <div className="wn-p2-widget wn-character-widget" role="region" aria-label={WN_STRINGS.characterPanel()}>
                 <div className="wn-empty-state">
                     <span className={codicon('warning') + ' wn-empty-state-icon'} />
-                    <p className="wn-empty-state-title">请先打开一个项目</p>
+                    <p className="wn-empty-state-title">{WN_STRINGS.characterNoProject()}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="wn-p2-widget wn-character-widget" role="region" aria-label="角色管理">
+        <div className="wn-p2-widget wn-character-widget" role="region" aria-label={WN_STRINGS.characterPanel()}>
             <header className="wn-p2-widget-header">
-                <h2 className="wn-p2-widget-title">角色管理</h2>
+                <h2 className="wn-p2-widget-title">{WN_STRINGS.characterPanel()}</h2>
                 <div className="wn-p2-widget-actions">
                     <button
                         type="button"
@@ -209,9 +210,9 @@ function CharacterView(props: {
                             setSelectedId(null);
                             setFormState(INITIAL_FORM_STATE);
                         }}
-                        aria-label="新建角色"
+                        aria-label={WN_STRINGS.characterNew()}
                     >
-                        <span className={codicon('add')} /> 新建
+                        <span className={codicon('add')} /> {WN_STRINGS.characterNew()}
                     </button>
                 </div>
             </header>
@@ -221,7 +222,7 @@ function CharacterView(props: {
                     <div className="wn-character-form">
                         <div className="wn-settings-field">
                             <label className="wn-settings-label" htmlFor="character-name">
-                                名称 *
+                                {WN_STRINGS.characterName()} *
                             </label>
                             <input
                                 id="character-name"
@@ -231,14 +232,14 @@ function CharacterView(props: {
                                 onChange={(e) =>
                                     setFormState((prev) => ({ ...prev, name: e.target.value }))
                                 }
-                                placeholder="角色名称"
+                                placeholder={WN_STRINGS.characterNamePlaceholder()}
                                 aria-required="true"
                             />
                         </div>
 
                         <div className="wn-settings-field">
                             <label className="wn-settings-label" htmlFor="character-description">
-                                描述
+                                {WN_STRINGS.characterDescription()}
                             </label>
                             <textarea
                                 id="character-description"
@@ -248,12 +249,12 @@ function CharacterView(props: {
                                 onChange={(e) =>
                                     setFormState((prev) => ({ ...prev, description: e.target.value }))
                                 }
-                                placeholder="角色背景、性格等描述..."
+                                placeholder={WN_STRINGS.characterDescriptionPlaceholder()}
                             />
                         </div>
 
                         <div className="wn-settings-field">
-                            <label className="wn-settings-label">特征标签</label>
+                            <label className="wn-settings-label">{WN_STRINGS.characterTraits()}</label>
                             <div className="wn-character-traits">
                                 {formState.traits.map((trait) => (
                                     <span key={trait} className="wn-character-trait">
@@ -261,7 +262,7 @@ function CharacterView(props: {
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveTrait(trait)}
-                                            aria-label={`移除 ${trait}`}
+                                            aria-label={WN_STRINGS.characterRemoveTrait(trait)}
                                             style={{
                                                 background: 'none',
                                                 border: 'none',
@@ -280,7 +281,7 @@ function CharacterView(props: {
                                     className="wn-settings-input"
                                     value={traitInput}
                                     onChange={(e) => setTraitInput(e.target.value)}
-                                    placeholder="添加特征..."
+                                    placeholder={WN_STRINGS.characterTraitPlaceholder()}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
@@ -292,9 +293,9 @@ function CharacterView(props: {
                                     type="button"
                                     className="wn-settings-button"
                                     onClick={handleAddTrait}
-                                    aria-label="添加特征"
+                                    aria-label={WN_STRINGS.characterTraitAdd()}
                                 >
-                                    添加
+                                    {WN_STRINGS.add()}
                                 </button>
                             </div>
                         </div>
@@ -305,23 +306,23 @@ function CharacterView(props: {
                                 className="wn-settings-button"
                                 onClick={handleCancel}
                             >
-                                取消
+                                {WN_STRINGS.cancel()}
                             </button>
                             <button
                                 type="button"
                                 className="wn-settings-button wn-settings-button--primary"
                                 onClick={selectedId ? handleUpdate : handleCreate}
                             >
-                                {selectedId ? '保存' : '创建'}
+                                {selectedId ? WN_STRINGS.save() : WN_STRINGS.create()}
                             </button>
                         </div>
                     </div>
                 ) : characters.length === 0 ? (
                     <div className="wn-empty-state">
                         <span className={codicon('person') + ' wn-empty-state-icon'} />
-                        <p className="wn-empty-state-title">暂无角色</p>
+                        <p className="wn-empty-state-title">{WN_STRINGS.characterEmpty()}</p>
                         <p className="wn-empty-state-description">
-                            创建角色来管理你作品中的人物设定
+                            {WN_STRINGS.characterEmptyHint()}
                         </p>
                     </div>
                 ) : (
@@ -347,7 +348,7 @@ function CharacterView(props: {
                                         type="button"
                                         className="wn-settings-icon-button"
                                         onClick={() => handleEdit(character)}
-                                        aria-label={`编辑 ${character.name}`}
+                                        aria-label={WN_STRINGS.characterEditAria(character.name)}
                                     >
                                         <span className={codicon('edit')} />
                                     </button>
@@ -355,7 +356,7 @@ function CharacterView(props: {
                                         type="button"
                                         className="wn-settings-icon-button"
                                         onClick={() => handleDelete(character.id)}
-                                        aria-label={`删除 ${character.name}`}
+                                        aria-label={WN_STRINGS.characterDeleteAria(character.name)}
                                     >
                                         <span className={codicon('trash')} />
                                     </button>
@@ -381,8 +382,8 @@ export class CharacterWidget extends ReactWidget {
     ) {
         super();
         this.id = CharacterWidget.ID;
-        this.title.label = '角色管理';
-        this.title.caption = '管理作品中的角色';
+        this.title.label = WN_STRINGS.characterPanel();
+        this.title.caption = WN_STRINGS.characterPanelCaption();
         this.title.iconClass = codicon('person');
         this.title.closable = true;
         this.addClass('writenow-character');

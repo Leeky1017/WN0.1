@@ -4,6 +4,7 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import { MessageService } from '@theia/core/lib/common/message-service';
 
 import { WRITENOW_LOG_VIEWER_WIDGET_ID } from '../writenow-layout-ids';
+import { WN_STRINGS } from '../i18n/nls';
 
 /**
  * Log entry type.
@@ -19,14 +20,29 @@ type LogEntry = {
 };
 
 /**
+ * Check if running in development mode.
+ * Why: Only intercept console in development to avoid performance impact in production.
+ */
+function isDevelopment(): boolean {
+    // Check common development indicators
+    const hostname = window.location?.hostname ?? '';
+    const isDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.');
+    // Also check if DEBUG env or localStorage flag is set
+    const debugFlag = localStorage.getItem('writenow.debug') === 'true';
+    return isDev || debugFlag;
+}
+
+/**
  * In-memory log store.
  * Why: Collects console logs for the log viewer.
+ * Note: Console interception is only enabled in development mode.
  */
 class LogStore {
     private static instance: LogStore;
     private logs: LogEntry[] = [];
     private maxLogs = 1000;
     private listeners: Set<() => void> = new Set();
+    private intercepting = false;
     private originalConsole: {
         log: typeof console.log;
         info: typeof console.info;
@@ -45,27 +61,37 @@ class LogStore {
             debug: console.debug.bind(console),
         };
 
-        // Intercept console methods
-        console.log = (...args) => {
-            this.addLog('info', args);
-            this.originalConsole.log(...args);
-        };
-        console.info = (...args) => {
-            this.addLog('info', args);
-            this.originalConsole.info(...args);
-        };
-        console.warn = (...args) => {
-            this.addLog('warn', args);
-            this.originalConsole.warn(...args);
-        };
-        console.error = (...args) => {
-            this.addLog('error', args);
-            this.originalConsole.error(...args);
-        };
-        console.debug = (...args) => {
-            this.addLog('debug', args);
-            this.originalConsole.debug(...args);
-        };
+        // Only intercept console in development mode
+        if (isDevelopment()) {
+            this.intercepting = true;
+            console.log = (...args) => {
+                this.addLog('info', args);
+                this.originalConsole.log(...args);
+            };
+            console.info = (...args) => {
+                this.addLog('info', args);
+                this.originalConsole.info(...args);
+            };
+            console.warn = (...args) => {
+                this.addLog('warn', args);
+                this.originalConsole.warn(...args);
+            };
+            console.error = (...args) => {
+                this.addLog('error', args);
+                this.originalConsole.error(...args);
+            };
+            console.debug = (...args) => {
+                this.addLog('debug', args);
+                this.originalConsole.debug(...args);
+            };
+        }
+    }
+
+    /**
+     * Check if console interception is active.
+     */
+    isIntercepting(): boolean {
+        return this.intercepting;
     }
 
     static getInstance(): LogStore {
@@ -150,6 +176,9 @@ function LogViewerView(props: {
         return logs.filter((log) => log.level === filter);
     }, [logs, filter]);
 
+    const store = LogStore.getInstance();
+    const isIntercepting = store.isIntercepting();
+
     const handleExport = (): void => {
         const content = filteredLogs
             .map(
@@ -166,12 +195,12 @@ function LogViewerView(props: {
         a.click();
         URL.revokeObjectURL(url);
 
-        messageService.info('日志已导出');
+        messageService.info(WN_STRINGS.logExported());
     };
 
     const handleClear = (): void => {
         LogStore.getInstance().clear();
-        messageService.info('日志已清空');
+        messageService.info(WN_STRINGS.logCleared());
     };
 
     const formatTimestamp = (date: Date): string => {
@@ -183,15 +212,15 @@ function LogViewerView(props: {
     };
 
     return (
-        <div className="wn-p2-widget wn-log-viewer" role="region" aria-label="日志查看器">
+        <div className="wn-p2-widget wn-log-viewer" role="region" aria-label={WN_STRINGS.logViewer()}>
             <header className="wn-p2-widget-header">
-                <h2 className="wn-p2-widget-title">日志查看器</h2>
+                <h2 className="wn-p2-widget-title">{WN_STRINGS.logViewer()}</h2>
                 <div className="wn-p2-widget-actions">
                     <button
                         type="button"
                         className="wn-settings-icon-button"
                         onClick={() => setAutoScroll(!autoScroll)}
-                        title={autoScroll ? '关闭自动滚动' : '开启自动滚动'}
+                        title={autoScroll ? WN_STRINGS.logAutoScrollOn() : WN_STRINGS.logAutoScrollOff()}
                         aria-pressed={autoScroll}
                     >
                         <span className={codicon(autoScroll ? 'pinned' : 'pin')} />
@@ -200,8 +229,8 @@ function LogViewerView(props: {
                         type="button"
                         className="wn-settings-icon-button"
                         onClick={handleExport}
-                        title="导出日志"
-                        aria-label="导出日志"
+                        title={WN_STRINGS.logExport()}
+                        aria-label={WN_STRINGS.logExport()}
                     >
                         <span className={codicon('export')} />
                     </button>
@@ -209,16 +238,22 @@ function LogViewerView(props: {
                         type="button"
                         className="wn-settings-icon-button"
                         onClick={handleClear}
-                        title="清空日志"
-                        aria-label="清空日志"
+                        title={WN_STRINGS.logClear()}
+                        aria-label={WN_STRINGS.logClear()}
                     >
                         <span className={codicon('clear-all')} />
                     </button>
                 </div>
             </header>
 
+            {!isIntercepting && (
+                <div style={{ padding: 'var(--wn-space-2) var(--wn-space-4)', background: 'var(--wn-warning-bg)', color: 'var(--wn-warning-text)', fontSize: '12px' }}>
+                    生产环境日志收集已禁用。设置 localStorage.setItem('writenow.debug', 'true') 并刷新以启用。
+                </div>
+            )}
+
             <div style={{ padding: 'var(--wn-space-3) var(--wn-space-4)', borderBottom: '1px solid var(--wn-border-subtle)' }}>
-                <div className="wn-log-filters" role="group" aria-label="日志级别过滤">
+                <div className="wn-log-filters" role="group" aria-label={WN_STRINGS.logFilter()}>
                     {(['all', 'info', 'warn', 'error', 'debug'] as const).map((level) => (
                         <button
                             key={level}
@@ -227,7 +262,7 @@ function LogViewerView(props: {
                             onClick={() => setFilter(level)}
                             aria-pressed={filter === level}
                         >
-                            {level === 'all' ? '全部' : level.toUpperCase()}
+                            {level === 'all' ? WN_STRINGS.all() : level.toUpperCase()}
                         </button>
                     ))}
                 </div>
@@ -243,7 +278,7 @@ function LogViewerView(props: {
                 {filteredLogs.length === 0 ? (
                     <div className="wn-empty-state">
                         <span className={codicon('output') + ' wn-empty-state-icon'} />
-                        <p className="wn-empty-state-title">暂无日志</p>
+                        <p className="wn-empty-state-title">{WN_STRINGS.logEmpty()}</p>
                     </div>
                 ) : (
                     filteredLogs.map((log) => (
@@ -269,8 +304,8 @@ export class LogViewerWidget extends ReactWidget {
     ) {
         super();
         this.id = LogViewerWidget.ID;
-        this.title.label = '日志查看器';
-        this.title.caption = '查看应用日志';
+        this.title.label = WN_STRINGS.logViewer();
+        this.title.caption = WN_STRINGS.logViewerCaption();
         this.title.iconClass = codicon('output');
         this.title.closable = true;
         this.addClass('writenow-log-viewer');
