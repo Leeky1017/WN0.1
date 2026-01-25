@@ -205,14 +205,99 @@ function EditorSettingsPanel(): React.ReactElement {
 }
 
 /**
+ * Available themes.
+ */
+const AVAILABLE_THEMES = [
+    { id: 'midnight', label: 'Midnight（深色）', description: '默认深色主题' },
+    { id: 'warm-gray', label: 'Warm Gray（暖灰）', description: '温暖的灰色调' },
+    { id: 'parchment', label: 'Parchment（羊皮纸）', description: '浅色纸张风格' },
+    { id: 'high-contrast', label: 'High Contrast（高对比度）', description: '为视觉障碍用户优化' },
+];
+
+/**
  * Appearance Settings panel component.
  */
-function AppearanceSettingsPanel(): React.ReactElement {
+function AppearanceSettingsPanel(props: { messageService: MessageService }): React.ReactElement {
+    const { messageService } = props;
+    const [theme, setTheme] = React.useState<string>('midnight');
+
+    // Load theme on mount
+    React.useEffect(() => {
+        try {
+            const stored = localStorage.getItem('writenow.theme');
+            if (stored) {
+                setTheme(stored);
+            }
+            // Also check current theme from DOM
+            const currentTheme = document.documentElement.getAttribute('data-wn-theme');
+            if (currentTheme) {
+                setTheme(currentTheme);
+            }
+        } catch {
+            // Use default
+        }
+    }, []);
+
+    const handleThemeChange = (newTheme: string): void => {
+        setTheme(newTheme);
+
+        // Apply theme immediately
+        document.documentElement.setAttribute('data-wn-theme', newTheme);
+
+        // Store preference
+        try {
+            localStorage.setItem('writenow.theme', newTheme);
+            messageService.info(`主题已切换为 ${AVAILABLE_THEMES.find((t) => t.id === newTheme)?.label ?? newTheme}`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            messageService.error(`保存主题失败: ${message}`);
+        }
+    };
+
     return (
         <div className="wn-settings-section">
             <h3 className="wn-settings-section-title">外观配置</h3>
-            <p className="wn-settings-placeholder">
-                主题切换和外观配置选项将在后续版本中添加。
+
+            <div className="wn-settings-field">
+                <label className="wn-settings-label" id="theme-label">
+                    主题
+                </label>
+                <div role="radiogroup" aria-labelledby="theme-label" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {AVAILABLE_THEMES.map((t) => (
+                        <label
+                            key={t.id}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '8px 12px',
+                                background: theme === t.id ? 'var(--wn-bg-selected)' : 'var(--wn-bg-card)',
+                                borderRadius: 'var(--wn-radius-default)',
+                                cursor: 'pointer',
+                                border: theme === t.id ? '1px solid var(--wn-accent-primary)' : '1px solid var(--wn-border-subtle)',
+                            }}
+                        >
+                            <input
+                                type="radio"
+                                name="theme"
+                                value={t.id}
+                                checked={theme === t.id}
+                                onChange={() => handleThemeChange(t.id)}
+                                style={{ marginRight: '12px' }}
+                                aria-describedby={`theme-desc-${t.id}`}
+                            />
+                            <div>
+                                <div style={{ fontWeight: 500 }}>{t.label}</div>
+                                <div id={`theme-desc-${t.id}`} style={{ fontSize: '12px', color: 'var(--wn-text-secondary)' }}>
+                                    {t.description}
+                                </div>
+                            </div>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            <p className="wn-settings-hint" style={{ marginTop: '16px' }}>
+                高对比度主题专为视觉障碍用户设计，文本对比度符合 WCAG AA 标准。
             </p>
         </div>
     );
@@ -395,7 +480,7 @@ function SettingsView(props: SettingsViewProps): React.ReactElement {
             case 'editor':
                 return <EditorSettingsPanel />;
             case 'appearance':
-                return <AppearanceSettingsPanel />;
+                return <AppearanceSettingsPanel messageService={messageService} />;
             case 'shortcuts':
                 return <ShortcutsSettingsPanel />;
             case 'language':

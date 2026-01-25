@@ -1,0 +1,500 @@
+/**
+ * WriteNow P2 Features Styles
+ *
+ * Styles for P2 priority widgets:
+ * - Character Management (P2-003)
+ * - Terminology Panel (P2-004)
+ * - Stats Panel (P2-005)
+ * - Log Viewer (P2-006)
+ * - User Guide (P2-007)
+ * - Update Notification (P2-008)
+ */
+
+/* ===== COMMON WIDGET STYLES ===== */
+
+.wn-p2-widget {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--wn-bg-panel);
+    color: var(--wn-text-primary);
+    font-family: var(--wn-font-sans);
+}
+
+.wn-p2-widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wn-space-3) var(--wn-space-4);
+    border-bottom: 1px solid var(--wn-border-subtle);
+    flex-shrink: 0;
+}
+
+.wn-p2-widget-title {
+    font-size: var(--wn-text-lg);
+    font-weight: var(--wn-font-semibold);
+    margin: 0;
+}
+
+.wn-p2-widget-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--wn-space-4);
+}
+
+.wn-p2-widget-actions {
+    display: flex;
+    gap: var(--wn-space-2);
+}
+
+/* ===== LIST STYLES ===== */
+
+.wn-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wn-list-item {
+    display: flex;
+    align-items: center;
+    padding: var(--wn-space-2) var(--wn-space-3);
+    border-radius: var(--wn-radius-default);
+    cursor: pointer;
+    transition: background-color var(--wn-transition-fast);
+}
+
+.wn-list-item:hover {
+    background: var(--wn-bg-hover);
+}
+
+.wn-list-item--selected {
+    background: var(--wn-bg-selected);
+}
+
+.wn-list-item-icon {
+    margin-right: var(--wn-space-2);
+    color: var(--wn-text-tertiary);
+}
+
+.wn-list-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.wn-list-item-title {
+    font-weight: var(--wn-font-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wn-list-item-subtitle {
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wn-list-item-actions {
+    display: flex;
+    gap: var(--wn-space-1);
+    opacity: 0;
+    transition: opacity var(--wn-transition-fast);
+}
+
+.wn-list-item:hover .wn-list-item-actions {
+    opacity: 1;
+}
+
+/* ===== EMPTY STATE ===== */
+
+.wn-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--wn-space-8);
+    text-align: center;
+    color: var(--wn-text-tertiary);
+}
+
+.wn-empty-state-icon {
+    font-size: 48px;
+    margin-bottom: var(--wn-space-4);
+    opacity: 0.5;
+}
+
+.wn-empty-state-title {
+    font-size: var(--wn-text-lg);
+    font-weight: var(--wn-font-medium);
+    margin-bottom: var(--wn-space-2);
+}
+
+.wn-empty-state-description {
+    font-size: var(--wn-text-sm);
+    max-width: 300px;
+}
+
+/* ===== CHARACTER WIDGET (P2-003) ===== */
+
+.wn-character-widget {
+    /* Uses common .wn-p2-widget styles */
+}
+
+.wn-character-card {
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-subtle);
+    border-radius: var(--wn-card-radius);
+    padding: var(--wn-space-4);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-character-name {
+    font-size: var(--wn-text-lg);
+    font-weight: var(--wn-font-semibold);
+    margin-bottom: var(--wn-space-2);
+}
+
+.wn-character-description {
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+    line-height: var(--wn-leading-relaxed);
+}
+
+.wn-character-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wn-space-1);
+    margin-top: var(--wn-space-2);
+}
+
+.wn-character-trait {
+    font-size: var(--wn-text-xs);
+    background: var(--wn-bg-active);
+    padding: var(--wn-space-1) var(--wn-space-2);
+    border-radius: var(--wn-radius-full);
+    color: var(--wn-text-secondary);
+}
+
+/* ===== TERMINOLOGY WIDGET (P2-004) ===== */
+
+.wn-terminology-widget {
+    /* Uses common .wn-p2-widget styles */
+}
+
+.wn-terminology-search {
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-terminology-item {
+    border-bottom: 1px solid var(--wn-border-subtle);
+    padding: var(--wn-space-3) 0;
+}
+
+.wn-terminology-item:last-child {
+    border-bottom: none;
+}
+
+.wn-terminology-term {
+    font-weight: var(--wn-font-semibold);
+    margin-bottom: var(--wn-space-1);
+}
+
+.wn-terminology-definition {
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+}
+
+.wn-terminology-aliases {
+    font-size: var(--wn-text-xs);
+    color: var(--wn-text-tertiary);
+    margin-top: var(--wn-space-1);
+}
+
+/* ===== STATS WIDGET (P2-005) ===== */
+
+.wn-stats-widget {
+    /* Uses common .wn-p2-widget styles */
+}
+
+.wn-stats-card {
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-subtle);
+    border-radius: var(--wn-card-radius);
+    padding: var(--wn-space-4);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--wn-space-3);
+}
+
+.wn-stats-item {
+    text-align: center;
+}
+
+.wn-stats-value {
+    font-size: var(--wn-text-2xl);
+    font-weight: var(--wn-font-semibold);
+    color: var(--wn-accent-primary);
+}
+
+.wn-stats-label {
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+    margin-top: var(--wn-space-1);
+}
+
+.wn-stats-chart {
+    height: 200px;
+    margin-top: var(--wn-space-4);
+    background: var(--wn-bg-card);
+    border: 1px solid var(--wn-border-subtle);
+    border-radius: var(--wn-card-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--wn-text-tertiary);
+}
+
+/* ===== LOG VIEWER (P2-006) ===== */
+
+.wn-log-viewer {
+    /* Uses common .wn-p2-widget styles */
+}
+
+.wn-log-filters {
+    display: flex;
+    gap: var(--wn-space-2);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-log-filter-btn {
+    padding: var(--wn-space-1) var(--wn-space-2);
+    font-size: var(--wn-text-xs);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-radius-default);
+    background: transparent;
+    color: var(--wn-text-secondary);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-log-filter-btn:hover {
+    background: var(--wn-bg-hover);
+}
+
+.wn-log-filter-btn--active {
+    background: var(--wn-accent-primary);
+    color: white;
+    border-color: var(--wn-accent-primary);
+}
+
+.wn-log-entry {
+    font-family: var(--wn-font-mono);
+    font-size: var(--wn-text-xs);
+    padding: var(--wn-space-1) var(--wn-space-2);
+    border-radius: var(--wn-radius-sm);
+    margin-bottom: var(--wn-space-1);
+    display: flex;
+    gap: var(--wn-space-2);
+}
+
+.wn-log-entry--info {
+    background: var(--wn-bg-card);
+}
+
+.wn-log-entry--warn {
+    background: var(--wn-warning-bg);
+    color: var(--wn-warning-text);
+}
+
+.wn-log-entry--error {
+    background: var(--wn-error-bg);
+    color: var(--wn-error-text);
+}
+
+.wn-log-entry--debug {
+    background: var(--wn-bg-card);
+    color: var(--wn-text-tertiary);
+}
+
+.wn-log-timestamp {
+    color: var(--wn-text-tertiary);
+    flex-shrink: 0;
+}
+
+.wn-log-level {
+    flex-shrink: 0;
+    width: 50px;
+    text-transform: uppercase;
+}
+
+.wn-log-message {
+    flex: 1;
+    word-break: break-word;
+}
+
+/* ===== USER GUIDE (P2-007) ===== */
+
+.wn-user-guide {
+    /* Uses common .wn-p2-widget styles */
+}
+
+.wn-user-guide-sidebar {
+    width: 200px;
+    border-right: 1px solid var(--wn-border-subtle);
+    overflow-y: auto;
+}
+
+.wn-user-guide-nav-item {
+    display: block;
+    padding: var(--wn-space-2) var(--wn-space-3);
+    color: var(--wn-text-secondary);
+    text-decoration: none;
+    font-size: var(--wn-text-sm);
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-user-guide-nav-item:hover {
+    background: var(--wn-bg-hover);
+    color: var(--wn-text-primary);
+}
+
+.wn-user-guide-nav-item--active {
+    background: var(--wn-bg-selected);
+    color: var(--wn-text-primary);
+}
+
+.wn-user-guide-content {
+    flex: 1;
+    padding: var(--wn-space-4);
+    overflow-y: auto;
+}
+
+.wn-user-guide-content h1 {
+    font-size: var(--wn-text-2xl);
+    margin-bottom: var(--wn-space-4);
+}
+
+.wn-user-guide-content h2 {
+    font-size: var(--wn-text-xl);
+    margin-top: var(--wn-space-6);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-user-guide-content p {
+    line-height: var(--wn-leading-relaxed);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-user-guide-content code {
+    font-family: var(--wn-font-mono);
+    background: var(--wn-bg-card);
+    padding: 2px 6px;
+    border-radius: var(--wn-radius-sm);
+    font-size: 0.9em;
+}
+
+/* ===== UPDATE NOTIFICATION (P2-008) ===== */
+
+.wn-update-notification {
+    position: fixed;
+    bottom: var(--wn-space-4);
+    right: var(--wn-space-4);
+    background: var(--wn-bg-panel);
+    border: 1px solid var(--wn-border-default);
+    border-radius: var(--wn-card-radius);
+    box-shadow: var(--wn-shadow-lg);
+    padding: var(--wn-space-4);
+    min-width: 300px;
+    max-width: 400px;
+    z-index: var(--wn-z-modal);
+}
+
+.wn-update-header {
+    display: flex;
+    align-items: center;
+    gap: var(--wn-space-2);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-update-icon {
+    color: var(--wn-accent-primary);
+    font-size: 20px;
+}
+
+.wn-update-title {
+    font-weight: var(--wn-font-semibold);
+    flex: 1;
+}
+
+.wn-update-close {
+    background: none;
+    border: none;
+    color: var(--wn-text-tertiary);
+    cursor: pointer;
+    padding: var(--wn-space-1);
+}
+
+.wn-update-close:hover {
+    color: var(--wn-text-primary);
+}
+
+.wn-update-version {
+    font-size: var(--wn-text-sm);
+    color: var(--wn-text-secondary);
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-update-progress {
+    height: 4px;
+    background: var(--wn-bg-active);
+    border-radius: var(--wn-radius-full);
+    overflow: hidden;
+    margin-bottom: var(--wn-space-3);
+}
+
+.wn-update-progress-bar {
+    height: 100%;
+    background: var(--wn-accent-primary);
+    transition: width 0.3s ease;
+}
+
+.wn-update-actions {
+    display: flex;
+    gap: var(--wn-space-2);
+    justify-content: flex-end;
+}
+
+.wn-update-btn {
+    padding: var(--wn-space-2) var(--wn-space-3);
+    border-radius: var(--wn-button-radius);
+    font-size: var(--wn-text-sm);
+    cursor: pointer;
+    transition: all var(--wn-transition-fast);
+}
+
+.wn-update-btn--primary {
+    background: var(--wn-accent-primary);
+    color: white;
+    border: none;
+}
+
+.wn-update-btn--primary:hover {
+    background: var(--wn-accent-primary-hover);
+}
+
+.wn-update-btn--secondary {
+    background: transparent;
+    color: var(--wn-text-secondary);
+    border: 1px solid var(--wn-border-default);
+}
+
+.wn-update-btn--secondary:hover {
+    background: var(--wn-bg-hover);
+}

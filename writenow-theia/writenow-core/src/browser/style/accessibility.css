@@ -1,0 +1,167 @@
+/**
+ * WriteNow Accessibility Styles (P2-001)
+ *
+ * Why: WCAG 2.1 compliance requires visible focus indicators,
+ * proper ARIA support, and keyboard-navigable interfaces.
+ */
+
+/* ===== FOCUS STYLES ===== */
+
+/**
+ * Global focus-visible styles.
+ * Why: :focus-visible provides focus ring only for keyboard navigation,
+ * not for mouse clicks, improving both accessibility and aesthetics.
+ */
+:focus-visible {
+    outline: none;
+    box-shadow: var(--wn-focus-ring);
+}
+
+/* Focus ring for interactive elements */
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible:not([tabindex="-1"]) {
+    outline: none;
+    box-shadow: var(--wn-focus-ring);
+}
+
+/* Inset focus for contained elements */
+.theia-TreeNode:focus-visible,
+.theia-tabBar-tab:focus-visible,
+.p-MenuItem:focus-visible {
+    outline: none;
+    box-shadow: var(--wn-focus-ring-inset);
+}
+
+/* ===== SKIP LINK ===== */
+
+/**
+ * Skip to main content link.
+ * Why: Allows keyboard users to bypass navigation.
+ */
+.wn-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--wn-accent-primary);
+    color: white;
+    padding: 8px 16px;
+    z-index: 9999;
+    transition: top 0.3s;
+}
+
+.wn-skip-link:focus {
+    top: 0;
+}
+
+/* ===== SCREEN READER ONLY ===== */
+
+/**
+ * Visually hidden but accessible to screen readers.
+ */
+.wn-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ===== REDUCED MOTION ===== */
+
+/**
+ * Respect user's motion preferences.
+ * Why: Some users experience motion sickness from animations.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ===== FORCED COLORS MODE ===== */
+
+/**
+ * Support Windows High Contrast Mode.
+ */
+@media (forced-colors: active) {
+    /* Ensure buttons have visible borders */
+    button,
+    [role="button"] {
+        border: 1px solid ButtonText;
+    }
+
+    /* Ensure focus is visible */
+    :focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
+
+    /* Ensure links are distinguishable */
+    a {
+        text-decoration: underline;
+    }
+}
+
+/* ===== ARIA LIVE REGIONS ===== */
+
+/**
+ * Styles for live regions that announce to screen readers.
+ */
+[aria-live="polite"],
+[aria-live="assertive"] {
+    /* Visually hidden by default, but announced */
+}
+
+.wn-announcement {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ===== FIX EXISTING OUTLINE ISSUES ===== */
+
+/**
+ * Override Theia's outline: none with proper focus styles.
+ * Why: Theia removes outlines but doesn't always provide alternatives.
+ */
+.theia-input:focus {
+    border-color: var(--wn-border-focus);
+    box-shadow: var(--wn-focus-ring);
+    outline: none;
+}
+
+/* Ensure all clickable elements show focus */
+.theia-TreeNodeContent:focus-visible,
+.theia-mod-selected:focus-visible {
+    box-shadow: var(--wn-focus-ring-inset);
+}
+
+/* Panel focus */
+[role="region"]:focus-visible {
+    box-shadow: var(--wn-focus-ring-inset);
+}
+
+/* Dialog focus trap indicator */
+[role="dialog"]:focus-visible {
+    box-shadow: var(--wn-focus-ring);
+}
