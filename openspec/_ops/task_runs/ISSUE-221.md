@@ -21,3 +21,4 @@
 
 - Command: `npx tsc --noEmit`
 - Key output: TypeScript check passed
+- Evidence: `writenow-frontend/src/components/layout/AppLayout.tsx`, `writenow-frontend/src/features/file-tree/FileNode.tsx`
