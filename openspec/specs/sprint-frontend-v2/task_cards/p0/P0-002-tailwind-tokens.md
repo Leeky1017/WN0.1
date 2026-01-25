@@ -1,0 +1,77 @@
+# P0-002: 配置 Tailwind + Design Tokens
+
+## 元信息
+
+| 字段 | 值 |
+|------|-----|
+| ID | P0-002 |
+| Phase | 0 - 基础设施 |
+| 优先级 | P0 |
+| 状态 | Pending |
+| 依赖 | P0-001 |
+
+## 目标
+
+配置 Tailwind CSS 4.x 并创建完整的 Design Tokens 系统。
+
+## 任务清单
+
+- [ ] 安装 Tailwind CSS 4.x
+- [ ] 创建 `styles/tokens.css`（Design Tokens）
+- [ ] 创建 `styles/globals.css`（全局样式）
+- [ ] 配置 `tailwind.config.ts`
+- [ ] 创建 `styles/themes/` 主题目录
+- [ ] 实现 Midnight 深色主题（默认）
+
+## 验收标准
+
+- [ ] Design Tokens CSS 变量定义完整
+- [ ] Tailwind 可正常编译
+- [ ] 深色主题正确应用
+
+## 产出
+
+- `src/styles/tokens.css`
+- `src/styles/globals.css`
+- `tailwind.config.ts`
+
+## 技术细节
+
+### tokens.css
+
+参考 `design/01-design-tokens.md` 中的完整 CSS 变量定义。
+
+### tailwind.config.ts
+
+```typescript
+import type { Config } from 'tailwindcss';
+
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        // 使用 CSS 变量
+        'bg-app': 'var(--bg-app)',
+        'bg-sidebar': 'var(--bg-sidebar)',
+        'bg-panel': 'var(--bg-panel)',
+        // ... 其他语义色
+      },
+      spacing: {
+        1: 'var(--space-1)',
+        2: 'var(--space-2)',
+        3: 'var(--space-3)',
+        4: 'var(--space-4)',
+        6: 'var(--space-6)',
+        8: 'var(--space-8)',
+      },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;
+```
