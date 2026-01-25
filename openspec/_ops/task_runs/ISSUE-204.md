@@ -1,7 +1,7 @@
 # ISSUE-204
 - Issue: #204
 - Branch: task/204-theia-frontend-complete
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/205
 
 ## Plan
 - Phase 1: 布局调整（AI Panel 完整右侧、Outline 移至左侧 Activity Bar）
