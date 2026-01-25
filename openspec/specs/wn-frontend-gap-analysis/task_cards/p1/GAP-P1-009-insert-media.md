@@ -1,6 +1,8 @@
 # GAP-P1-009: 图片/表格/链接插入
 
-Status: pending
+Status: done
+Issue: #182
+PR: https://github.com/Leeky1017/WN0.1/pull/183
 
 ## Goal
 

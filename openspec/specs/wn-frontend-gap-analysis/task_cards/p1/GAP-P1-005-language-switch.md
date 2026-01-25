@@ -1,6 +1,8 @@
 # GAP-P1-005: 语言切换 UI
 
-Status: pending
+Status: done
+Issue: #182
+PR: https://github.com/Leeky1017/WN0.1/pull/183
 
 ## Goal
 

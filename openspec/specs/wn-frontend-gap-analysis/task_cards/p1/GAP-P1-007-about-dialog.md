@@ -1,6 +1,8 @@
 # GAP-P1-007: 关于对话框
 
-Status: pending
+Status: done
+Issue: #182
+PR: https://github.com/Leeky1017/WN0.1/pull/183
 
 ## Goal
 

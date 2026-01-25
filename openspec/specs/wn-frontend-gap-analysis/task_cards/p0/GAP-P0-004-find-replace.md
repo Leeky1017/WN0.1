@@ -1,6 +1,8 @@
 # GAP-P0-004: 查找/替换功能
 
-Status: pending
+Status: done
+Issue: #178
+PR: https://github.com/Leeky1017/WN0.1/pull/179
 
 ## Goal
 

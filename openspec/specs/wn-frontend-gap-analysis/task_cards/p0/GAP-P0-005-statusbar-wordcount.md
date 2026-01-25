@@ -1,6 +1,8 @@
 # GAP-P0-005: 状态栏字数统计
 
-Status: pending
+Status: done
+Issue: #178
+PR: https://github.com/Leeky1017/WN0.1/pull/179
 
 ## Goal
 

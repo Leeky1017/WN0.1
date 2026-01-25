@@ -1,6 +1,8 @@
 # GAP-P2-001: 可访问性基础（Focus/ARIA）
 
-Status: pending
+Status: done
+Issue: #188
+PR: https://github.com/Leeky1017/WN0.1/pull/189
 
 ## Goal
 

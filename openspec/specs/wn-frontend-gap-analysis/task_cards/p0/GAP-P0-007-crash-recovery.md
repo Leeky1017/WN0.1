@@ -1,6 +1,8 @@
 # GAP-P0-007: 崩溃恢复对话框
 
-Status: pending
+Status: done
+Issue: #178
+PR: https://github.com/Leeky1017/WN0.1/pull/179
 
 ## Goal
 

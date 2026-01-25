@@ -1,6 +1,8 @@
 # GAP-P1-002: 文件树右键菜单增强
 
-Status: pending
+Status: done
+Issue: #182
+PR: https://github.com/Leeky1017/WN0.1/pull/183
 
 ## Goal
 
