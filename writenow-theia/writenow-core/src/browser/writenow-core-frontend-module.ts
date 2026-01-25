@@ -35,6 +35,14 @@ import { NotificationService } from './notification/notification-widget';
 import { NotificationContribution, NotificationWidgetFactory } from './notification/notification-contribution';
 import { NavigatorContextMenuContribution } from './navigator/navigator-context-menu-contribution';
 
+// P2 Features
+import { CharacterContribution, CharacterWidgetFactory } from './character/character-contribution';
+import { TerminologyContribution, TerminologyWidgetFactory } from './terminology/terminology-contribution';
+import { StatsContribution, StatsWidgetFactory } from './stats/stats-contribution';
+import { LogViewerContribution, LogViewerWidgetFactory } from './log-viewer/log-viewer-contribution';
+import { UserGuideContribution, UserGuideWidgetFactory } from './user-guide/user-guide-contribution';
+import { UpdateContribution } from './update/update-contribution';
+
 @injectable()
 class WritenowHiddenProblemContribution extends ProblemContribution {
     /**
@@ -157,4 +165,43 @@ export default new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(CommandContribution).toService(NavigatorContextMenuContribution);
     bind(MenuContribution).toService(NavigatorContextMenuContribution);
     bind(KeybindingContribution).toService(NavigatorContextMenuContribution);
+
+    // Character management (P2-003)
+    bind(CharacterContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(CharacterContribution);
+    bind(MenuContribution).toService(CharacterContribution);
+    bind(CharacterWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(CharacterWidgetFactory).inSingletonScope();
+
+    // Terminology panel (P2-004)
+    bind(TerminologyContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(TerminologyContribution);
+    bind(MenuContribution).toService(TerminologyContribution);
+    bind(TerminologyWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(TerminologyWidgetFactory).inSingletonScope();
+
+    // Stats panel (P2-005)
+    bind(StatsContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(StatsContribution);
+    bind(MenuContribution).toService(StatsContribution);
+    bind(StatsWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(StatsWidgetFactory).inSingletonScope();
+
+    // Log viewer (P2-006)
+    bind(LogViewerContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(LogViewerContribution);
+    bind(MenuContribution).toService(LogViewerContribution);
+    bind(LogViewerWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(LogViewerWidgetFactory).inSingletonScope();
+
+    // User guide (P2-007)
+    bind(UserGuideContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(UserGuideContribution);
+    bind(MenuContribution).toService(UserGuideContribution);
+    bind(UserGuideWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).to(UserGuideWidgetFactory).inSingletonScope();
+
+    // Update notification (P2-008)
+    bind(UpdateContribution).toSelf().inSingletonScope();
+    bind(FrontendApplicationContribution).toService(UpdateContribution);
 });

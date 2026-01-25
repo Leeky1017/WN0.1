@@ -154,6 +154,13 @@
 .theia-input:focus {
     border-color: var(--wn-border-focus);
     outline: none;
+    box-shadow: var(--wn-focus-ring);
+}
+
+.theia-input:focus-visible {
+    border-color: var(--wn-border-focus);
+    outline: none;
+    box-shadow: var(--wn-focus-ring);
 }
 
 /* Menu - minimal shadow */

@@ -45,3 +45,28 @@ export const WRITENOW_ABOUT_DIALOG_ID = 'writenow.aboutDialog';
  * Why: Notification center widget id for centralized notifications.
  */
 export const WRITENOW_NOTIFICATION_WIDGET_ID = 'writenow.notification';
+
+/**
+ * Why: Character management panel widget id (P2-003).
+ */
+export const WRITENOW_CHARACTER_WIDGET_ID = 'writenow.character';
+
+/**
+ * Why: Terminology panel widget id (P2-004).
+ */
+export const WRITENOW_TERMINOLOGY_WIDGET_ID = 'writenow.terminology';
+
+/**
+ * Why: Writing stats panel widget id (P2-005).
+ */
+export const WRITENOW_STATS_WIDGET_ID = 'writenow.stats';
+
+/**
+ * Why: Log viewer panel widget id (P2-006).
+ */
+export const WRITENOW_LOG_VIEWER_WIDGET_ID = 'writenow.logViewer';
+
+/**
+ * Why: User guide panel widget id (P2-007).
+ */
+export const WRITENOW_USER_GUIDE_WIDGET_ID = 'writenow.userGuide';

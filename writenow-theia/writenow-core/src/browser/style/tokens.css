@@ -142,4 +142,14 @@
     --wn-z-dropdown: 100;
     --wn-z-modal: 300;
     --wn-z-tooltip: 500;
+
+    /* ===== ACCESSIBILITY TOKENS ===== */
+
+    /**
+     * Why: Focus ring provides visible keyboard navigation indicator.
+     * WCAG 2.4.7 requires visible focus indicators.
+     */
+    --wn-focus-ring: 0 0 0 2px var(--wn-blue-500);
+    --wn-focus-ring-offset: 0 0 0 2px var(--wn-gray-850), 0 0 0 4px var(--wn-blue-500);
+    --wn-focus-ring-inset: inset 0 0 0 2px var(--wn-blue-500);
 }
