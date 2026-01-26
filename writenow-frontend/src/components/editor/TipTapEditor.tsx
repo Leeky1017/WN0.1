@@ -170,7 +170,7 @@ export function TipTapEditor(props: TipTapEditorProps) {
         autolink: true,
         linkOnPaste: true,
         HTMLAttributes: {
-          class: 'text-[var(--accent)] underline underline-offset-2',
+          class: 'text-[var(--accent-default)] underline underline-offset-2',
         },
       }),
       Image.configure({
@@ -206,7 +206,7 @@ export function TipTapEditor(props: TipTapEditorProps) {
       editorProps: {
         attributes: {
           class:
-            'wn-tiptap-editor h-full w-full px-6 py-5 outline-none text-[var(--text-primary)]',
+            'wn-tiptap-editor outline-none text-[var(--fg-default)]',
           'data-editor-mode': mode,
           'data-testid': 'tiptap-editor',
         },
@@ -252,7 +252,16 @@ export function TipTapEditor(props: TipTapEditorProps) {
     isApplyingExternalUpdateRef.current = false;
   }, [content, contentVersion, editor]);
 
-  return <EditorContent editor={editor} className="h-full w-full overflow-auto" />;
+  return (
+    <div className="h-full w-full bg-[var(--bg-base)] overflow-y-auto overflow-x-hidden">
+      {/* Centered content column - max-width 70ch for optimal reading */}
+      <div className="min-h-full w-full flex flex-col items-center pt-12 pb-32 px-8 md:px-16">
+        <div className="w-full max-w-[70ch]">
+          <EditorContent editor={editor} className="w-full" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default TipTapEditor;

@@ -1,0 +1,113 @@
+/**
+ * WriteNow Design System - Light Theme
+ * 
+ * Semantic color variables for the light theme.
+ * These map primitive colors to functional meanings.
+ * 
+ * Activated via [data-theme="light"] on html element.
+ */
+
+[data-theme="light"] {
+  /* ===== Background ===== */
+  /* Base: Deepest background (app shell) */
+  --bg-base: #ffffff;
+
+  /* Surface: Panel/sidebar background */
+  --bg-surface: #fafafa;          /* zinc-50 */
+
+  /* Elevated: Cards, modals */
+  --bg-elevated: #ffffff;
+
+  /* Overlay: Modal backdrop */
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Input: Form field background */
+  --bg-input: #f4f4f5;            /* zinc-100 */
+
+  /* Hover: Hover state background */
+  --bg-hover: #e4e4e7;            /* zinc-200 */
+
+  /* Active: Active/selected state */
+  --bg-active: #d4d4d8;           /* zinc-300 */
+
+  /* ===== Foreground (Text) ===== */
+  /* Default: Primary text */
+  --fg-default: #18181b;          /* zinc-900 */
+
+  /* Muted: Secondary text */
+  --fg-muted: #52525b;            /* zinc-600 */
+
+  /* Subtle: Tertiary/helper text */
+  --fg-subtle: #71717a;           /* zinc-500 */
+
+  /* Disabled: Disabled state text */
+  --fg-disabled: #a1a1aa;         /* zinc-400 */
+
+  /* Placeholder: Input placeholder */
+  --fg-placeholder: #a1a1aa;      /* zinc-400 */
+
+  /* On Accent: Text on accent background */
+  --fg-on-accent: #ffffff;
+
+  /* ===== Border ===== */
+  /* Default: Standard borders */
+  --border-default: #e4e4e7;      /* zinc-200 */
+
+  /* Subtle: Very light borders */
+  --border-subtle: #f4f4f5;       /* zinc-100 */
+
+  /* Strong: Emphasized borders */
+  --border-strong: #d4d4d8;       /* zinc-300 */
+
+  /* Focus: Focus ring color */
+  --border-focus: #3b82f6;        /* blue-500 */
+
+  /* ===== Accent ===== */
+  /* Primary accent color (slightly darker for light theme) */
+  --accent-default: #2563eb;      /* blue-600 */
+
+  /* Hover state */
+  --accent-hover: #1d4ed8;        /* blue-700 */
+
+  /* Active/pressed state */
+  --accent-active: #1e40af;       /* blue-800 */
+
+  /* Muted: Accent at low opacity (badges, highlights) */
+  --accent-muted: rgba(37, 99, 235, 0.1);
+
+  /* Subtle: Even lower opacity (selections) */
+  --accent-subtle: rgba(37, 99, 235, 0.05);
+
+  /* ===== Semantic Colors ===== */
+  /* Success (darker for light theme) */
+  --success: #16a34a;             /* green-600 */
+  --success-muted: rgba(22, 163, 74, 0.1);
+
+  /* Warning (darker for light theme) */
+  --warning: #d97706;             /* amber-600 */
+  --warning-muted: rgba(217, 119, 6, 0.1);
+
+  /* Error (darker for light theme) */
+  --error: #dc2626;               /* red-600 */
+  --error-muted: rgba(220, 38, 38, 0.1);
+
+  /* ===== Special Colors ===== */
+  /* Code/editor specific */
+  --code-bg: #f9fafb;
+  --code-border: #e5e7eb;
+
+  /* Glass effect background */
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.06);
+
+  /* ===== Legacy Compatibility ===== */
+  /* These map new tokens to old variable names used in existing code */
+  --bg-app: var(--bg-base);
+  --bg-sidebar: var(--bg-surface);
+  --bg-panel: var(--bg-elevated);
+  --bg-editor: var(--bg-surface);
+  --text-primary: var(--fg-default);
+  --text-secondary: var(--fg-muted);
+  --text-muted: var(--fg-subtle);
+  --accent: var(--accent-default);
+}

@@ -51,18 +51,19 @@ test('P2-002: multi-tabs keep dirty state and prompt on unsaved close', async ()
   const tabB = getTabButton(tabbar, 'Tab B.md');
 
   await tabA.click();
-  const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
-  await expect(textarea).toBeVisible();
+  const editor = page.getByTestId('tiptap-editor');
+  await expect(editor).toBeVisible();
 
   const unique = `UNSAVED_${Date.now()}`;
-  await textarea.fill(`# Tab A\n\n${unique}`);
+  await editor.click();
+  await editor.fill(unique);
 
   await tabB.click();
-  await expect(textarea).toBeVisible();
-  await expect(textarea).not.toHaveValue(new RegExp(escapeRegExp(unique)));
+  await expect(editor).toBeVisible();
+  await expect(editor).not.toContainText(unique);
 
   await tabA.click();
-  await expect(textarea).toHaveValue(new RegExp(escapeRegExp(unique)));
+  await expect(editor).toContainText(unique);
 
   const dirtyDot = tabA.locator('[aria-label="Unsaved changes"], [aria-label="未保存"]');
   await expect(dirtyDot).toBeVisible();

@@ -521,7 +521,7 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-editor)]" data-testid="editor-panel">
+    <div className="h-full flex flex-col bg-[var(--bg-base)]" data-testid="editor-panel">
       <EditorToolbar
         editor={editor}
         mode={mode}
@@ -529,7 +529,7 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
         onRequestExport={() => setExportOpen(true)}
       />
 
-      <div className="flex-1 relative overflow-hidden" ref={editorViewportRef}>
+      <div className="flex-1 relative overflow-hidden bg-[var(--bg-base)]" ref={editorViewportRef}>
         {!isConnected ? (
           <div className="h-full flex items-center justify-center text-[var(--text-muted)]">未连接到后端</div>
         ) : loading ? (

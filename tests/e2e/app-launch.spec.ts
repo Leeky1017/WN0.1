@@ -27,7 +27,10 @@ test('app launch, create file, and initialize storage', async () => {
   await page.getByPlaceholder('未命名').press('Enter');
 
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^E2E Test\.md/ })).toBeVisible();
-  await page.getByPlaceholder('开始用 Markdown 写作…').fill('# E2E\n\nHello');
+  const editor = page.getByTestId('tiptap-editor');
+  await expect(editor).toBeVisible();
+  await editor.click();
+  await editor.fill('# E2E\n\nHello');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
 
   await electronApp.close();

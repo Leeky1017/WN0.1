@@ -41,11 +41,11 @@ test('autosave debounces writes and language can switch', async () => {
   const docName = `Autosave-${Date.now()}`;
   await createFile(page, docName);
 
-  const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
-  await expect(textarea).toBeVisible();
-
   const unique = `AUTOSAVE_${Date.now()}`;
-  await textarea.fill(`# Autosave\n\n${unique}`);
+  const editor = page.getByTestId('tiptap-editor');
+  await expect(editor).toBeVisible();
+  await editor.click();
+  await editor.fill(unique);
 
   await expect(page.getByTestId('statusbar')).toContainText(/未保存|Unsaved/);
 

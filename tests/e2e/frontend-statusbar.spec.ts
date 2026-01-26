@@ -25,9 +25,10 @@ test('Frontend P1: StatusBar is unified (≤24px) and supports progressive discl
   await nameInput.press('Enter');
   await expect(page.getByTestId('layout-sidebar').getByRole('button', { name: /^StatusBar\.md/ })).toBeVisible();
 
-  await page
-    .getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/)
-    .fill('# StatusBar\n\nHello\n\n' + 'line\n'.repeat(40));
+  const editor = page.getByTestId('tiptap-editor');
+  await expect(editor).toBeVisible();
+  await editor.click();
+  await editor.fill('# StatusBar\n\nHello\n\n' + 'line\n'.repeat(40));
 
   const statusBar = page.getByTestId('statusbar');
   await expect(statusBar).toBeVisible();

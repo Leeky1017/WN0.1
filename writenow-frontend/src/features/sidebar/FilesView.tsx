@@ -199,31 +199,31 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
   return (
     <>
       {/* Header */}
-      <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
           文件浏览器
         </span>
         <div className="flex items-center gap-1">
           <button
-            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] transition-colors duration-[100ms]"
             title="新建文件"
             type="button"
             onClick={openCreateDialog}
             disabled={!isConnected || isLoading}
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 text-[var(--text-tertiary)] animate-spin" />
+              <Loader2 className="w-4 h-4 text-[var(--fg-subtle)] animate-spin" />
             ) : (
-              <Plus className="w-4 h-4 text-[var(--text-tertiary)]" />
+              <Plus className="w-4 h-4 text-[var(--fg-subtle)]" />
             )}
           </button>
           <button
-            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] transition-colors duration-[100ms]"
             type="button"
             onClick={() => void refresh()}
             disabled={!isConnected || isLoading}
           >
-            <MoreHorizontal className="w-4 h-4 text-[var(--text-tertiary)]" />
+            <MoreHorizontal className="w-4 h-4 text-[var(--fg-subtle)]" />
           </button>
         </div>
       </div>
@@ -249,13 +249,13 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
       >
         {!isConnected ? (
           <div className="p-4 text-center">
-            <p className="text-[13px] text-[var(--text-tertiary)]">未连接到后端</p>
+            <p className="text-[13px] text-[var(--fg-subtle)]">未连接到后端</p>
           </div>
         ) : error ? (
           <div className="p-4 text-center">
-            <p className="text-[13px] text-[var(--color-error)]">{error}</p>
+            <p className="text-[13px] text-[var(--error)]">{error}</p>
             <button
-              className="mt-2 text-[11px] text-[var(--accent-primary)] hover:underline"
+              className="mt-2 text-[11px] text-[var(--accent-default)] hover:underline"
               type="button"
               onClick={() => void refresh()}
             >

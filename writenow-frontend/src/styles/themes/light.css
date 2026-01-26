@@ -1,24 +1,63 @@
 /**
  * Light theme
- * Why: Light mode for daylight and publishing workflows.
+ * Light mode for daylight and publishing workflows.
+ * 
+ * Note: This theme uses the new semantic variable system while
+ * maintaining backward compatibility with legacy variable names.
  */
 
 [data-theme='light'] {
-  --bg-app: var(--gray-50);
-  --bg-sidebar: var(--gray-100);
-  --bg-panel: #ffffff;
-  --bg-editor: #ffffff;
-  --bg-input: var(--gray-100);
-  --bg-hover: var(--gray-100);
-  --bg-active: var(--gray-200);
+  /* ===== Background ===== */
+  --bg-base: #ffffff;
+  --bg-surface: #fafafa;
+  --bg-elevated: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  --bg-input: #f4f4f5;
+  --bg-hover: #e4e4e7;
+  --bg-active: #d4d4d8;
 
-  --text-primary: var(--gray-900);
-  --text-secondary: var(--gray-600);
-  --text-muted: var(--gray-400);
+  /* ===== Foreground ===== */
+  --fg-default: #18181b;
+  --fg-muted: #52525b;
+  --fg-subtle: #71717a;
+  --fg-disabled: #a1a1aa;
+  --fg-placeholder: #a1a1aa;
+  --fg-on-accent: #ffffff;
 
-  --border-subtle: var(--gray-200);
-  --border-default: var(--gray-300);
+  /* ===== Border ===== */
+  --border-default: #e4e4e7;
+  --border-subtle: #f4f4f5;
+  --border-strong: #d4d4d8;
+  --border-focus: #3b82f6;
 
-  --accent: var(--blue-600);
-  --accent-hover: var(--blue-500);
+  /* ===== Accent ===== */
+  --accent-default: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-active: #1e40af;
+  --accent-muted: rgba(37, 99, 235, 0.1);
+  --accent-subtle: rgba(37, 99, 235, 0.05);
+
+  /* ===== Semantic ===== */
+  --success: #16a34a;
+  --success-muted: rgba(22, 163, 74, 0.1);
+  --warning: #d97706;
+  --warning-muted: rgba(217, 119, 6, 0.1);
+  --error: #dc2626;
+  --error-muted: rgba(220, 38, 38, 0.1);
+
+  /* ===== Special ===== */
+  --code-bg: #f9fafb;
+  --code-border: #e5e7eb;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.06);
+
+  /* ===== Legacy Compatibility ===== */
+  --bg-app: var(--bg-base);
+  --bg-sidebar: var(--bg-surface);
+  --bg-panel: var(--bg-elevated);
+  --bg-editor: var(--bg-surface);
+  --text-primary: var(--fg-default);
+  --text-secondary: var(--fg-muted);
+  --text-muted: var(--fg-subtle);
+  --accent: var(--accent-default);
 }

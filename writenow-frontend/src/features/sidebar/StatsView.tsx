@@ -108,11 +108,11 @@ export function StatsView() {
   if (loading) {
     return (
       <>
-        <div className="h-11 flex items-center justify-between px-4 border-b border-[var(--border-default)]">
-          <span className="text-[13px] text-[var(--text-primary)]">创作统计</span>
+        <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">创作统计</span>
         </div>
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-[13px] text-[var(--text-tertiary)]">加载中...</span>
+          <span className="text-[13px] text-[var(--fg-subtle)]">加载中...</span>
         </div>
       </>
     );
@@ -121,11 +121,11 @@ export function StatsView() {
   if (error) {
     return (
       <>
-        <div className="h-11 flex items-center justify-between px-4 border-b border-[var(--border-default)]">
-          <span className="text-[13px] text-[var(--text-primary)]">创作统计</span>
+        <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">创作统计</span>
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
-          <span className="text-[13px] text-red-500">{error}</span>
+          <span className="text-[13px] text-[var(--error)]">{error}</span>
         </div>
       </>
     );
@@ -133,35 +133,35 @@ export function StatsView() {
 
   return (
     <>
-      <div className="h-11 flex items-center justify-between px-4 border-b border-[var(--border-default)]">
-        <span className="text-[13px] text-[var(--text-primary)]">创作统计</span>
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">创作统计</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
         {/* Hero Stats - 今日字数 + 目标进度 */}
         <div className="space-y-3">
           <div className="flex items-baseline gap-2">
             <span
               data-testid="stats-today-wordcount"
-              className="text-[32px] font-light text-[var(--text-primary)] tabular-nums"
+              className="text-[32px] font-light text-[var(--fg-default)] tabular-nums"
             >
               {(todayStats?.wordCount ?? 0).toLocaleString()}
             </span>
-            <span className="text-[13px] text-[var(--text-tertiary)]">字</span>
+            <span className="text-[13px] text-[var(--fg-subtle)]">字</span>
           </div>
-          <div className="h-px bg-[var(--border-default)]" />
+          <div className="h-px bg-[var(--border-subtle)]" />
           <div className="flex items-center justify-between text-[13px]">
-            <span className="text-[var(--text-tertiary)]">目标进度</span>
+            <span className="text-[var(--fg-subtle)]">目标进度</span>
             <span
               data-testid="stats-today-progress"
-              className="text-[var(--text-secondary)] tabular-nums"
+              className="text-[var(--fg-muted)] tabular-nums"
             >
               {Math.round(todayProgress)}%
             </span>
           </div>
-          <div className="h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+          <div className="h-1 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[var(--accent-primary)] transition-all"
+              className="h-full bg-[var(--accent-default)] transition-all"
               style={{ width: `${todayProgress}%` }}
             />
           </div>
@@ -169,29 +169,29 @@ export function StatsView() {
 
         {/* Today - 今日详情 */}
         <div className="space-y-2">
-          <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">
+          <div className="text-[11px] text-[var(--fg-subtle)] uppercase tracking-wider">
             今日
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div
                 data-testid="stats-today-wordcount-detail"
-                className="text-[20px] font-light text-[var(--text-primary)] tabular-nums"
+                className="text-[20px] font-light text-[var(--fg-default)] tabular-nums"
               >
                 {(todayStats?.wordCount ?? 0).toLocaleString()}
               </div>
-              <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">
+              <div className="text-[11px] text-[var(--fg-subtle)] mt-0.5">
                 字数
               </div>
             </div>
             <div>
               <div
                 data-testid="stats-today-duration"
-                className="text-[20px] font-light text-[var(--text-primary)] tabular-nums"
+                className="text-[20px] font-light text-[var(--fg-default)] tabular-nums"
               >
                 {formatDuration(todayStats?.writingMinutes ?? 0)}
               </div>
-              <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5">
+              <div className="text-[11px] text-[var(--fg-subtle)] mt-0.5">
                 写作时长
               </div>
             </div>
@@ -200,19 +200,19 @@ export function StatsView() {
 
         {/* This Week - 本周趋势 */}
         <div className="space-y-3">
-          <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">
+          <div className="text-[11px] text-[var(--fg-subtle)] uppercase tracking-wider">
             本周
           </div>
           <div data-testid="stats-weekly-chart" className="flex items-end justify-between gap-1.5 h-28">
             {weeklyData.map((data) => (
               <div key={data.day} className="flex-1 flex flex-col gap-1.5">
-                <div className="flex-1 bg-[var(--bg-secondary)] rounded-sm relative overflow-hidden">
+                <div className="flex-1 bg-[var(--bg-surface)] rounded-sm relative overflow-hidden">
                   <div
-                    className="absolute bottom-0 left-0 right-0 bg-[var(--accent-primary)] opacity-80 transition-all"
+                    className="absolute bottom-0 left-0 right-0 bg-[var(--accent-default)] opacity-80 transition-all"
                     style={{ height: `${(data.count / maxCount) * 100}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-[var(--text-tertiary)] text-center">
+                <span className="text-[10px] text-[var(--fg-subtle)] text-center">
                   {data.day}
                 </span>
               </div>
@@ -222,50 +222,50 @@ export function StatsView() {
 
         {/* Overall - 总计统计 */}
         <div className="space-y-3">
-          <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">
+          <div className="text-[11px] text-[var(--fg-subtle)] uppercase tracking-wider">
             总计
           </div>
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-[var(--border-default)]">
-              <span className="text-[13px] text-[var(--text-secondary)]">
+            <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
+              <span className="text-[13px] text-[var(--fg-muted)]">
                 总字数
               </span>
               <span
                 data-testid="stats-total-wordcount"
-                className="text-[15px] text-[var(--text-primary)] tabular-nums"
+                className="text-[15px] text-[var(--fg-default)] tabular-nums"
               >
                 {(rangeStats?.summary.wordCount ?? 0).toLocaleString()}
               </span>
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-[var(--border-default)]">
-              <span className="text-[13px] text-[var(--text-secondary)]">
+            <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
+              <span className="text-[13px] text-[var(--fg-muted)]">
                 总时长
               </span>
               <span
                 data-testid="stats-total-duration"
-                className="text-[15px] text-[var(--text-primary)] tabular-nums"
+                className="text-[15px] text-[var(--fg-default)] tabular-nums"
               >
                 {formatDuration(rangeStats?.summary.writingMinutes ?? 0)}
               </span>
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-[var(--border-default)]">
-              <span className="text-[13px] text-[var(--text-secondary)]">
+            <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
+              <span className="text-[13px] text-[var(--fg-muted)]">
                 文章数
               </span>
               <span
                 data-testid="stats-total-articles"
-                className="text-[15px] text-[var(--text-primary)] tabular-nums"
+                className="text-[15px] text-[var(--fg-default)] tabular-nums"
               >
                 {rangeStats?.summary.articlesCreated ?? 0}
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-[13px] text-[var(--text-secondary)]">
+              <span className="text-[13px] text-[var(--fg-muted)]">
                 技能使用
               </span>
               <span
                 data-testid="stats-total-skills"
-                className="text-[15px] text-[var(--text-primary)] tabular-nums"
+                className="text-[15px] text-[var(--fg-default)] tabular-nums"
               >
                 {rangeStats?.summary.skillsUsed ?? 0} 次
               </span>

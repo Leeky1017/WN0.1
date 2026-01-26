@@ -1,0 +1,45 @@
+/**
+ * WriteNow Design System - Spacing
+ * 
+ * Spacing scale based on 4px unit.
+ * Use these for padding, margin, gap, and positioning.
+ */
+
+:root {
+  /* ===== Spacing Scale (4px base) ===== */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0\.5: 2px;       /* 0.125rem */
+  --space-1: 4px;          /* 0.25rem - icon-text gap */
+  --space-1\.5: 6px;       /* 0.375rem */
+  --space-2: 8px;          /* 0.5rem - list item padding */
+  --space-2\.5: 10px;      /* 0.625rem */
+  --space-3: 12px;         /* 0.75rem - component padding */
+  --space-4: 16px;         /* 1rem - panel padding */
+  --space-5: 20px;         /* 1.25rem - section gap */
+  --space-6: 24px;         /* 1.5rem - major section gap */
+  --space-8: 32px;         /* 2rem - page gap */
+  --space-10: 40px;        /* 2.5rem - large title top */
+  --space-12: 48px;        /* 3rem - page top */
+  --space-16: 64px;        /* 4rem - major section */
+
+  /* ===== Border Radius ===== */
+  --radius-none: 0;
+  --radius-sm: 4px;        /* 0.25rem */
+  --radius-md: 6px;        /* 0.375rem */
+  --radius-lg: 8px;        /* 0.5rem */
+  --radius-xl: 12px;       /* 0.75rem */
+  --radius-2xl: 16px;      /* 1rem */
+  --radius-full: 9999px;
+
+  /* ===== Z-Index Scale ===== */
+  --z-base: 0;             /* Base layer */
+  --z-surface: 1;          /* Panels, sidebars */
+  --z-elevated: 2;         /* Cards, elevated elements */
+  --z-dropdown: 10;        /* Dropdowns */
+  --z-sticky: 20;          /* Sticky headers */
+  --z-overlay: 30;         /* Modals, overlays */
+  --z-popover: 40;         /* Popovers, tooltips */
+  --z-toast: 50;           /* Toast notifications */
+  --z-max: 9999;           /* Maximum (noise overlay) */
+}
