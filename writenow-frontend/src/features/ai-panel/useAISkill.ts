@@ -114,6 +114,12 @@ export function useAISkill(): UseAISkillResult {
   }, [selectedSkillId, setSelectedSkillId, setSkills]);
 
   useEffect(() => {
+    // 设置重连成功回调，自动刷新 skills
+    skillsClient.setOnReconnected(() => {
+      console.log('[AI] Skills client reconnected, refreshing skills...');
+      void refreshSkills();
+    });
+
     void aiClient.connect().catch((error) => {
       console.warn('[AI] connect failed:', error);
       // Why: Connection errors are surfaced via aiStatus + panel UI.

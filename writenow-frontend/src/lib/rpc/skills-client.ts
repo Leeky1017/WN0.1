@@ -24,6 +24,13 @@ export class SkillsJsonRpcClient {
     return this.client.onStatusChange(listener);
   }
 
+  /**
+   * 设置重连成功回调（用于刷新 skills 列表）
+   */
+  setOnReconnected(callback: () => void): void {
+    this.client.setOnReconnected(callback);
+  }
+
   async connect(url: string = DEFAULT_SKILLS_URL): Promise<void> {
     await this.client.connect(url);
   }

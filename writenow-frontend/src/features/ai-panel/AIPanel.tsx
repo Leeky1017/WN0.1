@@ -17,6 +17,9 @@ import {
   Wand2,
   BookOpen,
   Languages,
+  RefreshCw,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -71,11 +74,15 @@ const models = [
   { id: 'claude-sonnet-3.5', name: 'Claude Sonnet 3.5' },
 ];
 
+import { aiClient } from '@/lib/rpc/ai-client';
+import { skillsClient } from '@/lib/rpc/skills-client';
+
 /**
  * AI panel component rendered in the right dock.
  */
 export function AIPanel() {
-  const { skillsLoading, skillsError, sendMessage, cancelRun } = useAISkill();
+  const { aiStatus, skillsStatus, skillsLoading, skillsError, sendMessage, cancelRun } = useAISkill();
+  const [reconnecting, setReconnecting] = useState(false);
 
   const messages = useAIStore((state) => state.messages);
   const input = useAIStore((state) => state.input);
@@ -169,6 +176,26 @@ export function AIPanel() {
     },
     [setInput],
   );
+
+  // 手动重连
+  const handleReconnect = useCallback(async () => {
+    setReconnecting(true);
+    try {
+      await Promise.all([
+        aiClient.connect(),
+        skillsClient.connect(),
+      ]);
+    } catch (error) {
+      console.error('[AIPanel] Reconnect failed:', error);
+    } finally {
+      setReconnecting(false);
+    }
+  }, []);
+
+  // 判断是否已连接
+  const isConnected = aiStatus === 'connected' && skillsStatus === 'connected';
+  const isConnecting = aiStatus === 'connecting' || skillsStatus === 'connecting' || reconnecting;
+  const hasConnectionError = aiStatus === 'error' || skillsStatus === 'error' || aiStatus === 'disconnected' || skillsStatus === 'disconnected';
 
   const handleAcceptDiff = useCallback(() => {
     if (!diff) return;
@@ -266,9 +293,31 @@ export function AIPanel() {
     >
       {/* Header - Figma 样式 */}
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)] flex-shrink-0">
-        <span className="text-[13px] text-[var(--text-primary)] font-medium">
-          Chat
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] text-[var(--text-primary)] font-medium">
+            Chat
+          </span>
+          {/* 连接状态指示器 */}
+          <div
+            data-testid="ai-connection-status"
+            className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] ${
+              isConnected
+                ? 'text-green-600 bg-green-500/10'
+                : isConnecting
+                ? 'text-yellow-600 bg-yellow-500/10'
+                : 'text-red-600 bg-red-500/10'
+            }`}
+            title={isConnected ? '已连接' : isConnecting ? '连接中...' : '未连接'}
+          >
+            {isConnected ? (
+              <Wifi className="w-3 h-3" />
+            ) : isConnecting ? (
+              <RefreshCw className="w-3 h-3 animate-spin" />
+            ) : (
+              <WifiOff className="w-3 h-3" />
+            )}
+          </div>
+        </div>
         <div className="flex items-center gap-1">
           <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
             <Plus className="w-4 h-4" />
@@ -278,6 +327,27 @@ export function AIPanel() {
           </button>
         </div>
       </div>
+
+      {/* 连接断开提示 + 重连按钮 */}
+      {hasConnectionError && !isConnecting && (
+        <div
+          data-testid="ai-connection-error"
+          className="px-3 py-2 bg-yellow-900/20 border-b border-[var(--border-default)] flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2 text-[11px] text-yellow-400">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>后端未连接</span>
+          </div>
+          <button
+            data-testid="ai-reconnect-button"
+            onClick={() => void handleReconnect()}
+            disabled={reconnecting}
+            className="px-2 py-1 text-[10px] bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded transition-colors disabled:opacity-50"
+          >
+            {reconnecting ? '重连中...' : '重连'}
+          </button>
+        </div>
+      )}
 
       {/* Error Messages */}
       {skillsError && (
