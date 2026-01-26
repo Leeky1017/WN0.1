@@ -1,7 +1,7 @@
 # ISSUE-227
 - Issue: #227
 - Branch: task/227-writenow-frontend-figma-style
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/228
 
 ## Goal
 - 按 `figma参考/` 的设计参考改造 `writenow-frontend/` 样式；保留现有 RPC 连接与状态管理，仅调整样式与布局外观。
@@ -33,3 +33,9 @@
 - Key output: `✓ built in 3.52s`
 - Evidence:
   - Fixed TS error: `FilesView.tsx(238,9) RefObject<HTMLDivElement | null> ...` → updated `useElementSize` return type
+
+### 2026-01-26 12:07 PR
+- Command: `git push -u origin HEAD`
+- Key output: `new branch -> task/227-writenow-frontend-figma-style`
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/228`
