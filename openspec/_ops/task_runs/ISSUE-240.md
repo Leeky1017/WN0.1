@@ -1,7 +1,7 @@
 # ISSUE-240
 - Issue: #240
 - Branch: task/240-test-infrastructure
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/241
 
 ## Plan
 - Task 3.1: 安装 Vitest + Testing Library
