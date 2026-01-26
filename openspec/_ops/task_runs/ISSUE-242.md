@@ -3,9 +3,10 @@
 ## 元数据
 
 - **Issue**: https://github.com/Leeky1017/WN0.1/issues/242
+- **PR**: https://github.com/Leeky1017/WN0.1/pull/243
 - **分支**: `task/242-agent-tests`
 - **开始时间**: 2026-01-26
-- **状态**: in_progress
+- **状态**: done
 
 ## 目标
 
