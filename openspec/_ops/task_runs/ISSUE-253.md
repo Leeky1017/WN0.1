@@ -1,7 +1,7 @@
 # ISSUE-253
 - Issue: #253
 - Branch: task/253-archive-rulebook-251
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/254
 
 ## Plan
 - Commit the post-merge Rulebook archival move for ISSUE-251 under `rulebook/tasks/archive/`.
