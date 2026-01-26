@@ -1,7 +1,7 @@
 # ISSUE-249
 - Issue: #249
 - Branch: task/249-revert-ui-polish
-- PR: pending
+- PR: https://github.com/Leeky1017/WN0.1/pull/250
 
 ## Plan
 - Revert UI polish changes that made interface worse
