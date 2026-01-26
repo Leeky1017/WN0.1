@@ -315,7 +315,7 @@ export function AppLayout({ className = '', onApiReady }: AppLayoutProps) {
 
   return (
     <LayoutApiProvider api={layoutApi}>
-      <div className={`h-full w-full ${className}`}>
+      <div className={`h-full w-full ${className}`} data-testid="layout-main">
         <Layout
           ref={layoutRef}
           model={model}
