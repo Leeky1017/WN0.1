@@ -1,7 +1,7 @@
 # ISSUE-255
 - Issue: #255
 - Branch: task/255-frontend-history-e2e-testids
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/256
 
 ## Goal
 - 补齐 Frontend Completion plan 中缺失的 HistoryView 侧边栏 E2E 覆盖，并对齐 agent runner / browser MCP 文档所依赖的 data-testid，确保 writenow-frontend 的 E2E 套件无需单独 dev server 即可运行。
