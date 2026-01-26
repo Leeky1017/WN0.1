@@ -9,6 +9,9 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
+    env:
+      # Why: @vscode/ripgrep downloads assets via GitHub API during yarn install; unauthenticated requests can hit 403 rate limits on runners.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
