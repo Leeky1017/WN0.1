@@ -1,7 +1,7 @@
 # ISSUE-238
 - Issue: #238
 - Branch: task/238-ai-panel-stability
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/239
 
 ## Plan
 - Task 2.1: AI 面板连接状态可视化
