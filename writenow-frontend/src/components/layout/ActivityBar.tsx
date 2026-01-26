@@ -1,15 +1,12 @@
 /**
  * ActivityBar - 左侧图标导航栏组件
- * Why: 提供 7 个功能区切换入口
+ * Why: 提供功能区切换入口（仅显示已实现的功能）
  */
 
 import {
   Files,
   ListTree,
   History,
-  Workflow,
-  Image,
-  Share2,
   BarChart3,
   Settings,
 } from 'lucide-react';
@@ -18,9 +15,6 @@ export type SidebarView =
   | 'files'
   | 'outline'
   | 'history'
-  | 'workflow'
-  | 'materials'
-  | 'publish'
   | 'stats'
   | 'settings';
 
@@ -30,13 +24,12 @@ interface ActivityBarProps {
 }
 
 export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
+  // 仅显示已实现的功能
+  // 隐藏：workflow（创作工作流）、materials（素材库）、publish（发布平台）
   const activities = [
     { id: 'files' as SidebarView, icon: Files, label: '文件浏览器' },
     { id: 'outline' as SidebarView, icon: ListTree, label: '文档大纲' },
     { id: 'history' as SidebarView, icon: History, label: '版本历史' },
-    { id: 'workflow' as SidebarView, icon: Workflow, label: '创作工作流' },
-    { id: 'materials' as SidebarView, icon: Image, label: '素材库' },
-    { id: 'publish' as SidebarView, icon: Share2, label: '发布平台' },
     { id: 'stats' as SidebarView, icon: BarChart3, label: '创作统计' },
     { id: 'settings' as SidebarView, icon: Settings, label: '设置' },
   ];
@@ -50,6 +43,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
         return (
           <button
             key={activity.id}
+            data-testid={`activity-${activity.id}`}
             onClick={() => onViewChange(activity.id)}
             className={`w-12 h-10 flex items-center justify-center relative transition-colors ${
               isActive
