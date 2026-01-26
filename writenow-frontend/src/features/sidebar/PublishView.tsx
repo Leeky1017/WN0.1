@@ -24,47 +24,47 @@ export function PublishView() {
 
   return (
     <>
-      <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
           发布平台
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {platforms.map((platform) => (
           <div
             key={platform.id}
-            className="px-3 py-3 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors"
+            className="px-3 py-3 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors duration-[100ms]"
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 {platform.connected ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle className="w-4 h-4 text-[var(--success)]" />
                 ) : (
-                  <Circle className="w-4 h-4 text-[var(--text-tertiary)]" />
+                  <Circle className="w-4 h-4 text-[var(--fg-subtle)]" />
                 )}
                 <div>
-                  <div className="text-[13px] text-[var(--text-primary)]">
+                  <div className="text-[13px] text-[var(--fg-default)]">
                     {platform.name}
                   </div>
-                  <div className="text-[10px] text-[var(--text-tertiary)]">
+                  <div className="text-[10px] text-[var(--fg-subtle)]">
                     {platform.status}
                   </div>
                 </div>
               </div>
-              <button className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-active)] text-[var(--text-tertiary)] transition-colors">
+              <button className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--bg-active)] text-[var(--fg-subtle)] transition-colors duration-[100ms]">
                 <Settings className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {platform.connected && (
-              <div className="text-[11px] text-[var(--text-tertiary)]">
+              <div className="text-[11px] text-[var(--fg-subtle)]">
                 已发布 {platform.articles} 篇文章
               </div>
             )}
 
             {!platform.connected && (
-              <button className="w-full mt-2 h-6 px-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] rounded text-[11px] text-white transition-colors">
+              <button className="w-full mt-2 h-6 px-2 bg-[var(--accent-default)] hover:bg-[var(--accent-hover)] rounded-md text-[11px] text-[var(--fg-on-accent)] transition-colors duration-[100ms]">
                 连接平台
               </button>
             )}

@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 export function ThinkingIndicator() {
   return (
-    <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs mt-2">
+    <div className="flex items-center gap-2 text-[var(--fg-subtle)] text-xs mt-2">
       <Loader2 className="h-3.5 w-3.5 animate-spin" />
       <span>AI 正在思考…</span>
     </div>

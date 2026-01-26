@@ -1,26 +1,64 @@
 /**
  * Midnight theme (default)
- * Why: Cursor-style deep dark theme.
+ * Deep dark theme inspired by Cursor.
+ * 
+ * Note: This theme uses the new semantic variable system while
+ * maintaining backward compatibility with legacy variable names.
  */
 
 :root,
 [data-theme='midnight'] {
-  /* Figma palette (source of truth: figma参考/src/styles/globals.css) */
-  --bg-app: #0d0d0d;
-  --bg-sidebar: #0d0d0d;
-  --bg-panel: #161616;
-  --bg-editor: #0d0d0d;
+  /* ===== Background ===== */
+  --bg-base: #0d0d0d;
+  --bg-surface: #0d0d0d;
+  --bg-elevated: #161616;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
   --bg-input: #1a1a1a;
   --bg-hover: #212121;
   --bg-active: #2a2a2a;
 
-  --text-primary: #e4e4e7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  /* ===== Foreground ===== */
+  --fg-default: #e4e4e7;
+  --fg-muted: #a1a1aa;
+  --fg-subtle: #71717a;
+  --fg-disabled: #52525b;
+  --fg-placeholder: #52525b;
+  --fg-on-accent: #ffffff;
 
-  --border-subtle: #1f1f1f;
+  /* ===== Border ===== */
   --border-default: #2a2a2a;
+  --border-subtle: #1f1f1f;
+  --border-strong: #3a3a3a;
+  --border-focus: #3b82f6;
 
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
+  /* ===== Accent ===== */
+  --accent-default: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-active: #2563eb;
+  --accent-muted: rgba(59, 130, 246, 0.15);
+  --accent-subtle: rgba(59, 130, 246, 0.08);
+
+  /* ===== Semantic ===== */
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-muted: rgba(245, 158, 11, 0.15);
+  --error: #ef4444;
+  --error-muted: rgba(239, 68, 68, 0.15);
+
+  /* ===== Special ===== */
+  --code-bg: #0a0a0a;
+  --code-border: #1f1f1f;
+  --glass-bg: rgba(13, 13, 13, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.04);
+
+  /* ===== Legacy Compatibility ===== */
+  --bg-app: var(--bg-base);
+  --bg-sidebar: var(--bg-surface);
+  --bg-panel: var(--bg-elevated);
+  --bg-editor: var(--bg-surface);
+  --text-primary: var(--fg-default);
+  --text-secondary: var(--fg-muted);
+  --text-muted: var(--fg-subtle);
+  --accent: var(--accent-default);
 }

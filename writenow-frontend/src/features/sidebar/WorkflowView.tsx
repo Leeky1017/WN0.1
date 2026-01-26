@@ -90,16 +90,16 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
 
   return (
     <>
-      <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
           创作工作流
         </span>
-        <button className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] transition-colors">
+        <button className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--fg-subtle)] transition-colors duration-[100ms]">
           <Plus className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
         {workflow.map((section) => {
           const Icon = section.icon;
           const isExpanded = expandedSections.has(section.title);
@@ -108,18 +108,18 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
             <div key={section.title} className="mb-1">
               <button
                 onClick={() => toggleSection(section.title)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-hover)] transition-colors duration-[100ms] text-left"
               >
                 {isExpanded ? (
-                  <ChevronDown className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--fg-subtle)]" />
                 ) : (
-                  <ChevronRight className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[var(--fg-subtle)]" />
                 )}
                 <Icon className={`w-4 h-4 ${section.color}`} />
-                <span className="text-[13px] text-[var(--text-secondary)] flex-1">
+                <span className="text-[13px] text-[var(--fg-muted)] flex-1">
                   {section.title}
                 </span>
-                <span className="text-[11px] text-[var(--text-tertiary)]">
+                <span className="text-[11px] text-[var(--fg-subtle)]">
                   {section.items.length}
                 </span>
               </button>
@@ -132,28 +132,28 @@ export function WorkflowView({ selectedFile, onSelectFile }: WorkflowViewProps) 
                       <button
                         key={item.name}
                         onClick={() => onSelectFile(item.name)}
-                        className={`w-full flex items-center justify-between px-3 py-1 pl-10 hover:bg-[var(--bg-hover)] transition-colors text-left ${
+                        className={`w-full flex items-center justify-between px-3 py-1 pl-10 hover:bg-[var(--bg-hover)] transition-colors duration-[100ms] text-left ${
                           isSelected ? 'bg-[var(--bg-active)]' : ''
                         }`}
                       >
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <FileText className="w-3.5 h-3.5 text-[var(--text-tertiary)] flex-shrink-0" />
+                          <FileText className="w-3.5 h-3.5 text-[var(--fg-subtle)] flex-shrink-0" />
                           <span
                             className={`text-[13px] truncate ${
                               isSelected
-                                ? 'text-[var(--text-primary)]'
-                                : 'text-[var(--text-secondary)]'
+                                ? 'text-[var(--fg-default)]'
+                                : 'text-[var(--fg-muted)]'
                             }`}
                           >
                             {item.name}
                           </span>
                         </div>
                         <div className="flex flex-col items-end gap-0.5 ml-2">
-                          <span className="text-[10px] text-[var(--text-tertiary)]">
+                          <span className="text-[10px] text-[var(--fg-subtle)]">
                             {item.wordCount}字
                           </span>
                           {item.status && (
-                            <span className="text-[10px] text-[var(--accent-primary)]">
+                            <span className="text-[10px] text-[var(--accent-default)]">
                               {item.status}
                             </span>
                           )}

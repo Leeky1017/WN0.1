@@ -100,18 +100,18 @@ export function OutlineView({ editorContent, selectedFile }: OutlineViewProps) {
   if (!selectedFile) {
     return (
       <>
-        <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
-          <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">
+        <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
             文档大纲
           </span>
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
-            <FileText className="w-8 h-8 text-[var(--text-tertiary)] mx-auto mb-2" />
-            <div className="text-[13px] text-[var(--text-tertiary)] mb-1">
+            <FileText className="w-8 h-8 text-[var(--fg-subtle)] mx-auto mb-2" />
+            <div className="text-[13px] text-[var(--fg-subtle)] mb-1">
               未打开文件
             </div>
-            <div className="text-[11px] text-[var(--text-tertiary)]">
+            <div className="text-[11px] text-[var(--fg-subtle)]">
               打开文件后查看大纲
             </div>
           </div>
@@ -122,32 +122,32 @@ export function OutlineView({ editorContent, selectedFile }: OutlineViewProps) {
 
   return (
     <>
-      <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
-        <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
           文档大纲
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Document Stats */}
-        <div className="p-3 border-b border-[var(--border-default)]">
-          <div className="text-[11px] text-[var(--text-tertiary)] mb-2">
+        <div className="p-3 border-b border-[var(--border-subtle)]">
+          <div className="text-[11px] text-[var(--fg-subtle)] mb-2">
             文档统计
           </div>
           <div className="flex items-center justify-between text-[13px]">
-            <span className="text-[var(--text-secondary)]">字数</span>
+            <span className="text-[var(--fg-muted)]">字数</span>
             <span
               data-testid="outline-word-count"
-              className="text-[var(--text-primary)] font-medium"
+              className="text-[var(--fg-default)] font-medium"
             >
               {getWordCount()}
             </span>
           </div>
           <div className="flex items-center justify-between text-[13px] mt-1">
-            <span className="text-[var(--text-secondary)]">标题</span>
+            <span className="text-[var(--fg-muted)]">标题</span>
             <span
               data-testid="outline-heading-count"
-              className="text-[var(--text-primary)] font-medium"
+              className="text-[var(--fg-default)] font-medium"
             >
               {headings.length}
             </span>
@@ -158,10 +158,10 @@ export function OutlineView({ editorContent, selectedFile }: OutlineViewProps) {
         <div className="py-2" data-testid="outline-list">
           {headings.length === 0 ? (
             <div className="px-3 py-8 text-center">
-              <div className="text-[13px] text-[var(--text-tertiary)] mb-1">
+              <div className="text-[13px] text-[var(--fg-subtle)] mb-1">
                 暂无标题
               </div>
-              <div className="text-[11px] text-[var(--text-tertiary)]">
+              <div className="text-[11px] text-[var(--fg-subtle)]">
                 使用 # 或 H1-H6 标签创建标题
               </div>
             </div>
@@ -171,19 +171,19 @@ export function OutlineView({ editorContent, selectedFile }: OutlineViewProps) {
                 key={heading.id}
                 data-testid={`outline-heading-${heading.line}`}
                 onClick={() => handleHeadingClick(heading)}
-                className="w-full flex items-start gap-2 px-3 py-1.5 hover:bg-[var(--bg-hover)] transition-colors text-left group"
+                className="w-full flex items-start gap-2 px-3 py-1.5 hover:bg-[var(--bg-hover)] transition-colors duration-[100ms] text-left group"
                 style={{ paddingLeft: `${8 + (heading.level - 1) * 12}px` }}
               >
-                <Hash className="w-3.5 h-3.5 mt-0.5 text-[var(--text-tertiary)] flex-shrink-0" />
+                <Hash className="w-3.5 h-3.5 mt-0.5 text-[var(--fg-subtle)] flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] truncate">
+                  <div className="text-[13px] text-[var(--fg-muted)] group-hover:text-[var(--fg-default)] truncate">
                     {heading.text}
                   </div>
-                  <div className="text-[10px] text-[var(--text-tertiary)] mt-0.5">
+                  <div className="text-[10px] text-[var(--fg-subtle)] mt-0.5">
                     第 {heading.line} 行
                   </div>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 mt-0.5 text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 mt-0.5 text-[var(--fg-subtle)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </button>
             ))
           )}

@@ -288,13 +288,13 @@ export function AIPanel() {
 
   return (
     <div
-      className="h-full flex flex-col bg-[var(--bg-primary)]"
+      className="h-full flex flex-col bg-[var(--bg-base)]"
       data-testid="layout-ai-panel"
     >
       {/* Header - 精致样式 */}
-      <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)] flex-shrink-0">
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5">
-          <span className="text-[13px] text-[var(--text-primary)] font-medium">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
             Chat
           </span>
           {/* 连接状态指示器 */}
@@ -302,10 +302,10 @@ export function AIPanel() {
             data-testid="ai-connection-status"
             className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] transition-all duration-200 ${
               isConnected
-                ? 'text-emerald-500 bg-emerald-500/10'
+                ? 'text-[var(--success)] bg-[var(--success-muted)]'
                 : isConnecting
-                ? 'text-amber-500 bg-amber-500/10'
-                : 'text-rose-500 bg-rose-500/10'
+                ? 'text-[var(--warning)] bg-[var(--warning-muted)]'
+                : 'text-[var(--error)] bg-[var(--error-muted)]'
             }`}
             title={isConnected ? '已连接' : isConnecting ? '连接中...' : '未连接'}
           >
@@ -319,10 +319,10 @@ export function AIPanel() {
           </div>
         </div>
         <div className="flex items-center gap-0.5">
-          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-all duration-150">
+          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--fg-subtle)] hover:text-[var(--fg-muted)] transition-all duration-[100ms]">
             <Plus className="w-4 h-4" />
           </button>
-          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-all duration-150">
+          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--fg-subtle)] hover:text-[var(--fg-muted)] transition-all duration-[100ms]">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
@@ -332,9 +332,9 @@ export function AIPanel() {
       {hasConnectionError && !isConnecting && (
         <div
           data-testid="ai-connection-error"
-          className="px-3 py-2 bg-yellow-900/20 border-b border-[var(--border-default)] flex items-center justify-between"
+          className="px-3 py-2 bg-[var(--warning-muted)] border-b border-[var(--border-subtle)] flex items-center justify-between"
         >
-          <div className="flex items-center gap-2 text-[11px] text-yellow-400">
+          <div className="flex items-center gap-2 text-[11px] text-[var(--warning)]">
             <WifiOff className="w-3.5 h-3.5" />
             <span>后端未连接</span>
           </div>
@@ -342,7 +342,7 @@ export function AIPanel() {
             data-testid="ai-reconnect-button"
             onClick={() => void handleReconnect()}
             disabled={reconnecting}
-            className="px-2 py-1 text-[10px] bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded transition-colors disabled:opacity-50"
+            className="px-2 py-1 text-[10px] bg-[var(--warning-muted)] hover:bg-[var(--warning)]/20 text-[var(--warning)] rounded-md transition-colors duration-[100ms] disabled:opacity-50"
           >
             {reconnecting ? '重连中...' : '重连'}
           </button>
@@ -351,26 +351,26 @@ export function AIPanel() {
 
       {/* Error Messages */}
       {skillsError && (
-        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)]">
+        <div className="px-4 py-2 text-xs text-[var(--error)] border-b border-[var(--border-subtle)]">
           {skillsError}
         </div>
       )}
 
       {status === 'canceled' && (
-        <div className="px-4 py-2 text-xs text-[var(--text-tertiary)] border-b border-[var(--border-default)]">
+        <div className="px-4 py-2 text-xs text-[var(--fg-subtle)] border-b border-[var(--border-subtle)]">
           已取消
         </div>
       )}
 
       {panelError && (
-        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)] flex items-center gap-2">
+        <div className="px-4 py-2 text-xs text-[var(--error)] border-b border-[var(--border-subtle)] flex items-center gap-2">
           <AlertTriangle className="h-3.5 w-3.5" />
           {panelError}
         </div>
       )}
 
       {lastError && (
-        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)]">
+        <div className="px-4 py-2 text-xs text-[var(--error)] border-b border-[var(--border-subtle)]">
           {lastError.code}: {lastError.message}
         </div>
       )}
@@ -380,10 +380,10 @@ export function AIPanel() {
         <div className="px-3 py-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-16">
-              <div className="text-[13px] text-[var(--text-primary)] font-medium mb-1">
+              <div className="text-[13px] text-[var(--fg-default)] font-medium mb-1">
                 开始对话
               </div>
-              <div className="text-[11px] text-[var(--text-tertiary)]">
+              <div className="text-[11px] text-[var(--fg-subtle)]">
                 使用下方 SKILL 或直接输入
               </div>
             </div>
@@ -410,8 +410,8 @@ export function AIPanel() {
       </ScrollArea>
 
       {/* Input Area - Figma 样式 */}
-      <div className="border-t border-[var(--border-default)] p-3 flex-shrink-0">
-        <div className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-default)] focus-within:border-[var(--border-focus)] transition-colors">
+      <div className="border-t border-[var(--border-subtle)] p-3 shrink-0">
+        <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-subtle)] focus-within:border-[var(--border-focus)] transition-colors duration-[100ms]">
           {/* Textarea */}
           <textarea
             ref={textareaRef}
@@ -425,7 +425,7 @@ export function AIPanel() {
             }}
             placeholder="Ask anything..."
             disabled={skillsLoading || status === 'thinking' || status === 'streaming'}
-            className="w-full bg-transparent text-[13px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] outline-none resize-none px-3 pt-3 pb-2 min-h-[60px] max-h-[200px]"
+            className="w-full bg-transparent text-[13px] text-[var(--fg-default)] placeholder-[var(--fg-placeholder)] outline-none resize-none px-3 pt-3 pb-2 min-h-[60px] max-h-[200px]"
             rows={1}
           />
 
@@ -437,7 +437,7 @@ export function AIPanel() {
               <div className="relative" ref={modeMenuRef}>
                 <button
                   onClick={() => setShowModeMenu(!showModeMenu)}
-                  className="flex items-center gap-1 px-2.5 h-7 rounded hover:bg-[var(--bg-hover)] transition-colors text-[11px] text-[var(--text-secondary)] font-medium"
+                  className="flex items-center gap-1 px-2.5 h-7 rounded-md hover:bg-[var(--bg-hover)] transition-colors duration-[100ms] text-[11px] text-[var(--fg-muted)] font-medium"
                 >
                   <InfinityIcon className="w-3 h-3" />
                   <span>
@@ -446,8 +446,8 @@ export function AIPanel() {
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showModeMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-32 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50">
-                    <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                  <div className="absolute bottom-full left-0 mb-2 w-32 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-2 py-1.5 text-[10px] text-[var(--fg-subtle)] uppercase tracking-wide font-medium">
                       模式
                     </div>
                     {(['agent', 'plan', 'debug', 'ask'] as ChatMode[]).map(
@@ -458,13 +458,13 @@ export function AIPanel() {
                             setChatMode(mode);
                             setShowModeMenu(false);
                           }}
-                          className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                          className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[var(--fg-muted)] hover:bg-[var(--bg-hover)] transition-colors duration-[100ms]"
                         >
                           <span>
                             {mode.charAt(0).toUpperCase() + mode.slice(1)}
                           </span>
                           {chatMode === mode && (
-                            <Check className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+                            <Check className="w-3.5 h-3.5 text-[var(--accent-default)]" />
                           )}
                         </button>
                       ),
@@ -477,14 +477,14 @@ export function AIPanel() {
               <div className="relative" ref={skillMenuRef}>
                 <button
                   onClick={() => setShowSkillMenu(!showSkillMenu)}
-                  className="flex items-center gap-1 px-2.5 h-7 rounded hover:bg-[var(--bg-hover)] transition-colors text-[11px] text-[var(--text-secondary)] font-medium"
+                  className="flex items-center gap-1 px-2.5 h-7 rounded-md hover:bg-[var(--bg-hover)] transition-colors duration-[100ms] text-[11px] text-[var(--fg-muted)] font-medium"
                 >
                   <span>SKILL</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showSkillMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-72 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-3 py-1 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                  <div className="absolute bottom-full left-0 mb-2 w-72 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg shadow-lg py-2 z-50">
+                    <div className="px-3 py-1 text-[10px] text-[var(--fg-subtle)] uppercase tracking-wide font-medium">
                       快捷技能
                     </div>
                     <div className="px-3 pb-2">
@@ -493,16 +493,16 @@ export function AIPanel() {
                           <button
                             key={skill.id}
                             onClick={() => handleSkillClick(skill)}
-                            className="flex flex-col items-start p-2 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] rounded border border-[var(--border-default)] transition-colors text-left"
+                            className="flex flex-col items-start p-2 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] rounded-md border border-[var(--border-subtle)] transition-colors duration-[100ms] text-left"
                           >
-                            <div className="w-full h-10 bg-[var(--bg-tertiary)] rounded mb-2 flex items-center justify-center text-[var(--accent-primary)]">
+                            <div className="w-full h-10 bg-[var(--bg-elevated)] rounded-md mb-2 flex items-center justify-center text-[var(--accent-default)]">
                               {skill.icon}
                             </div>
                             <div className="w-full">
-                              <div className="text-[11px] text-[var(--text-primary)] truncate mb-0.5">
+                              <div className="text-[11px] text-[var(--fg-default)] truncate mb-0.5">
                                 {skill.name}
                               </div>
-                              <div className="text-[10px] text-[var(--text-tertiary)]">
+                              <div className="text-[10px] text-[var(--fg-subtle)]">
                                 {skill.description}
                               </div>
                             </div>
@@ -514,7 +514,7 @@ export function AIPanel() {
                     {/* Backend skills */}
                     {skills.filter((s) => s.valid).length > 0 && (
                       <>
-                        <div className="px-3 py-1 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium border-t border-[var(--border-default)] mt-1 pt-2">
+                        <div className="px-3 py-1 text-[10px] text-[var(--fg-subtle)] uppercase tracking-wide font-medium border-t border-[var(--border-subtle)] mt-1 pt-2">
                           已加载技能
                         </div>
                         <div className="px-3 pb-2">
@@ -530,16 +530,16 @@ export function AIPanel() {
                                     textareaRef.current?.focus();
                                     setShowSkillMenu(false);
                                   }}
-                                  className="flex flex-col items-start p-2 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] rounded border border-[var(--border-default)] transition-colors text-left"
+                                  className="flex flex-col items-start p-2 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] rounded-md border border-[var(--border-subtle)] transition-colors duration-[100ms] text-left"
                                 >
-                                  <div className="w-full h-10 bg-[var(--bg-tertiary)] rounded mb-2 flex items-center justify-center text-[var(--accent-primary)]">
+                                  <div className="w-full h-10 bg-[var(--bg-elevated)] rounded-md mb-2 flex items-center justify-center text-[var(--accent-default)]">
                                     <Sparkles className="w-3.5 h-3.5" />
                                   </div>
                                   <div className="w-full">
-                                    <div className="text-[11px] text-[var(--text-primary)] truncate mb-0.5">
+                                    <div className="text-[11px] text-[var(--fg-default)] truncate mb-0.5">
                                       {skill.name}
                                     </div>
-                                    <div className="text-[10px] text-[var(--text-tertiary)] truncate">
+                                    <div className="text-[10px] text-[var(--fg-subtle)] truncate">
                                       {skill.description || skill.id}
                                     </div>
                                   </div>
@@ -549,8 +549,8 @@ export function AIPanel() {
                         </div>
                       </>
                     )}
-                    <div className="border-t border-[var(--border-default)] mt-1 pt-1 px-2 pb-1">
-                      <button className="w-full h-7 px-2 rounded hover:bg-[var(--bg-hover)] text-[11px] text-[var(--text-secondary)] transition-colors flex items-center justify-center gap-1.5">
+                    <div className="border-t border-[var(--border-subtle)] mt-1 pt-1 px-2 pb-1">
+                      <button className="w-full h-7 px-2 rounded-md hover:bg-[var(--bg-hover)] text-[11px] text-[var(--fg-muted)] transition-colors duration-[100ms] flex items-center justify-center gap-1.5">
                         <Plus className="w-3.5 h-3.5" />
                         创建新 SKILL
                       </button>
@@ -563,7 +563,7 @@ export function AIPanel() {
               <div className="relative" ref={modelMenuRef}>
                 <button
                   onClick={() => setShowModelMenu(!showModelMenu)}
-                  className="flex items-center gap-1 px-2.5 h-7 rounded hover:bg-[var(--bg-hover)] transition-colors text-[11px] text-[var(--text-secondary)] font-medium"
+                  className="flex items-center gap-1 px-2.5 h-7 rounded-md hover:bg-[var(--bg-hover)] transition-colors duration-[100ms] text-[11px] text-[var(--fg-muted)] font-medium"
                 >
                   <span className="truncate max-w-[80px]">
                     {currentModel.name}
@@ -571,8 +571,8 @@ export function AIPanel() {
                   <ChevronDown className="w-3 h-3 flex-shrink-0" />
                 </button>
                 {showModelMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50">
-                    <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                  <div className="absolute bottom-full left-0 mb-2 w-48 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-2 py-1.5 text-[10px] text-[var(--fg-subtle)] uppercase tracking-wide font-medium">
                       选择模型
                     </div>
                     {models.map((model) => (
@@ -582,11 +582,11 @@ export function AIPanel() {
                           setSelectedModel(model.id);
                           setShowModelMenu(false);
                         }}
-                        className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                        className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[var(--fg-muted)] hover:bg-[var(--bg-hover)] transition-colors duration-[100ms]"
                       >
                         <span>{model.name}</span>
                         {selectedModel === model.id && (
-                          <Check className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+                          <Check className="w-3.5 h-3.5 text-[var(--accent-default)]" />
                         )}
                       </button>
                     ))}
@@ -604,7 +604,7 @@ export function AIPanel() {
                 status === 'thinking' ||
                 status === 'streaming'
               }
-              className="h-7 w-7 rounded-full hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:pointer-events-none text-[var(--text-secondary)] transition-colors flex items-center justify-center flex-shrink-0"
+              className="h-7 w-7 rounded-full hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:pointer-events-none text-[var(--fg-muted)] transition-colors duration-[100ms] flex items-center justify-center flex-shrink-0"
             >
               <Send className="w-3.5 h-3.5" />
             </button>

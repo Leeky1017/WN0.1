@@ -1,0 +1,104 @@
+/**
+ * WriteNow Design System - Dark Theme
+ * 
+ * Semantic color variables for the dark theme.
+ * These map primitive colors to functional meanings.
+ * 
+ * Usage: Use these variables in components, NOT primitive colors.
+ * Example: color: var(--fg-default);  // NOT color: var(--zinc-50);
+ */
+
+:root,
+[data-theme="dark"] {
+  /* ===== Background ===== */
+  /* Base: Deepest background (app shell) */
+  --bg-base: #09090b;             /* zinc-950 */
+
+  /* Surface: Panel/sidebar background */
+  --bg-surface: #0f0f11;          /* Slightly lighter than base */
+
+  /* Elevated: Cards, modals */
+  --bg-elevated: #18181b;         /* zinc-900 */
+
+  /* Overlay: Modal backdrop */
+  --bg-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Input: Form field background */
+  --bg-input: #1f1f23;            /* Between elevated and hover */
+
+  /* Hover: Hover state background */
+  --bg-hover: #27272a;            /* zinc-800 */
+
+  /* Active: Active/selected state */
+  --bg-active: #3f3f46;           /* zinc-700 */
+
+  /* ===== Foreground (Text) ===== */
+  /* Default: Primary text */
+  --fg-default: #fafafa;          /* zinc-50 */
+
+  /* Muted: Secondary text */
+  --fg-muted: #a1a1aa;            /* zinc-400 */
+
+  /* Subtle: Tertiary/helper text */
+  --fg-subtle: #71717a;           /* zinc-500 */
+
+  /* Disabled: Disabled state text */
+  --fg-disabled: #52525b;         /* zinc-600 */
+
+  /* Placeholder: Input placeholder */
+  --fg-placeholder: #52525b;      /* zinc-600 */
+
+  /* On Accent: Text on accent background */
+  --fg-on-accent: #ffffff;
+
+  /* ===== Border ===== */
+  /* Default: Standard borders */
+  --border-default: rgba(255, 255, 255, 0.08);
+
+  /* Subtle: Very light borders */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+
+  /* Strong: Emphasized borders */
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Focus: Focus ring color */
+  --border-focus: #3b82f6;        /* blue-500 */
+
+  /* ===== Accent ===== */
+  /* Primary accent color */
+  --accent-default: #3b82f6;      /* blue-500 */
+
+  /* Hover state */
+  --accent-hover: #60a5fa;        /* blue-400 */
+
+  /* Active/pressed state */
+  --accent-active: #2563eb;       /* blue-600 */
+
+  /* Muted: Accent at low opacity (badges, highlights) */
+  --accent-muted: rgba(59, 130, 246, 0.15);
+
+  /* Subtle: Even lower opacity (selections) */
+  --accent-subtle: rgba(59, 130, 246, 0.08);
+
+  /* ===== Semantic Colors ===== */
+  /* Success */
+  --success: #22c55e;             /* green-500 */
+  --success-muted: rgba(34, 197, 94, 0.15);
+
+  /* Warning */
+  --warning: #f59e0b;             /* amber-500 */
+  --warning-muted: rgba(245, 158, 11, 0.15);
+
+  /* Error */
+  --error: #ef4444;               /* red-500 */
+  --error-muted: rgba(239, 68, 68, 0.15);
+
+  /* ===== Special Colors ===== */
+  /* Code/editor specific */
+  --code-bg: #0d0d0f;
+  --code-border: rgba(255, 255, 255, 0.06);
+
+  /* Glass effect background */
+  --glass-bg: rgba(9, 9, 11, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.06);
+}
