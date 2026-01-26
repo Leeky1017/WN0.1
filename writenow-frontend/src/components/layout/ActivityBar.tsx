@@ -9,9 +9,6 @@ import {
   Files,
   ListTree,
   History,
-  Workflow,
-  Image,
-  Share2,
   BarChart3,
   Settings,
   Plus,
@@ -32,9 +29,6 @@ export type SidebarView =
   | 'files'
   | 'outline'
   | 'history'
-  | 'workflow'
-  | 'materials'
-  | 'publish'
   | 'stats'
   | 'settings';
 
@@ -57,15 +51,12 @@ const MAIN_NAV_ITEMS: NavItem[] = [
   { id: 'files', icon: Files, label: '文件浏览器' },
   { id: 'outline', icon: ListTree, label: '文档大纲' },
   { id: 'history', icon: History, label: '版本历史' },
-  { id: 'workflow', icon: Workflow, label: '创作工作流' },
 ];
 
 /**
  * Secondary navigation items - utilities.
  */
 const SECONDARY_NAV_ITEMS: NavItem[] = [
-  { id: 'materials', icon: Image, label: '素材库' },
-  { id: 'publish', icon: Share2, label: '发布平台' },
   { id: 'stats', icon: BarChart3, label: '创作统计' },
 ];
 
@@ -92,6 +83,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
           {MAIN_NAV_ITEMS.map((item) => (
             <ActivityBarItem
               key={item.id}
+              id={item.id}
               icon={item.icon}
               label={item.label}
               active={activeView === item.id}
@@ -105,6 +97,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
           {SECONDARY_NAV_ITEMS.map((item) => (
             <ActivityBarItem
               key={item.id}
+              id={item.id}
               icon={item.icon}
               label={item.label}
               active={activeView === item.id}
@@ -129,6 +122,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
         {/* Bottom Actions */}
         <div className="flex flex-col items-center gap-1 py-2">
           <ActivityBarItem
+            id="settings"
             icon={Settings}
             label="设置"
             active={activeView === 'settings'}
@@ -142,6 +136,8 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
 }
 
 interface ActivityBarItemProps {
+  /** SidebarView id (used for stable test selectors) */
+  id: SidebarView;
   /** Lucide icon component */
   icon: LucideIcon;
   /** Tooltip label */
@@ -162,11 +158,14 @@ interface ActivityBarItemProps {
  * Active indicator: Uses CSS box-shadow for the glow effect
  * to avoid additional DOM elements and layout calculations.
  */
-function ActivityBarItem({ icon: Icon, label, active, onClick }: ActivityBarItemProps) {
+function ActivityBarItem({ id, icon: Icon, label, active, onClick }: ActivityBarItemProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
+          data-testid={`activity-${id}`}
+          title={label}
+          aria-label={label}
           onClick={onClick}
           className={cn(
             'relative w-10 h-10 flex items-center justify-center rounded-lg',

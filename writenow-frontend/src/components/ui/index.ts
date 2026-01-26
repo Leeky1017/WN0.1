@@ -9,7 +9,7 @@
  */
 
 // Core form components
-export { Button, buttonVariants } from './button'
+export { Button } from './button'
 export type { ButtonProps } from './button'
 
 export { IconButton } from './icon-button'

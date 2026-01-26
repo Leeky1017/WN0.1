@@ -9,9 +9,6 @@ import type { SidebarView } from './ActivityBar';
 import { FilesView } from '@/features/sidebar/FilesView';
 import { OutlineView } from '@/features/sidebar/OutlineView';
 import { HistoryView } from '@/features/sidebar/HistoryView';
-import { WorkflowView } from '@/features/sidebar/WorkflowView';
-import { MaterialsView } from '@/features/sidebar/MaterialsView';
-import { PublishView } from '@/features/sidebar/PublishView';
 import { StatsView } from '@/features/sidebar/StatsView';
 import { SettingsView } from '@/features/sidebar/SettingsView';
 
@@ -36,12 +33,13 @@ export function SidebarPanel({
       {view === 'outline' && (
         <OutlineView editorContent={editorContent} selectedFile={selectedFile} />
       )}
-      {view === 'history' && <HistoryView selectedFile={selectedFile} />}
-      {view === 'workflow' && (
-        <WorkflowView selectedFile={selectedFile} onSelectFile={onSelectFile} />
+      {view === 'history' && (
+        <HistoryView
+          // Why: Reset internal load/preview state when switching files without using setState in effects (lint rule).
+          key={selectedFile ?? 'no-file'}
+          selectedFile={selectedFile}
+        />
       )}
-      {view === 'materials' && <MaterialsView />}
-      {view === 'publish' && <PublishView />}
       {view === 'stats' && <StatsView />}
       {view === 'settings' && <SettingsView />}
     </div>

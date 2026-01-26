@@ -100,12 +100,11 @@ test('stats: create + save updates writing_stats and UI', async () => {
 
     expect(afterCreate.articlesCreated).toBe(baseline.articlesCreated + 1);
 
-    const textarea = page.getByPlaceholder(/Start typing in Markdown…|开始用 Markdown 写作…/);
-    await expect(textarea).toBeVisible();
-    const existing = await textarea.inputValue();
-
     const unique = `HELLO_STATS_${Date.now()}`;
-    await textarea.fill(`${existing}\n\n${unique}`);
+    const editor = page.getByTestId('tiptap-editor');
+    await expect(editor).toBeVisible();
+    await editor.click();
+    await editor.fill(unique);
     await saveNow(page);
 
     const afterSaveResp = await invoke<{ stats: WritingStatsRow }>(page, 'stats:getToday', {});
@@ -115,11 +114,11 @@ test('stats: create + save updates writing_stats and UI', async () => {
 
     expect(afterSave.wordCount).toBeGreaterThanOrEqual(afterCreate.wordCount + unique.length);
 
-    await page.locator('button[title="创作统计"]').click();
+    await page.getByTestId('activity-stats').click();
     await expect(page.getByText('创作统计', { exact: true })).toBeVisible();
-    await expect(page.getByText('字（今日）', { exact: true })).toBeVisible();
-    const hero = page.getByText('字（今日）', { exact: true }).locator('..');
-    await expect(hero.getByText(afterSave.wordCount.toLocaleString('zh-CN'), { exact: true })).toBeVisible();
+    const uiWordCountText = await page.getByTestId('stats-today-wordcount').innerText();
+    const uiWordCount = Number(uiWordCountText.replace(/[^\d]/g, ''));
+    expect(uiWordCount).toBe(afterSave.wordCount);
   } finally {
     await electronApp.close();
   }
