@@ -291,21 +291,21 @@ export function AIPanel() {
       className="h-full flex flex-col bg-[var(--bg-primary)]"
       data-testid="layout-ai-panel"
     >
-      {/* Header - 精致样式 */}
+      {/* Header - Figma 样式 */}
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)] flex-shrink-0">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <span className="text-[13px] text-[var(--text-primary)] font-medium">
             Chat
           </span>
           {/* 连接状态指示器 */}
           <div
             data-testid="ai-connection-status"
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] transition-all duration-200 ${
+            className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] ${
               isConnected
-                ? 'text-emerald-500 bg-emerald-500/10'
+                ? 'text-green-600 bg-green-500/10'
                 : isConnecting
-                ? 'text-amber-500 bg-amber-500/10'
-                : 'text-rose-500 bg-rose-500/10'
+                ? 'text-yellow-600 bg-yellow-500/10'
+                : 'text-red-600 bg-red-500/10'
             }`}
             title={isConnected ? '已连接' : isConnecting ? '连接中...' : '未连接'}
           >
@@ -318,11 +318,11 @@ export function AIPanel() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-0.5">
-          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-all duration-150">
+        <div className="flex items-center gap-1">
+          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
             <Plus className="w-4 h-4" />
           </button>
-          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-all duration-150">
+          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>

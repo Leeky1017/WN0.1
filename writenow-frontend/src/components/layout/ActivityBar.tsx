@@ -35,7 +35,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
   ];
 
   return (
-    <div className="w-12 bg-[var(--bg-secondary)] border-r border-[var(--border-default)] flex flex-col items-center py-3 gap-1">
+    <div className="w-12 bg-[var(--bg-secondary)] border-r border-[var(--border-default)] flex flex-col items-center py-2">
       {activities.map((activity) => {
         const Icon = activity.icon;
         const isActive = activeView === activity.id;
@@ -45,16 +45,16 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
             key={activity.id}
             data-testid={`activity-${activity.id}`}
             onClick={() => onViewChange(activity.id)}
-            className={`w-10 h-10 flex items-center justify-center relative rounded-lg transition-all duration-150 ${
+            className={`w-12 h-10 flex items-center justify-center relative transition-colors ${
               isActive
-                ? 'text-[var(--text-primary)] bg-[var(--bg-active)]'
-                : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+                ? 'text-[var(--text-primary)]'
+                : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
             }`}
             title={activity.label}
           >
-            <Icon className="w-[18px] h-[18px]" />
+            <Icon className="w-5 h-5" />
             {isActive && (
-              <div className="absolute left-0 w-[3px] h-5 rounded-r-full bg-[var(--accent-primary)]" />
+              <div className="absolute left-0 w-0.5 h-6 bg-[var(--accent-primary)]" />
             )}
           </button>
         );
