@@ -27,7 +27,7 @@ import { toast } from '@/lib/toast';
 import { useEditorFilesStore } from '@/stores/editorFilesStore';
 
 function useElementSize<T extends HTMLElement>(): {
-  ref: RefObject<T | null>;
+  ref: RefObject<T>;
   size: { width: number; height: number };
 } {
   const elementRef = useRef<T>(null);

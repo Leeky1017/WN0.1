@@ -5,21 +5,22 @@
 
 :root,
 [data-theme='midnight'] {
-  --bg-app: var(--gray-950);
-  --bg-sidebar: var(--gray-900);
-  --bg-panel: var(--gray-850);
-  --bg-editor: var(--gray-900);
-  --bg-input: var(--gray-800);
-  --bg-hover: var(--gray-800);
-  --bg-active: var(--gray-700);
+  /* Figma palette (source of truth: figma参考/src/styles/globals.css) */
+  --bg-app: #0d0d0d;
+  --bg-sidebar: #0d0d0d;
+  --bg-panel: #161616;
+  --bg-editor: #0d0d0d;
+  --bg-input: #1a1a1a;
+  --bg-hover: #212121;
+  --bg-active: #2a2a2a;
 
-  --text-primary: var(--gray-50);
-  --text-secondary: var(--gray-300);
-  --text-muted: var(--gray-500);
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
 
-  --border-subtle: var(--gray-800);
-  --border-default: var(--gray-700);
+  --border-subtle: #1f1f1f;
+  --border-default: #2a2a2a;
 
-  --accent: var(--blue-500);
-  --accent-hover: var(--blue-400);
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
 }
