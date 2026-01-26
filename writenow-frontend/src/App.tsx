@@ -123,7 +123,7 @@ function App() {
           )}
 
           {/* FlexLayout 区域（编辑器 + AI 面板） */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
             <AppLayout onApiReady={setLayoutApi} />
           </div>
         </div>
