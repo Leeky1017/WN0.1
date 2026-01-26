@@ -51,14 +51,15 @@ export function CommandPalette({ openFile, focusAiPanel, openSettings }: Command
 
   return (
     <Command.Dialog open={open} onOpenChange={setOpen} label="Command Palette">
-      <div className="fixed inset-0 z-50">
+      <div className="fixed inset-0 z-50" data-testid="command-palette">
         <div className="absolute inset-0 bg-black/40" onClick={() => closePalette()} />
-        <div className="absolute left-1/2 top-[18%] w-[680px] -translate-x-1/2 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-panel)] shadow-2xl">
+        <div className="absolute left-1/2 top-[18%] w-[680px] -translate-x-1/2 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-panel)] shadow-2xl" data-testid="command-palette-dialog">
           <Command.Input
             placeholder="搜索文件、命令或 Skill…"
             value={query}
             onValueChange={setQuery}
             className="w-full border-b border-[var(--border-subtle)] bg-transparent px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none"
+            data-testid="command-palette-input"
           />
 
           <Command.List className="max-h-[420px] overflow-auto p-2">

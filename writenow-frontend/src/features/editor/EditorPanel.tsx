@@ -521,7 +521,7 @@ export function EditorPanel({ filePath }: EditorPanelProps) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-editor)]">
+    <div className="h-full flex flex-col bg-[var(--bg-editor)]" data-testid="editor-panel">
       <EditorToolbar
         editor={editor}
         mode={mode}

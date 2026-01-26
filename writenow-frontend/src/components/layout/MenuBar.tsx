@@ -17,38 +17,41 @@ export function MenuBar({
   onToggleAiPanel,
 }: MenuBarProps) {
   return (
-    <div className="h-9 bg-[var(--bg-secondary)] border-b border-[var(--border-default)] flex items-center px-2 text-[13px]">
+    <div className="h-9 bg-[var(--bg-secondary)] border-b border-[var(--border-default)] flex items-center px-2 text-[13px]" data-testid="menubar">
       <div className="flex gap-4 px-2">
-        <span className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
+        <span data-testid="menu-file" className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
           File
         </span>
-        <span className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
+        <span data-testid="menu-edit" className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
           Edit
         </span>
-        <span className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
+        <span data-testid="menu-view" className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
           View
         </span>
-        <span className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
+        <span data-testid="menu-publish" className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded cursor-pointer transition-colors">
           Publish
         </span>
       </div>
-      <div className="flex-1 text-center text-[var(--text-tertiary)] text-[11px]">
+      <div className="flex-1 text-center text-[var(--text-tertiary)] text-[11px]" data-testid="app-title">
         WriteNow
       </div>
       <div className="flex gap-2 items-center">
         <button
+          data-testid="toggle-stats-bar"
           onClick={onToggleStatsBar}
           className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded text-[11px] text-[var(--text-secondary)] transition-colors"
         >
           {statsBarOpen ? 'Hide Stats' : 'Show Stats'}
         </button>
         <button
+          data-testid="toggle-focus-mode"
           onClick={onToggleFocusMode}
           className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded text-[11px] text-[var(--text-secondary)] transition-colors"
         >
           Focus
         </button>
         <button
+          data-testid="toggle-ai-panel"
           onClick={onToggleAiPanel}
           className="hover:bg-[var(--bg-hover)] px-2 py-0.5 rounded text-[11px] text-[var(--text-secondary)] transition-colors"
         >

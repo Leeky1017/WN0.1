@@ -27,22 +27,23 @@ export function SettingsView() {
   ];
 
   return (
-    <>
+    <div data-testid="settings-view">
       <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
         <span className="text-[11px] uppercase text-[var(--text-tertiary)] font-medium tracking-wide">
           Settings
         </span>
       </div>
 
-      <div className="overflow-y-auto">
+      <div className="overflow-y-auto" data-testid="settings-list">
         {settingGroups.map((group) => (
-          <div key={group.title} className="border-b border-[var(--border-subtle)]">
+          <div key={group.title} className="border-b border-[var(--border-subtle)]" data-testid={`settings-group-${group.title.toLowerCase()}`}>
             <div className="px-3 py-2 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
               {group.title}
             </div>
             {group.items.map((item) => (
               <button
                 key={item}
+                data-testid={`settings-item-${item.toLowerCase().replace(/\s+/g, '-')}`}
                 className="w-full px-3 py-1.5 hover:bg-[var(--bg-hover)] flex items-center justify-between text-[13px] text-[var(--text-secondary)] transition-colors text-left"
               >
                 <span>{item}</span>
@@ -52,7 +53,7 @@ export function SettingsView() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 

@@ -135,11 +135,12 @@ export function EditorToolbar(props: EditorToolbarProps) {
   const heading = getCurrentHeading(editor);
 
   return (
-    <div className="flex flex-col border-b border-[var(--border-default)] bg-[var(--bg-primary)]">
+    <div className="flex flex-col border-b border-[var(--border-default)] bg-[var(--bg-primary)]" data-testid="editor-toolbar">
       {/* Figma 样式 - 模式切换栏 */}
       <div className="h-10 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
         <div className="flex items-center gap-2">
           <button
+            data-testid="toolbar-mode-markdown"
             onClick={() => onModeChange('markdown')}
             className={`h-6 px-2.5 rounded text-[11px] transition-colors ${
               mode === 'markdown'
@@ -150,6 +151,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             Markdown
           </button>
           <button
+            data-testid="toolbar-mode-richtext"
             onClick={() => onModeChange('richtext')}
             className={`h-6 px-2.5 rounded text-[11px] transition-colors ${
               mode === 'richtext'
@@ -172,6 +174,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
 
         <div className="flex items-center gap-2">
           <button
+            data-testid="toolbar-view-edit"
             onClick={() => onViewModeChange?.('edit')}
             className={`h-6 px-2 rounded text-[11px] flex items-center gap-1 transition-colors ${
               viewMode === 'edit'
@@ -183,6 +186,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             Edit
           </button>
           <button
+            data-testid="toolbar-view-preview"
             onClick={() => onViewModeChange?.('preview')}
             className={`h-6 px-2 rounded text-[11px] flex items-center gap-1 transition-colors ${
               viewMode === 'preview'
@@ -194,6 +198,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             Preview
           </button>
           <button
+            data-testid="toolbar-view-split"
             onClick={() => onViewModeChange?.('split')}
             className={`h-6 px-2 rounded text-[11px] flex items-center gap-1 transition-colors ${
               viewMode === 'split'
@@ -430,6 +435,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         variant="outline"
         className="h-8"
         onClick={onRequestExport}
+        data-testid="toolbar-export"
       >
         <Download className="w-4 h-4 mr-2" />
         导出
