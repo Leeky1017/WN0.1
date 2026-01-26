@@ -1,7 +1,7 @@
 # ISSUE-251
 - Issue: #251
 - Branch: task/251-frontend-sync-sidebar-e2e
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/252
 
 ## Plan
 - Preserve current local frontend demo/UI work by committing + pushing (avoid loss during git/worktree operations).
