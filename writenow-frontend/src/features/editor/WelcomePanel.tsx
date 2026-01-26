@@ -104,45 +104,50 @@ export function WelcomePanel() {
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h2 className="text-sm font-medium text-[var(--text-secondary)]">快速开始</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <button
-              className="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] shadow-sm hover:shadow transition-all duration-200 group"
+              className="flex items-center gap-3 p-4 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:bg-[var(--bg-hover)] transition-colors group"
               type="button"
             >
-              <div className="w-11 h-11 rounded-xl bg-[var(--bg-tertiary)] flex items-center justify-center transition-all duration-200 group-hover:bg-[var(--accent-primary)]/10 group-hover:scale-105">
-                <FolderOpen className="w-5 h-5 text-[var(--text-muted)] transition-colors duration-200 group-hover:text-[var(--accent-primary)]" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--bg-input)] flex items-center justify-center group-hover:bg-[var(--accent)]/10">
+                <FolderOpen className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-[var(--text-primary)]">打开项目</p>
-                <p className="text-xs text-[var(--text-muted)] mt-0.5">继续创作</p>
+                <p className="text-xs text-[var(--text-muted)]">继续创作</p>
               </div>
             </button>
 
             <button
-              className="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] shadow-sm hover:shadow transition-all duration-200 group"
+              className="flex items-center gap-3 p-4 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:bg-[var(--bg-hover)] transition-colors group"
               type="button"
             >
-              <div className="w-11 h-11 rounded-xl bg-[var(--bg-tertiary)] flex items-center justify-center transition-all duration-200 group-hover:bg-[var(--accent-primary)]/10 group-hover:scale-105">
-                <Sparkles className="w-5 h-5 text-[var(--text-muted)] transition-colors duration-200 group-hover:text-[var(--accent-primary)]" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--bg-input)] flex items-center justify-center group-hover:bg-[var(--accent)]/10">
+                <Sparkles className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-[var(--text-primary)]">新建文档</p>
-                <p className="text-xs text-[var(--text-muted)] mt-0.5">开始写作</p>
+                <p className="text-xs text-[var(--text-muted)]">开始写作</p>
               </div>
             </button>
           </div>
         </div>
 
-        {/* Feature Highlights - 更精致的标签 */}
-        <div className="flex items-center justify-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-tertiary)] text-xs text-[var(--text-muted)]">
-            <Zap className="w-3 h-3" />
+        {/* Feature Highlights */}
+        <div className="flex items-center justify-center gap-6 text-xs text-[var(--text-muted)]">
+          <div className="flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5" />
             <span>AI 辅助写作</span>
           </div>
-          <div className="px-2.5 py-1 rounded-full bg-[var(--bg-tertiary)] text-xs text-[var(--text-muted)]">
-            FlexLayout 布局
+          <div className="flex items-center gap-1.5">
+            <span>•</span>
+            <span>FlexLayout 布局</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>•</span>
+            <span>Phase 1</span>
           </div>
         </div>
       </div>
