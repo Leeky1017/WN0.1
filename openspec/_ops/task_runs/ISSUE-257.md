@@ -1,7 +1,7 @@
 # ISSUE-257
 - Issue: #257
 - Branch: task/257-archive-rulebook-255
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/258
 
 ## Goal
 - 归档已完成的 Rulebook task：`rulebook/tasks/issue-255-frontend-history-e2e-testids/`。
