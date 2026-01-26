@@ -21,7 +21,6 @@ import { useFileTree } from '@/features/file-tree/useFileTree';
 import { FileNode as FileNodeRenderer } from '@/features/file-tree/FileNode';
 import { FileContextMenu } from '@/features/file-tree/FileContextMenu';
 import type { FileNode as FileNodeType, FileOperation } from '@/features/file-tree/types';
-import { useLayoutApi } from '@/components/layout';
 import { FileTreeContextProvider } from '@/features/file-tree/fileTreeContext';
 import { toast } from '@/lib/toast';
 import { useEditorFilesStore } from '@/stores/editorFilesStore';
@@ -70,7 +69,6 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
     moveFiles,
   } = useFileTree();
   const { ref: viewportRef, size } = useElementSize<HTMLDivElement>();
-  const { openEditorTab } = useLayoutApi();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createDialogName, setCreateDialogName] = useState('');
@@ -95,7 +93,6 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
 
     try {
       const created = await createFile(name);
-      openEditorTab(created.path);
       onSelectFile(created.path);
       toast.success('已创建文件');
       setCreateDialogOpen(false);
@@ -103,7 +100,7 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
       const message = err instanceof Error ? err.message : '创建文件失败';
       toast.error(message);
     }
-  }, [createDialogName, createFile, openEditorTab, onSelectFile]);
+  }, [createDialogName, createFile, onSelectFile]);
 
   useEffect(() => {
     if (!createDialogOpen) return;
@@ -190,11 +187,10 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
   const handleActivate = useCallback(
     (node: NodeApi<FileNodeType>) => {
       if (!node.data.isFolder) {
-        openEditorTab(node.data.path);
         onSelectFile(node.data.path);
       }
     },
-    [openEditorTab, onSelectFile],
+    [onSelectFile],
   );
 
   const treeWidth = Math.max(0, Math.floor(size.width));
