@@ -1,7 +1,7 @@
 # ISSUE-244
 - Issue: #244
 - Branch: task/244-statsbar-mock-fix
-- PR: pending
+- PR: https://github.com/Leeky1017/WN0.1/pull/245
 
 ## Plan
 - Fix StatsBar mock data by using StatusBar store
