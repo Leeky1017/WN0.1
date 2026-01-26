@@ -107,19 +107,17 @@ function App() {
 
         {/* 主内容区 */}
         <div className="flex-1 flex overflow-hidden">
-          {/* ActivityBar - 左侧图标导航栏 */}
+          {/* Left Sidebar (ActivityBar + SidebarPanel) */}
           {!focusMode && (
-            <ActivityBar activeView={sidebarView} onViewChange={setSidebarView} />
-          )}
-
-          {/* SidebarPanel - 侧边栏面板 */}
-          {!focusMode && (
-            <SidebarPanel
-              view={sidebarView}
-              selectedFile={selectedFile}
-              onSelectFile={handleSelectFile}
-              editorContent={editorContent}
-            />
+            <div className="shrink-0 flex overflow-hidden" data-testid="layout-sidebar">
+              <ActivityBar activeView={sidebarView} onViewChange={setSidebarView} />
+              <SidebarPanel
+                view={sidebarView}
+                selectedFile={selectedFile}
+                onSelectFile={handleSelectFile}
+                editorContent={editorContent}
+              />
+            </div>
           )}
 
           {/* FlexLayout 区域（编辑器 + AI 面板） */}

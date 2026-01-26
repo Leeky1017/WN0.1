@@ -117,6 +117,7 @@ export function HistoryView({ selectedFile }: HistoryViewProps) {
           版本历史
         </span>
         <Button
+          data-testid="history-refresh"
           size="sm"
           variant="ghost"
           onClick={() => void refresh()}
@@ -163,7 +164,7 @@ export function HistoryView({ selectedFile }: HistoryViewProps) {
             </div>
 
             {/* 版本列表 */}
-            <div className="space-y-1" data-testid="history-version-list">
+            <div className="space-y-1" data-testid="history-list">
               {snapshots.status === 'ready' && snapshots.value.length === 0 ? (
                 <div className="px-3 py-8 text-center">
                   <div className="text-[13px] text-[var(--fg-subtle)] mb-1">暂无版本</div>

@@ -2,60 +2,16 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { expect, test, _electron as electron, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-async function launchApp(userDataDir: string, extraEnv: Record<string, string> = {}) {
-  const electronApp = await electron.launch({
-    args: ['.'],
-    env: {
-      ...process.env,
-      WN_E2E: '1',
-      WN_OPEN_DEVTOOLS: '0',
-      WN_USER_DATA_DIR: userDataDir,
-      ...extraEnv,
-    },
-  });
-
-  const page = await electronApp.firstWindow();
-  await expect(page.getByTestId('layout-sidebar')).toBeVisible();
-  await expect(page.getByTestId('layout-ai-panel')).toBeVisible();
-
-  return { electronApp, page };
-}
-
-async function createFileWithPrompt(page: Page, fileName: string) {
-  const sidebar = page.getByTestId('layout-sidebar');
-  const newFileButton = sidebar.getByTitle(/新建文件/);
-
-  // Why: File creation requires backend connection; wait until the UI is interactive.
-  await expect(newFileButton).toBeEnabled({ timeout: 30_000 });
-
-  await newFileButton.click();
-  const dialog = page.getByTestId('file-create-dialog');
-  await expect(dialog).toBeVisible({ timeout: 10_000 });
-  await dialog.getByTestId('file-create-input').fill(fileName);
-  await dialog.getByTestId('file-create-confirm').click();
-  await expect(dialog).toBeHidden({ timeout: 10_000 });
-  await expect(sidebar.getByText(fileName)).toBeVisible({ timeout: 30_000 });
-}
-
-async function typeInEditor(page: Page, text: string) {
-  const editor = page.getByTestId('tiptap-editor');
-  await expect(editor).toBeVisible();
-  await editor.click();
-  await page.keyboard.type(text, { delay: 10 });
-}
-
-function getModKey(): 'Meta' | 'Control' {
-  return process.platform === 'darwin' ? 'Meta' : 'Control';
-}
+import { createFile, getModKey, launchApp, typeInEditor } from '../utils/e2e-helpers';
 
 test('Frontend V2: create file → edit → autosave persists to disk', async () => {
   const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-fev2-e2e-'));
   const { electronApp, page } = await launchApp(userDataDir);
 
   const fileName = `E2E-${Date.now()}.md`;
-  await createFileWithPrompt(page, fileName);
+  await createFile(page, fileName);
 
   const unique = `E2E_UNIQUE_${Date.now()}`;
   await typeInEditor(page, `\n${unique}\n`);
@@ -106,20 +62,19 @@ test('Frontend V2: AI call surfaces stable error when API key is missing', async
   });
 
   const fileName = `AI-${Date.now()}.md`;
-  await createFileWithPrompt(page, fileName);
+  await createFile(page, fileName);
   await typeInEditor(page, 'This is a test document for AI.');
 
-  // Ensure skills are loaded (otherwise the send action may fail with "not connected").
-  await expect(page.getByTestId('layout-ai-panel')).toContainText(/当前技能：/, { timeout: 30_000 });
+  // Ensure AI panel is connected before sending (otherwise the send action may fail with "not connected").
+  await expect(page.getByTestId('ai-connection-status')).toHaveAttribute('title', '已连接', { timeout: 30_000 });
 
-  // Select all text so the AI panel has context.
+  // Select all text so the backend receives a non-empty selection payload.
   await page.keyboard.press(`${getModKey()}+A`);
-  await expect(page.getByTestId('layout-ai-panel')).toContainText(/选区 \d+ 字/, { timeout: 10_000 });
 
-  const aiInput = page.getByPlaceholder(/输入消息/);
+  const aiInput = page.getByPlaceholder('Ask anything...');
   await expect(aiInput).toBeVisible();
   await aiInput.fill('polish');
-  await aiInput.press('Enter');
+  await aiInput.press(`${getModKey()}+Enter`);
 
   await expect(page.getByTestId('layout-ai-panel')).toContainText(/AI API key is not configured/, { timeout: 20_000 });
 

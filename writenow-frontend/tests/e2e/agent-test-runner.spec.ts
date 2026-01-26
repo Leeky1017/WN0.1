@@ -1,12 +1,10 @@
 /**
  * Agent Test Runner
- * Why: 提供可被 Agent 通过 browser MCP 驱动的测试场景
+ * Why: 提供可被 Agent/自动化脚本复用的测试场景与稳定的 data-testid 索引。
  *
- * 使用方式：
- * 1. Agent 启动 dev server: npm run dev
- * 2. Agent 通过 browser_navigate 访问 http://localhost:5180
- * 3. Agent 调用 browser_snapshot 获取页面状态
- * 4. Agent 根据 data-testid 执行交互
+ * 说明：
+ * - 本文件的 Playwright tests 以 Electron E2E 方式运行（真实后端 + 真实持久化）。
+ * - Browser MCP 的脚本入口见：`tests/mcp/browser-tests.md`。
  *
  * 关键 data-testid 索引：
  * - layout-main: 主布局容器
@@ -41,7 +39,23 @@
  * - settings-list: 设置列表
  */
 
+import { mkdtemp } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
 import { test, expect, type Page } from '@playwright/test';
+
+import { createFile, getModKey, launchApp, saveNow, typeInEditor } from '../utils/e2e-helpers';
+
+async function withApp(run: (page: Page) => Promise<void>): Promise<void> {
+  const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-agent-e2e-'));
+  const { electronApp, page } = await launchApp(userDataDir);
+  try {
+    await run(page);
+  } finally {
+    await electronApp.close();
+  }
+}
 
 /**
  * Agent 可调用的测试场景
@@ -52,80 +66,65 @@ export const testScenarios = {
    * 核心流程：创建文件 → 编辑 → 保存
    */
   'create-file-edit-save': async (page: Page) => {
-    // 1. 点击文件浏览器
-    await page.click('[data-testid="activity-files"]');
-
-    // 2. 创建新文件（假设有创建按钮）
-    await page.click('[data-testid="file-create-trigger"]');
-    await page.fill('[data-testid="file-create-input"]', 'test-document.md');
-    await page.click('[data-testid="file-create-confirm"]');
-
-    // 3. 等待编辑器加载
-    await page.waitForSelector('[data-testid="editor-panel"]');
-
-    // 4. 输入内容（TipTap 编辑器）
-    const editor = page.locator('.ProseMirror');
-    await editor.click();
-    await editor.type('# Hello World\n\nThis is a test document.');
-
-    // 5. 触发保存 (Ctrl+S)
-    await page.keyboard.press('Control+s');
-
-    // 6. 验证保存状态
-    await expect(page.locator('[data-testid="statusbar"]')).toContainText('已保存');
+    const fileName = `agent-${Date.now()}.md`;
+    await createFile(page, fileName);
+    await typeInEditor(page, '# Hello World\n\nThis is a test document.');
+    await saveNow(page);
   },
 
   /**
    * 版本历史：查看和恢复
    */
   'version-history-restore': async (page: Page) => {
-    // 1. 切换到历史视图
-    await page.click('[data-testid="activity-history"]');
+    const fileName = `agent-history-${Date.now()}.md`;
+    await createFile(page, fileName);
 
-    // 2. 等待历史列表加载
-    await page.waitForSelector('[data-testid="history-list"]');
+    const v1 = `AGENT-V1-${Date.now()}`;
+    await typeInEditor(page, `\n${v1}\n`);
+    await saveNow(page);
 
-    // 3. 刷新历史
-    await page.click('[data-testid="history-refresh"]');
+    const v2 = `AGENT-V2-${Date.now()}`;
+    await typeInEditor(page, `\n${v2}\n`);
+    await saveNow(page);
 
-    // 4. 验证版本列表存在
-    const versionCount = await page.locator('[data-testid^="history-preview-"]').count();
-    expect(versionCount).toBeGreaterThanOrEqual(0);
+    await page.getByTestId('activity-history').click();
+    await expect(page.getByTestId('history-list')).toBeVisible({ timeout: 10_000 });
+    await page.getByTestId('history-refresh').click();
+
+    const previewButtons = page.locator('[data-testid^="history-preview-"]');
+    await expect.poll(async () => await previewButtons.count(), { timeout: 20_000 }).toBeGreaterThanOrEqual(2);
   },
 
   /**
    * 统计显示：验证真实数据
    */
   'stats-display-accuracy': async (page: Page) => {
-    // 1. 切换到统计视图
-    await page.click('[data-testid="activity-stats"]');
+    const fileName = `agent-stats-${Date.now()}.md`;
+    await createFile(page, fileName);
+    await typeInEditor(page, `\nhello world ${Date.now()}\n`);
+    await saveNow(page);
 
-    // 2. 等待统计加载
-    await page.waitForSelector('[data-testid="stats-today-wordcount"]');
-
-    // 3. 验证不是 mock 数据
-    const wordCountText = await page.locator('[data-testid="stats-today-wordcount"]').textContent();
-    expect(wordCountText).not.toBe('1,234'); // 排除 mock 数据
-
-    // 4. 验证图表存在
-    await expect(page.locator('[data-testid="stats-weekly-chart"]')).toBeVisible();
+    await page.getByTestId('activity-stats').click();
+    await expect(page.getByTestId('stats-today-wordcount')).toBeVisible({ timeout: 10_000 });
+    const wordCountText = await page.getByTestId('stats-today-wordcount').innerText();
+    const wordCount = Number(wordCountText.replace(/[^\d]/g, ''));
+    expect(wordCountText.trim()).not.toBe('1,234');
+    expect(Number.isNaN(wordCount)).toBe(false);
+    expect(wordCount).toBeGreaterThanOrEqual(0);
   },
 
   /**
    * 大纲导航：点击标题跳转
    */
   'outline-navigation': async (page: Page) => {
-    // 1. 确保有打开的文件
-    await page.waitForSelector('[data-testid="editor-panel"]');
+    const fileName = `agent-outline-${Date.now()}.md`;
+    await createFile(page, fileName);
+    await typeInEditor(page, '# Title\n\n## Section A\n\nText.\n');
+    await saveNow(page);
 
-    // 2. 切换到大纲视图
-    await page.click('[data-testid="activity-outline"]');
-
-    // 3. 等待大纲列表
-    await page.waitForSelector('[data-testid="outline-list"]');
-
-    // 4. 验证大纲元素存在
-    await expect(page.locator('[data-testid="outline-word-count"]')).toBeVisible();
+    await page.getByTestId('activity-outline').click();
+    await expect(page.getByTestId('outline-list')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('outline-heading-count')).toBeVisible();
   },
 
   /**
@@ -155,8 +154,8 @@ export const testScenarios = {
    * 命令面板：打开和搜索
    */
   'command-palette-search': async (page: Page) => {
-    // 1. 打开命令面板 (Ctrl+K)
-    await page.keyboard.press('Control+k');
+    // 1. 打开命令面板 (Cmd/Ctrl+K)
+    await page.keyboard.press(`${getModKey()}+K`);
 
     // 2. 等待命令面板
     await page.waitForSelector('[data-testid="command-palette"]');
@@ -220,7 +219,7 @@ export const testScenarios = {
 
     // 2. 快速连续触发保存
     for (let i = 0; i < 5; i++) {
-      await page.keyboard.press('Control+s');
+      await page.keyboard.press(`${getModKey()}+S`);
       await page.waitForTimeout(100);
     }
 
@@ -238,36 +237,37 @@ export const testScenarios = {
  * 这些测试可以直接运行，也可以作为 Agent 的参考
  */
 test.describe('Agent-driven Test Scenarios', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5180');
-    await page.waitForLoadState('networkidle');
+  test('应用正常加载', async () => {
+    await withApp(async (page) => {
+      await expect(page.getByTestId('layout-main')).toBeVisible();
+    });
   });
 
-  test('应用正常加载', async ({ page }) => {
-    // 验证主布局存在
-    await expect(page.locator('[data-testid="layout-main"]')).toBeVisible();
+  test('侧边栏活动切换', async () => {
+    await withApp(async (page) => {
+      const activities = ['files', 'outline', 'history', 'stats', 'settings'] as const;
+      for (const activity of activities) {
+        await page.getByTestId(`activity-${activity}`).click();
+      }
+    });
   });
 
-  test('侧边栏活动切换', async ({ page }) => {
-    // 点击各个活动按钮
-    const activities = ['files', 'outline', 'history', 'stats', 'settings'];
-
-    for (const activity of activities) {
-      await page.click(`[data-testid="activity-${activity}"]`);
-      await page.waitForTimeout(100);
-    }
+  test('统计数据真实性', async () => {
+    await withApp(async (page) => {
+      await testScenarios['stats-display-accuracy'](page);
+    });
   });
 
-  test('统计数据真实性', async ({ page }) => {
-    await testScenarios['stats-display-accuracy'](page);
+  test('命令面板功能', async () => {
+    await withApp(async (page) => {
+      await testScenarios['command-palette-search'](page);
+    });
   });
 
-  test('命令面板功能', async ({ page }) => {
-    await testScenarios['command-palette-search'](page);
-  });
-
-  test('AI 面板连接状态', async ({ page }) => {
-    await testScenarios['ai-panel-connection'](page);
+  test('版本历史恢复', async () => {
+    await withApp(async (page) => {
+      await testScenarios['version-history-restore'](page);
+    });
   });
 });
 
