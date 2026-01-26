@@ -6,6 +6,7 @@
 import {
   Files,
   ListTree,
+  History,
   Workflow,
   Image,
   Share2,
@@ -16,6 +17,7 @@ import {
 export type SidebarView =
   | 'files'
   | 'outline'
+  | 'history'
   | 'workflow'
   | 'materials'
   | 'publish'
@@ -31,6 +33,7 @@ export function ActivityBar({ activeView, onViewChange }: ActivityBarProps) {
   const activities = [
     { id: 'files' as SidebarView, icon: Files, label: '文件浏览器' },
     { id: 'outline' as SidebarView, icon: ListTree, label: '文档大纲' },
+    { id: 'history' as SidebarView, icon: History, label: '版本历史' },
     { id: 'workflow' as SidebarView, icon: Workflow, label: '创作工作流' },
     { id: 'materials' as SidebarView, icon: Image, label: '素材库' },
     { id: 'publish' as SidebarView, icon: Share2, label: '发布平台' },
