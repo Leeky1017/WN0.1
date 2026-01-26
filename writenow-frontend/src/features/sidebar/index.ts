@@ -3,6 +3,7 @@
  */
 export { FilesView } from './FilesView';
 export { OutlineView } from './OutlineView';
+export { HistoryView } from './HistoryView';
 export { WorkflowView } from './WorkflowView';
 export { MaterialsView } from './MaterialsView';
 export { PublishView } from './PublishView';

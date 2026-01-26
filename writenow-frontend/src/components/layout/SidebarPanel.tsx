@@ -6,6 +6,7 @@
 import type { SidebarView } from './ActivityBar';
 import { FilesView } from '@/features/sidebar/FilesView';
 import { OutlineView } from '@/features/sidebar/OutlineView';
+import { HistoryView } from '@/features/sidebar/HistoryView';
 import { WorkflowView } from '@/features/sidebar/WorkflowView';
 import { MaterialsView } from '@/features/sidebar/MaterialsView';
 import { PublishView } from '@/features/sidebar/PublishView';
@@ -33,6 +34,7 @@ export function SidebarPanel({
       {view === 'outline' && (
         <OutlineView editorContent={editorContent} selectedFile={selectedFile} />
       )}
+      {view === 'history' && <HistoryView selectedFile={selectedFile} />}
       {view === 'workflow' && (
         <WorkflowView selectedFile={selectedFile} onSelectFile={onSelectFile} />
       )}
