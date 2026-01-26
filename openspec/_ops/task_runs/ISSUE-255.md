@@ -26,11 +26,10 @@
   - `openspec/_ops/task_runs/ISSUE-255.md`
 
 ### 2026-01-27 01:56 writenow-frontend deps + lint/build/unit
-- Command:
-  - `cd writenow-frontend && npm ci`
-  - `cd writenow-frontend && npm run lint`
-  - `cd writenow-frontend && npm run build`
-  - `cd writenow-frontend && npm test`
+- Command: `cd writenow-frontend && npm ci`
+- Command: `cd writenow-frontend && npm run lint`
+- Command: `cd writenow-frontend && npm run build`
+- Command: `cd writenow-frontend && npm test`
 - Key output:
   - `15 passed (15)` (vitest)
 - Evidence:
@@ -38,9 +37,8 @@
   - `writenow-frontend/src/lib/rpc/api.test.ts`
 
 ### 2026-01-27 02:05 theia backend bundle (E2E prerequisite)
-- Command:
-  - `cd writenow-theia && yarn install --frozen-lockfile`
-  - `cd writenow-theia && yarn build:browser`
+- Command: `cd writenow-theia && yarn install --frozen-lockfile`
+- Command: `cd writenow-theia && yarn build:browser`
 - Key output:
   - Backend entry generated under `writenow-theia/browser-app/src-gen/backend/main.js`
 - Evidence:
@@ -48,8 +46,7 @@
   - `writenow-theia/browser-app/src-gen/backend/schema.sql`
 
 ### 2026-01-27 02:14 writenow-frontend E2E
-- Command:
-  - `cd writenow-frontend && npm run test:e2e`
+- Command: `cd writenow-frontend && npm run test:e2e`
 - Key output:
   - `10 passed (21.0s)`
 - Evidence:
