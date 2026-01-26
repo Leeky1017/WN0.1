@@ -264,3 +264,8 @@ Changes not staged for commit:
 - Command: `cd writenow-frontend && npm run build`
 - Key output: `✓ built in 3.45s`
 - Evidence: `writenow-frontend/dist/`
+
+### 2026-01-27 01:10 CI unblocked (ripgrep 403 during yarn install)
+- Command: `gh run view 21366648589 --log-failed`
+- Key output: `@vscode/ripgrep` postinstall failed with GitHub API 403 (rate-limit) → pass `GITHUB_TOKEN` in workflows.
+- Evidence: `.github/workflows/ci.yml`, `.github/workflows/merge-serial.yml`
