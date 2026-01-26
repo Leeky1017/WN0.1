@@ -3,6 +3,11 @@
 - Branch: task/251-frontend-sync-sidebar-e2e
 - PR: <fill-after-created>
 
+## Plan
+- Preserve current local frontend demo/UI work by committing + pushing (avoid loss during git/worktree operations).
+- Re-run `.cursor/plans/frontend-completion-sprint_28130b62.plan.md` items, focusing on removing mock data and wiring real sidebar History/Stats.
+- Verify with `writenow-frontend` lint/build and add targeted E2E coverage for sidebar views.
+
 ## Goal
 - Preserve and sync all current local frontend demo/UI work by committing + pushing it.
 - Re-run `.cursor/plans/frontend-completion-sprint_28130b62.plan.md` tasks rigorously and close any remaining gaps (notably: real E2E coverage for API-backed sidebar views).
@@ -249,3 +254,13 @@ Changes not staged for commit:
   - Pushed branch: task/251-frontend-sync-sidebar-e2e
 - Evidence:
   - Remote PR draft URL printed by git push (see console output)
+
+### 2026-01-27 00:52 writenow-frontend lint
+- Command: `cd writenow-frontend && npm run lint`
+- Key output: `eslint .` (exit 0)
+- Evidence: `writenow-frontend/`
+
+### 2026-01-27 00:53 writenow-frontend build
+- Command: `cd writenow-frontend && npm run build`
+- Key output: `✓ built in 3.45s`
+- Evidence: `writenow-frontend/dist/`
