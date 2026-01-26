@@ -205,6 +205,7 @@ export function FilesView({ onSelectFile }: FilesViewProps) {
         </span>
         <div className="flex items-center gap-1">
           <button
+            data-testid="file-create-trigger"
             className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--bg-hover)] transition-colors duration-[100ms]"
             title="新建文件"
             type="button"

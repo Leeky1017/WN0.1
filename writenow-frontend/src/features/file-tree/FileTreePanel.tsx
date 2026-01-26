@@ -194,7 +194,7 @@ export function FileTreePanel() {
   const treeHeight = Math.max(0, Math.floor(size.height));
 
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-sidebar)]" data-testid="layout-sidebar">
+    <div className="h-full flex flex-col bg-[var(--bg-sidebar)]" data-testid="layout-file-tree-panel">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)]">
         <span className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">资源管理器</span>

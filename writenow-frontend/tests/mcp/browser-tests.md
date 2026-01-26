@@ -186,7 +186,7 @@ Agent 可读取并通过 browser MCP 执行的测试剧本。
 1. browser_navigate to http://localhost:5180
 2. browser_click on [data-testid="activity-files"]
 3. browser_snapshot
-4. 找到创建文件按钮并点击
+4. browser_click on [data-testid="file-create-trigger"]
 5. browser_snapshot
 6. 验证存在 [data-testid="file-create-dialog"]
 7. browser_fill in [data-testid="file-create-input"]: "test-file.md"
