@@ -413,61 +413,70 @@ export function AIPanel() {
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showSkillMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50">
-                    <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                  <div className="absolute bottom-full left-0 mb-2 w-72 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-2 z-50">
+                    <div className="px-3 py-1 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
                       快捷技能
                     </div>
-                    {builtInSkills.map((skill) => (
-                      <button
-                        key={skill.id}
-                        onClick={() => handleSkillClick(skill)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-                      >
-                        <div className="w-6 h-6 rounded flex items-center justify-center bg-[var(--bg-primary)] text-[var(--accent-primary)]">
-                          {skill.icon}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <div className="text-[12px] font-medium">
-                            {skill.name}
-                          </div>
-                          <div className="text-[10px] text-[var(--text-tertiary)]">
-                            {skill.description}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                    <div className="px-3 pb-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        {builtInSkills.map((skill) => (
+                          <button
+                            key={skill.id}
+                            onClick={() => handleSkillClick(skill)}
+                            className="flex flex-col items-start p-2 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] rounded border border-[var(--border-default)] transition-colors text-left"
+                          >
+                            <div className="w-full h-10 bg-[var(--bg-tertiary)] rounded mb-2 flex items-center justify-center text-[var(--accent-primary)]">
+                              {skill.icon}
+                            </div>
+                            <div className="w-full">
+                              <div className="text-[11px] text-[var(--text-primary)] truncate mb-0.5">
+                                {skill.name}
+                              </div>
+                              <div className="text-[10px] text-[var(--text-tertiary)]">
+                                {skill.description}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Backend skills */}
                     {skills.filter((s) => s.valid).length > 0 && (
                       <>
-                        <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium border-t border-[var(--border-default)] mt-1 pt-2">
+                        <div className="px-3 py-1 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium border-t border-[var(--border-default)] mt-1 pt-2">
                           已加载技能
                         </div>
-                        {skills
-                          .filter((s) => s.valid)
-                          .map((skill) => (
-                            <button
-                              key={skill.id}
-                              onClick={() => {
-                                setSelectedSkillId(skill.id);
-                                setInput(`使用 ${skill.name}: `);
-                                textareaRef.current?.focus();
-                                setShowSkillMenu(false);
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-                            >
-                              <div className="w-6 h-6 rounded flex items-center justify-center bg-[var(--bg-primary)] text-[var(--accent-primary)]">
-                                <Sparkles className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="flex-1 text-left">
-                                <div className="text-[12px] font-medium">
-                                  {skill.name}
-                                </div>
-                                <div className="text-[10px] text-[var(--text-tertiary)]">
-                                  {skill.description || skill.id}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
+                        <div className="px-3 pb-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            {skills
+                              .filter((s) => s.valid)
+                              .map((skill) => (
+                                <button
+                                  key={skill.id}
+                                  onClick={() => {
+                                    setSelectedSkillId(skill.id);
+                                    setInput(`使用 ${skill.name}: `);
+                                    textareaRef.current?.focus();
+                                    setShowSkillMenu(false);
+                                  }}
+                                  className="flex flex-col items-start p-2 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] rounded border border-[var(--border-default)] transition-colors text-left"
+                                >
+                                  <div className="w-full h-10 bg-[var(--bg-tertiary)] rounded mb-2 flex items-center justify-center text-[var(--accent-primary)]">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div className="w-full">
+                                    <div className="text-[11px] text-[var(--text-primary)] truncate mb-0.5">
+                                      {skill.name}
+                                    </div>
+                                    <div className="text-[10px] text-[var(--text-tertiary)] truncate">
+                                      {skill.description || skill.id}
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
                       </>
                     )}
                     <div className="border-t border-[var(--border-default)] mt-1 pt-1 px-2 pb-1">
