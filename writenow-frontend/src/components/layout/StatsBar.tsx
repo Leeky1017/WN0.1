@@ -71,44 +71,48 @@ export function StatsBar({
 
   return (
     <>
-      <div className="h-8 bg-[var(--bg-secondary)] border-b border-[var(--border-default)] flex items-center px-4 gap-6">
+      <div className="h-9 bg-[var(--bg-secondary)] border-b border-[var(--border-default)] flex items-center px-4 gap-4">
         {/* Word Count - Clickable */}
         <button
           onClick={onOpenStats}
-          className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2 py-1 -mx-2 rounded transition-colors"
+          className="flex items-center gap-2.5 hover:bg-[var(--bg-hover)] px-2.5 py-1.5 -mx-2 rounded-md transition-all duration-150"
         >
-          <Target className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-          <span className="text-[11px] text-[var(--text-secondary)]">
+          <Target className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <span className="text-[11px] text-[var(--text-secondary)] font-medium tabular-nums">
             {wordCount.toLocaleString()} 字
           </span>
-          <div className="w-20 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+          <div className="w-20 h-1.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[var(--accent-primary)] rounded-full"
+              className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <span className="text-[10px] text-[var(--text-tertiary)]">
+          <span className="text-[10px] text-[var(--text-muted)] tabular-nums">
             / {targetWordCount.toLocaleString()}
           </span>
         </button>
 
+        <div className="w-px h-4 bg-[var(--border-subtle)]" />
+
         {/* Reading Time - Clickable */}
         <button
           onClick={onOpenStats}
-          className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2 py-1 -mx-2 rounded transition-colors"
+          className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2.5 py-1.5 -mx-2 rounded-md transition-all duration-150"
         >
-          <Clock className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+          <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
           <span className="text-[11px] text-[var(--text-secondary)]">
             约 {readingTime} 分钟
           </span>
         </button>
 
+        <div className="w-px h-4 bg-[var(--border-subtle)]" />
+
         {/* Today's Progress - Clickable */}
         <button
           onClick={onOpenStats}
-          className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2 py-1 -mx-2 rounded transition-colors"
+          className="flex items-center gap-2 hover:bg-[var(--bg-hover)] px-2.5 py-1.5 -mx-2 rounded-md transition-all duration-150"
         >
-          <TrendingUp className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+          <TrendingUp className="w-3.5 h-3.5 text-[var(--text-muted)]" />
           <span className="text-[11px] text-[var(--text-secondary)]">
             今日 {todayWordCount.toLocaleString()} 字
           </span>
