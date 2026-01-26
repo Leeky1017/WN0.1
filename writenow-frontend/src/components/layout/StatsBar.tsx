@@ -1,24 +1,27 @@
 /**
  * StatsBar - 顶部统计栏组件
  * Why: 显示字数进度、阅读时间、今日字数和番茄钟计时器
+ * 数据来源：StatusBar store（编辑器实时统计）
  */
 
 import { useState, useEffect } from 'react';
 import { Clock, Target, TrendingUp, Coffee, Play, Pause, X, Settings } from 'lucide-react';
+import { useStatusBarStore } from '@/stores/statusBarStore';
 
 interface StatsBarProps {
   onOpenStats: () => void;
-  wordCount?: number;
+  /** 目标字数（可配置） */
   targetWordCount?: number;
-  todayWordCount?: number;
 }
 
 export function StatsBar({
   onOpenStats,
-  wordCount = 1234,
   targetWordCount = 3000,
-  todayWordCount = 2456,
 }: StatsBarProps) {
+  // 从 StatusBar store 获取真实数据
+  const wordCount = useStatusBarStore((s) => s.wordCount);
+  // TODO: 今日字数需要从后端统计 API 获取，暂时使用当前字数作为占位
+  const todayWordCount = wordCount;
   const [pomodoroActive, setPomodoroActive] = useState(false);
   const [pomodoroTime, setPomodoroTime] = useState(25 * 60);
   const [showBreakReminder, setShowBreakReminder] = useState(false);
