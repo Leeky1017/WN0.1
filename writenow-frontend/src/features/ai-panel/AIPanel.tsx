@@ -1,53 +1,81 @@
 /**
  * AIPanel
  * Why: Deliver Cursor-style AI chat, streaming, diff preview, and slash commands inside the right panel.
+ * Figma 样式改造：简化 Header + 输入框内嵌 Mode/SKILL/Model 选择器
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Circle, AlertTriangle } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Plus,
+  MoreHorizontal,
+  ChevronDown,
+  Check,
+  Send,
+  AlertTriangle,
+  Infinity as InfinityIcon,
+  Sparkles,
+  Wand2,
+  BookOpen,
+  Languages,
+} from 'lucide-react';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { mergeDiff } from '@/lib/diff/diffUtils';
 import { useAIStore } from '@/stores/aiStore';
 import { useEditorRuntimeStore } from '@/stores/editorRuntimeStore';
-import type { SkillListItem } from '@/types/ipc-generated';
-
 import { useAISkill } from './useAISkill';
 import { MessageList } from './components/MessageList';
-import { AIInput } from './components/AIInput';
 import { ThinkingIndicator } from './components/ThinkingIndicator';
 import { DiffView } from './components/DiffView';
-import type { SlashCommand } from './hooks/useSlashCommand';
 
-/**
- * Why: Slash command labels must remain stable even if skill display names change.
- */
-function skillToCommand(skill: SkillListItem): SlashCommand {
-  const fallback = skill.name || skill.id;
-  const slug = skill.id.split(':').pop() || fallback;
-  const normalized = slug.trim().replace(/\s+/g, '-').toLowerCase();
-  return {
-    id: skill.id,
-    name: `/${normalized || fallback}`,
-    description: skill.description || skill.name || fallback,
-    skillId: skill.id,
-  };
+type ChatMode = 'agent' | 'plan' | 'debug' | 'ask';
+
+interface BuiltInSkill {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
 }
+
+const builtInSkills: BuiltInSkill[] = [
+  {
+    id: 'generate-outline',
+    name: '生成大纲',
+    description: '根据主题生成文章大纲',
+    icon: <Sparkles className="w-3.5 h-3.5" />,
+  },
+  {
+    id: 'polish-text',
+    name: '润色文本',
+    description: '优化文本表达和用词',
+    icon: <Wand2 className="w-3.5 h-3.5" />,
+  },
+  {
+    id: 'expand-content',
+    name: '扩写内容',
+    description: '扩展和丰富现有内容',
+    icon: <BookOpen className="w-3.5 h-3.5" />,
+  },
+  {
+    id: 'rewrite-style',
+    name: '改写风格',
+    description: '转换文本风格和语气',
+    icon: <Languages className="w-3.5 h-3.5" />,
+  },
+];
+
+const models = [
+  { id: 'opus-4.5', name: 'Opus 4.5' },
+  { id: 'gpt-4', name: 'GPT-4' },
+  { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+  { id: 'claude-sonnet-3.5', name: 'Claude Sonnet 3.5' },
+];
 
 /**
  * AI panel component rendered in the right dock.
  */
 export function AIPanel() {
-  const { aiStatus, skillsStatus, skillsLoading, skillsError, sendMessage, cancelRun } = useAISkill();
+  const { skillsLoading, skillsError, sendMessage, cancelRun } = useAISkill();
 
   const messages = useAIStore((state) => state.messages);
   const input = useAIStore((state) => state.input);
@@ -62,18 +90,18 @@ export function AIPanel() {
   const setDiff = useAIStore((state) => state.setDiff);
   const resetError = useAIStore((state) => state.resetError);
 
-  const selection = useEditorRuntimeStore((state) => state.selection);
-
   const [panelError, setPanelError] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>('agent');
+  const [selectedModel, setSelectedModel] = useState('opus-4.5');
+  const [showModeMenu, setShowModeMenu] = useState(false);
+  const [showModelMenu, setShowModelMenu] = useState(false);
+  const [showSkillMenu, setShowSkillMenu] = useState(false);
 
   const endRef = useRef<HTMLDivElement | null>(null);
-
-  const commands = useMemo(() => skills.filter((skill) => skill.valid).map(skillToCommand), [skills]);
-
-  const selectedSkill = useMemo(
-    () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
-    [skills, selectedSkillId],
-  );
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
+  const modelMenuRef = useRef<HTMLDivElement>(null);
+  const skillMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -91,13 +119,55 @@ export function AIPanel() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [cancelRun, status]);
 
-  const handleSend = useCallback(
-    async (value: string, options?: { skillId?: string }) => {
-      setPanelError(null);
-      resetError();
-      await sendMessage(value, options);
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '60px';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = Math.min(scrollHeight, 180) + 'px';
+    }
+  }, [input]);
+
+  // Close menus on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        modeMenuRef.current &&
+        !modeMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowModeMenu(false);
+      }
+      if (
+        modelMenuRef.current &&
+        !modelMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowModelMenu(false);
+      }
+      if (
+        skillMenuRef.current &&
+        !skillMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowSkillMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSend = useCallback(async () => {
+    if (!input.trim()) return;
+    setPanelError(null);
+    resetError();
+    await sendMessage(input, { skillId: selectedSkillId ?? undefined });
+  }, [input, resetError, sendMessage, selectedSkillId]);
+
+  const handleSkillClick = useCallback(
+    (skill: BuiltInSkill) => {
+      setInput(`使用 ${skill.name}: `);
+      textareaRef.current?.focus();
+      setShowSkillMenu(false);
     },
-    [resetError, sendMessage],
+    [setInput],
   );
 
   const handleAcceptDiff = useCallback(() => {
@@ -105,8 +175,16 @@ export function AIPanel() {
     setPanelError(null);
 
     try {
-      const merged = mergeDiff(diff.originalText, diff.suggestedText, diff.accepted);
-      const { activeEditor, activeFilePath, selection: runtimeSelection } = useEditorRuntimeStore.getState();
+      const merged = mergeDiff(
+        diff.originalText,
+        diff.suggestedText,
+        diff.accepted,
+      );
+      const {
+        activeEditor,
+        activeFilePath,
+        selection: runtimeSelection,
+      } = useEditorRuntimeStore.getState();
       const targetSelection = diff.selection ?? runtimeSelection;
       if (!activeEditor) {
         setPanelError('当前没有可应用的编辑器');
@@ -114,7 +192,6 @@ export function AIPanel() {
       }
 
       if (!targetSelection) {
-        // No selection captured: replace the entire document.
         activeEditor.commands.setContent(merged, { contentType: 'markdown' });
       } else {
         if (activeFilePath && targetSelection.filePath !== activeFilePath) {
@@ -124,7 +201,10 @@ export function AIPanel() {
         activeEditor
           .chain()
           .focus()
-          .insertContentAt({ from: targetSelection.from, to: targetSelection.to }, merged)
+          .insertContentAt(
+            { from: targetSelection.from, to: targetSelection.to },
+            merged,
+          )
           .run();
       }
       setDiff(null);
@@ -177,126 +257,280 @@ export function AIPanel() {
     setDiff({ ...diff, accepted: diff.accepted.map(() => false) });
   }, [diff, setDiff]);
 
+  const currentModel = models.find((m) => m.id === selectedModel) || models[0];
+
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-sidebar)]" data-testid="layout-ai-panel">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-subtle)]">
-        <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[var(--accent)] to-[var(--blue-700)] flex items-center justify-center">
-          <Bot className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-[var(--text-primary)]">AI 助手</span>
-          <span className="text-[10px] text-[var(--text-muted)]">AI 面板 · Phase 3</span>
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
-            <Circle
-              className={cn(
-                'h-2 w-2',
-                aiStatus === 'connected' ? 'text-[var(--color-success)]' : 'text-[var(--text-muted)]',
-              )}
-            />
-            AI
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
-            <Circle
-              className={cn(
-                'h-2 w-2',
-                skillsStatus === 'connected' ? 'text-[var(--color-success)]' : 'text-[var(--text-muted)]',
-              )}
-            />
-            Skills
-          </div>
+    <div
+      className="h-full flex flex-col bg-[var(--bg-primary)]"
+      data-testid="layout-ai-panel"
+    >
+      {/* Header - Figma 样式 */}
+      <div className="h-11 flex items-center justify-between px-3 border-b border-[var(--border-default)] flex-shrink-0">
+        <span className="text-[13px] text-[var(--text-primary)] font-medium">
+          Chat
+        </span>
+        <div className="flex items-center gap-1">
+          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
+            <Plus className="w-4 h-4" />
+          </button>
+          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      <div className="px-4 py-3 border-b border-[var(--border-subtle)] flex items-center gap-3">
-        <div className="flex-1">
-          <Select value={selectedSkillId ?? undefined} onValueChange={setSelectedSkillId} disabled={skillsLoading}>
-            <SelectTrigger className="h-8">
-              <SelectValue placeholder="选择技能" />
-            </SelectTrigger>
-            <SelectContent>
-              {skills.filter((skill) => skill.valid).map((skill) => (
-                <SelectItem key={skill.id} value={skill.id}>
-                  {skill.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={status !== 'thinking' && status !== 'streaming'}
-          onClick={() => void cancelRun()}
-        >
-          取消 (Esc)
-        </Button>
-      </div>
-
+      {/* Error Messages */}
       {skillsError && (
-        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-subtle)]">
+        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)]">
           {skillsError}
         </div>
       )}
 
       {status === 'canceled' && (
-        <div className="px-4 py-2 text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
+        <div className="px-4 py-2 text-xs text-[var(--text-tertiary)] border-b border-[var(--border-default)]">
           已取消
         </div>
       )}
 
       {panelError && (
-        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-subtle)] flex items-center gap-2">
+        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)] flex items-center gap-2">
           <AlertTriangle className="h-3.5 w-3.5" />
           {panelError}
         </div>
       )}
 
       {lastError && (
-        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-subtle)]">
+        <div className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)]">
           {lastError.code}: {lastError.message}
         </div>
       )}
 
+      {/* Messages */}
       <ScrollArea className="flex-1">
-        <div className="p-4">
-          <MessageList messages={messages} />
-          {status === 'thinking' && <ThinkingIndicator />}
-          {diff && (
-            <div className="mt-4">
-              <DiffView
-                diff={diff}
-                onToggleHunk={handleToggleHunk}
-                onAccept={handleAcceptDiff}
-                onReject={handleRejectDiff}
-                onAcceptAll={handleAcceptAll}
-                onRejectAll={handleRejectAll}
-              />
+        <div className="px-3 py-4">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center py-16">
+              <div className="text-[13px] text-[var(--text-primary)] font-medium mb-1">
+                开始对话
+              </div>
+              <div className="text-[11px] text-[var(--text-tertiary)]">
+                使用下方 SKILL 或直接输入
+              </div>
             </div>
+          ) : (
+            <>
+              <MessageList messages={messages} />
+              {status === 'thinking' && <ThinkingIndicator />}
+              {diff && (
+                <div className="mt-4">
+                  <DiffView
+                    diff={diff}
+                    onToggleHunk={handleToggleHunk}
+                    onAccept={handleAcceptDiff}
+                    onReject={handleRejectDiff}
+                    onAcceptAll={handleAcceptAll}
+                    onRejectAll={handleRejectAll}
+                  />
+                </div>
+              )}
+            </>
           )}
           <div ref={endRef} />
         </div>
       </ScrollArea>
 
-      <div className="border-t border-[var(--border-subtle)] px-4 py-3">
-        <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] mb-2">
-          <span>
-            {selectedSkill ? `当前技能：${selectedSkill.name}` : '请选择技能'}
-          </span>
-          <span>
-            {selection?.text?.trim() ? `选区 ${selection.text.length} 字` : '无选区'}
-          </span>
+      {/* Input Area - Figma 样式 */}
+      <div className="border-t border-[var(--border-default)] p-3 flex-shrink-0">
+        <div className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-default)] focus-within:border-[var(--border-focus)] transition-colors">
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                void handleSend();
+              }
+            }}
+            placeholder="Ask anything..."
+            disabled={skillsLoading || status === 'thinking' || status === 'streaming'}
+            className="w-full bg-transparent text-[13px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] outline-none resize-none px-3 pt-3 pb-2 min-h-[60px] max-h-[200px]"
+            rows={1}
+          />
+
+          {/* Bottom Controls - Inside Input Box */}
+          <div className="flex items-center justify-between gap-2 px-3 pb-2.5">
+            {/* Left: Mode + SKILL + Model */}
+            <div className="flex items-center gap-1.5">
+              {/* Mode Selector */}
+              <div className="relative" ref={modeMenuRef}>
+                <button
+                  onClick={() => setShowModeMenu(!showModeMenu)}
+                  className="flex items-center gap-1 px-2.5 h-7 rounded hover:bg-[var(--bg-hover)] transition-colors text-[11px] text-[var(--text-secondary)] font-medium"
+                >
+                  <InfinityIcon className="w-3 h-3" />
+                  <span>
+                    {chatMode.charAt(0).toUpperCase() + chatMode.slice(1)}
+                  </span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showModeMenu && (
+                  <div className="absolute bottom-full left-0 mb-2 w-32 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                      模式
+                    </div>
+                    {(['agent', 'plan', 'debug', 'ask'] as ChatMode[]).map(
+                      (mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => {
+                            setChatMode(mode);
+                            setShowModeMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                        >
+                          <span>
+                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                          </span>
+                          {chatMode === mode && (
+                            <Check className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+                          )}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* SKILL Dropdown */}
+              <div className="relative" ref={skillMenuRef}>
+                <button
+                  onClick={() => setShowSkillMenu(!showSkillMenu)}
+                  className="flex items-center gap-1 px-2.5 h-7 rounded hover:bg-[var(--bg-hover)] transition-colors text-[11px] text-[var(--text-secondary)] font-medium"
+                >
+                  <span>SKILL</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showSkillMenu && (
+                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                      快捷技能
+                    </div>
+                    {builtInSkills.map((skill) => (
+                      <button
+                        key={skill.id}
+                        onClick={() => handleSkillClick(skill)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                      >
+                        <div className="w-6 h-6 rounded flex items-center justify-center bg-[var(--bg-primary)] text-[var(--accent-primary)]">
+                          {skill.icon}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="text-[12px] font-medium">
+                            {skill.name}
+                          </div>
+                          <div className="text-[10px] text-[var(--text-tertiary)]">
+                            {skill.description}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                    {/* Backend skills */}
+                    {skills.filter((s) => s.valid).length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium border-t border-[var(--border-default)] mt-1 pt-2">
+                          已加载技能
+                        </div>
+                        {skills
+                          .filter((s) => s.valid)
+                          .map((skill) => (
+                            <button
+                              key={skill.id}
+                              onClick={() => {
+                                setSelectedSkillId(skill.id);
+                                setInput(`使用 ${skill.name}: `);
+                                textareaRef.current?.focus();
+                                setShowSkillMenu(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                            >
+                              <div className="w-6 h-6 rounded flex items-center justify-center bg-[var(--bg-primary)] text-[var(--accent-primary)]">
+                                <Sparkles className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="flex-1 text-left">
+                                <div className="text-[12px] font-medium">
+                                  {skill.name}
+                                </div>
+                                <div className="text-[10px] text-[var(--text-tertiary)]">
+                                  {skill.description || skill.id}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                      </>
+                    )}
+                    <div className="border-t border-[var(--border-default)] mt-1 pt-1 px-2 pb-1">
+                      <button className="w-full h-7 px-2 rounded hover:bg-[var(--bg-hover)] text-[11px] text-[var(--text-secondary)] transition-colors flex items-center justify-center gap-1.5">
+                        <Plus className="w-3.5 h-3.5" />
+                        创建新 SKILL
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Model Selector */}
+              <div className="relative" ref={modelMenuRef}>
+                <button
+                  onClick={() => setShowModelMenu(!showModelMenu)}
+                  className="flex items-center gap-1 px-2.5 h-7 rounded hover:bg-[var(--bg-hover)] transition-colors text-[11px] text-[var(--text-secondary)] font-medium"
+                >
+                  <span className="truncate max-w-[80px]">
+                    {currentModel.name}
+                  </span>
+                  <ChevronDown className="w-3 h-3 flex-shrink-0" />
+                </button>
+                {showModelMenu && (
+                  <div className="absolute bottom-full left-0 mb-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-2 py-1.5 text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">
+                      选择模型
+                    </div>
+                    {models.map((model) => (
+                      <button
+                        key={model.id}
+                        onClick={() => {
+                          setSelectedModel(model.id);
+                          setShowModelMenu(false);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                      >
+                        <span>{model.name}</span>
+                        {selectedModel === model.id && (
+                          <Check className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Send Button */}
+            <button
+              onClick={() => void handleSend()}
+              disabled={
+                !input.trim() ||
+                skillsLoading ||
+                status === 'thinking' ||
+                status === 'streaming'
+              }
+              className="h-7 w-7 rounded-full hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:pointer-events-none text-[var(--text-secondary)] transition-colors flex items-center justify-center flex-shrink-0"
+            >
+              <Send className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-        <AIInput
-          value={input}
-          disabled={skillsLoading || status === 'thinking' || status === 'streaming'}
-          commands={commands}
-          onChange={setInput}
-          onSend={handleSend}
-          onSelectSkill={setSelectedSkillId}
-        />
       </div>
     </div>
   );

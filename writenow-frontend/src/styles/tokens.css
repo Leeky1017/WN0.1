@@ -63,4 +63,22 @@
   --duration-normal: 150ms;
   --duration-slow: 200ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ===== Figma 参考配色方案 ===== */
+  --bg-primary: #0d0d0d;
+  --bg-secondary: #161616;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: #212121;
+  --bg-active: #2a2a2a;
+  
+  --border-default: #2a2a2a;
+  --border-subtle: #1f1f1f;
+  --border-focus: #3b82f6;
+  
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
 }
