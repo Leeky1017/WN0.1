@@ -1,7 +1,7 @@
 # ISSUE-246
 - Issue: #246
 - Branch: task/246-ui-polish
-- PR: pending
+- PR: https://github.com/Leeky1017/WN0.1/pull/247
 
 ## Plan
 - Improve UI polish: buttons, spacing, transitions
