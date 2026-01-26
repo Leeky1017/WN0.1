@@ -1,114 +1,55 @@
-# RUN_LOG: Issue #242 - Phase 4: Agent 自动化测试能力
+# ISSUE-242
+- Issue: #242
+- Branch: task/242-agent-tests
+- PR: https://github.com/Leeky1017/WN0.1/pull/243
 
-## 元数据
-
-- **Issue**: https://github.com/Leeky1017/WN0.1/issues/242
-- **PR**: https://github.com/Leeky1017/WN0.1/pull/243
-- **分支**: `task/242-agent-tests`
-- **开始时间**: 2026-01-26
-- **状态**: done
-
-## 目标
-
-为 Agent 提供自动化测试能力，使其可以通过 browser MCP 执行完整的前端测试流程。
-
-## 任务范围
-
-- Task 4.1: TestID 标准化审计
-- Task 4.2: Agent 测试入口设计
-- Task 4.3: 浏览器 MCP 测试脚本
-
----
+## Plan
+- Audit and add data-testid to all key interactive elements
+- Create Agent test entry file (agent-test-runner.spec.ts)
+- Create browser MCP test scripts (browser-tests.md)
 
 ## Runs
+### 2026-01-26 18:00 testid-audit
+- Command: `grep -r 'data-testid=' src/`
+- Key output: `27 existing data-testid found`
+- Evidence: `writenow-frontend/src/components/`, `writenow-frontend/src/features/`
 
-### Run 1: TestID 标准化审计
+### 2026-01-26 18:01 add-testids
+- Command: `vim src/components/layout/AppLayout.tsx src/components/layout/MenuBar.tsx src/components/editor/EditorToolbar.tsx src/features/editor/EditorPanel.tsx src/features/command-palette/CommandPalette.tsx src/features/sidebar/SettingsView.tsx`
+- Key output: `Added 20+ data-testid to layout, toolbar, command palette, settings`
+- Evidence: `writenow-frontend/src/components/layout/AppLayout.tsx`, `writenow-frontend/src/components/layout/MenuBar.tsx`, `writenow-frontend/src/components/editor/EditorToolbar.tsx`
 
-**时间**: 2026-01-26 18:00
+### 2026-01-26 18:02 create-agent-tests
+- Command: `touch tests/e2e/agent-test-runner.spec.ts && vim tests/e2e/agent-test-runner.spec.ts`
+- Key output: `Created 10 test scenarios for Agent-driven testing`
+- Evidence: `writenow-frontend/tests/e2e/agent-test-runner.spec.ts`
 
-**目标**: 审计所有可交互元素，确保有 `data-testid`
+### 2026-01-26 18:03 create-mcp-scripts
+- Command: `mkdir -p tests/mcp && vim tests/mcp/browser-tests.md`
+- Key output: `Created browser MCP test playbook with data-testid index`
+- Evidence: `writenow-frontend/tests/mcp/browser-tests.md`
 
-**执行步骤**:
+### 2026-01-26 18:04 lint
+- Command: `npm run lint`
+- Key output: `eslint . (no errors)`
+- Evidence: `writenow-frontend/`
 
-1. 审计现有 data-testid（27 处）
-2. 添加布局级别 data-testid:
-   - `layout-main` (AppLayout)
-   - `menubar`, `menu-file/edit/view/publish` (MenuBar)
-   - `toggle-stats-bar`, `toggle-focus-mode`, `toggle-ai-panel`
-3. 添加编辑器工具栏 data-testid:
-   - `editor-panel` (EditorPanel)
-   - `editor-toolbar` (EditorToolbar)
-   - `toolbar-mode-markdown/richtext`
-   - `toolbar-view-edit/preview/split`
-   - `toolbar-export`
-4. 添加命令面板 data-testid:
-   - `command-palette`
-   - `command-palette-dialog`
-   - `command-palette-input`
-5. 添加设置视图 data-testid:
-   - `settings-view`
-   - `settings-list`
-   - `settings-group-{name}`
-   - `settings-item-{name}`
+### 2026-01-26 18:04 build
+- Command: `npm run build`
+- Key output: `✓ 2181 modules transformed, built in 5.63s`
+- Evidence: `writenow-frontend/dist/`
 
-**结果**: ✅ 新增 20+ data-testid
+### 2026-01-26 18:04 unit-tests
+- Command: `npm test`
+- Key output: `Test Files 2 passed, Tests 15 passed`
+- Evidence: `writenow-frontend/src/lib/diff/diffUtils.test.ts`, `writenow-frontend/src/lib/rpc/api.test.ts`
 
-### Run 2: Agent 测试入口
+### 2026-01-26 18:05 commit-push
+- Command: `git add -A && git commit && git push -u origin HEAD`
+- Key output: `9 files changed, 706 insertions(+), 15 deletions(-)`
+- Evidence: `git log --oneline -2`
 
-**时间**: 2026-01-26 18:02
-
-**目标**: 创建可被 Agent 驱动的测试框架
-
-**执行步骤**:
-
-1. 创建 `tests/e2e/agent-test-runner.spec.ts`
-2. 定义 10 个测试场景:
-   - `create-file-edit-save`
-   - `version-history-restore`
-   - `stats-display-accuracy`
-   - `outline-navigation`
-   - `ai-panel-connection`
-   - `command-palette-search`
-   - `long-content-10k-chars`
-   - `special-characters-unicode`
-   - `rapid-consecutive-saves`
-3. 添加 Playwright E2E 测试用例
-
-**结果**: ✅ Agent 测试入口已创建
-
-### Run 3: 浏览器 MCP 测试脚本
-
-**时间**: 2026-01-26 18:03
-
-**目标**: 创建 Agent 可读取执行的测试剧本
-
-**执行步骤**:
-
-1. 创建 `tests/mcp/browser-tests.md`
-2. 编写 10 个测试剧本:
-   - 应用启动验证
-   - 侧边栏切换功能
-   - StatsView 真实数据
-   - HistoryView 版本历史
-   - OutlineView 大纲导航
-   - AI 面板连接状态
-   - 命令面板
-   - 编辑器工具栏
-   - 创建新文件
-   - 边界测试（长内容、特殊字符、快速保存）
-3. 添加完整 data-testid 索引表
-
-**结果**: ✅ MCP 测试脚本已创建
-
-### Run 4: 验证和提交
-
-**时间**: 2026-01-26 18:04
-
-**验证命令**:
-```bash
-npm run lint  # ✅ 通过
-npm run build # ✅ 通过
-npm test      # ✅ 15 tests passing
-```
-
-**状态**: 准备提交
+### 2026-01-26 18:06 create-pr
+- Command: `gh pr create --title "feat(frontend): Phase 4 - Agent 自动化测试能力 (#242)"`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/243`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/243`
