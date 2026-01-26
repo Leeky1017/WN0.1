@@ -1,17 +1,19 @@
 /**
  * FlexLayout 默认布局配置
+ * Figma 样式改造：FileTree 已移到外层 SidebarPanel
  * @see design/03-layout-system.md
  */
 import type { IJsonModel } from 'flexlayout-react';
 
 export const LAYOUT_STORAGE_KEY = 'writenow-layout';
-export const LAYOUT_VERSION = 1;
+export const LAYOUT_VERSION = 2; // 升级版本以清除旧的缓存布局
 
 /**
  * 面板组件类型
+ * Why: FileTree 已移到外层 SidebarPanel，从 FlexLayout 中移除
  */
-export type PanelComponent = 
-  | 'FileTree'
+export type PanelComponent =
+  | 'FileTree' // 保留类型以兼容可能存在的旧布局
   | 'Editor'
   | 'AIPanel'
   | 'VersionHistory'
@@ -20,7 +22,8 @@ export type PanelComponent =
 
 /**
  * 默认布局配置
- * 四区布局：左侧文件树、中间编辑器、右侧 AI 面板、底部可选面板
+ * 两区布局：中间编辑器区域（含底部面板）+ 右侧 AI 面板
+ * FileTree 已移到外层 SidebarPanel
  */
 export const defaultLayout: IJsonModel = {
   global: {
@@ -34,25 +37,10 @@ export const defaultLayout: IJsonModel = {
     type: 'row',
     weight: 100,
     children: [
-      // 左侧文件树
-      {
-        type: 'tabset',
-        id: 'sidebar',
-        weight: 20,
-        minWidth: 180,
-        children: [
-          {
-            type: 'tab',
-            name: '文件',
-            component: 'FileTree',
-            enableClose: false,
-          },
-        ],
-      },
       // 中间编辑器区域（含底部面板）
       {
         type: 'row',
-        weight: 60,
+        weight: 75,
         children: [
           {
             type: 'tabset',
@@ -67,32 +55,32 @@ export const defaultLayout: IJsonModel = {
               },
             ],
           },
-          // 底部面板（版本历史等）- Phase 5 将实现完整功能
+          // 底部面板（版本历史等）
           {
             type: 'tabset',
             id: 'bottom',
             weight: 30,
             minHeight: 160,
             children: [
-          {
-            type: 'tab',
-            name: '版本历史',
-            component: 'VersionHistory',
+              {
+                type: 'tab',
+                name: '版本历史',
+                component: 'VersionHistory',
+              },
+              {
+                type: 'tab',
+                name: '组件',
+                component: 'UiShowcase',
+              },
+            ],
           },
-          {
-            type: 'tab',
-            name: '组件',
-            component: 'UiShowcase',
-          },
-        ],
-      },
         ],
       },
       // 右侧 AI 面板
       {
         type: 'tabset',
         id: 'ai',
-        weight: 20,
+        weight: 25,
         minWidth: 280,
         children: [
           {

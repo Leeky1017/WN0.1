@@ -1,6 +1,7 @@
 /**
  * EditorToolbar
  * Why: Provide Word/Notion-like formatting controls so non-Markdown users can write comfortably.
+ * Figma 样式改造：添加 Markdown/Word 模式切换 + Edit/Preview/Split 视图切换
  */
 
 import { useEffect, useState } from 'react';
@@ -31,13 +32,16 @@ import {
   Undo,
   Download,
   CheckSquare,
+  Edit3,
+  Eye,
+  Columns,
 } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from '@/components/ui';
 import type { EditorMode } from '@/stores';
-import { ModeSwitch } from './ModeSwitch';
 import { ToolbarButton } from './ToolbarButton';
+
+export type ViewMode = 'edit' | 'preview' | 'split';
 
 type HeadingValue = 'paragraph' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -97,11 +101,13 @@ export interface EditorToolbarProps {
   editor: Editor | null;
   mode: EditorMode;
   onModeChange: (mode: EditorMode) => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
   onRequestExport: () => void;
 }
 
 export function EditorToolbar(props: EditorToolbarProps) {
-  const { editor, mode, onModeChange, onRequestExport } = props;
+  const { editor, mode, onModeChange, viewMode = 'edit', onViewModeChange, onRequestExport } = props;
 
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
@@ -129,19 +135,92 @@ export function EditorToolbar(props: EditorToolbarProps) {
   const heading = getCurrentHeading(editor);
 
   return (
-    <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-sidebar)]">
-      <ToolbarButton
-        icon={<Undo className="w-4 h-4" />}
-        tooltip="撤销 (Ctrl/Cmd+Z)"
-        disabled={disabled || !editor?.can().undo()}
-        onClick={() => editor?.chain().focus().undo().run()}
-      />
-      <ToolbarButton
-        icon={<Redo className="w-4 h-4" />}
-        tooltip="重做 (Ctrl/Cmd+Shift+Z)"
-        disabled={disabled || !editor?.can().redo()}
-        onClick={() => editor?.chain().focus().redo().run()}
-      />
+    <div className="flex flex-col border-b border-[var(--border-default)] bg-[var(--bg-primary)]">
+      {/* Figma 样式 - 模式切换栏 */}
+      <div className="h-10 flex items-center justify-between px-3 border-b border-[var(--border-default)]">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onModeChange('markdown')}
+            className={`h-6 px-2.5 rounded text-[11px] transition-colors ${
+              mode === 'markdown'
+                ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            Markdown
+          </button>
+          <button
+            onClick={() => onModeChange('richtext')}
+            className={`h-6 px-2.5 rounded text-[11px] transition-colors ${
+              mode === 'richtext'
+                ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            Word
+          </button>
+
+          {mode === 'richtext' && (
+            <>
+              <div className="w-px h-4 bg-[var(--border-default)] mx-1" />
+              <span className="text-[11px] text-[var(--text-tertiary)]">
+                选中文字显示格式工具
+              </span>
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewModeChange?.('edit')}
+            className={`h-6 px-2 rounded text-[11px] flex items-center gap-1 transition-colors ${
+              viewMode === 'edit'
+                ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            <Edit3 className="w-3 h-3" />
+            Edit
+          </button>
+          <button
+            onClick={() => onViewModeChange?.('preview')}
+            className={`h-6 px-2 rounded text-[11px] flex items-center gap-1 transition-colors ${
+              viewMode === 'preview'
+                ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            <Eye className="w-3 h-3" />
+            Preview
+          </button>
+          <button
+            onClick={() => onViewModeChange?.('split')}
+            className={`h-6 px-2 rounded text-[11px] flex items-center gap-1 transition-colors ${
+              viewMode === 'split'
+                ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            <Columns className="w-3 h-3" />
+            Split
+          </button>
+        </div>
+      </div>
+
+      {/* 格式化工具栏 */}
+      <div className="flex items-center gap-1 px-2 py-1.5 bg-[var(--bg-secondary)]">
+        <ToolbarButton
+          icon={<Undo className="w-4 h-4" />}
+          tooltip="撤销 (Ctrl/Cmd+Z)"
+          disabled={disabled || !editor?.can().undo()}
+          onClick={() => editor?.chain().focus().undo().run()}
+        />
+        <ToolbarButton
+          icon={<Redo className="w-4 h-4" />}
+          tooltip="重做 (Ctrl/Cmd+Shift+Z)"
+          disabled={disabled || !editor?.can().redo()}
+          onClick={() => editor?.chain().focus().redo().run()}
+        />
 
       <Separator orientation="vertical" className="mx-1 h-5 bg-[var(--border-subtle)]" />
 
@@ -343,10 +422,6 @@ export function EditorToolbar(props: EditorToolbarProps) {
 
       <div className="flex-1" />
 
-      <div className={cn('hidden sm:flex items-center gap-2', mode === 'markdown' && 'opacity-90')}>
-        <ModeSwitch mode={mode} onChange={onModeChange} />
-      </div>
-
       <Separator orientation="vertical" className="mx-1 h-5 bg-[var(--border-subtle)]" />
 
       <Button
@@ -359,6 +434,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         <Download className="w-4 h-4 mr-2" />
         导出
       </Button>
+      </div>
 
       {/* Link dialog */}
       <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
