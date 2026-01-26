@@ -1,7 +1,7 @@
 # ISSUE-236
 - Issue: #236
 - Branch: task/236-frontend-phase1-mock-elimination
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/237
 
 ## Plan
 - Task 1.1: StatsView 接入 stats:getToday/getRange API
