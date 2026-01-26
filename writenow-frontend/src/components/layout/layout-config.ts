@@ -6,7 +6,7 @@
 import type { IJsonModel } from 'flexlayout-react';
 
 export const LAYOUT_STORAGE_KEY = 'writenow-layout';
-export const LAYOUT_VERSION = 2; // 升级版本以清除旧的缓存布局
+export const LAYOUT_VERSION = 3; // 升级版本以清除旧的缓存布局（移除底部面板）
 
 /**
  * 面板组件类型
@@ -22,8 +22,9 @@ export type PanelComponent =
 
 /**
  * 默认布局配置
- * 两区布局：中间编辑器区域（含底部面板）+ 右侧 AI 面板
+ * 两区布局：中间编辑器区域 + 右侧 AI 面板
  * FileTree 已移到外层 SidebarPanel
+ * Why: 移除底部面板（版本历史/组件），简化布局
  */
 export const defaultLayout: IJsonModel = {
   global: {
@@ -32,47 +33,23 @@ export const defaultLayout: IJsonModel = {
     tabEnableRename: false,
     splitterSize: 4,
     splitterExtra: 4,
+    tabSetEnableMaximize: false, // 禁用最大化按钮，防止布局崩溃
   },
   layout: {
     type: 'row',
     weight: 100,
     children: [
-      // 中间编辑器区域（含底部面板）
+      // 中间编辑器区域
       {
-        type: 'row',
+        type: 'tabset',
+        id: 'editor',
         weight: 75,
         children: [
           {
-            type: 'tabset',
-            id: 'editor',
-            weight: 70,
-            children: [
-              {
-                type: 'tab',
-                name: '欢迎',
-                component: 'Welcome',
-                enableClose: false,
-              },
-            ],
-          },
-          // 底部面板（版本历史等）
-          {
-            type: 'tabset',
-            id: 'bottom',
-            weight: 30,
-            minHeight: 160,
-            children: [
-              {
-                type: 'tab',
-                name: '版本历史',
-                component: 'VersionHistory',
-              },
-              {
-                type: 'tab',
-                name: '组件',
-                component: 'UiShowcase',
-              },
-            ],
+            type: 'tab',
+            name: '欢迎',
+            component: 'Welcome',
+            enableClose: false,
           },
         ],
       },
