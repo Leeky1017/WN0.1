@@ -123,6 +123,8 @@ export interface TipTapEditorProps {
   contentVersion: number;
   /** Editor UI mode; used for styling/behavior toggles. */
   mode: EditorMode;
+  /** When true, editor becomes read-only (no edits / no autosave). */
+  readOnly?: boolean;
 
   onEditorReady: (editor: Editor | null) => void;
   onFocusChanged: (focused: boolean) => void;
@@ -130,7 +132,7 @@ export interface TipTapEditorProps {
 }
 
 export function TipTapEditor(props: TipTapEditorProps) {
-  const { content, contentVersion, mode, onEditorReady, onFocusChanged, onMarkdownChanged } = props;
+  const { content, contentVersion, mode, readOnly = false, onEditorReady, onFocusChanged, onMarkdownChanged } = props;
 
   const isApplyingExternalUpdateRef = useRef(false);
 
@@ -203,6 +205,7 @@ export function TipTapEditor(props: TipTapEditorProps) {
       extensions,
       content,
       contentType: 'markdown',
+      editable: !readOnly,
       editorProps: {
         attributes: {
           class:

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Clock, Zap, Target } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useStatusBarStore } from '@/stores/statusBarStore';
 
 /**
  * StatsBar - Writing session statistics display.
@@ -11,13 +12,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
  * Layout: Single clickable stat that expands to show full dashboard.
  */
 export function StatsBar() {
+  const wordCount = useStatusBarStore((s) => s.wordCount);
   return (
     <div className="flex items-center gap-2">
       <Popover>
         <PopoverTrigger asChild>
           <button className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-[var(--bg-hover)] transition-all text-[11px] font-medium text-[var(--fg-muted)] hover:text-[var(--fg-default)] group">
             <Target size={12} className="text-[var(--accent-default)]" />
-            <span className="tabular-nums">1,204 words</span>
+            <span className="tabular-nums">{wordCount.toLocaleString()} 字</span>
           </button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-64">

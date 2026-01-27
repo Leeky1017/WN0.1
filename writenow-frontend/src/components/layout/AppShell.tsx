@@ -1,16 +1,17 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, FolderPlus } from 'lucide-react';
 import { ActivityBar, type SidebarTab } from './activity-bar';
 import { SidebarPanel } from './sidebar-panel';
 import { Header } from './header';
 import { Footer } from './footer';
-import { Editor } from '../editor/Editor';
-import { AIPanel } from '../ai-panel/AIPanel';
-import { WelcomeScreen } from './WelcomeScreen';
-import { FileItem } from '../composed/file-item';
 import { SearchField } from '@/components/composed/search-field';
-import { IconButton } from '@/components/ui/icon-button';
+
+import { AIPanel } from '@/features/ai-panel/AIPanel';
+import { WriteModeEditorPanel } from '@/features/write-mode/WriteModeEditorPanel';
+import { WriteModeFileTree } from '@/features/write-mode/WriteModeFileTree';
+import { useWriteModeStore } from '@/features/write-mode/writeModeStore';
+import { useLayoutStore } from '@/stores/layoutStore';
+import { useStatusBarStore } from '@/stores/statusBarStore';
 
 /**
  * AppShell - The main application layout container.
@@ -22,38 +23,54 @@ import { IconButton } from '@/components/ui/icon-button';
  * - React.memo on child components (FileItem, MessageBubble)
  */
 export function AppShell() {
-  const [isAiPanelOpen, setIsAiPanelOpen] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('files');
-  const [showWelcome, setShowWelcome] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const sidebarCollapsed = useLayoutStore((s) => s.sidebarCollapsed);
+  const rightPanelCollapsed = useLayoutStore((s) => s.rightPanelCollapsed);
+  const activeSidebarTab = useLayoutStore((s) => s.activeSidebarView);
+  const setActiveSidebarView = useLayoutStore((s) => s.setActiveSidebarView);
+  const setSidebarCollapsed = useLayoutStore((s) => s.setSidebarCollapsed);
+  const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
+  const toggleRightPanel = useLayoutStore((s) => s.toggleRightPanel);
+
+  const isSidebarOpen = !sidebarCollapsed;
+  const isAiPanelOpen = !rightPanelCollapsed;
+
+  const activeFilePath = useWriteModeStore((s) => s.activeFilePath);
+  const saveNow = useWriteModeStore((s) => s.saveNow);
+
+  const saveStatus = useStatusBarStore((s) => s.saveStatus);
+  const saveError = useStatusBarStore((s) => s.saveError);
+  const isConnected = useStatusBarStore((s) => s.isConnected);
+  const cursorPosition = useStatusBarStore((s) => s.cursorPosition);
+  const documentType = useStatusBarStore((s) => s.documentType);
+
+  const fileName = useMemo(() => {
+    if (!activeFilePath) return 'Untitled';
+    const parts = activeFilePath.split('/');
+    return parts[parts.length - 1] ?? activeFilePath;
+  }, [activeFilePath]);
 
   /**
    * Handle tab change with smart toggle behavior.
    * Clicking active tab collapses sidebar, clicking other tab opens it.
    */
   const handleTabChange = useCallback((tab: SidebarTab) => {
-    setActiveSidebarTab((current) => {
-      if (current === tab) {
-        setIsSidebarOpen((open) => !open);
-        return current;
-      }
-      setIsSidebarOpen(true);
-      return tab;
-    });
-  }, []);
+    if (tab === activeSidebarTab) {
+      toggleSidebar();
+      return;
+    }
+    setActiveSidebarView(tab);
+    setSidebarCollapsed(false);
+  }, [activeSidebarTab, setActiveSidebarView, setSidebarCollapsed, toggleSidebar]);
 
   const handleToggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
+    toggleSidebar();
+  }, [toggleSidebar]);
 
   const handleToggleAiPanel = useCallback(() => {
-    setIsAiPanelOpen((prev) => !prev);
-  }, []);
-
-  const handleStartFromWelcome = useCallback(() => {
-    setShowWelcome(false);
-  }, []);
+    toggleRightPanel();
+  }, [toggleRightPanel]);
 
   /** Map sidebar tab to display title */
   const sidebarTitle = useMemo(() => {
@@ -67,16 +84,20 @@ export function AppShell() {
     return titles[activeSidebarTab];
   }, [activeSidebarTab]);
 
-  if (showWelcome) {
-    return <WelcomeScreen onStart={handleStartFromWelcome} />;
-  }
+  const handleRetrySave = useCallback(() => {
+    void saveNow('retry').catch(() => {
+      // Why: save errors are surfaced via unified indicators; retry is best-effort.
+    });
+  }, [saveNow]);
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)] text-[var(--fg-default)] font-sans select-none">
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)] text-[var(--fg-default)] font-sans">
       {/* 1. Header: The Command Center */}
       <Header
-        fileName="prologue.md"
-        isSaved={true}
+        fileName={fileName}
+        saveStatus={saveStatus}
+        saveErrorMessage={saveError?.message ?? undefined}
+        onRetrySave={handleRetrySave}
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={handleToggleSidebar}
         isAiPanelOpen={isAiPanelOpen}
@@ -87,7 +108,7 @@ export function AppShell() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Side: Navigation Stack */}
-        <div className="flex h-full shrink-0">
+        <div className="flex h-full shrink-0" data-testid="layout-sidebar">
           {/* Activity Bar (Icons) - New refactored component */}
           <ActivityBar activeTab={activeSidebarTab} onTabChange={handleTabChange} />
 
@@ -117,25 +138,10 @@ export function AppShell() {
             >
             <SidebarPanel
               title={sidebarTitle}
-              actions={
-                activeSidebarTab === 'files' ? (
-                  <>
-                    <IconButton icon={FolderPlus} size="sm" tooltip="New Folder" tooltipSide="bottom" />
-                    <IconButton icon={Plus} size="sm" tooltip="New File" tooltipSide="bottom" />
-                  </>
-                ) : undefined
-              }
             >
               {/* Files View */}
               {activeSidebarTab === 'files' && (
-                <div className="py-2 px-2 space-y-0.5">
-                  <FileItem name="prologue.md" type="file" depth={0} active selected />
-                  <FileItem name="chapter-1.md" type="file" depth={0} />
-                  <FileItem name="research" type="folder" depth={0} expanded />
-                  <FileItem name="character-profiles.md" type="file" depth={1} />
-                  <FileItem name="world-building.md" type="file" depth={1} modified />
-                  <FileItem name="outline.md" type="file" depth={0} />
-                </div>
+                <WriteModeFileTree />
               )}
               
               {/* Search View */}
@@ -201,7 +207,7 @@ export function AppShell() {
 
         {/* Middle: The Editor (Main Canvas) */}
         <main className="flex-1 h-full relative min-w-0 bg-[var(--bg-base)]">
-          <Editor />
+          <WriteModeEditorPanel />
         </main>
 
         {/* 
@@ -213,6 +219,7 @@ export function AppShell() {
           - Opacity fade adds polish without layout cost
         */}
         <aside 
+          data-testid="layout-ai-panel"
           className="h-full bg-[var(--bg-surface)] border-l border-[var(--border-subtle)] overflow-hidden transition-[width] duration-[250ms] ease-out"
           style={{ 
             width: isAiPanelOpen ? 360 : 0,
@@ -233,7 +240,17 @@ export function AppShell() {
       </div>
 
       {/* 3. Footer: System Status */}
-      <Footer line={42} column={12} encoding="UTF-8" language="Markdown" isConnected={true} />
+      <Footer
+        fileName={fileName}
+        saveStatus={saveStatus}
+        saveErrorMessage={saveError?.message ?? undefined}
+        onRetrySave={handleRetrySave}
+        line={cursorPosition.line}
+        column={cursorPosition.column}
+        encoding="UTF-8"
+        language={documentType}
+        isConnected={isConnected}
+      />
     </div>
   );
 }

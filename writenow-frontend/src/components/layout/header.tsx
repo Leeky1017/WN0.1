@@ -1,12 +1,17 @@
 import { Sidebar as SidebarIcon, PanelRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatsBar } from './StatsBar';
+import type { SaveStatus } from '@/stores/statusBarStore';
 
 interface HeaderProps {
   /** Current file name to display */
   fileName?: string;
-  /** Whether the file has unsaved changes */
-  isSaved?: boolean;
+  /** Unified save status (SSOT) */
+  saveStatus: SaveStatus;
+  /** Human-readable error message when saveStatus === 'error' */
+  saveErrorMessage?: string;
+  /** Retry callback when saveStatus === 'error' */
+  onRetrySave?: () => void;
   /** Whether the sidebar is currently open */
   isSidebarOpen: boolean;
   /** Callback to toggle sidebar visibility */
@@ -30,14 +35,46 @@ interface HeaderProps {
  */
 export function Header({
   fileName = 'Untitled',
-  isSaved = true,
+  saveStatus,
+  saveErrorMessage,
+  onRetrySave,
   isSidebarOpen,
   onToggleSidebar,
   isAiPanelOpen,
   onToggleAiPanel,
 }: HeaderProps) {
+  const saveLabel =
+    saveStatus === 'saved'
+      ? '已保存'
+      : saveStatus === 'saving'
+        ? '保存中…'
+        : saveStatus === 'unsaved'
+          ? '未保存'
+          : '保存失败';
+
+  const saveDotClass =
+    saveStatus === 'saved'
+      ? 'bg-[var(--success)] shadow-[0_0_5px_var(--success)]'
+      : saveStatus === 'saving'
+        ? 'bg-[var(--accent-default)] shadow-[0_0_5px_var(--accent-default)] animate-pulse'
+        : saveStatus === 'unsaved'
+          ? 'bg-[var(--warning)] shadow-[0_0_5px_var(--warning)]'
+          : 'bg-[var(--error)] shadow-[0_0_5px_var(--error)]';
+
+  const saveTitle =
+    saveStatus === 'error' && saveErrorMessage
+      ? `保存失败：${saveErrorMessage}`
+      : saveStatus === 'saved'
+        ? '已保存'
+        : saveStatus === 'saving'
+          ? '保存中…'
+          : '未保存';
+
   return (
-    <header className="h-11 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] z-50 relative">
+    <header
+      className="h-11 shrink-0 flex items-center justify-between px-3 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] z-50 relative"
+      data-testid="wm-header"
+    >
       {/* Left: Sidebar Toggle + Branding */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
@@ -71,13 +108,31 @@ export function Header({
         </span>
         <div
           className={cn(
-            'w-1.5 h-1.5 rounded-full',
-            isSaved
-              ? 'bg-[var(--success)] shadow-[0_0_5px_var(--success)]'
-              : 'bg-[var(--warning)] shadow-[0_0_5px_var(--warning)]'
+            'flex items-center gap-2 px-2 py-1 rounded-md border border-[var(--border-subtle)]',
+            saveStatus === 'error' && onRetrySave ? 'cursor-pointer hover:bg-[var(--bg-hover)]' : 'bg-transparent'
           )}
-          title={isSaved ? 'All changes saved' : 'Unsaved changes'}
-        />
+          data-testid="wm-save-indicator"
+          title={saveTitle}
+          role={saveStatus === 'error' && onRetrySave ? 'button' : undefined}
+          tabIndex={saveStatus === 'error' && onRetrySave ? 0 : undefined}
+          onClick={saveStatus === 'error' && onRetrySave ? onRetrySave : undefined}
+          onKeyDown={
+            saveStatus === 'error' && onRetrySave
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onRetrySave();
+                  }
+                }
+              : undefined
+          }
+        >
+          <div className={cn('w-1.5 h-1.5 rounded-full', saveDotClass)} />
+          <span className="text-[10px] font-semibold text-[var(--fg-subtle)]">{saveLabel}</span>
+          {saveStatus === 'error' && onRetrySave && (
+            <span className="text-[10px] text-[var(--fg-muted)]">· 重试</span>
+          )}
+        </div>
       </div>
 
       {/* Right: Stats + AI Panel Toggle */}

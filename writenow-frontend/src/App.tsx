@@ -1,5 +1,6 @@
-import { AppShell } from './components/layout/AppShell';
 import { TooltipProvider } from './components/ui/tooltip';
+import { ElectronApiProvider } from './lib/electron/ElectronApiProvider';
+import { WriteModePage } from './features/write-mode/WriteModePage';
 
 /**
  * WriteNow Artistic Demo - Main App
@@ -9,9 +10,11 @@ import { TooltipProvider } from './components/ui/tooltip';
  */
 function App() {
   return (
-    <TooltipProvider>
-      <AppShell />
-    </TooltipProvider>
+    <ElectronApiProvider>
+      <TooltipProvider>
+        <WriteModePage />
+      </TooltipProvider>
+    </ElectronApiProvider>
   );
 }
 

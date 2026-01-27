@@ -13,6 +13,3 @@ export type { ModeSwitchProps } from './ModeSwitch';
 
 export { FloatingToolbar } from './FloatingToolbar';
 export type { FloatingToolbarProps } from './FloatingToolbar';
-
-// Re-export the original Editor for backward compatibility
-export { Editor } from './Editor';

@@ -7,27 +7,44 @@ import { create } from 'zustand';
 
 const LAYOUT_STORAGE_KEY = 'writenow_layout_v1';
 
+export type SidebarView = 'files' | 'search' | 'outline' | 'history' | 'settings';
+
 export interface LayoutState {
   /** Left sidebar collapsed state */
   sidebarCollapsed: boolean;
   /** Right panel (AI) collapsed state */
   rightPanelCollapsed: boolean;
   /** Active sidebar view */
-  activeSidebarView: string;
+  activeSidebarView: SidebarView;
 
   setSidebarCollapsed: (collapsed: boolean) => void;
   setRightPanelCollapsed: (collapsed: boolean) => void;
-  setActiveSidebarView: (view: string) => void;
+  setActiveSidebarView: (view: SidebarView) => void;
   toggleSidebar: () => void;
   toggleRightPanel: () => void;
   resetLayout: () => void;
+}
+
+function isSidebarView(value: unknown): value is SidebarView {
+  return (
+    value === 'files' ||
+    value === 'search' ||
+    value === 'outline' ||
+    value === 'history' ||
+    value === 'settings'
+  );
 }
 
 function loadLayoutState(): Partial<LayoutState> {
   try {
     const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw) as Partial<LayoutState>;
+    const parsed = JSON.parse(raw) as Partial<LayoutState>;
+    const next: Partial<LayoutState> = { ...parsed };
+    if (!isSidebarView(parsed.activeSidebarView)) {
+      delete next.activeSidebarView;
+    }
+    return next;
   } catch {
     return {};
   }
