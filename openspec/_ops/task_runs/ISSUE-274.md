@@ -1,7 +1,7 @@
 # ISSUE-274
 - Issue: #274
 - Branch: task/274-sprint-ai-memory-spec-polish
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/276
 
 ## Plan
 - Tighten `sprint-ai-memory` spec/design to remove ambiguity (units/schema/mapping) and improve observability guidance.
@@ -27,3 +27,11 @@
 - Command: `rulebook task validate issue-274-sprint-ai-memory-spec-polish`
 - Key output: `✅ Task issue-274-sprint-ai-memory-spec-polish is valid`
 - Evidence: `rulebook/tasks/issue-274-sprint-ai-memory-spec-polish/`
+
+### 2026-01-27 14:57 push + PR
+- Command: `git push -u origin HEAD`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/new/task/274-sprint-ai-memory-spec-polish`
+- Evidence: `origin/task/274-sprint-ai-memory-spec-polish`
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/276`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/276
