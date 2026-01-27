@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ActivityBar, type SidebarTab } from './activity-bar';
 import { SidebarPanel } from './sidebar-panel';
@@ -7,9 +7,11 @@ import { Footer } from './footer';
 import { SearchField } from '@/components/composed/search-field';
 
 import { AIPanel } from '@/features/ai-panel/AIPanel';
+import { CommandPalette } from '@/features/command-palette';
 import { WriteModeEditorPanel } from '@/features/write-mode/WriteModeEditorPanel';
 import { WriteModeFileTree } from '@/features/write-mode/WriteModeFileTree';
 import { useWriteModeStore } from '@/features/write-mode/writeModeStore';
+import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useStatusBarStore } from '@/stores/statusBarStore';
 
@@ -25,22 +27,28 @@ import { useStatusBarStore } from '@/stores/statusBarStore';
 export function AppShell() {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const togglePalette = useCommandPaletteStore((s) => s.togglePalette);
+
   const sidebarCollapsed = useLayoutStore((s) => s.sidebarCollapsed);
   const rightPanelCollapsed = useLayoutStore((s) => s.rightPanelCollapsed);
+  const focusMode = useLayoutStore((s) => s.focusMode);
   const activeSidebarTab = useLayoutStore((s) => s.activeSidebarView);
   const setActiveSidebarView = useLayoutStore((s) => s.setActiveSidebarView);
   const setSidebarCollapsed = useLayoutStore((s) => s.setSidebarCollapsed);
+  const toggleFocusMode = useLayoutStore((s) => s.toggleFocusMode);
   const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
   const toggleRightPanel = useLayoutStore((s) => s.toggleRightPanel);
 
-  const isSidebarOpen = !sidebarCollapsed;
-  const isAiPanelOpen = !rightPanelCollapsed;
+  const isSidebarOpen = !sidebarCollapsed && !focusMode;
+  const isAiPanelOpen = !rightPanelCollapsed && !focusMode;
 
   const activeFilePath = useWriteModeStore((s) => s.activeFilePath);
   const saveNow = useWriteModeStore((s) => s.saveNow);
 
   const saveStatus = useStatusBarStore((s) => s.saveStatus);
   const saveError = useStatusBarStore((s) => s.saveError);
+  const aiStatus = useStatusBarStore((s) => s.aiStatus);
+  const wordCount = useStatusBarStore((s) => s.wordCount);
   const isConnected = useStatusBarStore((s) => s.isConnected);
   const cursorPosition = useStatusBarStore((s) => s.cursorPosition);
   const documentType = useStatusBarStore((s) => s.documentType);
@@ -90,25 +98,56 @@ export function AppShell() {
     });
   }, [saveNow]);
 
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      const isCmdk = (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'k';
+      if (isCmdk) {
+        event.preventDefault();
+        togglePalette();
+        return;
+      }
+
+      const isFocusToggle =
+        (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && (event.code === 'Backslash' || event.key === '\\');
+      if (isFocusToggle) {
+        event.preventDefault();
+        toggleFocusMode();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [toggleFocusMode, togglePalette]);
+
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)] text-[var(--fg-default)] font-sans">
+    <div
+      data-testid="wm-focus-root"
+      data-focus-mode={focusMode ? '1' : '0'}
+      className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)] text-[var(--fg-default)] font-sans"
+    >
       {/* 1. Header: The Command Center */}
-      <Header
-        fileName={fileName}
-        saveStatus={saveStatus}
-        saveErrorMessage={saveError?.message ?? undefined}
-        onRetrySave={handleRetrySave}
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={handleToggleSidebar}
-        isAiPanelOpen={isAiPanelOpen}
-        onToggleAiPanel={handleToggleAiPanel}
-      />
+      <div className={focusMode ? 'hidden' : undefined}>
+        <Header
+          fileName={fileName}
+          saveStatus={saveStatus}
+          saveErrorMessage={saveError?.message ?? undefined}
+          onRetrySave={handleRetrySave}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={handleToggleSidebar}
+          isAiPanelOpen={isAiPanelOpen}
+          onToggleAiPanel={handleToggleAiPanel}
+        />
+      </div>
 
       {/* 2. Main Workbench */}
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Side: Navigation Stack */}
-        <div className="flex h-full shrink-0" data-testid="layout-sidebar">
+        <div
+          className="flex h-full shrink-0 overflow-hidden"
+          data-testid="layout-sidebar"
+          style={{ width: focusMode ? 0 : undefined }}
+        >
           {/* Activity Bar (Icons) - New refactored component */}
           <ActivityBar activeTab={activeSidebarTab} onTabChange={handleTabChange} />
 
@@ -240,17 +279,38 @@ export function AppShell() {
       </div>
 
       {/* 3. Footer: System Status */}
-      <Footer
-        fileName={fileName}
-        saveStatus={saveStatus}
-        saveErrorMessage={saveError?.message ?? undefined}
-        onRetrySave={handleRetrySave}
-        line={cursorPosition.line}
-        column={cursorPosition.column}
-        encoding="UTF-8"
-        language={documentType}
-        isConnected={isConnected}
-      />
+      <div className={focusMode ? 'hidden' : undefined}>
+        <Footer
+          fileName={fileName}
+          saveStatus={saveStatus}
+          saveErrorMessage={saveError?.message ?? undefined}
+          onRetrySave={handleRetrySave}
+          line={cursorPosition.line}
+          column={cursorPosition.column}
+          encoding="UTF-8"
+          language={documentType}
+          isConnected={isConnected}
+        />
+      </div>
+
+      {focusMode && (
+        <div
+          data-testid="wm-focus-hud"
+          className="fixed top-3 right-3 z-[60] px-3 py-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-lg backdrop-blur-[2px]"
+        >
+          <div className="text-[11px] font-semibold text-[var(--fg-default)] max-w-[280px] truncate">{fileName}</div>
+          <div className="mt-1 flex items-center gap-2 text-[10px] text-[var(--fg-subtle)]">
+            <span className="tabular-nums">{wordCount} words</span>
+            <span>·</span>
+            <span>AI: {aiStatus}</span>
+            <span>·</span>
+            <span>{saveStatus === 'saved' ? '已保存' : saveStatus === 'saving' ? '保存中…' : saveStatus === 'unsaved' ? '未保存' : '保存失败'}</span>
+            <span className="ml-1 text-[var(--fg-muted)]">Esc 退出</span>
+          </div>
+        </div>
+      )}
+
+      <CommandPalette />
     </div>
   );
 }
