@@ -1,7 +1,7 @@
 # ISSUE-314
 - Issue: #314
 - Branch: task/314-e2e-write-mode-ci
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/315
 
 ## Plan
 - Add CI workflow to run @write-mode Playwright Electron E2E with artifacts.
@@ -32,3 +32,8 @@
 - Command: `openspec validate --specs --strict --no-interactive`
 - Key output: `Totals: 5 passed, 0 failed (5 items)`
 - Evidence: `openspec/specs/**`
+
+### 2026-01-28 04:31 pr
+- Command: `gh pr create --title "[WRITE-MODE-IDE] P2-001: CI gate for @write-mode E2E (artifacts) (#314)" --body "Closes #314 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/315`
+- Evidence: `PR #315`
