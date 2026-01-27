@@ -92,3 +92,8 @@
 - Command: `gh pr create --title "[WRITE-MODE-IDE] Stabilize e2e-write-mode flakes (focus + review + teardown) (#316)" ...`
 - Key output: https://github.com/Leeky1017/WN0.1/pull/318
 - Evidence: PR #318
+
+### 2026-01-27 23:35 UTC — Enable auto-merge (squash)
+- Command: `gh pr merge --auto --squash 318`
+- Key output: `autoMergeRequest.enabledAt=2026-01-27T23:35:05Z`
+- Evidence: `gh pr view 318 --json autoMergeRequest,mergeStateStatus`
