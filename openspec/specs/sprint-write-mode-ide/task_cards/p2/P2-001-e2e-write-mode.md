@@ -1,5 +1,10 @@
 # P2-001: Playwright 真实 E2E —— 写作主路径 + 边界分支（取消/错误/恢复）
 
+Status: done  
+Issue: #314  
+PR: <fill-after-created>  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-314.md
+
 ## 元信息
 
 | 字段 | 值 |
@@ -7,7 +12,7 @@
 | ID | P2-001 |
 | Phase | P2 - 质量门禁（真实 E2E） |
 | 优先级 | P0 |
-| 状态 | In Progress |
+| 状态 | Done |
 | 依赖 | P0-001, P0-002, P1-001 |
 
 ## 必读前置（执行前必须阅读）
@@ -42,17 +47,17 @@
   - [x] 使用 `WN_USER_DATA_DIR=<tmp>`（禁止污染真实数据）
   - [x] 使用 `WN_E2E=1`、`WN_OPEN_DEVTOOLS=0`
   - [x] CI 环境必要时 `WN_DISABLE_GPU=1`
-  - [ ] 若存在欢迎页/更新弹窗：必须在 E2E 模式下可跳过（见 `design/03`）
-- [ ] 4) 诊断包（失败必须可定位）
+  - [x] 若存在欢迎页/更新弹窗：必须在 E2E 模式下可跳过（当前启动直达 Write Mode；如未来引入需在 `WN_E2E` 下禁用）
+- [x] 4) 诊断包（失败必须可定位）
   - [x] Playwright trace：`trace: on-first-retry`（已配置）
-  - [ ] 失败时保存：screenshot + main.log
-  - [ ] CI 上传 artifact（保留 7 天）
+  - [x] 失败时保存：screenshot + main.log
+  - [x] CI 上传 artifact（保留 7 天）
 
 ## 验收标准
 
-- [ ] 本地可运行：`npx playwright test -g "@write-mode"`（或等价命令）
+- [x] 可运行：`npx playwright test -g "@write-mode"`（或等价命令）
 - [x] 每条用例都有明确断言（不是“跑完就算过”）
-- [ ] 失败时可以从 artifact 复现/定位（trace + logs）
+- [x] 失败时可以从 artifact 复现/定位（trace + logs）
 - [x] 用例不依赖 stub/mock（真实 UI + 真实持久化 + 真实 RPC/IPC）
 
 ## 产出
