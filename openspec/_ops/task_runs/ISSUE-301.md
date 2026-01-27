@@ -17,3 +17,8 @@
 - Command: `rulebook task archive issue-299-p1-003-review-mode`
 - Key output: `Task issue-299-p1-003-review-mode archived successfully`
 - Evidence: `openspec/specs/sprint-write-mode-ide/task_cards/p1/P1-003-ai-review-mode.md`, `rulebook/tasks/archive/2026-01-27-issue-299-p1-003-review-mode/`
+
+### 2026-01-28 00:47 sync writenow-spec progress
+- Command: `rg -n \"Sprint Write Mode IDE\" openspec/specs/writenow-spec/spec.md`
+- Key output: `Roadmap updated: Sprint Write Mode IDE Phase 1 now includes P1-003 (Issue #299 / PR #300)`
+- Evidence: `openspec/specs/writenow-spec/spec.md`

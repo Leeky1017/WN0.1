@@ -875,7 +875,7 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
-### 当前状态（2026-01-27）
+### 当前状态（2026-01-28）
 
 - Sprint 1–5：✅ 已完成
 - Sprint 6：✅ 已完成（核心体验），剩余项已暂停（见下）
@@ -901,9 +901,10 @@ CREATE TABLE settings (
   - Phase 0：✅ 已完成（2026-01-27；Issue #281，PR #286）
     - [x] P0-001：Write Mode SSOT（真实 `file:*` + TipTap + AI Panel）
     - [x] P0-002：保存状态贯穿（Header/StatusBar/FileTree）
-  - Phase 1：✅ 已完成（2026-01-27；Issue #292，PR #295）
-    - [x] P1-001：Command Palette UI（Cmd/Ctrl+K）
-    - [x] P1-002：Focus/Zen 模式 + Esc 优先级（取消 AI / 退出 Review / 退出 Focus）
+  - Phase 1：✅ 已完成（2026-01-28；Issue #299，PR #300）
+    - [x] P1-001：Command Palette UI（Cmd/Ctrl+K）（Issue #292，PR #295）
+    - [x] P1-002：Focus/Zen 模式 + Esc 优先级（取消 AI / 退出 Review / 退出 Focus）（Issue #292，PR #295）
+    - [x] P1-003：Review Mode —— AI Diff 可读 + Accept/Reject + 可回退（Issue #299，PR #300）
 - Sprint AI-Memory（AI 记忆 + 上下文工程）：
   - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
     - [x] P0-001：SKILL `context_rules` 声明式注入
