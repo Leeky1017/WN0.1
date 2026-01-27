@@ -1,7 +1,7 @@
 # ISSUE-299
 - Issue: #299
 - Branch: task/299-p1-003-review-mode
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/300
 
 ## Plan
 - Integrate AiDiff + Local LLM Tab extensions into TipTapEditor and wire Review Mode Accept/Reject to version history.
