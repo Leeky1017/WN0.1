@@ -13,6 +13,7 @@ export { Button } from './button';
 export { IconButton } from './icon-button';
 export { Input } from './input';
 export { Textarea } from './textarea';
+export { Switch } from './switch';
 
 // Display components
 export { Badge } from './badge';

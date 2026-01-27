@@ -1290,6 +1290,113 @@ export type ContextWritenowConversationsAnalysisUpdateResponse = {
   updated: true;
   index: WritenowConversationIndexItem;
 };
+
+export type LocalLlmSettings = {
+  enabled: boolean;
+  modelId: string;
+  maxTokens: number;
+  temperature: number;
+  timeoutMs: number;
+  idleDelayMs: number;
+};
+
+export type LocalLlmModelProgress = {
+  receivedBytes: number;
+  totalBytes?: number;
+};
+
+export type LocalLlmModelStateStatus = 'idle' | 'downloading' | 'ready' | 'error';
+
+export type LocalLlmModelState = {
+  status: LocalLlmModelStateStatus;
+  modelId?: string;
+  modelPath?: string;
+  progress?: LocalLlmModelProgress;
+  error?: IpcError;
+};
+
+export type LocalLlmModelDescriptor = {
+  id: string;
+  label: string;
+  filename?: string;
+  url?: string;
+  sizeBytes?: number;
+  sha256?: string;
+};
+
+export type LocalLlmModelListRequest = Record<string, never>;
+
+export type LocalLlmModelListResponse = {
+  models: LocalLlmModelDescriptor[];
+  installedModelIds: string[];
+  state: LocalLlmModelState;
+  settings: LocalLlmSettings;
+};
+
+export type LocalLlmModelEnsureRequest = {
+  modelId: string;
+  allowDownload: boolean;
+};
+
+export type LocalLlmModelEnsureResponse = {
+  modelPath: string;
+};
+
+export type LocalLlmModelRemoveRequest = {
+  modelId: string;
+};
+
+export type LocalLlmModelRemoveResponse = {
+  removed: true;
+};
+
+export type LocalLlmSettingsGetRequest = Record<string, never>;
+
+export type LocalLlmSettingsGetResponse = {
+  settings: LocalLlmSettings;
+  state: LocalLlmModelState;
+};
+
+export type LocalLlmSettingsUpdateRequest = {
+  enabled?: boolean;
+  modelId?: string;
+  maxTokens?: number;
+  temperature?: number;
+  timeoutMs?: number;
+  idleDelayMs?: number;
+};
+
+export type LocalLlmSettingsUpdateResponse = {
+  settings: LocalLlmSettings;
+};
+
+export type LocalLlmTabCompleteRequest = {
+  prefix: string;
+  suffix: string;
+  maxTokens: number;
+  temperature: number;
+  timeoutMs: number;
+  stop?: string[];
+};
+
+export type LocalLlmTabCompleteResponse = {
+  runId: string;
+  startedAt: number;
+};
+
+export type LocalLlmTabCancelRequest = {
+  runId: string;
+  reason: 'user' | 'input' | 'timeout';
+};
+
+export type LocalLlmTabCancelResponse = {
+  canceled: true;
+};
+
+export type LocalLlmTabStreamEvent =
+  | { type: 'delta'; runId: string; text: string }
+  | { type: 'done'; runId: string; result: string; durationMs: number }
+  | { type: 'error'; runId: string; error: IpcError };
 `;
 
 module.exports = {

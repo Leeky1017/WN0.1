@@ -3,10 +3,12 @@
  * Why: Host the TipTap editor and wire markdown changes to the Write Mode SSOT (autosave + status).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Editor } from '@tiptap/core';
 
 import { TipTapEditor } from '@/components/editor';
+import { useElectronApi, useLocalLlm } from '@/lib/electron';
+import { createLocalLlmTabCompletionPlugin, localLlmTabPluginKey } from '@/lib/editor/extensions/tab-completion';
 import { useEditorModeStore } from '@/stores/editorModeStore';
 import { useEditorRuntimeStore } from '@/stores/editorRuntimeStore';
 import { useStatusBarStore } from '@/stores/statusBarStore';
@@ -16,6 +18,9 @@ import { useWriteModeStore } from './writeModeStore';
 export function WriteModeEditorPanel() {
   const editorMode = useEditorModeStore((s) => s.mode);
   const isConnected = useStatusBarStore((s) => s.isConnected);
+
+  const electronApi = useElectronApi();
+  const localLlm = useLocalLlm();
 
   const activeFilePath = useWriteModeStore((s) => s.activeFilePath);
   const markdown = useWriteModeStore((s) => s.markdown);
@@ -28,9 +33,67 @@ export function WriteModeEditorPanel() {
 
   const [editor, setEditor] = useState<Editor | null>(null);
 
+  const localLlmClient = useMemo(() => {
+    const llm = electronApi?.localLlm;
+    if (!llm) return null;
+    if (!llm.complete || !llm.cancel || !llm.onStream) return null;
+    return {
+      complete: llm.complete,
+      cancel: llm.cancel,
+      onStream: llm.onStream,
+    };
+  }, [electronApi]);
+
   const handleEditorReady = useCallback((next: Editor | null) => {
     setEditor(next);
   }, []);
+
+  useEffect(() => {
+    if (!editor) return;
+    if (!localLlmClient) return;
+
+    const enabled = Boolean(localLlm.settings?.enabled) && isConnected;
+
+    const current = localLlmTabPluginKey.getState(editor.state);
+    if (current?.runId) {
+      void localLlmClient.cancel({ runId: current.runId, reason: 'user' }).catch(() => undefined);
+    }
+    editor.unregisterPlugin(localLlmTabPluginKey);
+
+    if (!enabled) return;
+
+    editor.registerPlugin(
+      createLocalLlmTabCompletionPlugin({
+        enabled: true,
+        client: localLlmClient,
+        minPrefixChars: 24,
+        maxPrefixChars: 4000,
+        maxSuffixChars: 2000,
+        idleDelayMs: localLlm.settings?.idleDelayMs ?? 800,
+        maxTokens: localLlm.settings?.maxTokens ?? 48,
+        temperature: localLlm.settings?.temperature ?? 0.4,
+        timeoutMs: localLlm.settings?.timeoutMs ?? 15_000,
+        stop: ['\n\n'],
+      }),
+    );
+
+    return () => {
+      const next = localLlmTabPluginKey.getState(editor.state);
+      if (next?.runId) {
+        void localLlmClient.cancel({ runId: next.runId, reason: 'user' }).catch(() => undefined);
+      }
+      editor.unregisterPlugin(localLlmTabPluginKey);
+    };
+  }, [
+    editor,
+    isConnected,
+    localLlm.settings?.enabled,
+    localLlm.settings?.idleDelayMs,
+    localLlm.settings?.maxTokens,
+    localLlm.settings?.temperature,
+    localLlm.settings?.timeoutMs,
+    localLlmClient,
+  ]);
 
   useEffect(() => {
     if (!activeFilePath) return;
