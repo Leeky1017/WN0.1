@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# WriteNow Artistic Frontend Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a standalone, high-fidelity frontend demo showcasing the "Professional & Artistic" design direction for WriteNow.
 
-Currently, two official plugins are available:
+## 🎨 Design Philosophy
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This demo moves away from the "generic SaaS" look towards a more immersive, texture-rich, and emotional design language suitable for a creative tool.
 
-## React Compiler
+### Key Pillars:
+1.  **Immersive Typography**: Uses a carefully selected serif font for the editor to evoke the feeling of a book or high-quality print.
+2.  **"Midnight" Theme with Depth**: Instead of flat blacks, we use deep zinc/slate tones with subtle violet/indigo tints to create a "Midnight" atmosphere.
+3.  **Glassmorphism & Texture**: Panels use backdrop blur to feel like floating layers. A subtle noise texture overlay adds "grain" and physicality to the digital surface.
+4.  **Invisible UI**: Controls like the Stats Bar and Sidebar toggles are unobtrusive or hidden until needed, keeping the focus on writing.
+5.  **Micro-interactions**: Fluid transitions using Framer Motion make the app feel alive and responsive.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Tech Stack
 
-## Expanding the ESLint configuration
+-   **Framework**: React + Vite + TypeScript
+-   **Styling**: Tailwind CSS 4.x (using the new `@theme` configuration)
+-   **Animation**: Framer Motion
+-   **Icons**: Lucide React
+-   **Primitives**: Radix UI (Popover, etc.)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 How to Run
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  Navigate to this directory:
+    ```bash
+    cd writenow-artistic-demo
+    ```
+2.  Install dependencies (already done):
+    ```bash
+    npm install
+    ```
+3.  Start the dev server:
+    ```bash
+    npm run dev
+    ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📂 Project Structure
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+-   `src/styles/globals.css`: The heart of the design system. Defines the color palette, typography, and noise texture.
+-   `src/components/layout/AppShell.tsx`: The main 3-pane layout with smooth collapsible transitions.
+-   `src/components/editor/Editor.tsx`: The immersive writing surface with "breathing" ambient effects.
+-   `src/components/ai-panel/AIPanel.tsx`: The AI assistant with a glass-like chat interface.
+-   `src/components/sidebar/Sidebar.tsx`: Minimalist navigation with active state animations.
+-   `src/components/layout/WelcomeScreen.tsx`: An emotional "Zero State" entry point.

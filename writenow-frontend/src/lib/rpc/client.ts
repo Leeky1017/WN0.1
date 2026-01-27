@@ -1,6 +1,5 @@
 /**
  * RPC Client for WebSocket JSON-RPC communication with Theia backend
- * @see design/04-rpc-client.md
  */
 
 import { listen } from 'vscode-ws-jsonrpc'

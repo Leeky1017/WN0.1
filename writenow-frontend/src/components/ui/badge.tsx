@@ -1,7 +1,3 @@
-/**
- * Badge component for displaying status or labels.
- */
-
 import { cn } from '@/lib/utils';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'accent';

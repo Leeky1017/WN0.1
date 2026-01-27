@@ -1,7 +1,3 @@
-/**
- * SearchField component combining Input with search icon and clear button.
- */
-
 import { memo, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -53,7 +49,6 @@ export const SearchField = memo(function SearchField({
     },
     [onChange]
   );
-
   return (
     <div className={cn('relative', className)}>
       <Input

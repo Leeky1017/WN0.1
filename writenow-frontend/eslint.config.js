@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'dist-electron', 'release']),
+  globalIgnores(['dist']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -18,12 +18,6 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
-    },
-  },
-  {
-    files: ['electron/**/*.ts', 'electron.vite.config.ts'],
-    languageOptions: {
-      globals: globals.node,
     },
   },
 ])

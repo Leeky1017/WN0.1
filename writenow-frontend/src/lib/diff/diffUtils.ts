@@ -43,4 +43,3 @@ export function mergeDiff(original: string, modified: string, accepted: boolean[
   }
   return out;
 }
-

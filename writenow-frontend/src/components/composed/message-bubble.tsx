@@ -1,8 +1,5 @@
-/**
- * MessageBubble component for displaying chat messages.
- */
-
 import { memo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Bot, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { IconButton } from '@/components/ui/icon-button';
@@ -55,22 +52,28 @@ export const MessageBubble = memo(function MessageBubble({
   // User message: highlighted border, accent background
   if (role === 'user') {
     return (
-      <div
-        className={cn('animate-slide-up', className)}
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className={className}
       >
         <div className="px-4 py-3 rounded-lg border border-[var(--accent-muted)] bg-[var(--accent-subtle)]">
           <p className="text-sm leading-relaxed text-[var(--fg-default)]">
             {content}
           </p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   // Assistant message: with avatar and copy action
   return (
-    <div
-      className={cn('flex gap-3 group animate-slide-up', className)}
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className={cn('flex gap-3 group', className)}
     >
       {/* Avatar */}
       <div className="w-6 h-6 rounded-md bg-[var(--accent-muted)] flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -104,6 +107,6 @@ export const MessageBubble = memo(function MessageBubble({
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 });

@@ -19,8 +19,8 @@ export function ModeSwitch(props: ModeSwitchProps) {
         type="button"
         onClick={() => onChange('richtext')}
         className={cn(
-          'px-2 py-1 text-xs rounded-[var(--radius-sm)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
-          mode === 'richtext' && 'bg-[var(--bg-active)] text-[var(--text-primary)]',
+          'px-2 py-1 text-xs rounded-[var(--radius-sm)] text-[var(--fg-muted)] hover:text-[var(--fg-default)]',
+          mode === 'richtext' && 'bg-[var(--bg-active)] text-[var(--fg-default)]',
         )}
       >
         富文本
@@ -29,8 +29,8 @@ export function ModeSwitch(props: ModeSwitchProps) {
         type="button"
         onClick={() => onChange('markdown')}
         className={cn(
-          'px-2 py-1 text-xs rounded-[var(--radius-sm)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
-          mode === 'markdown' && 'bg-[var(--bg-active)] text-[var(--text-primary)]',
+          'px-2 py-1 text-xs rounded-[var(--radius-sm)] text-[var(--fg-muted)] hover:text-[var(--fg-default)]',
+          mode === 'markdown' && 'bg-[var(--bg-active)] text-[var(--fg-default)]',
         )}
       >
         Markdown
@@ -40,4 +40,3 @@ export function ModeSwitch(props: ModeSwitchProps) {
 }
 
 export default ModeSwitch;
-

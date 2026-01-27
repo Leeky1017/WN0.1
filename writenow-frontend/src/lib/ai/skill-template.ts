@@ -74,4 +74,3 @@ export function renderSkillPrompt(definition: SkillFileDefinition | undefined, i
 
   return { systemPrompt, userContent };
 }
-

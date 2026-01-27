@@ -84,4 +84,3 @@ export const useCommandPaletteStore = create<CommandPaletteState>((set, get) => 
 }));
 
 export default useCommandPaletteStore;
-

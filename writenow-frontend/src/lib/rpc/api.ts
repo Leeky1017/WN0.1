@@ -1,6 +1,5 @@
 /**
  * Type-safe RPC API wrapper
- * @see design/04-rpc-client.md
  */
 
 import type {

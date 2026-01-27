@@ -101,15 +101,4 @@
   /* Glass effect background */
   --glass-bg: rgba(9, 9, 11, 0.85);
   --glass-border: rgba(255, 255, 255, 0.06);
-
-  /* ===== Legacy Compatibility ===== */
-  /* These map new tokens to old variable names used in existing code */
-  --bg-app: var(--bg-base);
-  --bg-sidebar: var(--bg-surface);
-  --bg-panel: var(--bg-elevated);
-  --bg-editor: var(--bg-surface);
-  --text-primary: var(--fg-default);
-  --text-secondary: var(--fg-muted);
-  --text-muted: var(--fg-subtle);
-  --accent: var(--accent-default);
 }

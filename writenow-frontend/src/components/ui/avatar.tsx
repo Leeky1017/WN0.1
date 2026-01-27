@@ -1,7 +1,3 @@
-/**
- * Avatar component for displaying user profile images.
- */
-
 import { cn } from '@/lib/utils';
 
 type AvatarSize = 'sm' | 'md' | 'lg';

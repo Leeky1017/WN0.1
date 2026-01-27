@@ -8,4 +8,3 @@ import { createContext } from 'react';
 import type { ElectronAPI } from '@/types/electron-api';
 
 export const ElectronApiContext = createContext<ElectronAPI | null>(null);
-

@@ -27,10 +27,10 @@ export function ToolbarButton(props: ToolbarButtonProps) {
           disabled={disabled}
           onClick={onClick}
           className={cn(
-            'inline-flex items-center justify-center rounded-[var(--radius-sm)] px-2 py-1.5 text-[var(--text-secondary)]',
-            'hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
+            'inline-flex items-center justify-center rounded-[var(--radius-sm)] px-2 py-1.5 text-[var(--fg-muted)]',
+            'hover:bg-[var(--bg-hover)] hover:text-[var(--fg-default)]',
             'disabled:opacity-50 disabled:pointer-events-none',
-            isActive && 'bg-[var(--bg-active)] text-[var(--accent)]',
+            isActive && 'bg-[var(--bg-active)] text-[var(--accent-default)]',
           )}
         >
           {icon}
@@ -42,4 +42,3 @@ export function ToolbarButton(props: ToolbarButtonProps) {
 }
 
 export default ToolbarButton;
-

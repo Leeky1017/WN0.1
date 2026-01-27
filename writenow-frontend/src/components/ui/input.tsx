@@ -1,14 +1,9 @@
-/**
- * Input component
- * Based on shadcn/ui, adapted to use WriteNow Design Tokens
- */
-
-import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 type InputSize = 'sm' | 'md' | 'lg';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Size variant of the input */
   inputSize?: InputSize;
   /** Icon or element to display on the left side */
@@ -30,44 +25,31 @@ const sizeStyles: Record<InputSize, string> = {
 };
 
 /**
- * Text input component for forms
+ * Input component with optional icons and error state.
+ * 
+ * Why forwardRef: Form libraries (react-hook-form, formik) need ref access
+ * for registration and focus management.
+ * 
+ * @example
+ * ```tsx
+ * <Input placeholder="Enter text" />
+ * <Input leftIcon={<Search size={14} />} placeholder="Search..." />
+ * <Input error rightIcon={<AlertCircle size={14} />} />
+ * ```
  */
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, inputSize = 'md', leftIcon, rightIcon, error, disabled, ...props }, ref) => {
-    // Simple mode without icons
-    if (!leftIcon && !rightIcon) {
-      return (
-        <input
-          type={type}
-          ref={ref}
-          disabled={disabled}
-          className={cn(
-            // Base styles
-            'w-full rounded-md border bg-[var(--bg-input)] text-[var(--fg-default)]',
-            // Placeholder
-            'placeholder:text-[var(--fg-placeholder)]',
-            // Transition
-            'transition-colors duration-[100ms] ease-out',
-            // Focus state
-            'focus:outline-none focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]',
-            // Disabled state
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            // Error state vs default border
-            error
-              ? 'border-[var(--error)] focus:border-[var(--error)] focus:ring-[var(--error)]'
-              : 'border-[var(--border-default)]',
-            // Size styles
-            sizeStyles[inputSize],
-            // File input styling
-            'file:border-0 file:bg-transparent file:text-sm file:font-medium',
-            className
-          )}
-          {...props}
-        />
-      )
-    }
-
-    // Mode with icons
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  (
+    {
+      className,
+      inputSize = 'md',
+      leftIcon,
+      rightIcon,
+      error,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <div className={cn('relative flex items-center', disabled && 'opacity-50')}>
         {/* Left icon container */}
@@ -78,7 +60,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
 
         <input
-          type={type}
           ref={ref}
           disabled={disabled}
           className={cn(
@@ -113,9 +94,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </div>
         )}
       </div>
-    )
+    );
   }
-)
-Input.displayName = 'Input'
+);
 
-export { Input }
+Input.displayName = 'Input';

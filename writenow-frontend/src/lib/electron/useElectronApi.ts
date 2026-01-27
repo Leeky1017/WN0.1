@@ -14,4 +14,3 @@ export function useElectronApi(): ElectronAPI | null {
 }
 
 export default useElectronApi;
-
