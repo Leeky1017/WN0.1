@@ -8,11 +8,12 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Editor } from '@tiptap/core';
 
 import type { EditorSelectionSnapshot } from '@/stores/editorRuntimeStore';
 import { computeDiff } from '@/lib/diff/diffUtils';
 import { assembleSkillRunRequest } from '@/lib/ai/context-assembler';
-import { invokeSafe } from '@/lib/rpc';
+import { invoke, invokeSafe } from '@/lib/rpc';
 import { aiClient } from '@/lib/rpc/ai-client';
 import { subscribeToAiStream } from '@/lib/rpc/ai-stream';
 import type { JsonRpcConnectionStatus } from '@/lib/rpc/jsonrpc-client';
@@ -33,6 +34,8 @@ export interface UseAISkillResult {
   skillsError: string | null;
   sendMessage: (value: string, options?: SendMessageOptions) => Promise<void>;
   cancelRun: () => Promise<void>;
+  acceptDiff: () => Promise<void>;
+  rejectDiff: () => Promise<void>;
 }
 
 function toIpcError(error: unknown): IpcError {
@@ -55,9 +58,58 @@ function formatSkillLabel(skillId: string): string {
   return `/${slug}`;
 }
 
-function captureSelection(selection: EditorSelectionSnapshot | null): EditorSelectionSnapshot | null {
-  if (!selection) return null;
-  return { ...selection };
+/**
+ * Why: Version history snapshot requires stable Markdown extraction from TipTap without tying callers to internal storage shape.
+ */
+function getMarkdownFromEditor(editor: Editor): string {
+  const maybe = editor as unknown as {
+    getMarkdown?: () => string;
+    storage?: { markdown?: { getMarkdown?: () => string } };
+  };
+  if (typeof maybe.getMarkdown === 'function') return maybe.getMarkdown();
+  const storageFn = maybe.storage?.markdown?.getMarkdown;
+  if (typeof storageFn === 'function') return storageFn();
+  return editor.getText();
+}
+
+/**
+ * Why: We need a deterministic snapshot for AI diff preview/apply. If the user didn't select a range, we treat the whole
+ * document as the scope (still deterministic) so Review Mode can be applied safely.
+ */
+function captureSelectionFromEditor(args: {
+  filePath: string;
+  editor: Editor;
+  selection: EditorSelectionSnapshot | null;
+}): EditorSelectionSnapshot {
+  const { filePath, editor, selection } = args;
+
+  // Prefer the SSOT selection snapshot when it matches the active file.
+  if (selection && selection.filePath === filePath && selection.from !== selection.to) {
+    return { ...selection };
+  }
+
+  const { from, to } = editor.state.selection;
+  const doc = editor.state.doc;
+
+  if (from !== to) {
+    return {
+      filePath,
+      from,
+      to,
+      text: doc.textBetween(from, to, '\n'),
+      updatedAt: Date.now(),
+    };
+  }
+
+  const scopeFrom = 0;
+  const scopeTo = doc.content.size;
+  return {
+    filePath,
+    from: scopeFrom,
+    to: scopeTo,
+    text: doc.textBetween(scopeFrom, scopeTo, '\n'),
+    updatedAt: Date.now(),
+  };
 }
 
 export function useAISkill(): UseAISkillResult {
@@ -75,6 +127,7 @@ export function useAISkill(): UseAISkillResult {
   const failRun = useAIStore((s) => s.failRun);
   const cancelRunLocal = useAIStore((s) => s.cancelRun);
   const setDiff = useAIStore((s) => s.setDiff);
+  const setLastError = useAIStore((s) => s.setLastError);
 
   const setStatusBarAIStatus = useStatusBarStore((s) => s.setAIStatus);
 
@@ -153,9 +206,56 @@ export function useAISkill(): UseAISkillResult {
       unsubscribeRef.current?.();
       unsubscribeRef.current = null;
       cancelRunLocal();
+      setDiff(null);
+      if (activeEditor) {
+        activeEditor.commands.clearAiDiff();
+      }
       setStatusBarAIStatus('idle', '');
     }
-  }, [cancelRunLocal, setStatusBarAIStatus]);
+  }, [activeEditor, cancelRunLocal, setDiff, setStatusBarAIStatus]);
+
+  const rejectDiff = useCallback(async () => {
+    const editor = useEditorRuntimeStore.getState().activeEditor;
+    if (editor) {
+      editor.commands.rejectAiDiff();
+    }
+    setDiff(null);
+    setLastError(null);
+  }, [setDiff, setLastError]);
+
+  const acceptDiff = useCallback(async () => {
+    const state = useAIStore.getState();
+    const diff = state.diff;
+    if (!diff) return;
+
+    const editor = useEditorRuntimeStore.getState().activeEditor;
+    const filePath = diff.selection?.filePath ?? useEditorRuntimeStore.getState().activeFilePath;
+    if (!editor || !filePath) {
+      setLastError({ code: 'INTERNAL', message: 'No active editor for applying AI diff' });
+      return;
+    }
+
+    const before = getMarkdownFromEditor(editor);
+    const applied = editor.commands.acceptAiDiff();
+    if (!applied) return;
+
+    const after = getMarkdownFromEditor(editor);
+    const reason = diff.skillId ? `ai:${diff.skillId}` : 'ai';
+
+    try {
+      await invoke('version:create', { articleId: filePath, content: before, name: 'Before AI', reason, actor: 'auto' });
+    } catch (error) {
+      setLastError(toIpcError(error));
+    }
+
+    try {
+      await invoke('version:create', { articleId: filePath, content: after, name: 'AI Apply', reason, actor: 'ai' });
+    } catch (error) {
+      setLastError(toIpcError(error));
+    }
+
+    setDiff(null);
+  }, [setDiff, setLastError]);
 
   const isReady = useMemo(() => aiStatus === 'connected' && skillsStatus === 'connected', [aiStatus, skillsStatus]);
 
@@ -174,18 +274,24 @@ export function useAISkill(): UseAISkillResult {
         return;
       }
 
-      const selectionSnapshot = captureSelection(selection);
+      if (!activeEditor || !activeFilePath) {
+        failRun({ code: 'INVALID_ARGUMENT', message: '请先打开一个文档再运行 AI' });
+        setStatusBarAIStatus('error', '未打开文档');
+        return;
+      }
+
+      const selectionSnapshot = captureSelectionFromEditor({
+        filePath: activeFilePath,
+        editor: activeEditor,
+        selection,
+      });
       selectionSnapshotRef.current = selectionSnapshot;
 
-      const sourceText = selectionSnapshot?.text?.trim()
-        ? selectionSnapshot.text
-        : activeEditor
-          ? activeEditor.state.doc.textContent
-          : '';
+      const sourceText = selectionSnapshot.text;
 
       if (!sourceText.trim()) {
-        failRun({ code: 'INVALID_ARGUMENT', message: '请选择文本或打开文件后再试' });
-        setStatusBarAIStatus('error', '未选择文本');
+        failRun({ code: 'INVALID_ARGUMENT', message: '请选择文本或输入内容后再试' });
+        setStatusBarAIStatus('error', '内容为空');
         return;
       }
 
@@ -197,6 +303,8 @@ export function useAISkill(): UseAISkillResult {
       const assistantId = ensureAssistantMessage(skillId);
 
       setDiff(null);
+      setLastError(null);
+      activeEditor.commands.clearAiDiff();
       setStatusBarAIStatus('thinking', 'AI 思考中…');
 
       try {
@@ -208,14 +316,14 @@ export function useAISkill(): UseAISkillResult {
         // Best-effort project context. If unavailable, we still run the skill.
         const project = await invokeSafe('project:getCurrent', {});
         const projectId = project?.projectId ?? undefined;
-        const articleId = selectionSnapshot?.filePath ?? activeFilePath ?? undefined;
+        const articleId = selectionSnapshot.filePath ?? undefined;
 
         const request = await assembleSkillRunRequest({
           skillId,
           definition,
           text: sourceText,
           instruction,
-          selection: selectionSnapshot ? { from: selectionSnapshot.from, to: selectionSnapshot.to } : null,
+          selection: selectionSnapshot.from !== selectionSnapshot.to ? { from: selectionSnapshot.from, to: selectionSnapshot.to } : null,
           editor: activeEditor,
           projectId: projectId ?? undefined,
           articleId: articleId ?? undefined,
@@ -240,6 +348,8 @@ export function useAISkill(): UseAISkillResult {
             appendToMessage(assistantId, delta);
           },
           (result) => {
+            unsubscribeRef.current?.();
+            unsubscribeRef.current = null;
             finishRun();
             setStatusBarAIStatus('idle', '');
 
@@ -247,12 +357,34 @@ export function useAISkill(): UseAISkillResult {
             const suggestedText = result;
             setMessageContent(assistantId, suggestedText);
             const hunks = computeDiff(originalText, suggestedText);
-            setDiff({ originalText, suggestedText, accepted: hunks.map(() => true), selection: selectionSnapshotRef.current });
+            const snapshot = selectionSnapshotRef.current;
+            if (snapshot) {
+              activeEditor.commands.showAiDiff({
+                runId,
+                originalText,
+                suggestedText,
+                selection: { from: snapshot.from, to: snapshot.to },
+                createdAt: Date.now(),
+              });
+            }
+            setDiff({
+              runId,
+              skillId,
+              createdAt: Date.now(),
+              originalText,
+              suggestedText,
+              accepted: hunks.map(() => true),
+              selection: snapshot,
+            });
           },
           (error) => {
+            unsubscribeRef.current?.();
+            unsubscribeRef.current = null;
             const ipc = toIpcError({ code: 'UPSTREAM_ERROR', message: error.message });
             failRun(ipc);
             setStatusBarAIStatus('error', ipc.message);
+            setDiff(null);
+            activeEditor.commands.clearAiDiff();
           },
         );
       } catch (error) {
@@ -273,6 +405,7 @@ export function useAISkill(): UseAISkillResult {
       selectedSkillId,
       selection,
       setDiff,
+      setLastError,
       setStatusBarAIStatus,
       setMessageContent,
       setStreaming,
@@ -287,6 +420,8 @@ export function useAISkill(): UseAISkillResult {
     skillsError,
     sendMessage,
     cancelRun,
+    acceptDiff,
+    rejectDiff,
   };
 }
 

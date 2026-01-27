@@ -21,6 +21,9 @@ export interface AiMessage {
 export type AiRunStatus = 'idle' | 'thinking' | 'streaming' | 'canceled' | 'error';
 
 export interface AiDiffState {
+  runId: string;
+  skillId: string;
+  createdAt: number;
   originalText: string;
   suggestedText: string;
   /** Per-hunk accept mask (same order as computeDiff()). */

@@ -336,3 +336,39 @@ textarea::placeholder {
   user-select: none;
   white-space: pre-wrap;
 }
+
+/* ===== AI Diff (inline preview) ===== */
+.wn-ai-diff-scope {
+  background: var(--accent-muted);
+  border-radius: 3px;
+}
+
+.wn-ai-diff-preview {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+}
+
+.wn-ai-diff-preview__content {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fg-default);
+}
+
+.wn-ai-diff-hunk {
+  white-space: pre-wrap;
+}
+
+.wn-ai-diff-add {
+  background: var(--success-muted);
+  color: var(--success);
+}
+
+.wn-ai-diff-remove {
+  background: var(--error-muted);
+  color: var(--error);
+  text-decoration: line-through;
+}

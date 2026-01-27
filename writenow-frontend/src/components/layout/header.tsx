@@ -6,6 +6,8 @@ import type { SaveStatus } from '@/stores/statusBarStore';
 interface HeaderProps {
   /** Current file name to display */
   fileName?: string;
+  /** When true, Write Mode is in Review Mode for AI diff (Accept/Reject pending). */
+  reviewingAiChanges?: boolean;
   /** Unified save status (SSOT) */
   saveStatus: SaveStatus;
   /** Human-readable error message when saveStatus === 'error' */
@@ -35,6 +37,7 @@ interface HeaderProps {
  */
 export function Header({
   fileName = 'Untitled',
+  reviewingAiChanges = false,
   saveStatus,
   saveErrorMessage,
   onRetrySave,
@@ -106,6 +109,11 @@ export function Header({
         <span className="text-[11px] font-medium text-[var(--fg-muted)]">
           {fileName}
         </span>
+        {reviewingAiChanges && (
+          <span className="px-2 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--accent-muted)] text-[10px] font-semibold text-[var(--accent-default)]">
+            Reviewing AI changes
+          </span>
+        )}
         <div
           className={cn(
             'flex items-center gap-2 px-2 py-1 rounded-md border border-[var(--border-subtle)]',

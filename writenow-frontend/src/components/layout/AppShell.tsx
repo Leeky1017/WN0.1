@@ -14,6 +14,7 @@ import { WriteModeFileTree } from '@/features/write-mode/WriteModeFileTree';
 import { useWriteModeStore } from '@/features/write-mode/writeModeStore';
 import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
 import { useLayoutStore } from '@/stores/layoutStore';
+import { useAIStore } from '@/stores/aiStore';
 import { useStatusBarStore } from '@/stores/statusBarStore';
 
 /**
@@ -53,6 +54,7 @@ export function AppShell() {
   const isConnected = useStatusBarStore((s) => s.isConnected);
   const cursorPosition = useStatusBarStore((s) => s.cursorPosition);
   const documentType = useStatusBarStore((s) => s.documentType);
+  const reviewingAiChanges = useAIStore((s) => Boolean(s.diff));
 
   const fileName = useMemo(() => {
     if (!activeFilePath) return 'Untitled';
@@ -130,6 +132,7 @@ export function AppShell() {
       <div className={focusMode ? 'hidden' : undefined}>
         <Header
           fileName={fileName}
+          reviewingAiChanges={reviewingAiChanges}
           saveStatus={saveStatus}
           saveErrorMessage={saveError?.message ?? undefined}
           onRetrySave={handleRetrySave}
@@ -298,6 +301,9 @@ export function AppShell() {
           className="fixed top-3 right-3 z-[60] px-3 py-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-lg backdrop-blur-[2px]"
         >
           <div className="text-[11px] font-semibold text-[var(--fg-default)] max-w-[280px] truncate">{fileName}</div>
+          {reviewingAiChanges && (
+            <div className="mt-1 text-[10px] font-semibold text-[var(--accent-default)]">Reviewing AI changes</div>
+          )}
           <div className="mt-1 flex items-center gap-2 text-[10px] text-[var(--fg-subtle)]">
             <span className="tabular-nums">{wordCount} words</span>
             <span>·</span>

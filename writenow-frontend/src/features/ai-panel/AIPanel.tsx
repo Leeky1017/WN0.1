@@ -3,7 +3,7 @@
  * Why: Connect presentational UI to real AI orchestration (skills list + streaming + cancel) via useAISkill + stores.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Send, Square } from 'lucide-react';
 
 import { MessageBubble } from '@/components/composed/message-bubble';
@@ -17,7 +17,7 @@ import { useSettingsPanelStore } from '@/stores/settingsPanelStore';
 import { useAISkill } from './useAISkill';
 
 export function AIPanel() {
-  const { skillsLoading, skillsError, sendMessage, cancelRun } = useAISkill();
+  const { skillsLoading, skillsError, sendMessage, cancelRun, acceptDiff, rejectDiff } = useAISkill();
 
   const skills = useAIStore((s) => s.skills);
   const selectedSkillId = useAIStore((s) => s.selectedSkillId);
@@ -27,8 +27,11 @@ export function AIPanel() {
   const messages = useAIStore((s) => s.messages);
   const status = useAIStore((s) => s.status);
   const lastError = useAIStore((s) => s.lastError);
+  const diff = useAIStore((s) => s.diff);
 
-  const canSend = Boolean((selectedSkillId ?? '').trim()) && status !== 'thinking' && status !== 'streaming';
+  const [isApplying, setIsApplying] = useState(false);
+
+  const canSend = Boolean((selectedSkillId ?? '').trim()) && status !== 'thinking' && status !== 'streaming' && !diff;
   const canCancel = status === 'thinking' || status === 'streaming';
 
   const handleSend = useCallback(async () => {
@@ -42,6 +45,22 @@ export function AIPanel() {
     if (!canCancel) return;
     await cancelRun();
   }, [cancelRun, canCancel]);
+
+  const handleReject = useCallback(async () => {
+    if (!diff) return;
+    await rejectDiff();
+  }, [diff, rejectDiff]);
+
+  const handleAccept = useCallback(async () => {
+    if (!diff) return;
+    if (isApplying) return;
+    setIsApplying(true);
+    try {
+      await acceptDiff();
+    } finally {
+      setIsApplying(false);
+    }
+  }, [acceptDiff, diff, isApplying]);
 
   useEffect(() => {
     const focusEditor = () => {
@@ -59,7 +78,7 @@ export function AIPanel() {
       const ai = useAIStore.getState();
       if (ai.diff) {
         event.preventDefault();
-        ai.setDiff(null);
+        void rejectDiff();
         return;
       }
 
@@ -94,7 +113,7 @@ export function AIPanel() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [cancelRun]);
+  }, [cancelRun, rejectDiff]);
 
   return (
     <div className="h-full w-full flex flex-col bg-[var(--bg-surface)]" data-testid="ai-panel">
@@ -148,6 +167,49 @@ export function AIPanel() {
         </div>
       )}
 
+      {diff && (
+        <div className="px-3 py-3 border-b border-[var(--border-subtle)]" data-testid="wm-review-root">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-[11px] font-semibold text-[var(--fg-default)]">Reviewing AI changes</div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                data-testid="wm-review-reject"
+                onClick={() => void handleReject()}
+                disabled={isApplying}
+              >
+                Reject
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                data-testid="wm-review-accept"
+                onClick={() => void handleAccept()}
+                loading={isApplying}
+              >
+                Accept
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 gap-3">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">Original</div>
+              <pre className="mt-1 max-h-32 overflow-auto rounded-md border border-[var(--border-subtle)] bg-[var(--bg-input)] p-2 text-[11px] leading-5 text-[var(--fg-muted)] whitespace-pre-wrap break-words">
+                {diff.originalText}
+              </pre>
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">Suggested</div>
+              <pre className="mt-1 max-h-32 overflow-auto rounded-md border border-[var(--border-subtle)] bg-[var(--bg-input)] p-2 text-[11px] leading-5 text-[var(--fg-default)] whitespace-pre-wrap break-words">
+                {diff.suggestedText}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
         <div className="flex flex-col gap-4">
           {messages.map((m) => (
@@ -184,4 +246,3 @@ export function AIPanel() {
 }
 
 export default AIPanel;
-
