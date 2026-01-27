@@ -47,3 +47,8 @@
 - Command: `gh pr merge -R Leeky1017/WN0.1 --auto --squash 308`
 - Key output: `auto-merge enabled (squash)`
 - Evidence: `gh pr view 308 --json autoMergeRequest`
+
+### 2026-01-28 03:22 pr-checks
+- Command: `gh pr checks -R Leeky1017/WN0.1 --watch 308`
+- Key output: `no checks reported on the 'task/307-p2-002-perf-budgets' branch`
+- Evidence: `gh pr checks output`
