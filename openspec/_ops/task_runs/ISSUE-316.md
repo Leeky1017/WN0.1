@@ -1,7 +1,7 @@
 # ISSUE-316
 - Issue: #316
 - Branch: task/316-e2e-write-mode-ci-stabilize
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/318
 
 ## Plan
 - Stabilize `e2e-write-mode` CI (Ubuntu) by:
@@ -87,3 +87,8 @@
 - Command: `cd writenow-frontend && npm run build:electron`
 - Key output: `dist-electron/main/index.cjs` + `dist-electron/preload/index.cjs` + `dist/index.html`
 - Evidence: `writenow-frontend/dist-electron/`
+
+### 2026-01-27 23:34 UTC — PR (follow-up) created
+- Command: `gh pr create --title "[WRITE-MODE-IDE] Stabilize e2e-write-mode flakes (focus + review + teardown) (#316)" ...`
+- Key output: https://github.com/Leeky1017/WN0.1/pull/318
+- Evidence: PR #318
