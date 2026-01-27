@@ -49,7 +49,8 @@ test.describe('@write-mode Review Mode (AI diff) + boundary branches', () => {
 
   test('WM-003 success: run → diff → accept → autosave persists', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-review-'));
-    const { electronApp, page } = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const app = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const { page } = app;
 
     try {
       const docName = `Review-${Date.now()}`;
@@ -85,13 +86,14 @@ test.describe('@write-mode Review Mode (AI diff) + boundary branches', () => {
       expect(content).toContain('E2E_RESULT');
       expect(content.length).toBeGreaterThan(original.length);
     } finally {
-      await closeWriteNowApp(electronApp);
+      await closeWriteNowApp(app);
     }
   });
 
   test('WM-004 Esc cancels run and leaves document unchanged', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-cancel-'));
-    const { electronApp, page } = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const app = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const { page } = app;
 
     try {
       const docName = `Cancel-${Date.now()}`;
@@ -127,13 +129,14 @@ test.describe('@write-mode Review Mode (AI diff) + boundary branches', () => {
       expect(content).toContain(unique);
       expect(content).not.toContain('E2E_RESULT');
     } finally {
-      await closeWriteNowApp(electronApp);
+      await closeWriteNowApp(app);
     }
   });
 
   test('AI upstream error: surfaces UPSTREAM_ERROR', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-upstream-error-'));
-    const { electronApp, page } = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const app = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const { page } = app;
 
     try {
       const docName = `Upstream-${Date.now()}`;
@@ -155,13 +158,14 @@ test.describe('@write-mode Review Mode (AI diff) + boundary branches', () => {
       await expect(page.getByText(/^UPSTREAM_ERROR:/)).toBeVisible({ timeout: 30_000 });
       await expect(page.getByTestId('wm-review-root')).toHaveCount(0);
     } finally {
-      await closeWriteNowApp(electronApp);
+      await closeWriteNowApp(app);
     }
   });
 
   test('WM-004 timeout: surfaces TIMEOUT and keeps content', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-timeout-'));
-    const { electronApp, page } = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const app = await launchWriteNowApp({ userDataDir, extraEnv: buildAiEnv() });
+    const { page } = app;
 
     try {
       const docName = `Timeout-${Date.now()}`;
@@ -188,7 +192,7 @@ test.describe('@write-mode Review Mode (AI diff) + boundary branches', () => {
       expect(content).toContain('TIMEOUT_');
       expect(content).not.toContain('E2E_RESULT');
     } finally {
-      await closeWriteNowApp(electronApp);
+      await closeWriteNowApp(app);
     }
   });
 });

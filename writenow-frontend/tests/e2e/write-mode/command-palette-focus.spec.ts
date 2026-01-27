@@ -30,6 +30,21 @@ async function enterFocusMode(page: Page): Promise<void> {
   await expect(focusRoot).toHaveAttribute('data-focus-mode', '1', { timeout: 10_000 });
 }
 
+/**
+ * Why: Focus mode collapses panels with transitions; polling avoids flaky snapshot timing under CI.
+ */
+async function expectPanelCollapsed(page: Page, testId: string, maxWidth: number): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const box = await page.getByTestId(testId).boundingBox();
+        return box?.width ?? Number.POSITIVE_INFINITY;
+      },
+      { timeout: 5_000 },
+    )
+    .toBeLessThan(maxWidth);
+}
+
 test.describe('@write-mode command palette + focus/zen', () => {
   test.skip(isWSL(), 'Electron E2E is unstable on WSL; run on native Linux (xvfb) or macOS/Windows.');
 
@@ -74,7 +89,7 @@ test.describe('@write-mode command palette + focus/zen', () => {
       const content = await readFile(filePath, 'utf8');
       expect(content).toContain(unique);
     } finally {
-      await closeWriteNowApp(app1.electronApp);
+      await closeWriteNowApp(app1);
     }
 
     // Relaunch with the same userDataDir → recent should still be there
@@ -90,13 +105,14 @@ test.describe('@write-mode command palette + focus/zen', () => {
       await expect(cmdk).toBeHidden({ timeout: 10_000 });
       await expect(page.getByTestId('wm-header')).toContainText(`${docA}.md`, { timeout: 10_000 });
     } finally {
-      await closeWriteNowApp(app2.electronApp);
+      await closeWriteNowApp(app2);
     }
   });
 
   test('WM-002 Cmd/Ctrl+\\ toggles Focus/Zen; Esc exits Focus and editor stays usable', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-focus-'));
-    const { electronApp, page } = await launchWriteNowApp({ userDataDir });
+    const app = await launchWriteNowApp({ userDataDir });
+    const { page } = app;
     try {
       const docName = `Focus-${Date.now()}`;
       const docPath = path.join(userDataDir, 'documents', `${docName}.md`);
@@ -116,13 +132,8 @@ test.describe('@write-mode command palette + focus/zen', () => {
       await expect(page.getByTestId('wm-header')).toBeHidden();
       await expect(page.getByTestId('statusbar')).toBeHidden();
 
-      const sidebarBox = await page.getByTestId('layout-sidebar').boundingBox();
-      expect(sidebarBox).not.toBeNull();
-      expect((sidebarBox as NonNullable<typeof sidebarBox>).width).toBeLessThan(2);
-
-      const aiBox = await page.getByTestId('layout-ai-panel').boundingBox();
-      expect(aiBox).not.toBeNull();
-      expect((aiBox as NonNullable<typeof aiBox>).width).toBeLessThan(2);
+      await expectPanelCollapsed(page, 'layout-sidebar', 2);
+      await expectPanelCollapsed(page, 'layout-ai-panel', 2);
 
       // Still editable while in focus mode
       await editor.click();
@@ -139,7 +150,7 @@ test.describe('@write-mode command palette + focus/zen', () => {
       expect(content).toContain(unique);
       expect(content).toContain('still typing');
     } finally {
-      await closeWriteNowApp(electronApp);
+      await closeWriteNowApp(app);
     }
   });
 });

@@ -72,7 +72,8 @@ test.describe('@write-mode write mode SSOT', () => {
     const unique = `AUTOSAVE_${Date.now()}`;
     const docPath = path.join(userDataDir, 'documents', `${docName}.md`);
 
-    const { electronApp, page } = await launchWriteNowApp({ userDataDir });
+    const app = await launchWriteNowApp({ userDataDir });
+    const { page } = app;
     try {
       await expect(page.locator('button[title="新建文件"]')).toBeVisible({ timeout: 30_000 });
       await createNewFile(page, docName);
@@ -87,7 +88,7 @@ test.describe('@write-mode write mode SSOT', () => {
       const content = await readFile(docPath, 'utf8');
       expect(content).toContain(unique);
     } finally {
-      await closeWriteNowApp(electronApp);
+      await closeWriteNowApp(app);
     }
   });
 
@@ -136,7 +137,7 @@ test.describe('@write-mode write mode SSOT', () => {
       const content = await readFile(docPath, 'utf8');
       expect(content).toContain(unique);
     } finally {
-      await closeWriteNowApp(app2.electronApp);
+      await closeWriteNowApp(app2);
     }
   });
 });
