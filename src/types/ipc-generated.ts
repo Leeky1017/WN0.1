@@ -105,6 +105,7 @@ export type IpcChannel =
   | 'skill:toggle'
   | 'skill:write'
   | 'ai:skill:cancel'
+  | 'ai:skill:feedback'
   | 'ai:skill:run'
   | 'context:writenow:conversations:analysis:update'
   | 'context:writenow:conversations:list'
@@ -368,6 +369,8 @@ export type AiSkillRunRequest = {
   prompt: AiPromptPayload;
   injected?: {
     memory: UserMemory[];
+    refs?: string[];
+    contextRules?: Record<string, unknown>;
   };
 };
 
@@ -376,9 +379,12 @@ export type AiSkillRunResponse = {
   stream: boolean;
   injected?: {
     memory: UserMemory[];
+    refs?: string[];
+    contextRules?: Record<string, unknown>;
   };
   prompt?: {
     prefixHash: string;
+    stablePrefixHash: string;
     promptHash: string;
   };
 };
@@ -389,6 +395,20 @@ export type AiSkillCancelRequest = {
 
 export type AiSkillCancelResponse = {
   canceled: true;
+};
+
+export type AiSkillFeedbackRequest = {
+  runId: string;
+  action: 'accept' | 'reject' | 'partial';
+  projectId?: string;
+  evidenceRef?: JsonValue;
+};
+
+export type AiSkillFeedbackResponse = {
+  recorded: true;
+  feedbackId: string;
+  learned: UserMemory[];
+  ignored: number;
 };
 
 export type SearchHit = {
@@ -1407,6 +1427,7 @@ export type IpcInvokePayloadMap = {
   'skill:toggle': SkillToggleRequest;
   'skill:write': SkillWriteRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
+  'ai:skill:feedback': AiSkillFeedbackRequest;
   'ai:skill:run': AiSkillRunRequest;
   'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateRequest;
   'context:writenow:conversations:list': ContextWritenowConversationsListRequest;
@@ -1494,6 +1515,7 @@ export type IpcInvokeDataMap = {
   'skill:toggle': SkillToggleResponse;
   'skill:write': SkillWriteResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
+  'ai:skill:feedback': AiSkillFeedbackResponse;
   'ai:skill:run': AiSkillRunResponse;
   'context:writenow:conversations:analysis:update': ContextWritenowConversationsAnalysisUpdateResponse;
   'context:writenow:conversations:list': ContextWritenowConversationsListResponse;

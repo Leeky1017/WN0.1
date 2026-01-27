@@ -8,9 +8,11 @@ import type {
     IpcError,
     KnowledgeGraphEntity,
     KnowledgeGraphRelation,
+    OutlineNode,
     RagRetrieveRequest,
     RagRetrieveResponse,
     SkillListItem,
+    UserMemory,
 } from '../../common/ipc-generated';
 import { ActiveEditorService } from '../active-editor-service';
 import { NotificationService } from '../notification/notification-widget';
@@ -72,6 +74,273 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+const CONTEXT_RULE_KEYS = [
+    'surrounding',
+    'user_preferences',
+    'style_guide',
+    'characters',
+    'outline',
+    'recent_summary',
+    'knowledge_graph',
+] as const;
+
+type ContextRuleKey = (typeof CONTEXT_RULE_KEYS)[number];
+
+type ContextRules = Readonly<{
+    surrounding: number;
+    user_preferences: boolean;
+    style_guide: boolean;
+    characters: boolean;
+    outline: boolean;
+    recent_summary: number;
+    knowledge_graph: boolean;
+}>;
+
+type NormalizeContextRulesResult =
+    | { ok: true; rules: ContextRules; json: string }
+    | { ok: false; error: { code: IpcError['code']; message: string; details?: unknown } };
+
+function buildDefaultContextRules(): ContextRules {
+    return {
+        surrounding: 0,
+        user_preferences: false,
+        style_guide: false,
+        characters: false,
+        outline: false,
+        recent_summary: 0,
+        knowledge_graph: false,
+    };
+}
+
+function normalizeNonNegativeInt(value: unknown, field: string, key: string): number {
+    if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
+        throw { code: 'INVALID_ARGUMENT', message: `Invalid ${field}.${key}`, details: { field, key, value } };
+    }
+    return value;
+}
+
+function normalizeBoolean(value: unknown, field: string, key: string): boolean {
+    if (typeof value !== 'boolean') {
+        throw { code: 'INVALID_ARGUMENT', message: `Invalid ${field}.${key}`, details: { field, key, value } };
+    }
+    return value;
+}
+
+/**
+ * Why: Context injection must be deterministic and auditable; unknown fields are rejected to avoid silent drift.
+ * Failure: Invalid rules must surface as INVALID_ARGUMENT.
+ */
+function normalizeContextRules(value: unknown): NormalizeContextRulesResult {
+    const field = 'context_rules';
+    if (typeof value === 'undefined' || value === null) {
+        const rules = buildDefaultContextRules();
+        const ordered = Object.fromEntries(CONTEXT_RULE_KEYS.map((k) => [k, rules[k]])) as Record<ContextRuleKey, unknown>;
+        return { ok: true, rules, json: JSON.stringify(ordered) };
+    }
+
+    if (!isRecord(value)) {
+        return { ok: false, error: { code: 'INVALID_ARGUMENT', message: `${field} must be a mapping`, details: { field, value } } };
+    }
+
+    const unknownKeys = Object.keys(value).filter((k) => !CONTEXT_RULE_KEYS.includes(k as ContextRuleKey));
+    if (unknownKeys.length > 0) {
+        return { ok: false, error: { code: 'INVALID_ARGUMENT', message: `Unknown ${field} fields`, details: { field, unknownKeys } } };
+    }
+
+    const merged = { ...buildDefaultContextRules() };
+    try {
+        if (Object.prototype.hasOwnProperty.call(value, 'surrounding')) {
+            merged.surrounding = normalizeNonNegativeInt(value.surrounding, field, 'surrounding');
+        }
+        if (Object.prototype.hasOwnProperty.call(value, 'recent_summary')) {
+            merged.recent_summary = normalizeNonNegativeInt(value.recent_summary, field, 'recent_summary');
+        }
+        for (const key of ['user_preferences', 'style_guide', 'characters', 'outline', 'knowledge_graph'] as const) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                merged[key] = normalizeBoolean(value[key], field, key);
+            }
+        }
+    } catch (error) {
+        const record = error as { code?: unknown; message?: unknown; details?: unknown };
+        return {
+            ok: false,
+            error: {
+                code: record && typeof record.code === 'string' ? (record.code as IpcError['code']) : 'INVALID_ARGUMENT',
+                message: record && typeof record.message === 'string' ? record.message : `Invalid ${field}`,
+                ...(typeof record?.details === 'undefined' ? {} : { details: record.details }),
+            },
+        };
+    }
+
+    const ordered = Object.fromEntries(CONTEXT_RULE_KEYS.map((k) => [k, merged[k]])) as Record<ContextRuleKey, unknown>;
+    return { ok: true, rules: merged, json: JSON.stringify(ordered) };
+}
+
+function normalizeNewlines(text: string): string {
+    return (typeof text === 'string' ? text : '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+function formatMemoryForPrompt(items: readonly UserMemory[]): string {
+    if (!Array.isArray(items) || items.length === 0) return '(none)';
+    return items
+        .map((item) => {
+            const scope = item.projectId ? 'project' : 'global';
+            const content = normalizeNewlines(item.content).trim();
+            return content ? `- [${item.type}/${item.origin}/${scope}] ${content}` : '';
+        })
+        .filter(Boolean)
+        .join('\n')
+        .trim();
+}
+
+function formatOutlineForPrompt(outline: readonly OutlineNode[] | null): string {
+    if (!Array.isArray(outline) || outline.length === 0) return '(none)';
+    const lines: string[] = [];
+    for (const node of outline) {
+        const title = coerceString(node.title) || '(untitled)';
+        const level = typeof node.level === 'number' && Number.isFinite(node.level) ? Math.max(0, Math.floor(node.level)) : 0;
+        const indent = '  '.repeat(Math.min(6, level));
+        lines.push(`${indent}- ${title}`);
+    }
+    return lines.join('\n').trim();
+}
+
+function buildStableSystemPrompt(args: {
+    layer0: string;
+    skillId: string;
+    projectId: string | null;
+    articleId: string | null;
+    contextRulesJson: string;
+    contextRules: ContextRules;
+    hasSelection: boolean;
+    preferences: readonly UserMemory[];
+    styleGuide: { ref: string; content: string } | null;
+    characters: readonly { ref: string; content: string }[];
+    outlineText: string | null;
+}): string {
+    const parts: string[] = [];
+    parts.push('## 角色与行为约束');
+    parts.push(normalizeNewlines(args.layer0).trimEnd() || '(empty)');
+    parts.push('');
+    parts.push('## 会话信息');
+    parts.push(`- skillId: ${args.skillId}`);
+    parts.push(`- projectId: ${args.projectId ?? '(none)'}`);
+    parts.push(`- articleId: ${args.articleId ?? '(none)'}`);
+    parts.push(
+        `- capabilities: ${JSON.stringify({ project: Boolean(args.projectId), article: Boolean(args.articleId), selection: args.hasSelection })}`
+    );
+    parts.push(`- context_rules: ${args.contextRulesJson}`);
+    parts.push('');
+    parts.push('## 用户偏好');
+    if (!args.contextRules.user_preferences) {
+        parts.push('(masked: context_rules.user_preferences=false)');
+    } else if (!args.projectId) {
+        parts.push('(unavailable: no projectId)');
+    } else {
+        parts.push(formatMemoryForPrompt(args.preferences));
+    }
+    parts.push('');
+    parts.push('## 项目设定');
+    parts.push('### 写作风格指南');
+    if (!args.contextRules.style_guide) {
+        parts.push('(masked: context_rules.style_guide=false)');
+    } else if (!args.projectId) {
+        parts.push('(unavailable: no projectId)');
+    } else if (args.styleGuide) {
+        parts.push(`ref:${args.styleGuide.ref}`);
+        parts.push(normalizeNewlines(args.styleGuide.content).trimEnd());
+    } else {
+        parts.push('(none)');
+    }
+    parts.push('');
+    parts.push('### 人物设定');
+    if (!args.contextRules.characters) {
+        parts.push('(masked: context_rules.characters=false)');
+    } else if (!args.projectId) {
+        parts.push('(unavailable: no projectId)');
+    } else if (Array.isArray(args.characters) && args.characters.length > 0) {
+        for (const file of [...args.characters].sort((a, b) => a.ref.localeCompare(b.ref))) {
+            parts.push(`ref:${file.ref}`);
+            parts.push(normalizeNewlines(file.content).trimEnd());
+            parts.push('');
+        }
+        while (parts.length > 0 && parts[parts.length - 1] === '') parts.pop();
+    } else {
+        parts.push('(none)');
+    }
+    parts.push('');
+    parts.push('### 大纲');
+    if (!args.contextRules.outline) {
+        parts.push('(masked: context_rules.outline=false)');
+    } else if (!args.projectId || !args.articleId) {
+        parts.push('(unavailable: missing projectId/articleId)');
+    } else {
+        parts.push(args.outlineText ? normalizeNewlines(args.outlineText).trimEnd() : '(none)');
+    }
+    return parts.join('\n').trimEnd();
+}
+
+function buildUserContent(args: { recentSummary: string; currentContext: string; outputFormat: string }): string {
+    return [
+        '## 最近摘要',
+        args.recentSummary.trim() ? args.recentSummary.trimEnd() : '(none)',
+        '',
+        '## 当前上下文',
+        args.currentContext.trim() ? args.currentContext.trimEnd() : '(none)',
+        '',
+        '## 输出格式',
+        args.outputFormat.trim() ? args.outputFormat.trimEnd() : '(none)',
+    ].join('\n');
+}
+
+function sliceFirstCodePoints(text: string, n: number): string {
+    if (n <= 0) return '';
+    return Array.from(text).slice(0, n).join('');
+}
+
+function sliceLastCodePoints(text: string, n: number): string {
+    if (n <= 0) return '';
+    const arr = Array.from(text);
+    return arr.slice(Math.max(0, arr.length - n)).join('');
+}
+
+function clampCodePoints(text: string, max: number): string {
+    const value = normalizeNewlines(text).trim();
+    if (max <= 0) return '';
+    const arr = Array.from(value);
+    if (arr.length <= max) return value;
+    if (max === 1) return '…';
+    return `${arr.slice(0, Math.max(0, max - 1)).join('')}…`;
+}
+
+function trimStartToBoundary(text: string): string {
+    const value = normalizeNewlines(text);
+    const para = value.indexOf('\n\n');
+    if (para >= 0) return value.slice(para + 2).trimStart();
+    const boundaries = ['。', '！', '？', '.', '!', '?', ';', '；'];
+    let idx = -1;
+    for (const b of boundaries) {
+        const pos = value.indexOf(b);
+        if (pos >= 0 && (idx === -1 || pos < idx)) idx = pos;
+    }
+    if (idx >= 0) return value.slice(idx + 1).trimStart();
+    return value;
+}
+
+function trimEndToBoundary(text: string): string {
+    const value = normalizeNewlines(text);
+    const para = value.lastIndexOf('\n\n');
+    if (para >= 0) return value.slice(0, para).trimEnd();
+    const boundaries = ['。', '！', '？', '.', '!', '?', ';', '；'];
+    let idx = -1;
+    for (const b of boundaries) {
+        const pos = value.lastIndexOf(b);
+        if (pos >= 0 && pos > idx) idx = pos;
+    }
+    if (idx >= 0) return value.slice(0, idx + 1).trimEnd();
+    return value;
+}
+
 function generateLocalId(prefix: string): string {
     const rand = Math.random().toString(16).slice(2, 10);
     return `${prefix}_${Date.now()}_${rand}`;
@@ -82,11 +351,16 @@ function formatIpcError(error: IpcError): string {
     return `${error.code}: ${msg}`;
 }
 
-function formatRagContext(response: RagRetrieveResponse): string {
+function formatRagContext(
+    response: RagRetrieveResponse,
+    options: { includeCharacters?: boolean; includeSettings?: boolean } = {}
+): string {
     const parts: string[] = [];
     const passages = Array.isArray(response.passages) ? response.passages : [];
     const characters = Array.isArray(response.characters) ? response.characters : [];
     const settings = Array.isArray(response.settings) ? response.settings : [];
+    const includeCharacters = options.includeCharacters !== false;
+    const includeSettings = options.includeSettings !== false;
 
     if (passages.length > 0) {
         parts.push('Passages:');
@@ -98,7 +372,7 @@ function formatRagContext(response: RagRetrieveResponse): string {
         }
     }
 
-    if (characters.length > 0) {
+    if (includeCharacters && characters.length > 0) {
         parts.push('Characters:');
         for (const card of characters.slice(0, 5)) {
             const name = coerceString(card.name);
@@ -108,7 +382,7 @@ function formatRagContext(response: RagRetrieveResponse): string {
         }
     }
 
-    if (settings.length > 0) {
+    if (includeSettings && settings.length > 0) {
         parts.push('Settings:');
         for (const card of settings.slice(0, 5)) {
             const name = coerceString(card.name);
@@ -462,49 +736,230 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
             return;
         }
 
-        let ragContext = '';
-        const ragReq: RagRetrieveRequest = {
-            queryText: targetText.slice(0, 2000),
-            budget: { maxChunks: 2, maxChars: 1200, maxCharacters: 3, maxSettings: 3, cursor: '0' },
-        };
-        try {
-            const ragRes = await writenow.invokeResponse('rag:retrieve', ragReq);
-            if (ragRes.ok) {
-                ragContext = formatRagContext(ragRes.data);
-            }
-        } catch {
-            // RAG is optional
+        const normalizedRules = normalizeContextRules(fm.context_rules);
+        if (!normalizedRules.ok) {
+            setRunStatus('error');
+            setRunError(`${normalizedRules.error.code}: ${normalizedRules.error.message}`);
+            return;
         }
+        const contextRules = normalizedRules.rules;
 
-        let kgContext = '';
+        const editor = activeEditor.getActive();
+        const articleId = coerceString(editor?.getArticleId()) || null;
+
+        let projectId: string | null = null;
         try {
             const bootstrap = await writenow.invokeResponse('project:bootstrap', {});
             if (bootstrap.ok) {
-                const kgRes = await writenow.invokeResponse('kg:graph:get', { projectId: bootstrap.data.currentProjectId });
+                projectId = coerceString(bootstrap.data.currentProjectId) || null;
+            }
+        } catch {
+            // optional
+        }
+
+        const injectedRefs: string[] = [];
+        let injectedMemory: UserMemory[] = [];
+        let styleGuide: { ref: string; content: string } | null = null;
+        let characters: Array<{ ref: string; content: string }> = [];
+        let outlineText: string | null = null;
+
+        if (contextRules.user_preferences && projectId) {
+            try {
+                const memRes = await writenow.invokeResponse('memory:injection:preview', { projectId });
+                if (memRes.ok) {
+                    injectedMemory = Array.isArray(memRes.data.injected?.memory) ? memRes.data.injected.memory : [];
+                }
+            } catch {
+                // optional
+            }
+        }
+
+        if (contextRules.style_guide && projectId) {
+            try {
+                const res = await writenow.invokeResponse('context:writenow:rules:get', { projectId });
+                if (res.ok) {
+                    const fragments = Array.isArray(res.data.fragments) ? res.data.fragments : [];
+                    const style = fragments.find((f) => f.kind === 'style');
+                    const relPath = coerceString(style?.path);
+                    if (relPath && typeof style?.content === 'string') {
+                        const ref = `.writenow/${relPath}`;
+                        styleGuide = { ref, content: clampCodePoints(style.content, 2400) };
+                        injectedRefs.push(ref);
+                    }
+                }
+            } catch {
+                // optional
+            }
+        }
+
+        if (contextRules.characters && projectId) {
+            try {
+                const listRes = await writenow.invokeResponse('context:writenow:settings:list', { projectId });
+                if (listRes.ok) {
+                    const all = Array.isArray(listRes.data.characters) ? listRes.data.characters.map(coerceString).filter(Boolean) : [];
+                    all.sort((a, b) => a.localeCompare(b));
+                    const selected = all.slice(0, 20);
+                    if (selected.length > 0) {
+                        const readRes = await writenow.invokeResponse('context:writenow:settings:read', { projectId, characters: selected });
+                        if (readRes.ok) {
+                            const files = Array.isArray(readRes.data.files) ? readRes.data.files : [];
+                            characters = files
+                                .map((f) => {
+                                    const relPath = coerceString((f as { path?: unknown }).path);
+                                    const content = typeof (f as { content?: unknown }).content === 'string' ? (f as { content: string }).content : '';
+                                    if (!relPath || !content.trim()) return null;
+                                    return { ref: `.writenow/${relPath}`, content: clampCodePoints(content, 1800) };
+                                })
+                                .filter((v): v is { ref: string; content: string } => Boolean(v));
+                            characters.sort((a, b) => a.ref.localeCompare(b.ref));
+                            for (const file of characters) injectedRefs.push(file.ref);
+                        }
+                    }
+                }
+            } catch {
+                // optional
+            }
+        }
+
+        if (contextRules.outline && projectId && articleId) {
+            try {
+                const outlineRes = await writenow.invokeResponse('outline:get', { projectId, articleId });
+                if (outlineRes.ok) {
+                    outlineText = formatOutlineForPrompt(outlineRes.data.outline ?? null);
+                }
+            } catch {
+                // optional
+            }
+        }
+
+        let recentSummary = '';
+        if (contextRules.recent_summary <= 0) {
+            recentSummary = '(masked: context_rules.recent_summary=0)';
+        } else if (!projectId) {
+            recentSummary = '(unavailable: no projectId)';
+        } else {
+            try {
+                const res = await writenow.invokeResponse('context:writenow:conversations:list', {
+                    projectId,
+                    ...(articleId ? { articleId } : {}),
+                    limit: contextRules.recent_summary,
+                });
+                if (res.ok) {
+                    const items = Array.isArray(res.data.items) ? res.data.items : [];
+                    const lines = items.slice(0, contextRules.recent_summary).map((item) => {
+                        const summary = coerceString(item.summary) || '(empty)';
+                        const updatedAt = coerceString(item.updatedAt);
+                        return `- ${updatedAt ? `[${updatedAt}] ` : ''}${summary}`;
+                    });
+                    recentSummary = lines.length > 0 ? lines.join('\n') : '(none)';
+                }
+            } catch {
+                // optional
+            }
+            if (!recentSummary) recentSummary = '(none)';
+        }
+
+        let surrounding = '';
+        if (contextRules.surrounding <= 0) {
+            surrounding = '';
+        } else if (!snapshot || !editor) {
+            surrounding = '(unavailable: no selection)';
+        } else {
+            const around = editor.getSurroundingText(snapshot.from, snapshot.to);
+            if (!around) {
+                surrounding = '(unavailable: editor)';
+            } else {
+                const beforeRaw = sliceLastCodePoints(around.before, contextRules.surrounding);
+                const afterRaw = sliceFirstCodePoints(around.after, contextRules.surrounding);
+                const before = trimStartToBoundary(beforeRaw);
+                const after = trimEndToBoundary(afterRaw);
+                surrounding = [
+                    `surrounding: each side <= ${contextRules.surrounding} code points (paragraph boundary preferred)`,
+                    '--- before ---',
+                    before.trim() ? before : '(empty)',
+                    '--- after ---',
+                    after.trim() ? after : '(empty)',
+                ].join('\n');
+            }
+        }
+
+        let ragContext = '';
+        if (contextRules.knowledge_graph) {
+            const ragReq: RagRetrieveRequest = {
+                queryText: targetText.slice(0, 2000),
+                budget: { maxChunks: 2, maxChars: 1200, maxCharacters: 3, maxSettings: 3, cursor: '0' },
+            };
+            try {
+                const ragRes = await writenow.invokeResponse('rag:retrieve', ragReq);
+                if (ragRes.ok) {
+                    ragContext = formatRagContext(ragRes.data, {
+                        includeCharacters: contextRules.characters,
+                        includeSettings: contextRules.characters,
+                    });
+                }
+            } catch {
+                // optional
+            }
+        }
+
+        let kgContext = '';
+        if (contextRules.knowledge_graph && projectId) {
+            try {
+                const kgRes = await writenow.invokeResponse('kg:graph:get', { projectId });
                 if (kgRes.ok) {
                     kgContext = formatKnowledgeGraphContext(kgRes.data.entities, kgRes.data.relations, targetText);
                 }
+            } catch {
+                // optional
             }
-        } catch {
-            // KG is optional
         }
 
-        const contextCombined = [instruction, ragContext, kgContext]
+        const contextCombined = [instruction, surrounding, ragContext, kgContext]
             .map((s) => s.trim())
             .filter(Boolean)
             .join('\n\n');
-        const userContent = renderTemplate(userTemplate, {
+        const renderedUserPrompt = renderTemplate(userTemplate, {
             text: targetText,
             context: contextCombined,
             styleGuide: '',
         });
 
+        const output = isRecord(fm.output) ? fm.output : null;
+        const outputFormat = typeof output?.format === 'string' ? output.format : '';
+        const outputConstraints = Array.isArray(output?.constraints) ? output.constraints.map(coerceString).filter(Boolean) : [];
+        const outputFormatText = [
+            outputFormat ? `format: ${outputFormat}` : 'format: (unspecified)',
+            outputConstraints.length > 0 ? 'constraints:' : 'constraints: (none)',
+            ...outputConstraints.map((c) => `- ${c}`),
+        ].join('\n');
+
+        const systemPrompt = buildStableSystemPrompt({
+            layer0: systemTemplate,
+            skillId: chosen.id,
+            projectId,
+            articleId,
+            contextRulesJson: normalizedRules.json,
+            contextRules,
+            hasSelection,
+            preferences: injectedMemory,
+            styleGuide,
+            characters,
+            outlineText,
+        });
+
+        const userContent = buildUserContent({
+            recentSummary,
+            currentContext: renderedUserPrompt,
+            outputFormat: outputFormatText,
+        });
+
         const request: AiSkillRunRequest = {
             skillId: chosen.id,
             input: { text: targetText, language: 'zh-CN' },
-            prompt: { systemPrompt: systemTemplate, userContent },
+            ...(projectId || articleId ? { context: { ...(projectId ? { projectId } : {}), ...(articleId ? { articleId } : {}) } } : {}),
+            prompt: { systemPrompt, userContent },
             stream: true,
-            injected: { memory: [] },
+            injected: { memory: injectedMemory, refs: injectedRefs, contextRules },
         };
 
         const start = await aiPanel.streamResponse(request);
@@ -514,7 +969,7 @@ function AiPanelView(props: AiPanelViewProps): React.ReactElement {
             return;
         }
         setRunId(start.data.runId);
-    }, [aiPanel, input, resolveSelectionSnapshot, runStatus, skillId, skills, writenow]);
+    }, [activeEditor, aiPanel, input, resolveSelectionSnapshot, runStatus, skillId, skills, writenow]);
 
     const onStop = React.useCallback(async (): Promise<void> => {
         if (runStatus !== 'streaming') return;

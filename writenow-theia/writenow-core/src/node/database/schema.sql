@@ -167,6 +167,22 @@ CREATE TABLE IF NOT EXISTS user_memory (
   updated_at TEXT NOT NULL
 );
 
+-- SKILL 反馈事件（采纳/拒绝/部分采纳）
+CREATE TABLE IF NOT EXISTS skill_run_feedback (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,
+  skill_id TEXT NOT NULL,
+  action TEXT NOT NULL,              -- 'accept' | 'reject' | 'partial'
+  evidence_ref TEXT,                 -- JSON string
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id)
+);
+CREATE INDEX IF NOT EXISTS idx_skill_run_feedback_run_id ON skill_run_feedback(run_id);
+CREATE INDEX IF NOT EXISTS idx_skill_run_feedback_project_id ON skill_run_feedback(project_id);
+CREATE INDEX IF NOT EXISTS idx_skill_run_feedback_skill_id ON skill_run_feedback(skill_id);
+
 -- 创作统计
 CREATE TABLE IF NOT EXISTS writing_stats (
   date TEXT PRIMARY KEY,             -- YYYY-MM-DD

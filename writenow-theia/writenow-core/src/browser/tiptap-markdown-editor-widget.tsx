@@ -454,6 +454,26 @@ export class TipTapMarkdownEditorWidget extends ReactWidget implements Saveable,
     }
 
     /**
+     * Get the full plain-text content around a selection range.
+     *
+     * Why: ContextAssembler needs a deterministic way to capture surrounding text using ProseMirror positions,
+     * while applying its own truncation rules (Unicode code points + paragraph boundary preference).
+     */
+    getSurroundingText(from: number, to: number): { before: string; after: string } | null {
+        const editor = this.tiptapEditor;
+        if (!editor) return null;
+
+        const doc = editor.state.doc;
+        const docSize = doc.content.size;
+        const clampedFrom = Math.max(0, Math.min(from, docSize));
+        const clampedTo = Math.max(clampedFrom, Math.min(to, docSize));
+
+        const before = doc.textBetween(0, clampedFrom, '\n');
+        const after = doc.textBetween(clampedTo, docSize, '\n');
+        return { before, after };
+    }
+
+    /**
      * Replace a document range with plain text.
      *
      * Why: `insertContent` treats strings as HTML; using a ProseMirror transaction preserves literal text/Markdown.

@@ -340,6 +340,115 @@ function selectMemoryForInjection(input) {
   return { settings, items: kept, usedChars, limits: { maxItems, maxChars, maxCharsPerItem } }
 }
 
+const DEFAULT_PREFERENCES_PLACEHOLDER = '(none)'
+
+/**
+ * Formats injected memory items into a stable, single block for prompt injection.
+ * Why: keep "preferences" section deterministic across runs and share the same formatting between preview and AI runs.
+ */
+function formatMemoryForPreferencesSection(items) {
+  const list = Array.isArray(items) ? items : []
+  const lines = []
+  for (const item of list) {
+    const type = typeof item?.type === 'string' ? item.type : ''
+    const raw = typeof item?.content === 'string' ? item.content : ''
+    const content = raw.replace(/\s+/g, ' ').trim()
+    if (!content) continue
+    if (type === 'preference') lines.push(`- 规则: ${content}`)
+    else if (type === 'style') lines.push(`- 风格: ${content}`)
+    else if (type === 'feedback') lines.push(`- 反馈: ${content}`)
+    else lines.push(`- ${content}`)
+  }
+  if (lines.length === 0) return DEFAULT_PREFERENCES_PLACEHOLDER
+  return lines.join('\n')
+}
+
+/**
+ * Ingests preference signals and materializes learned `user_memory(type=preference)`.
+ * Why: shared by `memory:preferences:ingest` and `ai:skill:feedback` (no duplicated learning logic).
+ */
+function ingestPreferenceSignals(input) {
+  const database = assertDb(input?.db)
+  const config = input?.config ?? null
+  const logger = input?.logger ?? null
+  const payload = input?.payload ?? null
+
+  const settings = readSettings(config)
+  if (!settings.preferenceLearningEnabled) {
+    return { learned: [], ignored: 0, settings }
+  }
+  if (settings.privacyModeEnabled) {
+    return { learned: [], ignored: 0, settings }
+  }
+
+  const projectId = coerceString(payload?.projectId)
+  if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+  ensureProjectExists(database, projectId)
+
+  const signals = payload?.signals
+  const acceptedRaw = Array.isArray(signals?.accepted) ? signals.accepted : []
+  const rejectedRaw = Array.isArray(signals?.rejected) ? signals.rejected : []
+
+  const acceptedSet = new Set(acceptedRaw.map(normalizeSignal).filter(Boolean))
+  const rejectedSet = new Set(rejectedRaw.map(normalizeSignal).filter(Boolean))
+
+  for (const s of acceptedSet) {
+    if (rejectedSet.has(s)) {
+      acceptedSet.delete(s)
+      rejectedSet.delete(s)
+    }
+  }
+
+  const accepted = Array.from(acceptedSet).filter((s) => !isNoiseSignal(s))
+  const rejected = Array.from(rejectedSet).filter((s) => !isNoiseSignal(s))
+  const ignored = acceptedRaw.length + rejectedRaw.length - accepted.length - rejected.length
+
+  if (accepted.length === 0 && rejected.length === 0) {
+    return { learned: [], ignored, settings }
+  }
+
+  const counts = loadCounts(config)
+
+  const threshold = settings.preferenceLearningThreshold
+  const learned = []
+  const now = toIsoNow()
+
+  const maybeCreate = (kind, signal) => {
+    const content = formatLearnedPreference(kind, signal)
+    const stable = hashId(`${kind}:${signal}`)
+    const id = `learned:pref:${stable}`
+
+    const exists = database.prepare('SELECT 1 FROM user_memory WHERE id = ?').get(id)
+    if (exists) return null
+
+    database
+      .prepare('INSERT INTO user_memory (id, type, content, project_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(id, 'preference', content, null, now, now)
+
+    const row = database.prepare('SELECT id, type, content, project_id, created_at, updated_at FROM user_memory WHERE id = ?').get(id)
+    const item = mapMemoryRow(row)
+    if (item.id) learned.push(item)
+    return item
+  }
+
+  for (const signal of accepted) {
+    const next = (counts.accepted[signal] ?? 0) + 1
+    counts.accepted[signal] = next
+    if (next === threshold) maybeCreate('accepted', signal)
+  }
+
+  for (const signal of rejected) {
+    const next = (counts.rejected[signal] ?? 0) + 1
+    counts.rejected[signal] = next
+    if (next === threshold) maybeCreate('rejected', signal)
+  }
+
+  saveCounts(config, counts)
+  logger?.info?.('memory', 'preferences ingested', { learned: learned.length, ignored, threshold })
+
+  return { learned, ignored, settings }
+}
+
 function registerMemoryIpcHandlers(ipcMain, options = {}) {
   const db = options.db ?? null
   const logger = options.logger ?? null
@@ -472,81 +581,7 @@ function registerMemoryIpcHandlers(ipcMain, options = {}) {
    * Why: keep learning local + auditable, while allowing UI to surface undo/disable/privacy controls.
    */
   handleInvoke('memory:preferences:ingest', async (_evt, payload) => {
-    const database = assertDb(db)
-    const settings = readSettings(config)
-    if (!settings.preferenceLearningEnabled) {
-      return { learned: [], ignored: 0, settings }
-    }
-    if (settings.privacyModeEnabled) {
-      return { learned: [], ignored: 0, settings }
-    }
-
-    const projectId = coerceString(payload?.projectId)
-    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
-    ensureProjectExists(database, projectId)
-
-    const signals = payload?.signals
-    const acceptedRaw = Array.isArray(signals?.accepted) ? signals.accepted : []
-    const rejectedRaw = Array.isArray(signals?.rejected) ? signals.rejected : []
-
-    const acceptedSet = new Set(acceptedRaw.map(normalizeSignal).filter(Boolean))
-    const rejectedSet = new Set(rejectedRaw.map(normalizeSignal).filter(Boolean))
-
-    for (const s of acceptedSet) {
-      if (rejectedSet.has(s)) {
-        acceptedSet.delete(s)
-        rejectedSet.delete(s)
-      }
-    }
-
-    const accepted = Array.from(acceptedSet).filter((s) => !isNoiseSignal(s))
-    const rejected = Array.from(rejectedSet).filter((s) => !isNoiseSignal(s))
-    const ignored = acceptedRaw.length + rejectedRaw.length - accepted.length - rejected.length
-
-    if (accepted.length === 0 && rejected.length === 0) {
-      return { learned: [], ignored, settings }
-    }
-
-    const counts = loadCounts(config)
-
-    const threshold = settings.preferenceLearningThreshold
-    const learned = []
-    const now = toIsoNow()
-
-    const maybeCreate = (kind, signal) => {
-      const content = formatLearnedPreference(kind, signal)
-      const stable = hashId(`${kind}:${signal}`)
-      const id = `learned:pref:${stable}`
-
-      const exists = database.prepare('SELECT 1 FROM user_memory WHERE id = ?').get(id)
-      if (exists) return null
-
-      database
-        .prepare('INSERT INTO user_memory (id, type, content, project_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
-        .run(id, 'preference', content, null, now, now)
-
-      const row = database.prepare('SELECT id, type, content, project_id, created_at, updated_at FROM user_memory WHERE id = ?').get(id)
-      const item = mapMemoryRow(row)
-      if (item.id) learned.push(item)
-      return item
-    }
-
-    for (const signal of accepted) {
-      const next = (counts.accepted[signal] ?? 0) + 1
-      counts.accepted[signal] = next
-      if (next === threshold) maybeCreate('accepted', signal)
-    }
-
-    for (const signal of rejected) {
-      const next = (counts.rejected[signal] ?? 0) + 1
-      counts.rejected[signal] = next
-      if (next === threshold) maybeCreate('rejected', signal)
-    }
-
-    saveCounts(config, counts)
-    logger?.info?.('memory', 'preferences ingested', { learned: learned.length, ignored, threshold })
-
-    return { learned, ignored, settings }
+    return ingestPreferenceSignals({ db, config, logger, payload })
   })
 
   handleInvoke('memory:preferences:clear', async (_evt, payload) => {
@@ -560,4 +595,4 @@ function registerMemoryIpcHandlers(ipcMain, options = {}) {
   })
 }
 
-module.exports = { registerMemoryIpcHandlers, selectMemoryForInjection }
+module.exports = { registerMemoryIpcHandlers, selectMemoryForInjection, formatMemoryForPreferencesSection, ingestPreferenceSignals }

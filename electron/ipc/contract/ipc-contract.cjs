@@ -281,6 +281,8 @@ export type AiSkillRunRequest = {
   prompt: AiPromptPayload;
   injected?: {
     memory: UserMemory[];
+    refs?: string[];
+    contextRules?: Record<string, unknown>;
   };
 };
 
@@ -289,9 +291,12 @@ export type AiSkillRunResponse = {
   stream: boolean;
   injected?: {
     memory: UserMemory[];
+    refs?: string[];
+    contextRules?: Record<string, unknown>;
   };
   prompt?: {
     prefixHash: string;
+    stablePrefixHash: string;
     promptHash: string;
   };
 };
@@ -302,6 +307,20 @@ export type AiSkillCancelRequest = {
 
 export type AiSkillCancelResponse = {
   canceled: true;
+};
+
+export type AiSkillFeedbackRequest = {
+  runId: string;
+  action: 'accept' | 'reject' | 'partial';
+  projectId?: string;
+  evidenceRef?: JsonValue;
+};
+
+export type AiSkillFeedbackResponse = {
+  recorded: true;
+  feedbackId: string;
+  learned: UserMemory[];
+  ignored: number;
 };
 
 export type SearchHit = {
