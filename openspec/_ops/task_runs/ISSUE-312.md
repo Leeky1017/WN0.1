@@ -1,7 +1,7 @@
 # ISSUE-312
 - Issue: #312
 - Branch: task/312-ci-e2e-wait-connected
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/313
 
 ## Plan
 - Stabilize Playwright Electron E2E helpers by waiting for backend connection before file operations.
@@ -21,3 +21,8 @@
 - Command: `git fetch origin && git worktree add -b "task/312-ci-e2e-wait-connected" ".worktrees/issue-312-ci-e2e-wait-connected" origin/main`
 - Key output: `Preparing worktree (new branch 'task/312-ci-e2e-wait-connected')`
 - Evidence: `.worktrees/issue-312-ci-e2e-wait-connected/`
+
+### 2026-01-28 03:55 pr-create
+- Command: `gh pr create --base main --head task/312-ci-e2e-wait-connected ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/313`
+- Evidence: `PR #313`
