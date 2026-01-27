@@ -83,6 +83,10 @@ function getSelectionText(doc: ProseMirrorNode, selection: AiDiffSelection): str
   return doc.textBetween(selection.from, selection.to, '\n');
 }
 
+function normalizeSelectionText(text: string): string {
+  return text.replace(/\r\n/g, '\n').trimEnd();
+}
+
 function mapSelection(selection: AiDiffSelection, tr: Transaction): AiDiffSelection | null {
   const maxPos = tr.doc.content.size;
   const nextFrom = tr.mapping.map(selection.from, 1);
@@ -255,7 +259,7 @@ export const AiDiffExtension = Extension.create<AiDiffExtensionOptions>({
           }
 
           const currentText = getSelectionText(editor.state.doc, input.selection);
-          if (currentText !== input.originalText) {
+          if (normalizeSelectionText(currentText) !== normalizeSelectionText(input.originalText)) {
             const error = makeIpcError('CONFLICT', 'Selection changed; cannot show AI diff safely', {
               runId: input.runId,
               originalLen: input.originalText.length,
@@ -295,7 +299,7 @@ export const AiDiffExtension = Extension.create<AiDiffExtensionOptions>({
 
           const { session } = pluginState;
           const currentText = getSelectionText(editor.state.doc, session.selection);
-          if (currentText !== session.originalText) {
+          if (normalizeSelectionText(currentText) !== normalizeSelectionText(session.originalText)) {
             const error = makeIpcError('CONFLICT', 'Selection changed; cannot apply AI diff safely', {
               runId: session.runId,
               originalLen: session.originalText.length,
@@ -372,4 +376,3 @@ declare module '@tiptap/core' {
     };
   }
 }
-

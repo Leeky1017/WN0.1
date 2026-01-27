@@ -387,14 +387,22 @@ export function useAISkill(): UseAISkillResult {
             setMessageContent(assistantId, suggestedText);
             const hunks = computeDiff(originalText, suggestedText);
             const snapshot = selectionSnapshotRef.current;
-            if (snapshot) {
-              activeEditor.commands.showAiDiff({
-                runId,
-                originalText,
-                suggestedText,
-                selection: { from: snapshot.from, to: snapshot.to },
-                createdAt: Date.now(),
-              });
+            if (!snapshot) {
+              setLastError({ code: 'INTERNAL', message: 'Missing selection snapshot for AI diff preview' });
+              return;
+            }
+
+            const previewed = activeEditor.commands.showAiDiff({
+              runId,
+              originalText,
+              suggestedText,
+              selection: { from: snapshot.from, to: snapshot.to },
+              createdAt: Date.now(),
+            });
+            if (!previewed) {
+              // Why: The editor is the source of truth for safe application. If we can't preview safely, do not show
+              // a Review UI that cannot be applied.
+              return;
             }
             setDiff({
               runId,

@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 
 import { expect, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
@@ -11,6 +11,7 @@ export type LaunchWriteNowOptions = {
 export type LaunchWriteNowResult = {
   electronApp: ElectronApplication;
   page: Page;
+  userDataDir: string;
 };
 
 export function isWSL(): boolean {
@@ -68,7 +69,7 @@ export async function launchWriteNowApp(options: LaunchWriteNowOptions): Promise
     );
   }
 
-  return { electronApp, page };
+  return { electronApp, page, userDataDir: options.userDataDir };
 }
 
 export async function createNewFile(page: Page, name: string): Promise<void> {
@@ -84,14 +85,62 @@ export async function createNewFile(page: Page, name: string): Promise<void> {
   ).toBeVisible({ timeout: 30_000 });
 }
 
+async function killBackendFromPidFile(userDataDir: string): Promise<void> {
+  const pidFilePath = path.join(userDataDir, 'backend.pid');
+  let pid: number | null = null;
+  try {
+    const raw = await readFile(pidFilePath, 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const record = parsed as { pid?: unknown };
+      if (typeof record.pid === 'number' && Number.isFinite(record.pid) && record.pid > 0) {
+        pid = record.pid;
+      }
+    }
+  } catch {
+    pid = null;
+  }
+
+  if (!pid) return;
+
+  try {
+    process.kill(pid, 'SIGTERM');
+  } catch {
+    // ignore
+  }
+
+  const deadline = Date.now() + 2_000;
+  while (Date.now() < deadline) {
+    try {
+      process.kill(pid, 0);
+      // still alive
+    } catch {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  try {
+    process.kill(pid, 'SIGKILL');
+  } catch {
+    // ignore
+  }
+
+  try {
+    await unlink(pidFilePath);
+  } catch {
+    // ignore
+  }
+}
+
 /**
  * Close the Electron app and hard-kill if needed.
  *
  * Why: Playwright worker teardown can hang if Electron lingers (WSL/CI flake).
  */
-export async function closeWriteNowApp(electronApp: ElectronApplication): Promise<void> {
-  const proc = electronApp.process();
-  await electronApp.close().catch(() => undefined);
+export async function closeWriteNowApp(app: LaunchWriteNowResult): Promise<void> {
+  const proc = app.electronApp.process();
+  await app.electronApp.close().catch(() => undefined);
   if (proc && proc.exitCode === null) {
     try {
       proc.kill('SIGKILL');
@@ -103,4 +152,7 @@ export async function closeWriteNowApp(electronApp: ElectronApplication): Promis
       }
     }
   }
+
+  // Why: If Electron is SIGKILLed, its backend child can outlive and keep port 3000 occupied → cascading E2E failures.
+  await killBackendFromPidFile(app.userDataDir);
 }
