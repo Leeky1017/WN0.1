@@ -24,7 +24,7 @@ name: 润色文本
 description: 优化表达和用词，使文字更加流畅
 
 context_rules:
-  surrounding: 500          # 前后各 N 字
+  surrounding: 500          # 前后各 N 字（单位：字符数）
   user_preferences: true    # 注入用户偏好
   style_guide: true         # 注入项目风格指南
   characters: false         # 是否需要人物卡
@@ -42,15 +42,33 @@ prompt:
 
 | 字段 | 类型 | 默认 | 说明 |
 |------|------|------|------|
-| surrounding | number | 0 | 前后文注入预算（字符数或 token 近似值，需确定一种单位） |
+| surrounding | integer | 0 | 前后文注入预算（**单位固定为字符数：Unicode code points**，非 token） |
 | user_preferences | boolean | false | 是否注入用户偏好 |
 | style_guide | boolean | false | 是否注入项目风格指南 |
 | characters | boolean | false | 是否需要人物/设定 |
 | outline | boolean | false | 是否需要大纲位置/结构 |
-| recent_summary | number | 0 | 最近运行摘要条数（用于连续改写一致性） |
+| recent_summary | integer | 0 | 最近运行摘要条数（用于连续改写一致性） |
 | knowledge_graph | boolean | false | 是否需要图谱证据（未来） |
 
-> 约束：为保证 KV-cache 稳定性，上述字段必须可确定性序列化；未知字段应被视为 `INVALID_ARGUMENT`（或被忽略但记录 warning，二选一需在实现中固定）。
+约束（MUST）：
+
+- `context_rules` 必须是 mapping（对象）；`integer` 字段必须是有限整数且 `>= 0`
+- 所有字段必须确定性序列化（key 顺序固定、空白字符固定），避免 KV-cache 漂移
+- **未知字段 MUST 返回 `INVALID_ARGUMENT`**（减少实现期歧义与静默降级）
+
+## 来源引用格式（建议，必须去敏）
+
+当注入来自文件/数据库时，建议在 prompt 与 run meta 中输出稳定引用，满足：
+
+- **project-relative**：例如 `.writenow/style-guide.md`、`.writenow/characters/zhangsan.md`
+- **禁止绝对路径**：不得包含 `/Users/...`、`C:\\...` 等机器路径（避免敏感信息与不可移植性）
+
+示例：
+
+```
+ref:.writenow/style-guide.md
+ref:.writenow/characters/zhangsan.md#L12-L58
+```
 
 ## 注入矩阵（示例）
 
@@ -107,4 +125,3 @@ main: 调用 LLM + stream 结果 + 记录 run meta
 - 成本收益：对比“全量注入 vs 精准注入”的 token 使用
 - 稳定性：同一静态条件下 stable prefix 字节级一致（snapshot）
 - 错误语义：非法 context_rules 返回 `INVALID_ARGUMENT`；取消/超时可区分
-

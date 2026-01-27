@@ -35,9 +35,23 @@
 - [ ] 用户可关闭自动注入（关闭后稳定空占位仍在，模板不漂移）
 - [ ] E2E 通过并写入 RUN_LOG 证据
 
+## 可观测信号 / 验证方式
+
+- `ai:skill:run` start 响应或 run meta 必须返回：
+  - `injected.memory`（实际注入的偏好条目/引用的最小集合）
+  - `stablePrefixHash`（用于观测 Layer 2 变化是否影响稳定前缀）
+- UI 必须能展示“本次注入了哪些偏好”（来源/置信度/证据数）
+
+## E2E 场景（建议步骤）
+
+- [ ] 通过真实 IPC 写入一条偏好（例如 `memory:preferences:ingest`），并确保落盘（SQLite）
+- [ ] 运行任意改写类 SKILL
+- [ ] 断言：start 响应中的 `injected.memory` 非空，且 UI 可查看注入条目
+- [ ] 关闭自动注入后再次运行
+- [ ] 断言：`injected.memory` 为空（或仅含稳定占位），且模板结构不漂移
+
 ## 产出
 
 - 自动偏好注入能力（renderer + memory IPC 协作）
 - 注入透明性 UI（最小可用）
 - E2E 覆盖与证据
-

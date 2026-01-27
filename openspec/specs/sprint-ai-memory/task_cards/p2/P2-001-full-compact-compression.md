@@ -34,9 +34,24 @@
 - [ ] 可回溯：Compact 记录包含 Full 的引用（文件路径/条目 ID）
 - [ ] E2E 通过并写入 RUN_LOG 证据
 
+## 可观测信号 / 验证方式
+
+- compaction 触发必须可观测：
+  - 产生明确的“压缩事件”记录（阈值、触发原因、影响范围）
+  - Compact 摘要包含 `summaryQuality`（或等价质量标记）与来源引用
+- 回溯必须可验证：
+  - Compact 记录包含 project-relative 引用（不得输出绝对路径）
+  - 能通过引用定位到 Full 内容（文件或 DB 条目）
+
+## E2E 场景（建议步骤）
+
+- [ ] 构造长历史：连续运行多次 SKILL 生成足够多的历史记录
+- [ ] 触发 compaction（通过阈值或强制入口）
+- [ ] 断言：Compact 摘要生成且被后续注入使用（可通过 injected.refs 或调试视图确认）
+- [ ] 通过引用回溯到 Full 内容并验证一致性
+
 ## 产出
 
 - Full/Compact 数据模型与 compaction 实现
 - 注入策略与回溯路径
 - E2E 覆盖与证据
-

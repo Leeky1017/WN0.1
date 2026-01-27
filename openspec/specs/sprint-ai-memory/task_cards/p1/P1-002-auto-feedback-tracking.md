@@ -36,9 +36,24 @@
 - [ ] IPC 错误码稳定且可诊断（不泄漏异常堆栈）
 - [ ] E2E 通过并写入 RUN_LOG 证据
 
+## 可观测信号 / 验证方式
+
+- 反馈写入必须可验证：
+  - `ai:skill:feedback` 返回可识别的结果（例如 `feedbackId` 或写入条数）
+  - DB 中可查询 `runId -> action -> evidenceRef`
+- 学习联动必须可观测：
+  - 再次运行同类 SKILL 时，`injected.memory` 或 `stablePrefixHash` 发生符合预期的变化（可解释）
+
+## E2E 场景（建议步骤）
+
+- [ ] 运行一次改写类 SKILL，记录 `runId`
+- [ ] 通过 UI 执行“采纳”或“拒绝”，触发 `ai:skill:feedback`
+- [ ] 断言：反馈记录落盘（SQLite 可查询到 runId/action）
+- [ ] 再次运行同类 SKILL
+- [ ] 断言：注入偏好/稳定前缀发生变化（例如 `injected.memory` 更新或 `stablePrefixHash` 更新）
+
 ## 产出
 
 - `ai:skill:feedback` IPC handler
 - 反馈持久化记录 + 偏好学习联动
 - IPC contract 更新与 E2E 覆盖
-
