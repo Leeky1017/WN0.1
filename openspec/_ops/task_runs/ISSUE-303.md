@@ -1,7 +1,7 @@
 # ISSUE-303
 - Issue: #303
 - Branch: task/303-p2-001-e2e-playwright
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/304
 
 ## Plan
 - Align with OpenSpec requirements for Playwright Electron E2E (core creation path + AI boundary branches)
