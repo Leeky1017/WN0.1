@@ -28,3 +28,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive` + `rulebook task validate issue-277-sprint-write-mode-ide`
 - Key output: `Totals: 5 passed, 0 failed` + `✅ Task issue-277-sprint-write-mode-ide is valid`
 - Evidence: `openspec/specs/sprint-write-mode-ide/**`, `rulebook/tasks/issue-277-sprint-write-mode-ide/**`
+
+### 2026-01-27 16:33 PR + auto-merge
+- Command: `gh pr create ...` + `gh pr merge 278 --auto --squash`
+- Key output: `PR: https://github.com/Leeky1017/WN0.1/pull/278` + `auto-merge enabled`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/278
