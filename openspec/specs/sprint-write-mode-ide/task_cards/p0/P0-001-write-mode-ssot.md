@@ -1,5 +1,10 @@
 # P0-001: Write Mode 单链路（SSOT）—— 替换 demo UI，接通真实数据/编辑器/AI
 
+Status: done  
+Issue: #281  
+PR: https://github.com/Leeky1017/WN0.1/pull/286  
+RUN_LOG: openspec/_ops/task_runs/ISSUE-281.md
+
 ## 元信息
 
 | 字段 | 值 |
@@ -7,16 +12,16 @@
 | ID | P0-001 |
 | Phase | P0 - 单链路统一（SSOT） |
 | 优先级 | P0 |
-| 状态 | Planned |
+| 状态 | Done |
 | 依赖 | - |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `openspec/specs/sprint-write-mode-ide/spec.md`（Write Mode Requirements）
-- [ ] `design/00-strategy.md`（单链路 + DoD/DoR）
-- [ ] `design/01-write-mode-ux.md`（Write Mode 形态 + 状态机）
-- [ ] `design/04-migration-unification.md`（删除/统一清单）
-- [ ] `openspec/specs/api-contract/spec.md`（错误码与 Envelope）
+- [x] `openspec/specs/sprint-write-mode-ide/spec.md`（Write Mode Requirements）
+- [x] `design/00-strategy.md`（单链路 + DoD/DoR）
+- [x] `design/01-write-mode-ux.md`（Write Mode 形态 + 状态机）
+- [x] `design/04-migration-unification.md`（删除/统一清单）
+- [x] `openspec/specs/api-contract/spec.md`（错误码与 Envelope）
 
 ## 目标
 
@@ -29,37 +34,37 @@
 
 ## 任务清单
 
-- [ ] 1) 识别并列出当前主路径的 demo/stub 入口（必须具体到 import 关系）
-  - [ ] `writenow-frontend/src/components/layout/AppShell.tsx` 引用 `../editor/Editor`（demo）
-  - [ ] `writenow-frontend/src/components/layout/AppShell.tsx` 引用 `../ai-panel/AIPanel`（demo）
-  - [ ] `AppShell` 内部硬编码 `FileItem` 列表（stub Explorer）
-- [ ] 2) 新增/改造 Write Mode 容器（建议：`features/write-mode/WriteModePage.tsx`）
-  - [ ] 容器负责：连接 store/hook，向下传递“薄 props”
-  - [ ] 禁止在 presentational component 中直接调用 RPC（保持可测/可维护）
-- [ ] 3) 用 TipTapEditor 替换 demo Editor
-  - [ ] 主画布改为渲染 `TipTapEditor`（`data-testid="tiptap-editor"` 必须保留）
-  - [ ] 建立 editor runtime 接口：activeEditor + selection snapshot（复用 `editorRuntimeStore`）
-- [ ] 4) AI Panel 接入真实 AI store/hook
-  - [ ] 新建 `writenow-frontend/src/features/ai-panel/AIPanel.tsx`（连接 `useAISkill` + `useAIStore`）
-  - [ ] 删除或移出主路径：`writenow-frontend/src/components/ai-panel/AIPanel.tsx`
-  - [ ] AppShell 右侧改为渲染 features AIPanel
-- [ ] 5) Explorer 接入真实文件树
-  - [ ] 使用 `features/file-tree/useFileTree.ts` 替换 AppShell 的静态文件列表
-  - [ ] 文件操作（新建/删除/重命名）必须走 `file:*` 通道（真实后端）
-- [ ] 6) 统一布局状态（避免双状态机）
-  - [ ] AppShell 不再维护 `isSidebarOpen/isAiPanelOpen/...` 本地 state
-  - [ ] 改为使用 `stores/layoutStore.ts` 作为唯一来源（并确保可持久化）
-- [ ] 7) 删除策略（强制）
-  - [ ] 删除 demo 入口或将其移动到 dev-only（且 CI guard 禁止主路径引用）
-  - [ ] 在同一 PR 内完成“替换 + 删除”（不接受长期并存）
+- [x] 1) 识别并列出当前主路径的 demo/stub 入口（必须具体到 import 关系）
+  - [x] `writenow-frontend/src/components/layout/AppShell.tsx` 引用 `../editor/Editor`（demo）
+  - [x] `writenow-frontend/src/components/layout/AppShell.tsx` 引用 `../ai-panel/AIPanel`（demo）
+  - [x] `AppShell` 内部硬编码 `FileItem` 列表（stub Explorer）
+- [x] 2) 新增/改造 Write Mode 容器（建议：`features/write-mode/WriteModePage.tsx`）
+  - [x] 容器负责：连接 store/hook，向下传递“薄 props”
+  - [x] 禁止在 presentational component 中直接调用 RPC（保持可测/可维护）
+- [x] 3) 用 TipTapEditor 替换 demo Editor
+  - [x] 主画布改为渲染 `TipTapEditor`（`data-testid="tiptap-editor"` 必须保留）
+  - [x] 建立 editor runtime 接口：activeEditor + selection snapshot（复用 `editorRuntimeStore`）
+- [x] 4) AI Panel 接入真实 AI store/hook
+  - [x] 新建 `writenow-frontend/src/features/ai-panel/AIPanel.tsx`（连接 `useAISkill` + `useAIStore`）
+  - [x] 删除或移出主路径：`writenow-frontend/src/components/ai-panel/AIPanel.tsx`
+  - [x] AppShell 右侧改为渲染 features AIPanel
+- [x] 5) Explorer 接入真实文件树
+  - [x] 使用 `features/file-tree/useFileTree.ts` 替换 AppShell 的静态文件列表
+  - [x] 文件操作（新建/删除/重命名）必须走 `file:*` 通道（真实后端）
+- [x] 6) 统一布局状态（避免双状态机）
+  - [x] AppShell 不再维护 `isSidebarOpen/isAiPanelOpen/...` 本地 state
+  - [x] 改为使用 `stores/layoutStore.ts` 作为唯一来源（并确保可持久化）
+- [x] 7) 删除策略（强制）
+  - [x] 删除 demo 入口或将其移动到 dev-only（且 CI guard 禁止主路径引用）
+  - [x] 在同一 PR 内完成“替换 + 删除”（不接受长期并存）
 
 ## 验收标准
 
-- [ ] Write Mode 主画布不再引用 `components/editor/Editor.tsx`（可用 `rg` 验证）
-- [ ] Write Mode 右侧 AI Panel 可加载真实 skills，并可发起一次 run（成功或可诊断失败均可）
-- [ ] Explorer 展示真实 `file:list` 返回的文件（不是静态 mock）
-- [ ] 不存在双入口：同一功能只有唯一入口/状态机/持久化来源（按 `design/04` 自查）
-- [ ] E2E 可使用稳定选择器定位（至少：`tiptap-editor`, `ai-panel`, `wm-file-tree`）
+- [x] Write Mode 主画布不再引用 `components/editor/Editor.tsx`（可用 `rg` 验证）
+- [x] Write Mode 右侧 AI Panel 可加载真实 skills，并可发起一次 run（成功或可诊断失败均可）
+- [x] Explorer 展示真实 `file:list` 返回的文件（不是静态 mock）
+- [x] 不存在双入口：同一功能只有唯一入口/状态机/持久化来源（按 `design/04` 自查）
+- [x] E2E 可使用稳定选择器定位（至少：`tiptap-editor`, `ai-panel`, `wm-file-tree`）
 
 ## 产出
 
