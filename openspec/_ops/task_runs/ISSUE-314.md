@@ -37,3 +37,8 @@
 - Command: `gh pr create --title "[WRITE-MODE-IDE] P2-001: CI gate for @write-mode E2E (artifacts) (#314)" --body "Closes #314 ..."`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/315`
 - Evidence: `PR #315`
+
+### 2026-01-28 04:52 follow-up-issue
+- Command: `gh issue create -t "[WRITE-MODE-IDE] P2-001: Fix e2e-write-mode CI failures (backend exit + review accept)" -b "..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/issues/316`
+- Evidence: `Issue #316`
