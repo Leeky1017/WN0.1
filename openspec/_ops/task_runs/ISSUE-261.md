@@ -2,7 +2,7 @@
 
 - Issue: #261
 - Branch: task/261-ai-memory-research
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/262
 
 ## Plan
 
