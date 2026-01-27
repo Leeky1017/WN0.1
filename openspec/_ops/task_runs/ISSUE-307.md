@@ -42,3 +42,8 @@
 - Command: `gh pr create -R Leeky1017/WN0.1 -H task/307-p2-002-perf-budgets -B main -t "P2-002 perf budgets gate (#307)" -b "Closes #307 ..."`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/308`
 - Evidence: `PR #308`
+
+### 2026-01-28 03:20 pr-automerge
+- Command: `gh pr merge -R Leeky1017/WN0.1 --auto --squash 308`
+- Key output: `auto-merge enabled (squash)`
+- Evidence: `gh pr view 308 --json autoMergeRequest`
