@@ -380,7 +380,18 @@ export function useAISkill(): UseAISkillResult {
           (error) => {
             unsubscribeRef.current?.();
             unsubscribeRef.current = null;
-            const ipc = toIpcError({ code: 'UPSTREAM_ERROR', message: error.message });
+            const code = typeof error.name === 'string' && error.name.trim() ? error.name.trim() : 'UPSTREAM_ERROR';
+
+            if (code === 'CANCELED') {
+              // Why: CANCELED is a first-class state; it must not be surfaced as an error or leave the UI stuck.
+              cancelRunLocal();
+              setStatusBarAIStatus('idle', '');
+              setDiff(null);
+              activeEditor.commands.clearAiDiff();
+              return;
+            }
+
+            const ipc = toIpcError({ code, message: error.message });
             failRun(ipc);
             setStatusBarAIStatus('error', ipc.message);
             setDiff(null);
@@ -399,6 +410,7 @@ export function useAISkill(): UseAISkillResult {
       addUserMessage,
       appendToMessage,
       ensureAssistantMessage,
+      cancelRunLocal,
       failRun,
       finishRun,
       isReady,

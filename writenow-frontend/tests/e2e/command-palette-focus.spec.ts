@@ -2,44 +2,12 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { expect, test, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-function escapeRegExp(text: string) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-async function launchApp(userDataDir: string): Promise<{ electronApp: ElectronApplication; page: Page }> {
-  const electronApp = await electron.launch({
-    args: ['.'],
-    env: {
-      ...process.env,
-      WN_E2E: '1',
-      WN_OPEN_DEVTOOLS: '0',
-      WN_USER_DATA_DIR: userDataDir,
-      WN_DISABLE_GPU: '1',
-      // Why: WSLg + Wayland can crash Electron renderer in CI-like runs; prefer X11 for stability.
-      ELECTRON_OZONE_PLATFORM_HINT: 'x11',
-      WAYLAND_DISPLAY: '',
-    },
-  });
-
-  const page = await electronApp.firstWindow();
-  await expect(page.getByTestId('wm-header')).toBeVisible({ timeout: 30_000 });
-  return { electronApp, page };
-}
-
-async function createNewFile(page: Page, name: string): Promise<void> {
-  await page.locator('button[title="新建文件"]').click();
-  const nameInput = page.getByPlaceholder('未命名');
-  await nameInput.fill(name);
-  await nameInput.press('Enter');
-  await expect(
-    page.getByTestId('layout-sidebar').getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(name)}\\.md$`) }),
-  ).toBeVisible({ timeout: 30_000 });
-}
+import { createNewFile, escapeRegExp, isWSL, launchWriteNowApp } from './_utils/writenow';
 
 test.describe('write mode: command palette + focus/zen', () => {
-  test.skip(Boolean(process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP), 'Electron E2E is unstable on WSL; run on native Linux (xvfb) or macOS/Windows.');
+  test.skip(isWSL(), 'Electron E2E is unstable on WSL; run on native Linux (xvfb) or macOS/Windows.');
 
   test('Cmd/Ctrl+K opens cmdk, can open file, and recent persists across restart', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-cmdk-'));
@@ -47,7 +15,7 @@ test.describe('write mode: command palette + focus/zen', () => {
     const docA = `CmdkA-${Date.now()}`;
     const docB = `CmdkB-${Date.now()}`;
 
-    const app1 = await launchApp(userDataDir);
+    const app1 = await launchWriteNowApp({ userDataDir });
     try {
       const { page } = app1;
 
@@ -86,7 +54,7 @@ test.describe('write mode: command palette + focus/zen', () => {
     }
 
     // Relaunch with the same userDataDir → recent should still be there
-    const app2 = await launchApp(userDataDir);
+    const app2 = await launchWriteNowApp({ userDataDir });
     try {
       const { page } = app2;
 
@@ -105,7 +73,7 @@ test.describe('write mode: command palette + focus/zen', () => {
 
   test('Cmd/Ctrl+\\\\ toggles Focus/Zen; Esc exits Focus and editor stays usable', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-focus-'));
-    const { electronApp, page } = await launchApp(userDataDir);
+    const { electronApp, page } = await launchWriteNowApp({ userDataDir });
     try {
       const docName = `Focus-${Date.now()}`;
       await createNewFile(page, docName);
@@ -146,4 +114,3 @@ test.describe('write mode: command palette + focus/zen', () => {
     }
   });
 });
-
