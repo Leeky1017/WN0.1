@@ -12,6 +12,7 @@ import { ExportService } from './services/export-service';
 import { FilesService } from './services/files-service';
 import { IndexService } from './services/index-service';
 import { KnowledgeGraphService } from './services/knowledge-graph-service';
+import { MemoryService } from './services/memory-service';
 import { ProjectsService } from './services/projects-service';
 import { RetrievalService } from './services/retrieval-service';
 import { SearchService } from './services/search-service';
@@ -35,6 +36,7 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(RetrievalService) retrievalService: RetrievalService,
         @inject(SearchService) searchService: SearchService,
         @inject(ContextService) contextService: ContextService,
+        @inject(MemoryService) memoryService: MemoryService,
         @inject(StatsService) statsService: StatsService,
         @inject(SnapshotService) snapshotService: SnapshotService,
         @inject(ExportService) exportService: ExportService,
@@ -51,6 +53,7 @@ export class WritenowBackendService implements WritenowRpcService {
         retrievalService.register(this.registry);
         searchService.register(this.registry);
         contextService.register(this.registry);
+        memoryService.register(this.registry);
 
         // Stats service (stats:getToday, stats:getRange, stats:increment)
         this.registry.handleInvoke('stats:getToday', (_event: unknown, payload: unknown) => statsService.getToday(payload as never));

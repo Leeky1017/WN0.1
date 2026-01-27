@@ -34,6 +34,10 @@ function coerceString(value: unknown): string {
     return typeof value === 'string' ? value.trim() : '';
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
 /**
  * Ensures prompt fields are strings without mutating the content.
  * Why: The UI/ContextAssembler is the SSOT for prompt bytes; backend must not trim/normalize prompt content.
@@ -46,6 +50,32 @@ function requirePromptString(value: unknown, fieldName: string): string {
         throw { ipcError: { code: 'INVALID_ARGUMENT', message: `${fieldName} is empty`, details: { fieldName } } };
     }
     return value;
+}
+
+/**
+ * Why: injected refs are used for audit/debug; they MUST NOT leak absolute machine paths.
+ * Failure: invalid refs MUST surface as INVALID_ARGUMENT.
+ */
+function normalizeInjectedRefs(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of value) {
+        if (typeof raw !== 'string') continue;
+        const trimmed = raw.trim().replace(/\\/g, '/');
+        if (!trimmed) continue;
+        if (trimmed.startsWith('/') || trimmed.startsWith('\\\\') || /^[a-zA-Z]:\//.test(trimmed) || /^[a-zA-Z]:\\/.test(raw)) {
+            throw { ipcError: { code: 'INVALID_ARGUMENT', message: 'injected.refs MUST be project-relative (no absolute paths)', details: { ref: raw } } };
+        }
+        if (trimmed.includes('://') || trimmed.startsWith('file:')) {
+            throw { ipcError: { code: 'INVALID_ARGUMENT', message: 'injected.refs MUST be project-relative (no URLs)', details: { ref: raw } } };
+        }
+        if (seen.has(trimmed)) continue;
+        seen.add(trimmed);
+        out.push(trimmed);
+    }
+    out.sort((a, b) => a.localeCompare(b));
+    return out;
 }
 
 function fnv1a32Hex(text: string): string {
@@ -74,6 +104,23 @@ function resolveNumber(value: unknown): number | null {
         return Number.isFinite(parsed) ? parsed : null;
     }
     return null;
+}
+
+function resolveBoolean(value: unknown): boolean | null {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number' && Number.isFinite(value)) return value !== 0;
+    if (typeof value === 'string') {
+        const raw = value.trim().toLowerCase();
+        if (raw === 'true' || raw === '1' || raw === 'yes' || raw === 'on') return true;
+        if (raw === 'false' || raw === '0' || raw === 'no' || raw === 'off') return false;
+    }
+    return null;
+}
+
+function resolvePromptCachingEnabled(): boolean {
+    const env = resolveBoolean(process.env.WN_AI_PROMPT_CACHING_ENABLED);
+    if (env !== null) return env;
+    return true;
 }
 
 function resolveMaxTokens(): number {
@@ -150,6 +197,33 @@ function toStreamError(error: unknown): IpcError {
     }
 
     return { code: 'UPSTREAM_ERROR', message: rawMessage || 'Upstream error', ...(status ? { details: { status } } : {}) };
+}
+
+function shouldFallbackPromptCaching(err: unknown): boolean {
+    if (!err || typeof err !== 'object') return false;
+    const status = typeof (err as { status?: unknown }).status === 'number' ? ((err as { status?: unknown }).status as number) : null;
+    if (status !== 400) return false;
+    const message = typeof (err as { message?: unknown }).message === 'string' ? (err as { message: string }).message.toLowerCase() : '';
+    return message.includes('cache_control') || message.includes('cache control') || message.includes('system');
+}
+
+function toUsageSummary(usage: unknown): Record<string, number> | null {
+    if (!usage || typeof usage !== 'object') return null;
+    const record = usage as Record<string, unknown>;
+    const keys = [
+        'input_tokens',
+        'output_tokens',
+        'cache_creation_input_tokens',
+        'cache_read_input_tokens',
+        'cache_creation_output_tokens',
+        'cache_read_output_tokens',
+    ];
+    const out: Record<string, number> = {};
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'number' && Number.isFinite(value)) out[key] = value;
+    }
+    return Object.keys(out).length > 0 ? out : null;
 }
 
 function safeSkillRow(value: unknown): {
@@ -279,6 +353,25 @@ export class AiService implements AIServiceShape {
             });
         }
 
+        const injectedMemory = Array.isArray(request?.injected?.memory) ? request.injected.memory : [];
+        let injectedRefs: string[] = [];
+        let injectedContextRules: Record<string, unknown> | undefined = undefined;
+        try {
+            injectedRefs = normalizeInjectedRefs(request?.injected?.refs);
+        } catch (error) {
+            const ipcError = error && typeof error === 'object' ? (error as { ipcError?: unknown }).ipcError : null;
+            if (ipcError && typeof ipcError === 'object') {
+                const record = ipcError as { code?: unknown; message?: unknown; details?: unknown };
+                const code = typeof record.code === 'string' ? (record.code as IpcErrorCode) : 'INVALID_ARGUMENT';
+                const message = typeof record.message === 'string' ? record.message : 'Invalid injected.refs';
+                return ipcErr({ code, message, ...(typeof record.details === 'undefined' ? {} : { details: record.details }) });
+            }
+            return ipcErr({ code: 'INVALID_ARGUMENT', message: 'Invalid injected.refs' });
+        }
+        if (isRecord(request?.injected?.contextRules)) {
+            injectedContextRules = request.injected.contextRules;
+        }
+
         const apiKey = resolveApiKey();
         if (!apiKey) return ipcErr({ code: 'INVALID_ARGUMENT', message: 'AI API key is not configured', details: { provider: 'anthropic' } });
 
@@ -287,14 +380,14 @@ export class AiService implements AIServiceShape {
         this.runs.set(runId, { controller, status: 'streaming' });
 
         const prefixHash = fnv1a32Hex(systemPrompt);
+        const stablePrefixHash = prefixHash;
         const promptHash = fnv1a32Hex(`${systemPrompt}\n\n---\n\n${userContent}`);
-
-        const injectedMemory = Array.isArray(request?.injected?.memory) ? request.injected.memory : [];
         const model = resolveModel(skillRow.model);
         const temperature = resolveTemperature();
         const maxTokens = resolveMaxTokens();
         const timeoutMs = resolveTimeoutMs();
         const baseUrl = resolveBaseUrl();
+        const promptCachingEnabled = resolvePromptCachingEnabled();
 
         // Fire-and-forget streaming work; the RPC response only acknowledges start.
         void this.runAnthropic({
@@ -309,9 +402,15 @@ export class AiService implements AIServiceShape {
             timeoutMs,
             baseUrl,
             apiKey,
+            promptCachingEnabled,
         });
 
-        return ipcOk({ runId, stream: options.stream, injected: { memory: injectedMemory }, prompt: { prefixHash, promptHash } });
+        return ipcOk({
+            runId,
+            stream: options.stream,
+            injected: { memory: injectedMemory, refs: injectedRefs, ...(injectedContextRules ? { contextRules: injectedContextRules } : {}) },
+            prompt: { prefixHash, stablePrefixHash, promptHash },
+        });
     }
 
     private async runAnthropic(args: {
@@ -326,6 +425,7 @@ export class AiService implements AIServiceShape {
         timeoutMs: number;
         baseUrl: string;
         apiKey: string;
+        promptCachingEnabled: boolean;
     }): Promise<void> {
         const { runId, controller } = args;
 
@@ -338,16 +438,33 @@ export class AiService implements AIServiceShape {
             const user = args.userContent;
 
             if (args.stream) {
-                const runner = client.messages.stream(
-                    {
-                        model: args.model,
-                        max_tokens: args.maxTokens,
-                        temperature: args.temperature,
-                        system: args.systemPrompt,
-                        messages: [{ role: 'user', content: user }],
-                    },
-                    { signal: controller.signal },
-                );
+                const request = {
+                    model: args.model,
+                    max_tokens: args.maxTokens,
+                    temperature: args.temperature,
+                    system: args.promptCachingEnabled
+                        ? [
+                              {
+                                  type: 'text',
+                                  text: args.systemPrompt,
+                                  cache_control: { type: 'ephemeral' },
+                              },
+                          ]
+                        : args.systemPrompt,
+                    messages: [{ role: 'user', content: user }],
+                };
+
+                let runner: any;
+                try {
+                    runner = client.messages.stream(request as any, { signal: controller.signal });
+                } catch (error) {
+                    if (args.promptCachingEnabled && !controller.signal.aborted && shouldFallbackPromptCaching(error)) {
+                        this.logger.warn(`[ai] prompt caching fallback (stream): ${runId}`);
+                        runner = client.messages.stream({ ...(request as any), system: args.systemPrompt }, { signal: controller.signal });
+                    } else {
+                        throw error;
+                    }
+                }
 
                 let assembled = '';
                 runner.on('text', (delta: unknown) => {
@@ -357,7 +474,16 @@ export class AiService implements AIServiceShape {
                 });
 
                 await runner.done();
+                const usage =
+                    typeof runner.finalMessage === 'function'
+                        ? await runner
+                              .finalMessage()
+                              .then((m: any) => toUsageSummary(m?.usage))
+                              .catch(() => null)
+                        : null;
                 const finalText = coerceString(assembled) || coerceString(await runner.finalText().catch(() => ''));
+
+                if (usage) this.logger.info(`[ai] run usage: ${runId} ${JSON.stringify(usage)}`);
 
                 this.emit({
                     type: 'done',
@@ -365,16 +491,33 @@ export class AiService implements AIServiceShape {
                     result: { text: finalText, meta: { provider: 'anthropic', model: args.model } },
                 });
             } else {
-                const resp = await client.messages.create(
-                    {
-                        model: args.model,
-                        max_tokens: args.maxTokens,
-                        temperature: args.temperature,
-                        system: args.systemPrompt,
-                        messages: [{ role: 'user', content: user }],
-                    },
-                    { signal: controller.signal },
-                );
+                const request = {
+                    model: args.model,
+                    max_tokens: args.maxTokens,
+                    temperature: args.temperature,
+                    system: args.promptCachingEnabled
+                        ? [
+                              {
+                                  type: 'text',
+                                  text: args.systemPrompt,
+                                  cache_control: { type: 'ephemeral' },
+                              },
+                          ]
+                        : args.systemPrompt,
+                    messages: [{ role: 'user', content: user }],
+                };
+
+                let resp: any;
+                try {
+                    resp = await client.messages.create(request as any, { signal: controller.signal });
+                } catch (error) {
+                    if (args.promptCachingEnabled && !controller.signal.aborted && shouldFallbackPromptCaching(error)) {
+                        this.logger.warn(`[ai] prompt caching fallback (non-stream): ${runId}`);
+                        resp = await client.messages.create({ ...(request as any), system: args.systemPrompt }, { signal: controller.signal });
+                    } else {
+                        throw error;
+                    }
+                }
 
                 const blocks = Array.isArray(resp?.content) ? resp.content : [];
                 const text = blocks
@@ -387,6 +530,9 @@ export class AiService implements AIServiceShape {
                     .map((b: unknown) => (b as { text: string }).text)
                     .join('')
                     .trim();
+
+                const usage = toUsageSummary(resp?.usage);
+                if (usage) this.logger.info(`[ai] run usage: ${runId} ${JSON.stringify(usage)}`);
 
                 this.emit({
                     type: 'done',

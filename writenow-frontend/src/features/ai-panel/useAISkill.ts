@@ -11,8 +11,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { EditorSelectionSnapshot } from '@/stores/editorRuntimeStore';
 import { computeDiff } from '@/lib/diff/diffUtils';
-import { renderSkillPrompt } from '@/lib/ai/skill-template';
-import { invoke } from '@/lib/rpc';
+import { assembleSkillRunRequest } from '@/lib/ai/context-assembler';
+import { invokeSafe } from '@/lib/rpc';
 import { aiClient } from '@/lib/rpc/ai-client';
 import { subscribeToAiStream } from '@/lib/rpc/ai-stream';
 import type { JsonRpcConnectionStatus } from '@/lib/rpc/jsonrpc-client';
@@ -80,6 +80,7 @@ export function useAISkill(): UseAISkillResult {
 
   const selection = useEditorRuntimeStore((s) => s.selection);
   const activeEditor = useEditorRuntimeStore((s) => s.activeEditor);
+  const activeFilePath = useEditorRuntimeStore((s) => s.activeFilePath);
 
   const [aiStatus, setAiStatus] = useState<JsonRpcConnectionStatus>(aiClient.status);
   const [skillsStatus, setSkillsStatus] = useState<JsonRpcConnectionStatus>(skillsClient.status);
@@ -201,27 +202,26 @@ export function useAISkill(): UseAISkillResult {
       try {
         const skillResp = await skillsClient.getSkill({ id: skillId });
         if (!skillResp.ok) throw new Error(skillResp.error.message);
-
-        const rendered = renderSkillPrompt(skillResp.data.skill.definition, { text: sourceText });
-        const userContent = instruction ? `${rendered.userContent}\n\n额外指令：\n${instruction}\n` : rendered.userContent;
+        const definition = skillResp.data.skill.definition;
+        if (!definition) throw new Error('Skill definition is unavailable');
 
         // Best-effort project context. If unavailable, we still run the skill.
-        let projectId: string | undefined;
-        try {
-          const project = await invoke('project:getCurrent', {});
-          projectId = project.projectId ?? undefined;
-        } catch (error) {
-          console.warn('[AI] project:getCurrent failed:', error);
-          projectId = undefined;
-        }
+        const project = await invokeSafe('project:getCurrent', {});
+        const projectId = project?.projectId ?? undefined;
+        const articleId = selectionSnapshot?.filePath ?? activeFilePath ?? undefined;
 
-        const start = await aiClient.streamResponse({
+        const request = await assembleSkillRunRequest({
           skillId,
-          input: { text: sourceText, language: 'zh-CN' },
-          context: projectId ? { projectId } : undefined,
-          stream: true,
-          prompt: { systemPrompt: rendered.systemPrompt, userContent },
+          definition,
+          text: sourceText,
+          instruction,
+          selection: selectionSnapshot ? { from: selectionSnapshot.from, to: selectionSnapshot.to } : null,
+          editor: activeEditor,
+          projectId: projectId ?? undefined,
+          articleId: articleId ?? undefined,
         });
+
+        const start = await aiClient.streamResponse(request);
         if (!start.ok) {
           failRun(start.error);
           setStatusBarAIStatus('error', start.error.message);
@@ -263,6 +263,7 @@ export function useAISkill(): UseAISkillResult {
     },
     [
       activeEditor,
+      activeFilePath,
       addUserMessage,
       appendToMessage,
       ensureAssistantMessage,

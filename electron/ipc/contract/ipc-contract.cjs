@@ -281,6 +281,8 @@ export type AiSkillRunRequest = {
   prompt: AiPromptPayload;
   injected?: {
     memory: UserMemory[];
+    refs?: string[];
+    contextRules?: Record<string, unknown>;
   };
 };
 
@@ -289,9 +291,12 @@ export type AiSkillRunResponse = {
   stream: boolean;
   injected?: {
     memory: UserMemory[];
+    refs?: string[];
+    contextRules?: Record<string, unknown>;
   };
   prompt?: {
     prefixHash: string;
+    stablePrefixHash: string;
     promptHash: string;
   };
 };
