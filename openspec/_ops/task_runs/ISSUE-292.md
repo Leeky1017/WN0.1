@@ -1,7 +1,7 @@
 # ISSUE-292
 - Issue: #292
 - Branch: task/292-write-mode-ide-cmdk-focus
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/295
 
 ## Plan
 - 实现 P1-001 Command Palette（Cmd/Ctrl+K）：接入真实 recent/files/skills，补齐稳定选择器与可测交互。
@@ -53,4 +53,14 @@
 - Command: `cd writenow-frontend && npm run test:e2e`
 - Key output: `electron-vite build` + `3 skipped` (WSL 环境下默认 skip)
 - Evidence: `writenow-frontend/tests/e2e/**`
+
+### 2026-01-27 21:45 push
+- Command: `git push -u origin HEAD`
+- Key output: `HEAD -> task/292-write-mode-ide-cmdk-focus` + `set up to track 'origin/task/292-write-mode-ide-cmdk-focus'`
+- Evidence: `origin/task/292-write-mode-ide-cmdk-focus`
+
+### 2026-01-27 21:46 PR create
+- Command: `gh pr create --title "feat(write-mode): cmdk + focus/zen mode (#292)" --body "Closes #292 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/295`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/295
 
