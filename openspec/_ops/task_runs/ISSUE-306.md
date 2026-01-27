@@ -1,7 +1,7 @@
 # ISSUE-306
 - Issue: #306
 - Branch: task/306-p2-001-e2e-write-mode
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/309
 
 ## Plan
 - Add true Playwright Electron E2E coverage for Write Mode (main path + cancel/timeout/recover)
@@ -92,3 +92,8 @@
 - Command: `git push -u origin HEAD`
 - Key output: `new branch pushed (task/306-p2-001-e2e-write-mode)`
 - Evidence: `https://github.com/Leeky1017/WN0.1/pull/new/task/306-p2-001-e2e-write-mode`
+
+### 2026-01-28 03:32 create-pr
+- Command: `gh pr create --title "P2-001: write mode e2e gate (#306)" --body "Closes #306 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/309`
+- Evidence: `PR #309`
