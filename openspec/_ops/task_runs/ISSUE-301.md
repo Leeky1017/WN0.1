@@ -1,7 +1,7 @@
 # ISSUE-301
 - Issue: #301
 - Branch: task/301-p1-003-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/302
 
 ## Plan
 - Close out P1-003 task card (mark acceptance + add completion metadata) and archive Rulebook task for ISSUE-299.
