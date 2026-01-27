@@ -61,4 +61,3 @@ export function useCommands(enabled: boolean): UseCommandsResult {
 }
 
 export default useCommands;
-

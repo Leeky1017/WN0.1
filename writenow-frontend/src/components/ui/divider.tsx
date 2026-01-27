@@ -1,7 +1,3 @@
-/**
- * Divider component for visual separation.
- */
-
 import { cn } from '@/lib/utils';
 
 interface DividerProps {

@@ -31,4 +31,3 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 }));
 
 export default useThemeStore;
-

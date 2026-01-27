@@ -11,4 +11,3 @@ export type AiStreamEvent =
   | { type: 'delta'; runId: string; text: string }
   | { type: 'done'; runId: string; result: { text: string; meta?: unknown } }
   | { type: 'error'; runId: string; error: IpcError };
-

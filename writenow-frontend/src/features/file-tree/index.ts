@@ -1,9 +1,7 @@
 /**
- * FileTree Feature Exports
+ * File tree feature barrel export
  */
-export { FileTreePanel } from './FileTreePanel';
-export { FileNode } from './FileNode';
-export { FileIcon } from './FileIcon';
-export { FileContextMenu } from './FileContextMenu';
+
 export { useFileTree } from './useFileTree';
-export type { FileNode as FileNodeType, FileOperation, ContextMenuItem } from './types';
+export type { UseFileTreeResult } from './useFileTree';
+export type { FileNode, FileOperation, ContextMenuItem } from './types';

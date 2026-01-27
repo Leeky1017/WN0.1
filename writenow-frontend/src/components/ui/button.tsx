@@ -1,70 +1,104 @@
-/**
- * Button component
- * Based on shadcn/ui, adapted to use WriteNow Design Tokens
- */
+import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors duration-[100ms] ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-default)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-  {
-    variants: {
-      variant: {
-        default:
-          'bg-[var(--accent-default)] text-[var(--fg-on-accent)] hover:bg-[var(--accent-hover)] active:bg-[var(--accent-active)]',
-        destructive:
-          'bg-[var(--error)] text-[var(--fg-on-accent)] hover:bg-[var(--error)]/90 active:bg-[var(--error)]/80',
-        outline:
-          'border border-[var(--border-default)] bg-transparent text-[var(--fg-default)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-strong)]',
-        secondary:
-          'bg-[var(--bg-elevated)] text-[var(--fg-default)] border border-[var(--border-default)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-strong)] active:bg-[var(--bg-active)]',
-        ghost:
-          'text-[var(--fg-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--fg-default)] active:bg-[var(--bg-active)]',
-        link:
-          'text-[var(--accent-default)] underline-offset-4 hover:underline hover:text-[var(--accent-hover)]',
-      },
-      size: {
-        default: 'h-9 px-4 py-2 rounded-md',
-        sm: 'h-7 px-2 text-xs rounded-md',
-        md: 'h-8 px-3 text-sm rounded-md',
-        lg: 'h-10 px-4 text-base rounded-md',
-        icon: 'h-9 w-9 rounded-md',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-)
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  /** Use a custom element as the button */
-  asChild?: boolean
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Visual style variant of the button */
+  variant?: ButtonVariant;
+  /** Size of the button */
+  size?: ButtonSize;
   /** Icon to display before the button text */
-  leftIcon?: React.ReactNode
+  leftIcon?: React.ReactNode;
   /** Icon to display after the button text */
-  rightIcon?: React.ReactNode
+  rightIcon?: React.ReactNode;
   /** Shows a loading spinner and disables the button */
-  loading?: boolean
+  loading?: boolean;
 }
 
 /**
- * Primary button component for user interactions
+ * Variant styles mapping.
+ * Why: Centralized style definitions for each visual variant.
  */
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, leftIcon, rightIcon, loading, disabled, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button'
+const variantStyles: Record<ButtonVariant, string> = {
+  primary: `
+    bg-[var(--accent-default)] text-[var(--fg-on-accent)]
+    hover:bg-[var(--accent-hover)]
+    active:bg-[var(--accent-active)]
+    focus-visible:ring-2 focus-visible:ring-[var(--accent-default)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]
+  `,
+  secondary: `
+    bg-[var(--bg-elevated)] text-[var(--fg-default)] border border-[var(--border-default)]
+    hover:bg-[var(--bg-hover)] hover:border-[var(--border-strong)]
+    active:bg-[var(--bg-active)]
+  `,
+  ghost: `
+    bg-transparent text-[var(--fg-muted)]
+    hover:bg-[var(--bg-hover)] hover:text-[var(--fg-default)]
+    active:bg-[var(--bg-active)]
+  `,
+  danger: `
+    bg-[var(--error)] text-[var(--fg-on-accent)]
+    hover:bg-[var(--error)]/90
+    active:bg-[var(--error)]/80
+  `,
+};
+
+/**
+ * Size styles mapping.
+ * Why: Consistent sizing across all button instances.
+ */
+const sizeStyles: Record<ButtonSize, string> = {
+  sm: 'h-7 px-2 text-xs gap-1',
+  md: 'h-8 px-3 text-sm gap-1.5',
+  lg: 'h-10 px-4 text-base gap-2',
+};
+
+/**
+ * Button component with multiple variants and sizes.
+ * 
+ * Why forwardRef: Allows parent components to access the underlying button element
+ * for focus management, animations, or other DOM operations.
+ * 
+ * @example
+ * ```tsx
+ * <Button variant="primary" size="md">Click me</Button>
+ * <Button variant="ghost" leftIcon={<Icon />}>With Icon</Button>
+ * <Button loading>Submitting...</Button>
+ * ```
+ */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = 'secondary',
+      size = 'md',
+      leftIcon,
+      rightIcon,
+      loading,
+      disabled,
+      children,
+      ...props
+    },
+    ref
+  ) => {
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
         ref={ref}
         disabled={disabled || loading}
+        className={cn(
+          // Base styles
+          'inline-flex items-center justify-center rounded-md font-medium',
+          // Transition - using design system's transition values
+          'transition-colors duration-[100ms] ease-out',
+          // Disabled state
+          'disabled:opacity-50 disabled:pointer-events-none',
+          // Variant and size styles
+          variantStyles[variant],
+          sizeStyles[size],
+          className
+        )}
         {...props}
       >
         {loading ? (
@@ -93,10 +127,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {children}
         {!loading && rightIcon}
-      </Comp>
-    )
+      </button>
+    );
   }
-)
-Button.displayName = 'Button'
+);
 
-export { Button }
+Button.displayName = 'Button';

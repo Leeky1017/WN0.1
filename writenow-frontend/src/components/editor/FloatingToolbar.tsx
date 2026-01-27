@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Editor } from '@tiptap/core';
 import { Bold, Italic, Link2, Sparkles, Underline } from 'lucide-react';
 
-import { Separator } from '@/components/ui';
+import { Divider } from '@/components/ui';
 import { ToolbarButton } from './ToolbarButton';
 
 type ToolbarPosition = { x: number; y: number } | null;
@@ -97,7 +97,7 @@ export function FloatingToolbar(props: FloatingToolbarProps) {
         onClick={() => editor?.chain().focus().toggleUnderline().run()}
       />
 
-      <Separator orientation="vertical" className="mx-1 h-5" />
+      <Divider orientation="vertical" className="mx-1 h-5" />
 
       <ToolbarButton
         icon={<Link2 className="w-4 h-4" />}
@@ -117,4 +117,3 @@ export function FloatingToolbar(props: FloatingToolbarProps) {
 }
 
 export default FloatingToolbar;
-

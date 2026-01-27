@@ -1,9 +1,0 @@
-/**
- * WriteNow Design Tokens (entrypoint)
- * Why: Keep a stable import path (`styles/tokens.css`) as the SSOT entry required by `openspec/specs/writenow-spec/spec.md`.
- *
- * Implementation detail: tokens are split into modular files under `styles/tokens/*` and composed via `tokens/index.css`.
- */
-
-@import "./tokens/index.css";
-

@@ -1,7 +1,3 @@
-/**
- * FileItem - File tree item component with multiple states.
- */
-
 import { memo } from 'react';
 import { Folder, File, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';

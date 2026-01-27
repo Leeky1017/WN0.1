@@ -1,15 +1,10 @@
-/**
- * Utility functions for shadcn/ui components
- */
-
-import { type ClassValue, clsx } from 'clsx'
+import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 /**
- * Merge Tailwind CSS classes with proper precedence
- * @param inputs - Class names to merge
- * @returns Merged class string
+ * Merge class names with Tailwind CSS conflict resolution.
+ * Why: clsx for conditional classes, twMerge to avoid style conflicts.
  */
-export function cn(...inputs: ClassValue[]): string {
+export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }

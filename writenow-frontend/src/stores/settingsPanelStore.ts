@@ -20,4 +20,3 @@ export const useSettingsPanelStore = create<SettingsPanelState>((set) => ({
 }));
 
 export default useSettingsPanelStore;
-

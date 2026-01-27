@@ -28,4 +28,3 @@ export function computeTextStats(text: string): TextStats {
 
   return { chars, words, readingMinutes };
 }
-

@@ -1,12 +1,7 @@
-/**
- * Textarea component
- * Based on shadcn/ui, adapted to use WriteNow Design Tokens
- */
-
-import * as React from 'react';
+import { forwardRef, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Whether the input is in an error state */
   error?: boolean;
   /** Whether the textarea should auto-resize based on content */
@@ -22,13 +17,23 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
  * 
  * Why auto-resize: Provides better UX by expanding to fit content,
  * eliminating the need for users to scroll within a small text area.
+ * 
+ * Why useCallback for resize: Prevents unnecessary function recreation
+ * on every render, improving performance.
+ * 
+ * @example
+ * ```tsx
+ * <Textarea placeholder="Write your thoughts..." />
+ * <Textarea autoResize={false} rows={5} />
+ * <Textarea error maxHeight={300} />
+ * ```
  */
-export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
     {
       className,
       error,
-      autoResize = false,
+      autoResize = true,
       minHeight = 80,
       maxHeight,
       onChange,
@@ -37,14 +42,16 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     ref
   ) => {
     // Internal ref for auto-resize functionality
-    const internalRef = React.useRef<HTMLTextAreaElement>(null);
+    const internalRef = useRef<HTMLTextAreaElement>(null);
     // Use forwarded ref if provided, otherwise use internal ref
     const textareaRef = (ref as React.RefObject<HTMLTextAreaElement>) || internalRef;
 
     /**
      * Auto-resize handler.
+     * Why: Resets height to auto first to properly measure scrollHeight,
+     * then sets to scrollHeight to match content.
      */
-    const handleResize = React.useCallback(() => {
+    const handleResize = useCallback(() => {
       if (autoResize && textareaRef.current) {
         const textarea = textareaRef.current;
         // Reset height to auto to get accurate scrollHeight
@@ -62,7 +69,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     }, [autoResize, minHeight, maxHeight, textareaRef]);
 
     // Resize on initial render and when value changes
-    React.useEffect(() => {
+    useEffect(() => {
       handleResize();
     }, [props.value, handleResize]);
 
@@ -84,8 +91,6 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           'placeholder:text-[var(--fg-placeholder)]',
           // Padding and typography
           'p-3 text-sm leading-relaxed',
-          // Min height for non-autoResize mode
-          !autoResize && 'min-h-[80px]',
           // Disable manual resize when auto-resize is enabled
           autoResize ? 'resize-none' : 'resize-y',
           // Transition

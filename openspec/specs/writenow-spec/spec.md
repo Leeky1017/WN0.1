@@ -8,7 +8,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 - 架构主线：Eclipse Theia（✅ 迁移完成：Phase 0–3，2026-01-24）
 - 前端基线：`writenow-frontend/`（✅ Frontend V2 Phase 0–6 完成：2026-01-26；Electron 34 + Vite 6 + React 18）
 - 代码基线：`writenow-theia/`（production Theia workspace：browser + electron + writenow-core extension）
-- Legacy 清理：`theia-poc/` 已移除；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/`（contract SSOT）+ `skills/`（builtin packages）
+- Legacy 清理：`theia-poc/` 已移除；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/`（contract SSOT）+ `skills/`（builtin packages）；前端架构重构后已移除：`writenow-frontend-old/`（旧前端）、`figma参考/`（旧参考代码）、`backup/`（临时备份）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 
@@ -875,7 +875,7 @@ CREATE TABLE settings (
 
 ## 五、实施路线图
 
-### 当前状态（2026-01-26）
+### 当前状态（2026-01-27）
 
 - Sprint 1–5：✅ 已完成
 - Sprint 6：✅ 已完成（核心体验），剩余项已暂停（见下）
@@ -893,6 +893,10 @@ CREATE TABLE settings (
     - P4：cmdk 命令面板 + 设置面板 + 主题切换持久化
     - P5：版本历史 + sonner 通知 + 全局快捷键
     - P6：Electron（启动后端 + electron-vite + electron-builder 配置）+ 端到端 E2E（create/edit/autosave、theme persist、AI 缺 key 稳定错误）
+  - 架构重构清理：✅ 已完成（2026-01-27）
+    - 移除 `writenow-frontend-old/`（旧前端）
+    - 移除 `figma参考/`（旧参考代码）
+    - 移除 `backup/`（临时备份）
 - 暂停的工作（待重新排期）：
   - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
   - `openspec/specs/sprint-ide-advanced/spec.md`

@@ -1,6 +1,6 @@
 /**
- * Settings feature exports
+ * Settings feature barrel export
  */
 
-export { SettingsPanel } from './SettingsPanel';
-
+export { useSettings } from './useSettings';
+export type { UseSettingsResult } from './useSettings';

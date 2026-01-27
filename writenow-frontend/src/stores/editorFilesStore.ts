@@ -1,7 +1,6 @@
 /**
  * Editor files store
- * Why: FlexLayout handles tabs, but we still need a stable, typed source of truth for per-file dirty/save state
- * so the layout can (1) show dirty markers and (2) block closing unsaved tabs.
+ * Why: Track per-file dirty/save state so the UI can show dirty markers and block closing unsaved tabs.
  */
 
 import { create } from 'zustand';
@@ -61,4 +60,3 @@ export const useEditorFilesStore = create<EditorFilesState>((set, get) => ({
     return Boolean(get().byPath[normalized]?.isDirty);
   },
 }));
-
