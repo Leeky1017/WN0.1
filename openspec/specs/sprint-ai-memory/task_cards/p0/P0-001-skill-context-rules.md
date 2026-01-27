@@ -36,14 +36,34 @@
 
 ## 验收标准
 
-- [ ] `context_rules` 缺失时：行为保持向后兼容（默认不注入额外上下文，或使用稳定默认值；二选一需在实现中固定）
+- [ ] `context_rules` 缺失时：MUST 使用稳定默认值（等价于 schema 默认：不注入额外上下文）
 - [ ] `context_rules` 非法时：返回 `IpcResponse.ok=false` 且 `error.code="INVALID_ARGUMENT"`（无异常堆栈泄漏）
 - [ ] 相同 SKILL 在相同输入下，注入选择结果可复现（排序/裁剪稳定）
 - [ ] E2E 覆盖：至少包含“润色/扩写/一致性检查”三类 SKILL 的注入差异路径
+
+## 可观测信号 / 验证方式
+
+- `context_rules` 解析结果必须可审计：
+  - DB 中存储稳定序列化后的 `skills.context_rules`（key 顺序固定）
+  - 运行时可读取到本次生效的规则（例如 `injected.contextRules` 或等价调试输出）
+- 注入差异必须可观测：
+  - `ai:skill:run` 的 start 响应或 run meta MUST 返回 `injected.refs[]`（project-relative 引用）
+  - `injected.refs[]` MUST NOT 包含绝对路径
+
+## E2E 场景（建议步骤）
+
+- [ ] 准备：创建测试项目并写入 `.writenow/style-guide.md` 与 `.writenow/characters/zhangsan.md`
+- [ ] 创建/选择 2 个 SKILL：
+  - [ ] A：`context_rules: { style_guide: true, characters: false, surrounding: 200 }`
+  - [ ] B：`context_rules: { style_guide: true, characters: true, surrounding: 200 }`
+- [ ] 在编辑器选中一段包含“张三”的文本并分别运行 A/B
+- [ ] 断言：
+  - [ ] A 的 `injected.refs[]` 不包含 characters 引用
+  - [ ] B 的 `injected.refs[]` 包含 characters 引用
+  - [ ] 两者的 `injected.refs[]` 均包含 style guide 引用且为 project-relative
 
 ## 产出
 
 - `context_rules` 规范落地（解析/校验/持久化）
 - renderer ContextAssembler 的按需注入实现
 - E2E 测试用例与运行证据（RUN_LOG）
-

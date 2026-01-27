@@ -31,13 +31,28 @@
 ## 验收标准
 
 - [ ] 大设定默认不常驻 prompt；按需加载且遵循预算裁剪
-- [ ] 引用可追溯：输出/注入元数据包含来源引用
+- [ ] 引用可追溯：输出/注入元数据包含来源引用（project-relative，禁止绝对路径）
 - [ ] 缺失文件/权限/IO 错误返回稳定错误码（`NOT_FOUND`/`IO_ERROR`），UI 不挂起
 - [ ] E2E 通过并写入 RUN_LOG 证据
+
+## 可观测信号 / 验证方式
+
+- `injected.refs[]`（或等价调试输出）必须包含：
+  - `.writenow/...` 路径
+  - 可选的范围（行号/段落范围）
+- “按需加载”必须可验证：
+  - 对未声明 `characters/style_guide` 的 SKILL，`injected.refs[]` MUST NOT 包含相关引用
+
+## E2E 场景（建议步骤）
+
+- [ ] 写入 `.writenow/characters/zhangsan.md`（真实文件）
+- [ ] 运行一个 `context_rules.characters=false` 的 SKILL
+- [ ] 断言：`injected.refs[]` 不包含 characters 引用
+- [ ] 运行一个 `context_rules.characters=true` 的 SKILL
+- [ ] 断言：`injected.refs[]` 包含 `.writenow/characters/zhangsan.md` 且不出现绝对路径
 
 ## 产出
 
 - 设定文件规范（目录结构 + 格式）
 - characters.cjs 的按需加载能力（含裁剪与引用）
 - E2E 覆盖与证据
-

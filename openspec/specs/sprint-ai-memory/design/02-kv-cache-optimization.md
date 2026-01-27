@@ -23,7 +23,9 @@
 
 ## Stable System Prompt 模板（建议）
 
-> 该模板是后续 `ai.cjs` 实现的“硬约束”：顺序固定，章节固定。
+> 该模板是后续 **renderer 侧 stable prompt builder** 的“硬约束”：顺序固定，章节固定。
+>
+> 约束：稳定前缀（Layer 0–3）**MUST NOT** 包含时间戳、随机数、requestId 等动态字段；动态信息只能进入 Layer 4/5（末尾追加）。
 
 ```
 ## 角色与行为约束
@@ -63,7 +65,7 @@ WriteNow 的适配方式（建议）：
 ```ts
 /**
  * Why: 通过固定章节顺序 + 空占位 + 确定性序列化，最大化 KV-cache 复用。
- * Failure: 不抛出异常到 renderer；任何错误必须映射为 IpcErr（见 api-contract）。
+ * Failure: 不得导致 UI 卡死；IPC 边界必须返回 IpcErr（见 api-contract）。
  */
 function buildStableSystemPrompt(ctx) {
   return [
@@ -91,9 +93,17 @@ function buildStableSystemPrompt(ctx) {
 }
 ```
 
+## Hash 与验收口径（建议）
+
+为避免“system prompt 全量 hash”被动态层扰动，建议在实现中区分两个 hash：
+
+- `stablePrefixHash`：仅对 Layer 0–3 的稳定前缀文本计算（用于 KV-cache 稳定性验收）
+- `promptHash`：对完整 system+user 计算（用于单次请求的诊断/去重）
+
+> 这两者都必须基于确定性序列化的最终文本计算，否则 hash 本身会漂移。
+
 ## 验证指标（任务卡验收建议）
 
 - **字节级稳定性**：相同输入上下文生成的前缀文本应完全一致（可用 snapshot）
 - **成本对比**：同一段落连续运行相同 SKILL，统计 token 用量与延迟；以“稳定前缀前/后”对比
 - **错误可观测**：序列化/组装失败必须返回稳定错误码，且 UI 不应卡死在 loading
-
