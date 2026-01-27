@@ -1,7 +1,7 @@
 # ISSUE-289
 - Issue: #289
 - Branch: task/289-rulebook-archive
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/290
 
 ## Plan
 - 将已完成任务的 Rulebook task 目录移动到 `rulebook/tasks/archive/` 并提交到 Git（避免主任务目录膨胀）
