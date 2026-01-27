@@ -83,3 +83,24 @@ export async function createNewFile(page: Page, name: string): Promise<void> {
       .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
   ).toBeVisible({ timeout: 30_000 });
 }
+
+/**
+ * Close the Electron app and hard-kill if needed.
+ *
+ * Why: Playwright worker teardown can hang if Electron lingers (WSL/CI flake).
+ */
+export async function closeWriteNowApp(electronApp: ElectronApplication): Promise<void> {
+  const proc = electronApp.process();
+  await electronApp.close().catch(() => undefined);
+  if (proc && proc.exitCode === null) {
+    try {
+      proc.kill('SIGKILL');
+    } catch {
+      try {
+        proc.kill();
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
