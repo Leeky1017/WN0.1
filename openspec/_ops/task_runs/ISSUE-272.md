@@ -1,7 +1,7 @@
 # ISSUE-272
 - Issue: #272
 - Branch: task/272-sprint-ai-memory-spec
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/273
 
 ## Plan
 - Convert `.cursor/plans/ai_memory_research_report_c05e39ce.plan.md` into OpenSpec sprint spec + design docs + task cards.
@@ -27,3 +27,14 @@
 - Command: `rulebook task validate issue-272-sprint-ai-memory-spec`
 - Key output: `✅ Task issue-272-sprint-ai-memory-spec is valid`
 - Evidence: `rulebook/tasks/issue-272-sprint-ai-memory-spec/`
+
+### 2026-01-27 14:37 push + PR
+- Command: `git push -u origin HEAD`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/new/task/272-sprint-ai-memory-spec`
+- Evidence: `origin/task/272-sprint-ai-memory-spec`
+- Command: `gh pr create ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/273`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/273
+- Command: `gh pr merge 273 --auto --squash`
+- Key output: `exit 0`
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/273
