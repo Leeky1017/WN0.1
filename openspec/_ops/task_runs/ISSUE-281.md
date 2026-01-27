@@ -1,7 +1,7 @@
 # ISSUE-281
 - Issue: #281
 - Branch: task/281-write-mode-ssot
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/286
 
 ## Plan
 - 以 P0-001/002 为准：移除 `writenow-frontend` demo UI，接入真实 `file:*` + TipTap + AI 编排（单链路 SSOT）
