@@ -8,12 +8,15 @@ import type { Editor } from '@tiptap/core';
 
 import { TipTapEditor } from '@/components/editor';
 import { useElectronApi, useLocalLlm } from '@/lib/electron';
-import { createLocalLlmTabCompletionPlugin, localLlmTabPluginKey } from '@/lib/editor/extensions/tab-completion';
+import type { LocalLlmTabClient } from '@/lib/editor/extensions/tab-completion';
+import { useAIStore } from '@/stores/aiStore';
 import { useEditorModeStore } from '@/stores/editorModeStore';
 import { useEditorRuntimeStore } from '@/stores/editorRuntimeStore';
 import { useStatusBarStore } from '@/stores/statusBarStore';
 
 import { useWriteModeStore } from './writeModeStore';
+
+const LOCAL_LLM_STOP = ['\n\n'];
 
 export function WriteModeEditorPanel() {
   const editorMode = useEditorModeStore((s) => s.mode);
@@ -21,6 +24,7 @@ export function WriteModeEditorPanel() {
 
   const electronApi = useElectronApi();
   const localLlm = useLocalLlm();
+  const hasPendingDiff = useAIStore((s) => Boolean(s.diff));
 
   const activeFilePath = useWriteModeStore((s) => s.activeFilePath);
   const markdown = useWriteModeStore((s) => s.markdown);
@@ -29,71 +33,48 @@ export function WriteModeEditorPanel() {
   const saveNow = useWriteModeStore((s) => s.saveNow);
 
   const setActiveEditor = useEditorRuntimeStore((s) => s.setActiveEditor);
+  const setSelection = useEditorRuntimeStore((s) => s.setSelection);
   const clearForFile = useEditorRuntimeStore((s) => s.clearForFile);
 
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  const localLlmClient = useMemo(() => {
+  const localLlmTabCompletion = useMemo(() => {
     const llm = electronApi?.localLlm;
-    if (!llm) return null;
-    if (!llm.complete || !llm.cancel || !llm.onStream) return null;
-    return {
+    if (!llm) return undefined;
+    if (!llm.complete || !llm.cancel || !llm.onStream) return undefined;
+
+    const client: LocalLlmTabClient = {
       complete: llm.complete,
       cancel: llm.cancel,
       onStream: llm.onStream,
     };
-  }, [electronApi]);
 
-  const handleEditorReady = useCallback((next: Editor | null) => {
-    setEditor(next);
-  }, []);
-
-  useEffect(() => {
-    if (!editor) return;
-    if (!localLlmClient) return;
-
-    const enabled = Boolean(localLlm.settings?.enabled) && isConnected;
-
-    const current = localLlmTabPluginKey.getState(editor.state);
-    if (current?.runId) {
-      void localLlmClient.cancel({ runId: current.runId, reason: 'user' }).catch(() => undefined);
-    }
-    editor.unregisterPlugin(localLlmTabPluginKey);
-
-    if (!enabled) return;
-
-    editor.registerPlugin(
-      createLocalLlmTabCompletionPlugin({
-        enabled: true,
-        client: localLlmClient,
-        minPrefixChars: 24,
-        maxPrefixChars: 4000,
-        maxSuffixChars: 2000,
-        idleDelayMs: localLlm.settings?.idleDelayMs ?? 800,
-        maxTokens: localLlm.settings?.maxTokens ?? 48,
-        temperature: localLlm.settings?.temperature ?? 0.4,
-        timeoutMs: localLlm.settings?.timeoutMs ?? 15_000,
-        stop: ['\n\n'],
-      }),
-    );
-
-    return () => {
-      const next = localLlmTabPluginKey.getState(editor.state);
-      if (next?.runId) {
-        void localLlmClient.cancel({ runId: next.runId, reason: 'user' }).catch(() => undefined);
-      }
-      editor.unregisterPlugin(localLlmTabPluginKey);
+    return {
+      enabled: Boolean(localLlm.settings?.enabled) && isConnected && !hasPendingDiff,
+      client,
+      minPrefixChars: 24,
+      maxPrefixChars: 4000,
+      maxSuffixChars: 2000,
+      idleDelayMs: localLlm.settings?.idleDelayMs ?? 800,
+      maxTokens: localLlm.settings?.maxTokens ?? 48,
+      temperature: localLlm.settings?.temperature ?? 0.4,
+      timeoutMs: localLlm.settings?.timeoutMs ?? 15_000,
+      stop: LOCAL_LLM_STOP,
     };
   }, [
-    editor,
+    electronApi,
+    hasPendingDiff,
     isConnected,
     localLlm.settings?.enabled,
     localLlm.settings?.idleDelayMs,
     localLlm.settings?.maxTokens,
     localLlm.settings?.temperature,
     localLlm.settings?.timeoutMs,
-    localLlmClient,
   ]);
+
+  const handleEditorReady = useCallback((next: Editor | null) => {
+    setEditor(next);
+  }, []);
 
   useEffect(() => {
     if (!activeFilePath) return;
@@ -102,6 +83,28 @@ export function WriteModeEditorPanel() {
       clearForFile(activeFilePath);
     };
   }, [activeFilePath, clearForFile, editor, setActiveEditor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    if (!activeFilePath) return;
+
+    const update = () => {
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        setSelection(null);
+        return;
+      }
+
+      const text = editor.state.doc.textBetween(from, to, '\n');
+      setSelection({ filePath: activeFilePath, from, to, text, updatedAt: Date.now() });
+    };
+
+    update();
+    editor.on('selectionUpdate', update);
+    return () => {
+      editor.off('selectionUpdate', update);
+    };
+  }, [activeFilePath, editor, setSelection]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -149,6 +152,7 @@ export function WriteModeEditorPanel() {
         contentVersion={contentVersion}
         mode={editorMode}
         readOnly={readOnly}
+        localLlmTabCompletion={localLlmTabCompletion}
         onEditorReady={handleEditorReady}
         onFocusChanged={() => {
           // Why: focus state is consumed by higher-level UI (future Focus/Zen); keep editor thin here.
@@ -160,4 +164,3 @@ export function WriteModeEditorPanel() {
 }
 
 export default WriteModeEditorPanel;
-

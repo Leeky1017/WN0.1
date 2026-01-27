@@ -41,9 +41,14 @@ import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 
+import { AiDiffExtension } from '@/lib/editor/extensions/ai-diff';
+import { createLocalLlmTabCompletionPlugin, localLlmTabPluginKey } from '@/lib/editor/extensions/tab-completion';
+import type { LocalLlmTabClient } from '@/lib/editor/extensions/tab-completion';
+import { useAIStore } from '@/stores/aiStore';
 import type { EditorMode } from '@/stores';
 
 const EMPTY_INPUT_RULES: InputRule[] = [];
+const DEFAULT_LOCAL_LLM_STOP = ['\n\n'];
 
 const RichHeading = Heading.extend({
   addInputRules() {
@@ -126,19 +131,34 @@ export interface TipTapEditorProps {
   /** When true, editor becomes read-only (no edits / no autosave). */
   readOnly?: boolean;
 
+  /** Optional local LLM tab completion wiring (must be stable to avoid re-registering per keystroke). */
+  localLlmTabCompletion?: {
+    enabled: boolean;
+    client: LocalLlmTabClient | null;
+    minPrefixChars: number;
+    maxPrefixChars: number;
+    maxSuffixChars: number;
+    idleDelayMs: number;
+    maxTokens: number;
+    temperature: number;
+    timeoutMs: number;
+    stop: string[];
+  };
+
   onEditorReady: (editor: Editor | null) => void;
   onFocusChanged: (focused: boolean) => void;
   onMarkdownChanged: (markdown: string) => void;
 }
 
 export function TipTapEditor(props: TipTapEditorProps) {
-  const { content, contentVersion, mode, readOnly = false, onEditorReady, onFocusChanged, onMarkdownChanged } = props;
+  const { content, contentVersion, mode, readOnly = false, localLlmTabCompletion, onEditorReady, onFocusChanged, onMarkdownChanged } = props;
 
   const isApplyingExternalUpdateRef = useRef(false);
+  const localLlmStopKey = (localLlmTabCompletion?.stop ?? DEFAULT_LOCAL_LLM_STOP).join('\u0000');
 
   const extensions = useMemo(
     () => [
-          ...(mode === 'markdown'
+      ...(mode === 'markdown'
         ? [
             StarterKit,
             Markdown.configure({
@@ -196,6 +216,13 @@ export function TipTapEditor(props: TipTapEditorProps) {
         placeholder: mode === 'markdown' ? '开始用 Markdown 写作…' : '开始写作…',
       }),
       CharacterCount.configure(),
+      AiDiffExtension.configure({
+        adapter: {
+          reportError: (error) => {
+            useAIStore.getState().setLastError(error);
+          },
+        },
+      }),
     ],
     [mode],
   );
@@ -236,6 +263,58 @@ export function TipTapEditor(props: TipTapEditorProps) {
     },
     [extensions],
   );
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const enabled = Boolean(localLlmTabCompletion?.enabled) && Boolean(localLlmTabCompletion?.client);
+    const client = localLlmTabCompletion?.client ?? null;
+
+    const current = localLlmTabPluginKey.getState(editor.state);
+    if (client && current?.runId) {
+      void client.cancel({ runId: current.runId, reason: 'user' }).catch(() => undefined);
+    }
+    editor.unregisterPlugin(localLlmTabPluginKey);
+
+    if (!enabled || !client) return;
+
+    const stop = localLlmStopKey ? localLlmStopKey.split('\u0000') : [];
+
+    editor.registerPlugin(
+      createLocalLlmTabCompletionPlugin({
+        enabled: true,
+        client,
+        minPrefixChars: localLlmTabCompletion?.minPrefixChars ?? 24,
+        maxPrefixChars: localLlmTabCompletion?.maxPrefixChars ?? 4000,
+        maxSuffixChars: localLlmTabCompletion?.maxSuffixChars ?? 2000,
+        idleDelayMs: localLlmTabCompletion?.idleDelayMs ?? 800,
+        maxTokens: localLlmTabCompletion?.maxTokens ?? 48,
+        temperature: localLlmTabCompletion?.temperature ?? 0.4,
+        timeoutMs: localLlmTabCompletion?.timeoutMs ?? 15_000,
+        stop,
+      }),
+    );
+
+    return () => {
+      const next = localLlmTabPluginKey.getState(editor.state);
+      if (client && next?.runId) {
+        void client.cancel({ runId: next.runId, reason: 'user' }).catch(() => undefined);
+      }
+      editor.unregisterPlugin(localLlmTabPluginKey);
+    };
+  }, [
+    editor,
+    localLlmTabCompletion?.client,
+    localLlmTabCompletion?.enabled,
+    localLlmTabCompletion?.idleDelayMs,
+    localLlmTabCompletion?.maxPrefixChars,
+    localLlmTabCompletion?.maxSuffixChars,
+    localLlmTabCompletion?.maxTokens,
+    localLlmTabCompletion?.minPrefixChars,
+    localLlmStopKey,
+    localLlmTabCompletion?.temperature,
+    localLlmTabCompletion?.timeoutMs,
+  ]);
 
   useEffect(() => {
     onEditorReady(editor ?? null);
