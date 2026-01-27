@@ -8,5 +8,5 @@
 - [x] 2.2 测试：同一 SKILL 在相同静态条件下 stable prefix 字节级稳定；改变动态层不影响稳定 hash
 
 ## 3. Documentation
-- [ ] 3.1 Task cards：勾选验收项并补齐 `Status/Issue/PR/RUN_LOG`
+- [x] 3.1 Task cards：勾选验收项并补齐 `Status/Issue/PR/RUN_LOG`
 - [ ] 3.2 必要时更新 `openspec/specs/writenow-spec/spec.md` 以避免“任务完成但未同步路线图”门禁

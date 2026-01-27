@@ -2,7 +2,7 @@
 
 - Issue: #279
 - Branch: task/279-ai-memory-prompt-caching
-- PR: (pending)
+- PR: https://github.com/Leeky1017/WN0.1/pull/280
 
 ## Plan
 
