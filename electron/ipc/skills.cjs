@@ -1,3 +1,4 @@
+const { createHash } = require('node:crypto')
 const fsp = require('node:fs/promises')
 const path = require('node:path')
 
@@ -13,12 +14,94 @@ function coerceString(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function sha256Hex(text) {
+  const value = typeof text === 'string' ? text : ''
+  return createHash('sha256').update(value).digest('hex')
+}
+
 function toIsoNow() {
   return new Date().toISOString()
 }
 
 function isRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+const CONTEXT_RULE_KEYS = [
+  'surrounding',
+  'user_preferences',
+  'style_guide',
+  'characters',
+  'outline',
+  'recent_summary',
+  'knowledge_graph',
+]
+
+function buildDefaultContextRules() {
+  return {
+    surrounding: 0,
+    user_preferences: false,
+    style_guide: false,
+    characters: false,
+    outline: false,
+    recent_summary: 0,
+    knowledge_graph: false,
+  }
+}
+
+function coerceNonNegativeInt(value, field, key) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
+    throw createIpcError('INVALID_ARGUMENT', `Invalid ${field}.${key}`, { field, key, value })
+  }
+  return value
+}
+
+function coerceBoolean(value, field, key) {
+  if (typeof value !== 'boolean') {
+    throw createIpcError('INVALID_ARGUMENT', `Invalid ${field}.${key}`, { field, key, value })
+  }
+  return value
+}
+
+/**
+ * Why: Context injection MUST be deterministic and auditable; unknown fields are rejected to avoid silent drift.
+ * Failure: Invalid rules MUST surface as `INVALID_ARGUMENT` (no stack leakage across IPC boundary).
+ */
+function normalizeContextRules(value) {
+  const field = 'context_rules'
+
+  if (typeof value === 'undefined' || value === null) {
+    const rules = buildDefaultContextRules()
+    const normalized = Object.fromEntries(CONTEXT_RULE_KEYS.map((k) => [k, rules[k]]))
+    return { rules: normalized, json: JSON.stringify(normalized) }
+  }
+
+  if (!isRecord(value)) {
+    throw createIpcError('INVALID_ARGUMENT', `${field} must be a mapping`, { field, value })
+  }
+
+  const unknownKeys = Object.keys(value).filter((k) => !CONTEXT_RULE_KEYS.includes(k))
+  if (unknownKeys.length > 0) {
+    throw createIpcError('INVALID_ARGUMENT', `Unknown ${field} fields`, { field, unknownKeys })
+  }
+
+  const merged = { ...buildDefaultContextRules() }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'surrounding')) {
+    merged.surrounding = coerceNonNegativeInt(value.surrounding, field, 'surrounding')
+  }
+  if (Object.prototype.hasOwnProperty.call(value, 'recent_summary')) {
+    merged.recent_summary = coerceNonNegativeInt(value.recent_summary, field, 'recent_summary')
+  }
+
+  for (const key of ['user_preferences', 'style_guide', 'characters', 'outline', 'knowledge_graph']) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      merged[key] = coerceBoolean(value[key], field, key)
+    }
+  }
+
+  const normalized = Object.fromEntries(CONTEXT_RULE_KEYS.map((k) => [k, merged[k]]))
+  return { rules: normalized, json: JSON.stringify(normalized) }
 }
 
 function isValidSemVer(version) {
@@ -234,11 +317,15 @@ function registerSkillsIpcHandlers(ipcMain, options = {}) {
     const fm = parsed.definition.frontmatter
     const skillId = coerceString(fm.id)
     const name = coerceString(fm.name)
+    const description = coerceString(fm.description) || null
     const version = coerceString(fm.version)
     const tags = Array.isArray(fm.tags) ? fm.tags.map((t) => coerceString(t)).filter(Boolean) : []
     const prompt = isRecord(fm.prompt) ? fm.prompt : null
     const system = typeof prompt?.system === 'string' ? prompt.system : ''
     const user = typeof prompt?.user === 'string' ? prompt.user : ''
+    const contextRules = normalizeContextRules(fm.context_rules)
+    const modelProfile = isRecord(fm.modelProfile) ? fm.modelProfile : null
+    const preferredModel = coerceString(modelProfile?.preferred) || 'claude-3-5-sonnet-latest'
 
     if (!skillId || !name) throw createIpcError('INVALID_ARGUMENT', 'Missing required fields (id/name)', { skillId, name })
     if (!version || !isValidSemVer(version)) throw createIpcError('INVALID_ARGUMENT', 'version must be valid SemVer', { version })
@@ -266,6 +353,61 @@ function registerSkillsIpcHandlers(ipcMain, options = {}) {
     }
 
     await fsp.writeFile(filePath, content, 'utf8')
+
+    const now = toIsoNow()
+    const sourceHash = sha256Hex(content)
+    const tag = tags.length > 0 ? tags[0] : null
+    const upsert = db.prepare(
+      `INSERT INTO skills (
+          id, name, description, tag, system_prompt, user_prompt_template, context_rules, model, is_builtin,
+          source_uri, source_hash, version, scope, package_id,
+          enabled, is_valid, error_code, error_message,
+          created_at, updated_at
+        ) VALUES (
+          @id, @name, @description, @tag, @system_prompt, @user_prompt_template, @context_rules, @model, @is_builtin,
+          @source_uri, @source_hash, @version, @scope, @package_id,
+          1, 1, NULL, NULL,
+          @created_at, @updated_at
+        )
+        ON CONFLICT(id) DO UPDATE SET
+          name=excluded.name,
+          description=excluded.description,
+          tag=excluded.tag,
+          system_prompt=excluded.system_prompt,
+          user_prompt_template=excluded.user_prompt_template,
+          context_rules=excluded.context_rules,
+          model=excluded.model,
+          is_builtin=excluded.is_builtin,
+          source_uri=excluded.source_uri,
+          source_hash=excluded.source_hash,
+          version=excluded.version,
+          scope=excluded.scope,
+          package_id=excluded.package_id,
+          enabled=excluded.enabled,
+          is_valid=excluded.is_valid,
+          error_code=excluded.error_code,
+          error_message=excluded.error_message,
+          updated_at=excluded.updated_at`
+    )
+
+    upsert.run({
+      id: skillId,
+      name,
+      description,
+      tag,
+      system_prompt: system,
+      user_prompt_template: user,
+      context_rules: contextRules.json,
+      model: preferredModel,
+      is_builtin: 0,
+      source_uri: filePath,
+      source_hash: sourceHash,
+      version,
+      scope,
+      package_id: packageId,
+      created_at: now,
+      updated_at: now,
+    })
 
     try {
       broadcast?.('skills:changed', { skillIds: [skillId], reason: 'write', atMs: Date.now() })

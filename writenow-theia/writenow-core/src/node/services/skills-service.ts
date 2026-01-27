@@ -139,7 +139,115 @@ function parseSkillText(text: string): { ok: true; definition: SkillFileDefiniti
 }
 
 function buildDefaultContextRulesJson(): string {
-    return JSON.stringify({ includeArticle: true, includeStyleGuide: true });
+    return JSON.stringify(
+        {
+            surrounding: 0,
+            user_preferences: false,
+            style_guide: false,
+            characters: false,
+            outline: false,
+            recent_summary: 0,
+            knowledge_graph: false,
+        },
+    );
+}
+
+const CONTEXT_RULE_KEYS = [
+    'surrounding',
+    'user_preferences',
+    'style_guide',
+    'characters',
+    'outline',
+    'recent_summary',
+    'knowledge_graph',
+] as const;
+
+type ContextRuleKey = (typeof CONTEXT_RULE_KEYS)[number];
+
+type NormalizedContextRules = {
+    surrounding: number;
+    user_preferences: boolean;
+    style_guide: boolean;
+    characters: boolean;
+    outline: boolean;
+    recent_summary: number;
+    knowledge_graph: boolean;
+};
+
+function buildDefaultContextRules(): NormalizedContextRules {
+    return {
+        surrounding: 0,
+        user_preferences: false,
+        style_guide: false,
+        characters: false,
+        outline: false,
+        recent_summary: 0,
+        knowledge_graph: false,
+    };
+}
+
+function coerceNonNegativeInt(value: unknown, field: string, key: string): number {
+    if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
+        throw { code: 'INVALID_ARGUMENT', message: `Invalid ${field}.${key}`, details: { field, key, value } };
+    }
+    return value;
+}
+
+function coerceBoolean(value: unknown, field: string, key: string): boolean {
+    if (typeof value !== 'boolean') {
+        throw { code: 'INVALID_ARGUMENT', message: `Invalid ${field}.${key}`, details: { field, key, value } };
+    }
+    return value;
+}
+
+/**
+ * Why: Context rules are an explicit contract; unknown fields must fail fast to avoid silent prompt drift and
+ * KV-cache invalidation.
+ */
+function normalizeContextRules(value: unknown): { ok: true; rules: NormalizedContextRules; json: string } | { ok: false; error: IpcError } {
+    const field = 'context_rules';
+    if (typeof value === 'undefined' || value === null) {
+        const rules = buildDefaultContextRules();
+        const ordered = Object.fromEntries(CONTEXT_RULE_KEYS.map((k) => [k, rules[k]])) as Record<ContextRuleKey, unknown>;
+        return { ok: true, rules, json: JSON.stringify(ordered) };
+    }
+
+    if (!isRecord(value)) {
+        return { ok: false, error: { code: 'INVALID_ARGUMENT', message: `${field} must be a mapping`, details: { field, value } } };
+    }
+
+    const unknownKeys = Object.keys(value).filter((k) => !CONTEXT_RULE_KEYS.includes(k as ContextRuleKey));
+    if (unknownKeys.length > 0) {
+        return { ok: false, error: { code: 'INVALID_ARGUMENT', message: `Unknown ${field} fields`, details: { field, unknownKeys } } };
+    }
+
+    const merged = { ...buildDefaultContextRules() };
+    try {
+        if (Object.prototype.hasOwnProperty.call(value, 'surrounding')) {
+            merged.surrounding = coerceNonNegativeInt((value as Record<string, unknown>).surrounding, field, 'surrounding');
+        }
+        if (Object.prototype.hasOwnProperty.call(value, 'recent_summary')) {
+            merged.recent_summary = coerceNonNegativeInt((value as Record<string, unknown>).recent_summary, field, 'recent_summary');
+        }
+        for (const key of ['user_preferences', 'style_guide', 'characters', 'outline', 'knowledge_graph'] as const) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                merged[key] = coerceBoolean((value as Record<string, unknown>)[key], field, key);
+            }
+        }
+    } catch (error) {
+        const record = error as { code?: unknown; message?: unknown; details?: unknown };
+        return {
+            ok: false,
+            error: {
+                code: record && typeof record.code === 'string' ? (record.code as IpcErrorCode) : 'INVALID_ARGUMENT',
+                message: record && typeof record.message === 'string' ? record.message : `Invalid ${field}`,
+                ...(typeof record?.details === 'undefined' ? {} : { details: record.details }),
+            },
+        };
+    }
+
+    const ordered = Object.fromEntries(CONTEXT_RULE_KEYS.map((k) => [k, merged[k]])) as Record<ContextRuleKey, unknown>;
+    return { ok: true, rules: merged, json: JSON.stringify(ordered) };
 }
 
 function parseStringArray(value: unknown): string[] | null {
@@ -287,6 +395,7 @@ function buildIndexedRow(args: {
     let isValid: boolean = true;
     let errorCode: string | null = null;
     let errorMessage: string | null = null;
+    let contextRulesJson = buildDefaultContextRulesJson();
 
     if (!id || !name) {
         isValid = false;
@@ -306,6 +415,17 @@ function buildIndexedRow(args: {
         errorMessage = 'prompt.system and prompt.user are required';
     }
 
+    if (isValid) {
+        const normalized = normalizeContextRules((fm as Record<string, unknown>).context_rules);
+        if (!normalized.ok) {
+            isValid = false;
+            errorCode = normalized.error.code;
+            errorMessage = normalized.error.message;
+        } else {
+            contextRulesJson = normalized.json;
+        }
+    }
+
     const resolvedId = id || stableInvalidId(args.scope, args.sourceUri);
     const fallbackName = name || path.basename(path.dirname(args.sourceUri)) || 'SKILL';
 
@@ -316,7 +436,7 @@ function buildIndexedRow(args: {
         tag,
         system_prompt: systemPrompt || null,
         user_prompt_template: userPrompt || '',
-        context_rules: buildDefaultContextRulesJson(),
+        context_rules: contextRulesJson,
         model: modelPreferred,
         is_builtin: args.scope === 'builtin' ? 1 : 0,
         source_uri: args.sourceUri,

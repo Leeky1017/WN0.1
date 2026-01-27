@@ -897,6 +897,15 @@ CREATE TABLE settings (
     - 移除 `writenow-frontend-old/`（旧前端）
     - 移除 `figma参考/`（旧参考代码）
     - 移除 `backup/`（临时备份）
+- Sprint AI-Memory（AI 记忆 + 上下文工程）：
+  - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
+    - [x] P0-001：SKILL `context_rules` 声明式注入
+    - [x] P0-002：KV-cache 稳定前缀模板（stablePrefixHash）
+    - [ ] P0-003 ~ P0-006：偏好自动注入、反馈追踪、文件化设定
+- Sprint Open-Source-Opt（开源方案优化）：
+  - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
+    - [x] P0-001：Provider Native Prompt Caching（Anthropic `cache_control: ephemeral`）
+    - [ ] P0-002 ~ P0-003：TipTap AI Diff Extension、本地 LLM Tab 续写
 - 待执行的 Plan（商业化基石）：
   - `.cursor/plans/ai_memory_research_report_c05e39ce.plan.md`（AI 记忆系统研究 + 实施路线）
   - `.cursor/plans/wn_open_source_optimization_c81686d6.plan.md`（开源方案优化路线）
