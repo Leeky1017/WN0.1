@@ -1,7 +1,7 @@
 # ISSUE-287
 - Issue: #287
 - Branch: task/287-write-mode-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/288
 
 ## Plan
 - 回填 sprint-write-mode-ide 的 P0-001/002 task cards（Status/Issue/PR/RUN_LOG + 勾选验收）
