@@ -25,6 +25,7 @@ export type BackendCrashPayload = {
 export type ElectronAPI = {
   platform: NodeJS.Platform
   versions: NodeJS.ProcessVersions
+  isE2E: boolean
   onBackendCrashed: (handler: (payload: BackendCrashPayload) => void) => () => void
   secureStore?: {
     get: (key: string) => Promise<string | null>

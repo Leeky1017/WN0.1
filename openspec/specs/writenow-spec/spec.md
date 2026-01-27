@@ -905,6 +905,8 @@ CREATE TABLE settings (
     - [x] P1-001：Command Palette UI（Cmd/Ctrl+K）（Issue #292，PR #295）
     - [x] P1-002：Focus/Zen 模式 + Esc 优先级（取消 AI / 退出 Review / 退出 Focus）（Issue #292，PR #295）
     - [x] P1-003：Review Mode —— AI Diff 可读 + Accept/Reject + 可回退（Issue #299，PR #300）
+  - Phase 2：🚧 进行中（2026-01-28；Issue #307，PR #308）
+    - [x] P2-002：性能预算 + 自动化测量（perf marks + E2E 断言）
 - Sprint AI-Memory（AI 记忆 + 上下文工程）：
   - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
     - [x] P0-001：SKILL `context_rules` 声明式注入

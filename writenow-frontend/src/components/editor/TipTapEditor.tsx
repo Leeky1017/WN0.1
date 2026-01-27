@@ -44,6 +44,7 @@ import TableCell from '@tiptap/extension-table-cell';
 import { AiDiffExtension } from '@/lib/editor/extensions/ai-diff';
 import { createLocalLlmTabCompletionPlugin, localLlmTabPluginKey } from '@/lib/editor/extensions/tab-completion';
 import type { LocalLlmTabClient } from '@/lib/editor/extensions/tab-completion';
+import { wnPerfMark, wnPerfMeasure } from '@/lib/perf';
 import { useAIStore } from '@/stores/aiStore';
 import type { EditorMode } from '@/stores';
 
@@ -154,7 +155,22 @@ export function TipTapEditor(props: TipTapEditorProps) {
   const { content, contentVersion, mode, readOnly = false, localLlmTabCompletion, onEditorReady, onFocusChanged, onMarkdownChanged } = props;
 
   const isApplyingExternalUpdateRef = useRef(false);
+  const pendingInputPerfRef = useRef(false);
+  const readOnlyRef = useRef(readOnly);
   const localLlmStopKey = (localLlmTabCompletion?.stop ?? DEFAULT_LOCAL_LLM_STOP).join('\u0000');
+
+  useEffect(() => {
+    // Why: Align editor-ready budget with the first mount in Write Mode.
+    wnPerfMark('wm.editor.mount.start');
+  }, []);
+
+  useEffect(() => {
+    // Why: DOM event handlers capture initial props; keep readOnly state fresh.
+    readOnlyRef.current = readOnly;
+    if (readOnly) {
+      pendingInputPerfRef.current = false;
+    }
+  }, [readOnly]);
 
   const extensions = useMemo(
     () => [
@@ -250,6 +266,19 @@ export function TipTapEditor(props: TipTapEditorProps) {
             return false;
           },
           keydown: (_view, event) => {
+            const shouldTrack =
+              !readOnlyRef.current &&
+              !event.ctrlKey &&
+              !event.metaKey &&
+              !event.altKey &&
+              (event.key.length === 1 ||
+                event.key === 'Enter' ||
+                event.key === 'Backspace' ||
+                event.key === 'Delete');
+            if (shouldTrack) {
+              pendingInputPerfRef.current = true;
+              wnPerfMark('wm.input.keydown');
+            }
             // Why: Manual save is handled at a higher layer (EditorPanel) so we do not bind it here.
             void event;
             return false;
@@ -258,6 +287,11 @@ export function TipTapEditor(props: TipTapEditorProps) {
       },
       onUpdate: ({ editor: next }: { editor: Editor }) => {
         if (isApplyingExternalUpdateRef.current) return;
+        if (pendingInputPerfRef.current) {
+          pendingInputPerfRef.current = false;
+          wnPerfMark('wm.input.updated');
+          wnPerfMeasure('wm.input.latency', 'wm.input.keydown', 'wm.input.updated');
+        }
         onMarkdownChanged(getMarkdownFromEditor(next));
       },
     },
@@ -317,6 +351,10 @@ export function TipTapEditor(props: TipTapEditorProps) {
   ]);
 
   useEffect(() => {
+    if (editor) {
+      wnPerfMark('wm.editor.ready');
+      wnPerfMeasure('wm.editor.ready', 'wm.editor.mount.start', 'wm.editor.ready');
+    }
     onEditorReady(editor ?? null);
     return () => onEditorReady(null);
     // Why: The callback is stable for the EditorPanel lifetime.

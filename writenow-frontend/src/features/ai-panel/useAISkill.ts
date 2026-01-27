@@ -13,6 +13,7 @@ import type { Editor } from '@tiptap/core';
 import type { EditorSelectionSnapshot } from '@/stores/editorRuntimeStore';
 import { computeDiff } from '@/lib/diff/diffUtils';
 import { assembleSkillRunRequest } from '@/lib/ai/context-assembler';
+import { wnPerfMark, wnPerfMeasure } from '@/lib/perf';
 import { invoke, invokeSafe } from '@/lib/rpc';
 import { aiClient } from '@/lib/rpc/ai-client';
 import { subscribeToAiStream } from '@/lib/rpc/ai-stream';
@@ -197,6 +198,7 @@ export function useAISkill(): UseAISkillResult {
     const runId = useAIStore.getState().currentRunId;
     if (!runId) return;
 
+    wnPerfMark('wm.ai.cancel.request');
     try {
       await aiClient.cancel({ runId });
     } catch (error) {
@@ -211,6 +213,8 @@ export function useAISkill(): UseAISkillResult {
         activeEditor.commands.clearAiDiff();
       }
       setStatusBarAIStatus('idle', '');
+      wnPerfMark('wm.ai.cancel.cleared');
+      wnPerfMeasure('wm.ai.cancel', 'wm.ai.cancel.request', 'wm.ai.cancel.cleared');
     }
   }, [activeEditor, cancelRunLocal, setDiff, setStatusBarAIStatus]);
 

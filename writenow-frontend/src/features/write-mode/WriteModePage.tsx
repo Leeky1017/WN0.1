@@ -8,16 +8,22 @@ import { useEffect } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useElectronApi } from '@/lib/electron';
 import { useRpcConnection } from '@/lib/hooks';
+import { configureWnPerf } from '@/lib/perf';
 import { useStatusBarStore } from '@/stores/statusBarStore';
 
 export function WriteModePage() {
   const { isConnected } = useRpcConnection({ autoConnect: true });
   const setConnectionStatus = useStatusBarStore((s) => s.setConnectionStatus);
   const electronApi = useElectronApi();
+  const isE2E = electronApi?.isE2E ?? false;
 
   useEffect(() => {
     setConnectionStatus(isConnected);
   }, [isConnected, setConnectionStatus]);
+
+  useEffect(() => {
+    configureWnPerf({ enabled: isE2E });
+  }, [isE2E]);
 
   useEffect(() => {
     if (!electronApi) return;
@@ -30,4 +36,3 @@ export function WriteModePage() {
 }
 
 export default WriteModePage;
-
