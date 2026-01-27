@@ -54,6 +54,25 @@ function toIpcError(error: unknown): IpcError {
   return { code: 'INTERNAL', message: error instanceof Error ? error.message : 'Unknown error' };
 }
 
+/**
+ * Bound an async operation with a timeout.
+ *
+ * Why: Some backend RPC calls can hang if the WebSocket stays open but the backend never replies. We use bounded
+ * timeouts for best-effort side effects (e.g. version snapshots) so UI state can always clear and remain usable.
+ */
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutError: IpcError): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timer = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(timeoutError), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timer]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 function formatSkillLabel(skillId: string): string {
   const slug = skillId.split(':').pop() ?? skillId;
   return `/${slug}`;
@@ -246,19 +265,25 @@ export function useAISkill(): UseAISkillResult {
     const after = getMarkdownFromEditor(editor);
     const reason = diff.skillId ? `ai:${diff.skillId}` : 'ai';
 
-    try {
-      await invoke('version:create', { articleId: filePath, content: before, name: 'Before AI', reason, actor: 'auto' });
-    } catch (error) {
-      setLastError(toIpcError(error));
-    }
-
-    try {
-      await invoke('version:create', { articleId: filePath, content: after, name: 'AI Apply', reason, actor: 'ai' });
-    } catch (error) {
-      setLastError(toIpcError(error));
-    }
-
+    // Why: Applying the diff is the user-visible action. Version snapshots are best-effort and must not block the UI.
     setDiff(null);
+
+    const persistSnapshot = async (name: string, content: string, actor: 'auto' | 'ai'): Promise<void> => {
+      try {
+        await withTimeout(
+          invoke('version:create', { articleId: filePath, content, name, reason, actor }),
+          10_000,
+          { code: 'TIMEOUT', message: `version:create timed out (${name})` },
+        );
+      } catch (error) {
+        setLastError(toIpcError(error));
+      }
+    };
+
+    void (async () => {
+      await persistSnapshot('Before AI', before, 'auto');
+      await persistSnapshot('AI Apply', after, 'ai');
+    })();
   }, [setDiff, setLastError]);
 
   const isReady = useMemo(() => aiStatus === 'connected' && skillsStatus === 'connected', [aiStatus, skillsStatus]);

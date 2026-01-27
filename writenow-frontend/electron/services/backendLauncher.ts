@@ -16,11 +16,20 @@ export type BackendLaunchOptions = {
   args?: string[]
   startupTimeoutMs?: number
   pollIntervalMs?: number
+  pidFilePath?: string
+  cleanupStalePid?: boolean
+  preflightPortCheck?: boolean
 }
 
 export type BackendExitEvent = {
   code: number | null
   signal: NodeJS.Signals | null
+}
+
+export type BackendPidFileRecord = {
+  pid: number
+  port: number
+  startedAt: number
 }
 
 export type BackendLauncherLogger = {
@@ -41,6 +50,7 @@ export class BackendLauncher {
   private status: 'idle' | 'starting' | 'running' | 'stopping' = 'idle'
   private expectedExit = false
   private lastOptions: BackendLaunchOptions | null = null
+  private currentPidFilePath: string | null = null
 
   constructor({ logger, onUnexpectedExit }: BackendLauncherDependencies) {
     this.logger = logger
@@ -63,6 +73,79 @@ export class BackendLauncher {
     this.status = 'starting'
     this.expectedExit = false
     this.lastOptions = options
+    this.currentPidFilePath = options.pidFilePath ?? null
+
+    const startupTimeoutMs = options.startupTimeoutMs ?? 30_000
+    const pollIntervalMs = options.pollIntervalMs ?? 200
+    const pidFilePath = options.pidFilePath
+
+    if (pidFilePath && options.cleanupStalePid && fs.existsSync(pidFilePath)) {
+      let record: BackendPidFileRecord | null = null
+      try {
+        const raw = fs.readFileSync(pidFilePath, 'utf8')
+        const parsed = JSON.parse(raw) as Partial<BackendPidFileRecord>
+        if (typeof parsed.pid === 'number' && Number.isFinite(parsed.pid)) {
+          const port = typeof parsed.port === 'number' && Number.isFinite(parsed.port) ? parsed.port : options.port
+          const startedAt = typeof parsed.startedAt === 'number' ? parsed.startedAt : 0
+          record = { pid: parsed.pid, port, startedAt }
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        this.logger.warn(`[backend] failed to read stale pid file: ${message}`)
+      }
+
+      if (record && record.port === options.port) {
+        /**
+         * Why: WM-005 force-kills Electron; the backend can outlive the parent and keep the port busy in E2E.
+         */
+        const isPidAlive = (): boolean => {
+          try {
+            process.kill(record.pid, 0)
+            return true
+          } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code
+            return code === 'EPERM'
+          }
+        }
+
+        if (isPidAlive()) {
+          this.logger.warn(`[backend] stale backend pid detected (pid=${record.pid}); attempting to terminate`)
+          try {
+            process.kill(record.pid, 'SIGTERM')
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            this.logger.warn(`[backend] failed to send SIGTERM to stale pid ${record.pid}: ${message}`)
+          }
+
+          const deadline = Date.now() + Math.min(startupTimeoutMs, 5_000)
+          while (Date.now() < deadline) {
+            if (!isPidAlive()) break
+            await new Promise((resolve) => setTimeout(resolve, Math.min(pollIntervalMs, 250)))
+          }
+
+          if (isPidAlive()) {
+            this.logger.warn(`[backend] stale pid ${record.pid} still alive; sending SIGKILL`)
+            try {
+              process.kill(record.pid, 'SIGKILL')
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error)
+              this.logger.warn(`[backend] failed to send SIGKILL to stale pid ${record.pid}: ${message}`)
+            }
+          }
+        }
+      }
+
+      try {
+        fs.unlinkSync(pidFilePath)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        this.logger.warn(`[backend] failed to remove stale pid file: ${message}`)
+      }
+    }
+
+    if (options.preflightPortCheck) {
+      await this.waitForPortAvailable(options.port, startupTimeoutMs, pollIntervalMs)
+    }
 
     this.logger.info(`[backend] starting: ${options.entryPath}`)
 
@@ -78,6 +161,20 @@ export class BackendLauncher {
 
     this.process = child
 
+    if (pidFilePath && child.pid) {
+      try {
+        const record: BackendPidFileRecord = {
+          pid: child.pid,
+          port: options.port,
+          startedAt: Date.now(),
+        }
+        fs.writeFileSync(pidFilePath, JSON.stringify(record), 'utf8')
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        this.logger.warn(`[backend] failed to write pid file: ${message}`)
+      }
+    }
+
     child.stdout?.on('data', (data: Buffer) => {
       this.logger.info(`[backend] ${data.toString().trimEnd()}`)
     })
@@ -92,6 +189,16 @@ export class BackendLauncher {
       this.process = null
       this.status = 'idle'
 
+      if (pidFilePath) {
+        try {
+          fs.unlinkSync(pidFilePath)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          this.logger.warn(`[backend] failed to remove pid file: ${message}`)
+        }
+      }
+      this.currentPidFilePath = null
+
       if (!wasExpected && this.onUnexpectedExit) {
         this.onUnexpectedExit({ code, signal })
       }
@@ -99,7 +206,7 @@ export class BackendLauncher {
 
     try {
       await Promise.race([
-        this.waitForPort(options.port, options.startupTimeoutMs ?? 30_000, options.pollIntervalMs ?? 200),
+        this.waitForPort(options.port, startupTimeoutMs, pollIntervalMs),
         this.rejectOnExit(child, () => this.status === 'starting'),
         this.rejectOnSpawnError(child),
       ])
@@ -158,6 +265,16 @@ export class BackendLauncher {
 
     this.process = null
     this.status = 'idle'
+
+    if (this.currentPidFilePath) {
+      try {
+        fs.unlinkSync(this.currentPidFilePath)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        this.logger.warn(`[backend] failed to remove pid file: ${message}`)
+      }
+      this.currentPidFilePath = null
+    }
   }
 
   /**
@@ -198,6 +315,47 @@ export class BackendLauncher {
         })
 
         socket.connect(port, '127.0.0.1')
+      }
+
+      attempt()
+    })
+  }
+
+  /**
+   * Wait for the port to become available before launching a new backend.
+   * Why: Prevent connecting to a stale backend that survived a force-kill in E2E.
+   */
+  private async waitForPortAvailable(port: number, timeoutMs: number, pollIntervalMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs
+    let warned = false
+
+    return new Promise((resolve, reject) => {
+      const attempt = () => {
+        if (Date.now() > deadline) {
+          reject(new Error(`Backend port ${port} still in use after ${timeoutMs}ms`))
+          return
+        }
+
+        const server = net.createServer()
+
+        server.once('error', (error) => {
+          const code = (error as NodeJS.ErrnoException).code
+          if (code === 'EADDRINUSE') {
+            if (!warned) {
+              warned = true
+              this.logger.warn(`[backend] port ${port} in use; waiting for release`)
+            }
+            setTimeout(attempt, pollIntervalMs)
+            return
+          }
+          reject(error)
+        })
+
+        server.once('listening', () => {
+          server.close(() => resolve())
+        })
+
+        server.listen(port, '127.0.0.1')
       }
 
       attempt()
