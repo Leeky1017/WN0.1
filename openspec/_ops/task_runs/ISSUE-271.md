@@ -38,3 +38,8 @@
 - Command: `git push -u origin HEAD && gh pr create ... && gh pr merge 275 --auto --squash`
 - Key output: `PR: https://github.com/Leeky1017/WN0.1/pull/275` + `auto-merge enabled (squash)`
 - Evidence: `https://github.com/Leeky1017/WN0.1/pull/275`
+
+### 2026-01-27 15:02 rebase
+- Command: `git fetch origin && git rebase origin/main && git push --force-with-lease`
+- Key output: `Successfully rebased and updated refs/heads/task/271-sprint-open-source-opt.`
+- Evidence: `git log --oneline -5`
