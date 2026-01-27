@@ -900,6 +900,7 @@ CREATE TABLE settings (
 - 暂停的工作（待重新排期）：
   - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
   - `openspec/specs/sprint-ide-advanced/spec.md`
+  - `openspec/specs/sprint-frontend-polish/spec.md`（前端优化：代码质量/构建优化/测试覆盖/样式UI/响应式，待商业化基石完成后启动）
 - 已废弃：
   - `openspec/specs/wn-frontend-deep-remediation/spec.md`（legacy remediation 计划已失效；UI baseline 已切换为 `writenow-frontend/`）
 
