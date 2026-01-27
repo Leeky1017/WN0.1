@@ -1,7 +1,7 @@
 # ISSUE-316
 - Issue: #316
 - Branch: `task/316-e2e-write-mode-ci-fixes`
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/317
 
 ## Plan
 - Stabilize `e2e-write-mode` CI (Ubuntu) by:
@@ -51,3 +51,12 @@
 - Command: `cd writenow-frontend && npm run lint`
 - Key output: `eslint .` (success)
 - Evidence: (command exit 0)
+
+### 2026-01-27 22:34 UTC — PR + auto-merge
+- Command: `gh pr create --title "[WRITE-MODE-IDE] Fix e2e-write-mode CI failures (#316)" ...`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/317`
+- Evidence: PR #317
+
+- Command: `gh pr merge --auto --squash 317`
+- Key output: `autoMergeRequest.enabledAt=2026-01-27T22:34:02Z`
+- Evidence: `gh pr view 317 --json autoMergeRequest,mergeStateStatus`
