@@ -1,12 +1,9 @@
 ---
 name: WN Open Source Optimization
-overview: 基于业界成熟开源方案优化 WriteNow，不造轮子，直接复用 Mem0、Graphiti、node-llama-cpp 等经过验证的解决方案；编辑器 AI 集成采用自研 TipTap Extension + 本地 LLM Tab 续写（用户可选下载模型），实现成本降低、性能提升和功能增强。
+overview: 基于业界成熟开源方案优化 WriteNow，编辑器 AI 集成采用自研 TipTap Extension + 本地 LLM Tab 续写（node-llama-cpp），知识图谱评估 Graphiti；记忆层统一使用 AI Memory Research 的自研方案（SQLite + JSON，本地优先）。
 todos:
   - id: p0-prompt-caching
     content: "[P0] 启用 OpenAI/Anthropic 原生 Prompt Caching（约 20 行代码改动）"
-    status: pending
-  - id: p1-mem0-integration
-    content: "[P1] 集成 Mem0 记忆层（可选云端/本地开源版）"
     status: pending
   - id: p1-ai-diff-extension
     content: "[P1] 自研 TipTap AI Diff/Suggestion Extension（3-5 天，零付费）"
@@ -40,7 +37,7 @@ isProject: false
 
 | LLM 成本优化 | **原生 Prompt Caching**（OpenAI/Anthropic） | Production | 50-90% 成本降低 |
 
-| Agent 记忆层 | **Mem0** | 26k+ stars | 90% Token 节省，26% 准确率提升 |
+| Agent 记忆层 | **自研 SQLite + JSON**（见 AI Memory Research Plan） | 本地优先 | 无外部依赖，完全掌控 |
 
 | 知识图谱 | **Graphiti (Zep)** | 22k+ stars | 100%+ 准确率提升，90% 延迟降低 |
 
@@ -119,53 +116,47 @@ litellm_settings:
 
 ---
 
-## 三、P1：Agent 记忆层（复用 Mem0）
+## 三、记忆层方案（统一使用 AI Memory Research 自研方案）
 
-### 3.1 为什么选 Mem0
+> **重要说明**：记忆层不使用 Mem0，统一采用 `ai_memory_research_report` Plan 中的自研方案。
+>
+> 原因：
+> 1. WriteNow 是桌面应用，**本地优先**是核心价值
+> 2. Mem0 云端版需要网络 + API Key，违背离线可用原则
+> 3. 自研方案完全掌控，无外部依赖
 
-| 对比项 | Mem0 | Letta/MemGPT | 自研 |
+### 3.1 自研记忆层架构（详见 AI Memory Research Plan）
 
-|-------|------|-------------|------|
-
-| 准确率 | 66.9% | 74% | 未知 |
-
-| 延迟 | 1.4s p95 | - | 未知 |
-
-| Token 效率 | 90% 节省 | - | 低 |
-
-| 集成难度 | npm 包可用 | Python 主导 | 高 |
-
-| 维护成本 | 零 | 低 | 高 |
-
-### 3.2 Mem0 集成方案
-
-```typescript
-// 新增 lib/memory/mem0-client.ts
-import { MemoryClient } from 'mem0ai'
-
-const client = new MemoryClient({ apiKey: process.env.MEM0_API_KEY })
-
-// 添加记忆
-await client.add([
-  { role: 'user', content: userMessage },
-  { role: 'assistant', content: aiResponse }
-], { user_id: userId, metadata: { projectId } })
-
-// 检索相关记忆
-const memories = await client.search(query, { user_id: userId })
+```
+┌─────────────────────────────────────────┐
+│ Layer 0: System Instructions            │ ← 静态，定义 Agent 行为
+├─────────────────────────────────────────┤
+│ Layer 1: Session Context                │ ← 临时，设备/时间/当前项目
+├─────────────────────────────────────────┤
+│ Layer 2: User Profile Memory            │ ← 持久，用户偏好/风格/反馈
+├─────────────────────────────────────────┤
+│ Layer 3: Project Knowledge Memory       │ ← 项目级，世界观/人物/设定
+├─────────────────────────────────────────┤
+│ Layer 4: Recent Interactions Summary    │ ← 轻量，最近会话摘要
+├─────────────────────────────────────────┤
+│ Layer 5: Current Context                │ ← 实时，选区/前后文/当前任务
+└─────────────────────────────────────────┘
 ```
 
-**改动模块**：
+### 3.2 技术选型
 
-- `electron/ipc/memory.cjs` → 增加 Mem0 后端选项
-- `electron/ipc/ai.cjs` → 调用前自动检索相关记忆
+| 组件 | 方案 | 理由 |
+|------|------|------|
+| 用户记忆存储 | SQLite + JSON | 轻量、本地优先、易于管理 |
+| 向量索引 | sqlite-vec | 与现有存储统一 |
+| 知识图谱 | SQLite 关系表 → Graphiti 评估 | 渐进式复杂度 |
+| 偏好学习 | 规则 + 隐式推断 | 不需要 fine-tuning |
 
-### 3.3 本地优先方案（可选）
+### 3.3 实施路线（见 AI Memory Research Plan）
 
-如果不想依赖云端 Mem0：
-
-- 使用 **Mem0 开源版**（MIT License）本地部署
-- 或保持现有 SQLite 实现 + 阈值学习
+- **Phase 1**：基础记忆系统（用户偏好存储、项目设定、上下文注入）
+- **Phase 2**：智能记忆（采纳/拒绝追踪、隐式偏好提取）
+- **Phase 3**：高级个性化（StyleVector、知识图谱）
 
 ---
 
