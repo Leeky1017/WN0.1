@@ -10,5 +10,5 @@
 - [ ] 2.2 校验失败可诊断：手动制造一次失败，确认 trace/screenshot/main.log 均产出且可定位
 
 ## 3. Documentation
-- [ ] 3.1 更新任务卡 `P2-001-e2e-playwright.md` 勾选验收项并补齐 Completion 元信息
+- [x] 3.1 更新任务卡 `P2-001-e2e-playwright.md` 勾选验收项并补齐 Completion 元信息
 - [ ] 3.2 补充/更新 E2E 运行说明（如新增脚本或约定）
