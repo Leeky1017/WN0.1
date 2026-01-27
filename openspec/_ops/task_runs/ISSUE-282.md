@@ -1,7 +1,7 @@
 # ISSUE-282
 - Issue: #282
 - Branch: task/282-ai-memory-preference-feedback
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/284
 
 ## Plan
 - 在新 worktree 中实现 P1-001（偏好自动注入）与 P1-002（反馈追踪），并保持 IPC 契约与失败语义稳定。
