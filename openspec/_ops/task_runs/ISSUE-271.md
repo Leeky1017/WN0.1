@@ -1,7 +1,7 @@
 # ISSUE-271
 - Issue: #271
 - Branch: task/271-sprint-open-source-opt
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/275
 
 ## Plan
 - Convert `.cursor/plans/wn_open_source_optimization_c81686d6.plan.md` into OpenSpec sprint spec (`spec.md` + `design/*` + `task_cards/*`).
