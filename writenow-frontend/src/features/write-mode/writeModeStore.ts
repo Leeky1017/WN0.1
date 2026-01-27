@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 
 import { computeTextStats } from '@/lib/editor/text-stats';
+import { wnPerfMark, wnPerfMeasure } from '@/lib/perf';
 import { RpcError, invoke } from '@/lib/rpc';
 import { useEditorFilesStore } from '@/stores/editorFilesStore';
 import { useStatusBarStore } from '@/stores/statusBarStore';
@@ -80,6 +81,7 @@ export const useWriteModeStore = create<WriteModeState>((set, get) => {
 
   const scheduleSave = () => {
     clearSaveTimer();
+    wnPerfMark('wm.save.schedule');
     saveTimer = setTimeout(() => {
       void get().saveNow('auto').catch(() => {
         // Why: save errors are surfaced via status stores; keep autosave best-effort without unhandled promises.
@@ -101,7 +103,6 @@ export const useWriteModeStore = create<WriteModeState>((set, get) => {
   };
 
   const saveNow = async (reason: SaveReason = 'manual') => {
-    void reason;
     clearSaveTimer();
 
     const { activeFilePath, markdown } = get();
@@ -139,6 +140,11 @@ export const useWriteModeStore = create<WriteModeState>((set, get) => {
         setActiveSaveStatus('saved');
         setDirtyForActiveFile(false, 'saved');
         useStatusBarStore.getState().setLastSavedAt(Date.now());
+        wnPerfMark('wm.save.done');
+        if (reason === 'auto') {
+          // Why: CI budgets target autosave latency only; manual saves are user-triggered and noisier.
+          wnPerfMeasure('wm.save.autosave', 'wm.save.schedule', 'wm.save.done');
+        }
       } catch (error) {
         const ipc = toIpcError(error);
         setActiveSaveStatus('error', toSaveErrorInfo(ipc));
@@ -177,6 +183,7 @@ export const useWriteModeStore = create<WriteModeState>((set, get) => {
       const path = rawPath.trim();
       if (!path) return;
 
+      wnPerfMark('wm.file.open.start');
       clearSaveTimer();
 
       const currentPath = get().activeFilePath;
@@ -208,6 +215,8 @@ export const useWriteModeStore = create<WriteModeState>((set, get) => {
           isOpening: false,
           openError: null,
         }));
+        wnPerfMark('wm.file.open.ready');
+        wnPerfMeasure('wm.file.open', 'wm.file.open.start', 'wm.file.open.ready');
       } catch (error) {
         const ipc = toIpcError(error);
         setActiveSaveStatus('error', toSaveErrorInfo(ipc));
@@ -243,4 +252,3 @@ export const useWriteModeStore = create<WriteModeState>((set, get) => {
     },
   };
 });
-

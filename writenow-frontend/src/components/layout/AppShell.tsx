@@ -51,10 +51,15 @@ export function AppShell() {
   const saveError = useStatusBarStore((s) => s.saveError);
   const aiStatus = useStatusBarStore((s) => s.aiStatus);
   const wordCount = useStatusBarStore((s) => s.wordCount);
+  const charCount = useStatusBarStore((s) => s.charCount);
   const isConnected = useStatusBarStore((s) => s.isConnected);
   const cursorPosition = useStatusBarStore((s) => s.cursorPosition);
   const documentType = useStatusBarStore((s) => s.documentType);
   const reviewingAiChanges = useAIStore((s) => Boolean(s.diff));
+
+  // Why: 100k chars is the large-doc threshold in the perf spec; surface the mode before degradation kicks in.
+  const LARGE_DOCUMENT_WARNING_CHARS = 100_000;
+  const isLargeDocument = charCount >= LARGE_DOCUMENT_WARNING_CHARS;
 
   const fileName = useMemo(() => {
     if (!activeFilePath) return 'Untitled';
@@ -140,6 +145,7 @@ export function AppShell() {
           onToggleSidebar={handleToggleSidebar}
           isAiPanelOpen={isAiPanelOpen}
           onToggleAiPanel={handleToggleAiPanel}
+          performanceMode={isLargeDocument}
         />
       </div>
 

@@ -26,6 +26,7 @@ type BackendCrashPayload = {
 type ElectronAPI = {
   platform: NodeJS.Platform
   versions: NodeJS.ProcessVersions
+  isE2E: boolean
   onBackendCrashed: (handler: (payload: BackendCrashPayload) => void) => () => void
   secureStore?: {
     get: (key: string) => Promise<string | null>
@@ -49,6 +50,7 @@ type ElectronAPI = {
 const api: ElectronAPI = {
   platform: process.platform,
   versions: process.versions,
+  isE2E: process.env.WN_E2E === '1',
   onBackendCrashed: (handler) => {
     const listener = (_event: IpcRendererEvent, payload: BackendCrashPayload) => {
       handler(payload)

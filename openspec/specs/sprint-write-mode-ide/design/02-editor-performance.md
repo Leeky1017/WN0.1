@@ -26,6 +26,16 @@
 > - 200ms 文件切换属于 IDE 的“立即响应”范围；800ms 属于“可接受但需要优化”。
 > - 冷启动 3s 是“打开就能写”的下限；超过后必须通过预热/延迟加载拆解。
 
+### 1.1.1 CI 断言门槛（E2E Guardrails）
+
+> CI 环境存在抖动，E2E 断言需要略高于产品预算以避免不必要的 flake。
+> Guardrails 只是“回归门禁”，不会替代产品预算目标。
+
+- editor ready：< 400ms（CI guardrail；产品预算仍为 200ms）
+- file open（small doc）：< 400ms（CI guardrail；产品预算仍为 200ms）
+- input latency（单次按键）：< 120ms（CI guardrail；产品预算仍为 P95 < 50ms）
+- autosave：< 1800ms（CI guardrail；产品预算仍为 1500ms）
+
 ### 1.2 极限规模（必须写清阈值）
 
 - 项目规模：
@@ -68,6 +78,8 @@ export function wnPerfMeasure(name: string, startMark: string, endMark: string) 
   window.__WN_PERF__.measures[name] = entry.duration
 }
 ```
+
+> 额外：输入延迟测量可用 `keydown` → `onUpdate` 触发点做“单次按键”延迟采样，用于 CI guardrail（避免采集敏感内容）。
 
 Playwright 读取：
 
@@ -187,6 +199,8 @@ Why：这比引入专门的性能框架成本更低，但足以阻断回归。
 - L1：禁用重型扩展（如复杂 diff decoration），仅保留基础编辑
 - L2：对大文档启用“只读模式 + 分段编辑”
 - L3：提示用户拆分文档（提供自动拆分工具）
+
+> UI 必须可解释：当达到大文档阈值时，Write Mode 至少显示“性能模式”提示，告知用户部分效果可能降级。
 
 ### 5.2 降级触发规则
 

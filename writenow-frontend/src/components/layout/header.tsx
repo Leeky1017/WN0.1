@@ -8,6 +8,8 @@ interface HeaderProps {
   fileName?: string;
   /** When true, Write Mode is in Review Mode for AI diff (Accept/Reject pending). */
   reviewingAiChanges?: boolean;
+  /** When true, large-doc performance mode is active. */
+  performanceMode?: boolean;
   /** Unified save status (SSOT) */
   saveStatus: SaveStatus;
   /** Human-readable error message when saveStatus === 'error' */
@@ -38,6 +40,7 @@ interface HeaderProps {
 export function Header({
   fileName = 'Untitled',
   reviewingAiChanges = false,
+  performanceMode = false,
   saveStatus,
   saveErrorMessage,
   onRetrySave,
@@ -146,6 +149,15 @@ export function Header({
       {/* Right: Stats + AI Panel Toggle */}
       <div className="flex items-center gap-3">
         <StatsBar />
+        {performanceMode && (
+          <span
+            data-testid="wm-perf-mode"
+            className="px-2 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[10px] font-semibold text-[var(--warning)]"
+            title="文档较大，部分效果可能降级以保证输入流畅"
+          >
+            性能模式
+          </span>
+        )}
         <div className="w-px h-4 bg-[var(--border-strong)] opacity-20" />
         <button
           onClick={onToggleAiPanel}
