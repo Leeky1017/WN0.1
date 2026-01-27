@@ -1,7 +1,7 @@
 # ISSUE-277
 - Issue: #277
 - Branch: task/277-sprint-write-mode-ide
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/278
 
 ## Plan
 - Produce an OpenSpec sprint spec for IDE Write Mode + dev strategy (low cost, high quality; perf/UX > package size).
