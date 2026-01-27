@@ -87,3 +87,8 @@
 - Command: `git commit -m "test: add write-mode e2e gate (#306)"`
 - Key output: `11 files changed, 351 insertions(+), 127 deletions(-)`
 - Evidence: `git show --stat HEAD`
+
+### 2026-01-28 03:29 push
+- Command: `git push -u origin HEAD`
+- Key output: `new branch pushed (task/306-p2-001-e2e-write-mode)`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/new/task/306-p2-001-e2e-write-mode`
