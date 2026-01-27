@@ -37,6 +37,12 @@
 | SKILL 动态注入 | `design/04-skill-context-injection.md` | `context_rules` 规则、注入矩阵、实现点 |
 | 知识图谱 | `design/05-knowledge-graph.md` | 实体关系/时序、未来接口与演进路径 |
 
+### 非规范补充材料（实现计划）
+
+> 说明：以下内容为“工程落地补充材料”，用于执行与验收时的实现决策说明；**不替代本 Spec**，如有冲突以本 Spec 为准。
+
+- `.cursor/plans/memos_设计借鉴方案_fed49a61.plan.md`：借鉴 MemOS/Mem0 的本地优先记忆工程落地计划（数据模型一步到位、语义召回接入点、stablePrefixHash 口径等）
+
 ---
 
 ## Purpose
