@@ -97,3 +97,8 @@
 - Command: `gh pr create --title "P2-001: write mode e2e gate (#306)" --body "Closes #306 ..."`
 - Key output: `https://github.com/Leeky1017/WN0.1/pull/309`
 - Evidence: `PR #309`
+
+### 2026-01-28 03:35 enable-auto-merge
+- Command: `gh pr merge --auto --squash 309`
+- Key output: `auto-merge enabled`
+- Evidence: `PR #309`
