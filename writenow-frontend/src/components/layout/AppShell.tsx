@@ -8,6 +8,7 @@ import { SearchField } from '@/components/composed/search-field';
 
 import { AIPanel } from '@/features/ai-panel/AIPanel';
 import { CommandPalette } from '@/features/command-palette';
+import { SettingsPanel } from '@/features/settings/SettingsPanel';
 import { WriteModeEditorPanel } from '@/features/write-mode/WriteModeEditorPanel';
 import { WriteModeFileTree } from '@/features/write-mode/WriteModeFileTree';
 import { useWriteModeStore } from '@/features/write-mode/writeModeStore';
@@ -235,9 +236,7 @@ export function AppShell() {
               
               {/* Settings View */}
               {activeSidebarTab === 'settings' && (
-                <div className="p-4 text-center text-[var(--fg-muted)] text-sm">
-                  Settings panel
-                </div>
+                <SettingsPanel />
               )}
             </SidebarPanel>
             </motion.div>

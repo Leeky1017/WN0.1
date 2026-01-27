@@ -327,3 +327,12 @@ textarea::placeholder {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* ===== Local LLM Tab (ghost text) ===== */
+.wn-llm-ghost {
+  color: var(--fg-subtle);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+}

@@ -135,6 +135,7 @@ function ActivityBarItem({ icon: Icon, label, active, onClick }: ActivityBarItem
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
+          aria-label={label}
           className={cn(
             'relative w-10 h-10 flex items-center justify-center rounded-lg',
             'transition-all duration-[100ms] ease-out',

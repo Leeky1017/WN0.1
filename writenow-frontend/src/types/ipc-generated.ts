@@ -142,7 +142,14 @@ export type IpcChannel =
   | 'export:markdown'
   | 'export:pdf'
   | 'clipboard:writeHtml'
-  | 'clipboard:writeText';
+  | 'clipboard:writeText'
+  | 'localLlm:model:ensure'
+  | 'localLlm:model:list'
+  | 'localLlm:model:remove'
+  | 'localLlm:settings:get'
+  | 'localLlm:settings:update'
+  | 'localLlm:tab:cancel'
+  | 'localLlm:tab:complete';
 
 export type FileListRequest = {
   scope?: 'documents';
@@ -1379,6 +1386,113 @@ export type ContextWritenowConversationsAnalysisUpdateResponse = {
   index: WritenowConversationIndexItem;
 };
 
+export type LocalLlmSettings = {
+  enabled: boolean;
+  modelId: string;
+  maxTokens: number;
+  temperature: number;
+  timeoutMs: number;
+  idleDelayMs: number;
+};
+
+export type LocalLlmModelProgress = {
+  receivedBytes: number;
+  totalBytes?: number;
+};
+
+export type LocalLlmModelStateStatus = 'idle' | 'downloading' | 'ready' | 'error';
+
+export type LocalLlmModelState = {
+  status: LocalLlmModelStateStatus;
+  modelId?: string;
+  modelPath?: string;
+  progress?: LocalLlmModelProgress;
+  error?: IpcError;
+};
+
+export type LocalLlmModelDescriptor = {
+  id: string;
+  label: string;
+  filename?: string;
+  url?: string;
+  sizeBytes?: number;
+  sha256?: string;
+};
+
+export type LocalLlmModelListRequest = Record<string, never>;
+
+export type LocalLlmModelListResponse = {
+  models: LocalLlmModelDescriptor[];
+  installedModelIds: string[];
+  state: LocalLlmModelState;
+  settings: LocalLlmSettings;
+};
+
+export type LocalLlmModelEnsureRequest = {
+  modelId: string;
+  allowDownload: boolean;
+};
+
+export type LocalLlmModelEnsureResponse = {
+  modelPath: string;
+};
+
+export type LocalLlmModelRemoveRequest = {
+  modelId: string;
+};
+
+export type LocalLlmModelRemoveResponse = {
+  removed: true;
+};
+
+export type LocalLlmSettingsGetRequest = Record<string, never>;
+
+export type LocalLlmSettingsGetResponse = {
+  settings: LocalLlmSettings;
+  state: LocalLlmModelState;
+};
+
+export type LocalLlmSettingsUpdateRequest = {
+  enabled?: boolean;
+  modelId?: string;
+  maxTokens?: number;
+  temperature?: number;
+  timeoutMs?: number;
+  idleDelayMs?: number;
+};
+
+export type LocalLlmSettingsUpdateResponse = {
+  settings: LocalLlmSettings;
+};
+
+export type LocalLlmTabCompleteRequest = {
+  prefix: string;
+  suffix: string;
+  maxTokens: number;
+  temperature: number;
+  timeoutMs: number;
+  stop?: string[];
+};
+
+export type LocalLlmTabCompleteResponse = {
+  runId: string;
+  startedAt: number;
+};
+
+export type LocalLlmTabCancelRequest = {
+  runId: string;
+  reason: 'user' | 'input' | 'timeout';
+};
+
+export type LocalLlmTabCancelResponse = {
+  canceled: true;
+};
+
+export type LocalLlmTabStreamEvent =
+  | { type: 'delta'; runId: string; text: string }
+  | { type: 'done'; runId: string; result: string; durationMs: number }
+  | { type: 'error'; runId: string; error: IpcError };
+
 export type IpcInvokePayloadMap = {
   'file:create': FileCreateRequest;
   'file:delete': FileDeleteRequest;
@@ -1465,6 +1579,13 @@ export type IpcInvokePayloadMap = {
   'export:pdf': ExportPdfRequest;
   'clipboard:writeHtml': ClipboardWriteHtmlRequest;
   'clipboard:writeText': ClipboardWriteTextRequest;
+  'localLlm:model:ensure': LocalLlmModelEnsureRequest;
+  'localLlm:model:list': LocalLlmModelListRequest;
+  'localLlm:model:remove': LocalLlmModelRemoveRequest;
+  'localLlm:settings:get': LocalLlmSettingsGetRequest;
+  'localLlm:settings:update': LocalLlmSettingsUpdateRequest;
+  'localLlm:tab:cancel': LocalLlmTabCancelRequest;
+  'localLlm:tab:complete': LocalLlmTabCompleteRequest;
 };
 
 export type IpcInvokeDataMap = {
@@ -1553,6 +1674,13 @@ export type IpcInvokeDataMap = {
   'export:pdf': ExportPdfResponse;
   'clipboard:writeHtml': ClipboardWriteHtmlResponse;
   'clipboard:writeText': ClipboardWriteTextResponse;
+  'localLlm:model:ensure': LocalLlmModelEnsureResponse;
+  'localLlm:model:list': LocalLlmModelListResponse;
+  'localLlm:model:remove': LocalLlmModelRemoveResponse;
+  'localLlm:settings:get': LocalLlmSettingsGetResponse;
+  'localLlm:settings:update': LocalLlmSettingsUpdateResponse;
+  'localLlm:tab:cancel': LocalLlmTabCancelResponse;
+  'localLlm:tab:complete': LocalLlmTabCompleteResponse;
 };
 
 export type IpcInvokeResponseMap = {
