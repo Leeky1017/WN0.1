@@ -53,6 +53,7 @@ export async function launchWriteNowApp(options: LaunchWriteNowOptions): Promise
   const page = await electronApp.firstWindow();
   try {
     await expect(page.getByTestId('wm-header')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId('wm-connection-indicator')).toContainText('已连接', { timeout: 60_000 });
   } catch (error) {
     const url = page.url();
     let logTail = '';
@@ -79,6 +80,6 @@ export async function createNewFile(page: Page, name: string): Promise<void> {
   await expect(
     page
       .getByTestId('layout-sidebar')
-      .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(name)}\\.md$`) }),
+      .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(name)}\\.md`) }),
   ).toBeVisible({ timeout: 30_000 });
 }
