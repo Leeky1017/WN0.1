@@ -2,7 +2,7 @@
 
 Status: done  
 Issue: #307  
-PR: https://github.com/Leeky1017/WN0.1/pull/TBD  
+PR: https://github.com/Leeky1017/WN0.1/pull/308  
 RUN_LOG: openspec/_ops/task_runs/ISSUE-307.md
 
 ## 元信息

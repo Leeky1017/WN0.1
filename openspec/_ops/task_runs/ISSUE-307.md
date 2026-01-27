@@ -1,7 +1,7 @@
 # ISSUE-307
 - Issue: #307
 - Branch: task/307-p2-002-perf-budgets
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/308
 
 ## Plan
 - Define Write Mode perf marks + expose E2E-only perf bridge
@@ -37,3 +37,8 @@
 - Command: `rg -n "P2-002" openspec/specs/writenow-spec/spec.md openspec/specs/sprint-write-mode-ide/task_cards/p2/P2-002-perf-budgets.md`
 - Key output: `Phase 2 progress + P2-002 marked done`
 - Evidence: `openspec/specs/writenow-spec/spec.md`, `openspec/specs/sprint-write-mode-ide/task_cards/p2/P2-002-perf-budgets.md`
+
+### 2026-01-28 03:18 pr-create
+- Command: `gh pr create -R Leeky1017/WN0.1 -H task/307-p2-002-perf-budgets -B main -t "P2-002 perf budgets gate (#307)" -b "Closes #307 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/308`
+- Evidence: `PR #308`
