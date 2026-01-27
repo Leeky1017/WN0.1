@@ -102,3 +102,8 @@
 - Command: `gh pr merge --auto --squash 309`
 - Key output: `auto-merge enabled`
 - Evidence: `PR #309`
+
+### 2026-01-28 03:37 pr-checks
+- Command: `gh pr checks --watch 309`
+- Key output: `no checks reported on the 'task/306-p2-001-e2e-write-mode' branch`
+- Evidence: `PR #309`
