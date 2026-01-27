@@ -5,6 +5,7 @@ AI 驱动的文字创作 IDE
 ## 规范索引
 
 - [writenow-spec](specs/writenow-spec/spec.md): 产品规范（愿景/核心概念/系统架构/路线图）
+- [sprint-ai-memory](specs/sprint-ai-memory/spec.md): AI Memory（上下文管理与记忆系统）
 - [sprint-theia-migration](specs/sprint-theia-migration/spec.md): Theia 迁移（主线）
 - [api-contract](specs/api-contract/spec.md): IPC/RPC 契约规范（SSOT）
 - [sprint-1-editor](specs/sprint-1-editor/spec.md): 编辑器闭环
