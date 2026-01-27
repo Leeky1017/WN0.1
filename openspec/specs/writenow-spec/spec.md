@@ -912,7 +912,9 @@ CREATE TABLE settings (
 - Sprint Open-Source-Opt（开源方案优化）：
   - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
     - [x] P0-001：Provider Native Prompt Caching（Anthropic `cache_control: ephemeral`）
-    - [ ] P0-002 ~ P0-003：TipTap AI Diff Extension、本地 LLM Tab 续写
+    - [ ] P0-002：TipTap AI Diff Extension（WIP）
+  - Phase 1：✅ 已完成（2026-01-27；Issue #293，PR #298）
+    - [x] P1-002：本地 LLM Tab 续写（node-llama-cpp）
 - 待执行的 Plan（商业化基石）：
   - `.cursor/plans/ai_memory_research_report_c05e39ce.plan.md`（AI 记忆系统研究 + 实施路线）
   - `.cursor/plans/wn_open_source_optimization_c81686d6.plan.md`（开源方案优化路线）
