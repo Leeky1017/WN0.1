@@ -2,7 +2,7 @@
 
 - Issue: #293
 - Branch: task/293-local-llm-tab
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/298
 
 ## Plan
 
@@ -61,4 +61,10 @@
 - Evidence:
   - `writenow-frontend/tests/e2e/write-mode-ssot.spec.ts`
   - `writenow-frontend/tests/e2e/local-llm-tab.spec.ts`
+
+### 2026-01-27 IPC contract drift check
+
+- Command: `npm run contract:check`
+- Key output: `ipc-contract-sync.js check`（exit 0）
+- Evidence: `src/types/ipc-generated.ts`（三端生成文件一致）
 

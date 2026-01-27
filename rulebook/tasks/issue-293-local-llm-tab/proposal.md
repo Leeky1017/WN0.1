@@ -19,3 +19,15 @@
   - `writenow-frontend/src/lib/editor/extensions/tab-completion.ts`（新增 extension 模块）
 - Breaking change: NO（新增能力默认关闭，且 IPC 失败语义为可判定返回）
 - User benefit: 本地续写降低成本、提升隐私与离线可用性，并提供更流畅的写作补全体验。
+
+## Notes（模型/隐私/排障）
+
+- **模型体积（示例默认）**：
+  - Qwen2.5 0.5B Instruct Q4_K_M：约 398MB
+  - Qwen2.5 0.5B Instruct Q2_K：约 339MB（低配）
+- **存储位置**：`app.getPath('userData')/models`（每用户独立）
+- **隐私**：Tab 续写在本地 `node-llama-cpp` 推理；不需要上传文档内容到云端
+- **排障**：
+  - 设置 `WN_LOCAL_LLM_MODEL_PATH` 可使用自定义本地 GGUF 路径（推荐用于开发/E2E）
+  - 设置 `WN_DISABLE_GPU=1` 可强制 CPU（更稳；适合 CI/无 GPU 环境）
+  - 查看 `{userData}/logs/main.log` 获取主进程日志与错误码
