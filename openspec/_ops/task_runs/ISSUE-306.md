@@ -82,3 +82,8 @@
 - Command: `cd writenow-frontend && WSL_DISTRO_NAME= WSL_INTEROP= npm run test:e2e -- -g "@write-mode"`
 - Key output: `Cmd/Ctrl+K spec still failed; worker teardown timeout exceeded`
 - Evidence: `writenow-frontend/test-results/`
+
+### 2026-01-28 03:27 commit
+- Command: `git commit -m "test: add write-mode e2e gate (#306)"`
+- Key output: `11 files changed, 351 insertions(+), 127 deletions(-)`
+- Evidence: `git show --stat HEAD`
