@@ -4,6 +4,8 @@
  */
 import { create } from 'zustand';
 
+import type { IpcErrorCode } from '@/types/ipc-generated';
+
 /**
  * AI 状态类型
  */
@@ -13,6 +15,11 @@ export type AIStatus = 'idle' | 'thinking' | 'streaming' | 'error';
  * 保存状态类型
  */
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+
+export interface SaveErrorInfo {
+  code: IpcErrorCode;
+  message: string;
+}
 
 /**
  * 光标位置
@@ -40,6 +47,10 @@ interface StatusBarState {
   aiStatusMessage: string;
   /** 保存状态 */
   saveStatus: SaveStatus;
+  /** 保存失败信息（仅当 saveStatus === 'error'） */
+  saveError: SaveErrorInfo | null;
+  /** 最近一次保存成功时间戳（ms） */
+  lastSavedAt: number | null;
   /** 连接状态 */
   isConnected: boolean;
 
@@ -49,7 +60,8 @@ interface StatusBarState {
   setCharCount: (count: number) => void;
   setDocumentType: (type: string) => void;
   setAIStatus: (status: AIStatus, message?: string) => void;
-  setSaveStatus: (status: SaveStatus) => void;
+  setSaveStatus: (status: SaveStatus, error?: SaveErrorInfo | null) => void;
+  setLastSavedAt: (timestamp: number | null) => void;
   setConnectionStatus: (connected: boolean) => void;
 }
 
@@ -65,6 +77,8 @@ export const useStatusBarStore = create<StatusBarState>((set) => ({
   aiStatus: 'idle',
   aiStatusMessage: '',
   saveStatus: 'saved',
+  saveError: null,
+  lastSavedAt: null,
   isConnected: false,
 
   // Actions
@@ -73,7 +87,12 @@ export const useStatusBarStore = create<StatusBarState>((set) => ({
   setCharCount: (count) => set({ charCount: count }),
   setDocumentType: (type) => set({ documentType: type }),
   setAIStatus: (status, message = '') => set({ aiStatus: status, aiStatusMessage: message }),
-  setSaveStatus: (status) => set({ saveStatus: status }),
+  setSaveStatus: (status, error = null) =>
+    set({
+      saveStatus: status,
+      saveError: status === 'error' ? error : null,
+    }),
+  setLastSavedAt: (timestamp) => set({ lastSavedAt: timestamp }),
   setConnectionStatus: (connected) => set({ isConnected: connected }),
 }));
 

@@ -80,29 +80,25 @@ export const FileItem = memo(function FileItem({
     onToggleExpand?.();
   };
 
-  return (
-    <div
-      role="treeitem"
-      aria-selected={selected}
-      aria-expanded={isFolder ? expanded : undefined}
-      onClick={onSelect}
-      onDoubleClick={onDoubleClick}
-      className={cn(
-        'group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer',
-        'transition-colors duration-[100ms] ease-out',
-        // Selected state
-        selected && 'bg-[var(--bg-active)]',
-        // Hover state (when not selected)
-        !selected && 'hover:bg-[var(--bg-hover)]',
-        // Active state (currently being edited) - ring highlight
-        active && 'ring-1 ring-[var(--accent-muted)] ring-inset',
-        className
-      )}
-      style={{ 
-        // Indentation: 16px per depth level + base padding
-        paddingLeft: `${depth * 16 + 8}px` 
-      }}
-    >
+  const rootClassName = cn(
+    'group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer',
+    'transition-colors duration-[100ms] ease-out',
+    // Selected state
+    selected && 'bg-[var(--bg-active)]',
+    // Hover state (when not selected)
+    !selected && 'hover:bg-[var(--bg-hover)]',
+    // Active state (currently being edited) - ring highlight
+    active && 'ring-1 ring-[var(--accent-muted)] ring-inset',
+    className
+  );
+
+  const rootStyle: React.CSSProperties = {
+    // Indentation: 16px per depth level + base padding
+    paddingLeft: `${depth * 16 + 8}px`,
+  };
+
+  const content = (
+    <>
       {/* Expand/Collapse Chevron (folders only) */}
       {isFolder && (
         <button
@@ -168,6 +164,35 @@ export const FileItem = memo(function FileItem({
           />
         )}
       </div>
-    </div>
+    </>
+  );
+
+  if (isFolder) {
+    return (
+      <div
+        role="treeitem"
+        aria-selected={selected}
+        aria-expanded={expanded}
+        onClick={onSelect}
+        onDoubleClick={onDoubleClick}
+        className={rootClassName}
+        style={rootStyle}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      aria-selected={selected}
+      onClick={onSelect}
+      onDoubleClick={onDoubleClick}
+      className={rootClassName}
+      style={rootStyle}
+    >
+      {content}
+    </button>
   );
 });
