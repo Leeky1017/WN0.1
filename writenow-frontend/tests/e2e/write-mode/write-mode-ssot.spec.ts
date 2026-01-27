@@ -9,7 +9,7 @@ import { closeWriteNowApp, createNewFile, escapeRegExp, isWSL, launchWriteNowApp
 /**
  * Why: Simulate abrupt shutdown to validate autosave recovery without relying on a graceful quit path.
  */
-async function forceCloseApp(electronApp: ElectronApplication): Promise<void> {
+async function forceCloseApp(electronApp: ElectronApplication, userDataDir: string): Promise<void> {
   const proc = electronApp.process();
   if (proc) {
     try {
@@ -19,6 +19,47 @@ async function forceCloseApp(electronApp: ElectronApplication): Promise<void> {
     }
   }
   await electronApp.close().catch(() => undefined);
+
+  // Why: SIGKILL may orphan the backend child process on Linux, leaving port 3000 occupied and breaking subsequent E2E.
+  // We kill it via the E2E pidfile as a best-effort cleanup.
+  const pidFilePath = path.join(userDataDir, 'backend.pid');
+  let pid: number | null = null;
+  try {
+    const raw = await readFile(pidFilePath, 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const record = parsed as { pid?: unknown };
+      if (typeof record.pid === 'number' && Number.isFinite(record.pid) && record.pid > 0) {
+        pid = record.pid;
+      }
+    }
+  } catch {
+    pid = null;
+  }
+
+  if (!pid) return;
+  try {
+    process.kill(pid, 'SIGTERM');
+  } catch {
+    // ignore
+  }
+
+  const deadline = Date.now() + 1_500;
+  while (Date.now() < deadline) {
+    try {
+      process.kill(pid, 0);
+      // still alive
+    } catch {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  try {
+    process.kill(pid, 'SIGKILL');
+  } catch {
+    // ignore
+  }
 }
 
 test.describe('@write-mode write mode SSOT', () => {
@@ -73,7 +114,7 @@ test.describe('@write-mode write mode SSOT', () => {
       const content = await readFile(docPath, 'utf8');
       expect(content).toContain(unique);
     } finally {
-      await forceCloseApp(app1.electronApp);
+      await forceCloseApp(app1.electronApp, userDataDir);
     }
 
     const app2 = await launchWriteNowApp({ userDataDir });

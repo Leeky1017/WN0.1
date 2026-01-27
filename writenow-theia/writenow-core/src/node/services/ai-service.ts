@@ -183,7 +183,24 @@ function toStreamError(error: unknown): IpcError {
         return { code: 'CANCELED', message: 'Canceled', details: { at: nowIso() } };
     }
     if (name === 'RateLimitError') return { code: 'RATE_LIMITED', message: 'Rate limited', details: { at: nowIso() } };
-    if (name === 'APIConnectionTimeoutError') return { code: 'TIMEOUT', message: 'Request timed out', details: { at: nowIso() } };
+
+    // Why: SDK timeout errors can surface under different names/codes across environments (Node/fetch impl, CI, proxy).
+    // We normalize all timeout-like signals to `TIMEOUT` per api-contract so the UI can recover predictably.
+    const lowerName = name.toLowerCase();
+    const lowerCode = code.toLowerCase();
+    const lowerMessage = rawMessage.toLowerCase();
+    if (
+        name === 'APIConnectionTimeoutError' ||
+        status === 408 ||
+        lowerName.includes('timeout') ||
+        lowerCode === 'etimedout' ||
+        lowerCode === 'und_err_connect_timeout' ||
+        lowerCode.includes('timeout') ||
+        lowerMessage.includes('timed out') ||
+        lowerMessage.includes('timeout')
+    ) {
+        return { code: 'TIMEOUT', message: rawMessage || 'Request timed out', details: { at: nowIso() } };
+    }
     if (name === 'AuthenticationError' || name === 'PermissionDeniedError') {
         return { code: 'PERMISSION_DENIED', message: 'Authentication failed', details: { at: nowIso() } };
     }

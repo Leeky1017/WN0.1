@@ -33,6 +33,7 @@ const WINDOW_HEIGHT = 900
 const PRELOAD_PATH = path.join(__dirname, '../preload/index.cjs')
 const SECURE_STORE_FILENAME = 'secure-store.json'
 const AI_KEY_STORAGE_KEY = 'writenow_ai_api_key_v1'
+const IS_E2E = process.env.WN_E2E === '1'
 
 const requestedUserDataDir = typeof process.env.WN_USER_DATA_DIR === 'string' ? process.env.WN_USER_DATA_DIR.trim() : ''
 if (requestedUserDataDir) {
@@ -95,12 +96,23 @@ const logger = {
   },
 }
 
+/**
+ * Why: E2E runs must not be blocked by native modal dialogs (they can hang Playwright workers).
+ */
+function showErrorDialog(title: string, message: string): void {
+  if (IS_E2E) {
+    logger.error(`[dialog:suppressed] ${title}: ${message}`)
+    return
+  }
+  dialog.showErrorBox(title, message)
+}
+
 const backendLauncher = new BackendLauncher({
   logger,
   onUnexpectedExit: ({ code, signal }) => {
     const detail = `code=${code ?? 'null'} signal=${signal ?? 'null'}`
     logger.error(`[backend] crashed (${detail})`)
-    dialog.showErrorBox('后端已退出', `Theia 后端意外退出（${detail}）。请重启应用。`)
+    showErrorDialog('后端已退出', `Theia 后端意外退出（${detail}）。请重启应用。`)
     for (const win of BrowserWindow.getAllWindows()) {
       win.webContents.send('backend:crashed', { code, signal })
     }
@@ -970,6 +982,13 @@ function ensureWorkspaceDir(): string {
 }
 
 /**
+ * Why: Track backend child PID across hard-kills so E2E can clean up stale servers.
+ */
+function getBackendPidFilePath(): string {
+  return path.join(app.getPath('userData'), 'backend.pid')
+}
+
+/**
  * Create the main window only after the backend is reachable.
  */
 function createMainWindow(): BrowserWindow {
@@ -1049,13 +1068,16 @@ async function bootstrap(): Promise<void> {
       },
       port: BACKEND_PORT,
       args: ['--hostname', '127.0.0.1', '--port', String(BACKEND_PORT), workspaceDir],
+      pidFilePath: IS_E2E ? getBackendPidFilePath() : undefined,
+      cleanupStalePid: IS_E2E,
+      preflightPortCheck: IS_E2E,
     })
 
     mainWindow = createMainWindow()
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     logger.error(`[main] failed to start: ${message}`)
-    dialog.showErrorBox('启动失败', `应用无法启动：${message}`)
+    showErrorDialog('启动失败', `应用无法启动：${message}`)
     app.quit()
   }
 }
