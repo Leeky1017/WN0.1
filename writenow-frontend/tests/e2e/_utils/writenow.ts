@@ -27,8 +27,15 @@ export function escapeRegExp(text: string): string {
  * Why: E2E must not contaminate real user data, and failures must be diagnosable via `main.log`.
  */
 export async function launchWriteNowApp(options: LaunchWriteNowOptions): Promise<LaunchWriteNowResult> {
+  const electronArgs = ['.'];
+  if (process.platform === 'linux') {
+    // Why: GitHub-hosted Linux runners do not have the Electron/Chromium SUID sandbox configured.
+    // Disabling the sandbox is acceptable for CI E2E and avoids flaky permission issues.
+    electronArgs.push('--no-sandbox', '--disable-setuid-sandbox');
+  }
+
   const electronApp = await electron.launch({
-    args: ['.'],
+    args: electronArgs,
     env: {
       ...process.env,
       WN_E2E: '1',
@@ -75,4 +82,3 @@ export async function createNewFile(page: Page, name: string): Promise<void> {
       .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(name)}\\.md$`) }),
   ).toBeVisible({ timeout: 30_000 });
 }
-
