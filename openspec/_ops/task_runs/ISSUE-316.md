@@ -1,6 +1,6 @@
 # ISSUE-316
 - Issue: #316
-- Branch: `task/316-e2e-write-mode-ci-fixes`
+- Branch: task/316-e2e-write-mode-ci-fixes
 - PR: https://github.com/Leeky1017/WN0.1/pull/317
 
 ## Plan
