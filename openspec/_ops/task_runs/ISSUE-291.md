@@ -1,7 +1,7 @@
 # ISSUE-291
 - Issue: #291
 - Branch: task/291-p1-001-ai-diff-extension
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/294
 
 ## Plan
 - 补齐 rulebook task（proposal/tasks/delta spec）并保持与 Sprint 规范一致
