@@ -33,3 +33,8 @@
 - Command: `rulebook task validate issue-271-sprint-open-source-opt`
 - Key output: `✅ Task issue-271-sprint-open-source-opt is valid`
 - Evidence: `rulebook/tasks/issue-271-sprint-open-source-opt/`
+
+### 2026-01-27 14:57 pr
+- Command: `git push -u origin HEAD && gh pr create ... && gh pr merge 275 --auto --squash`
+- Key output: `PR: https://github.com/Leeky1017/WN0.1/pull/275` + `auto-merge enabled (squash)`
+- Evidence: `https://github.com/Leeky1017/WN0.1/pull/275`
