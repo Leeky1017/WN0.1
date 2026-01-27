@@ -2,11 +2,35 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-import { createNewFile, escapeRegExp, isWSL, launchWriteNowApp } from './_utils/writenow';
+import { closeWriteNowApp, createNewFile, escapeRegExp, isWSL, launchWriteNowApp } from '../_utils/writenow';
 
-test.describe('write mode: command palette + focus/zen', () => {
+/**
+ * Why: Keybinding delivery can be flaky under CI/WSL; retry once before failing.
+ */
+async function openCommandPalette(page: Page): Promise<void> {
+  const cmdk = page.getByTestId('cmdk');
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await page.keyboard.press('Control+K');
+    if (await cmdk.isVisible().catch(() => false)) return;
+  }
+  await expect(cmdk).toBeVisible({ timeout: 10_000 });
+}
+
+/**
+ * Why: Ensure Focus/Zen enters even if the first shortcut delivery is dropped.
+ */
+async function enterFocusMode(page: Page): Promise<void> {
+  const focusRoot = page.getByTestId('wm-focus-root');
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await page.keyboard.press('Control+\\');
+    if ((await focusRoot.getAttribute('data-focus-mode')) === '1') return;
+  }
+  await expect(focusRoot).toHaveAttribute('data-focus-mode', '1', { timeout: 10_000 });
+}
+
+test.describe('@write-mode command palette + focus/zen', () => {
   test.skip(isWSL(), 'Electron E2E is unstable on WSL; run on native Linux (xvfb) or macOS/Windows.');
 
   test('Cmd/Ctrl+K opens cmdk, can open file, and recent persists across restart', async () => {
@@ -23,13 +47,13 @@ test.describe('write mode: command palette + focus/zen', () => {
       await createNewFile(page, docB);
 
       // Switch back to A via cmdk
-      await page.keyboard.press('Control+K');
+      await page.getByTestId('tiptap-editor').click();
+      await openCommandPalette(page);
       const cmdk = page.getByTestId('cmdk');
-      await expect(cmdk).toBeVisible();
 
       const input = page.getByTestId('cmdk-input');
       await expect(input).toBeFocused();
-      await input.fill(docA);
+      await page.keyboard.type(docA, { delay: 10 });
 
       const optionA = cmdk.getByRole('option', { name: new RegExp(`^${escapeRegExp(docA)}\\.md$`) });
       await expect(optionA).toBeVisible({ timeout: 30_000 });
@@ -43,14 +67,14 @@ test.describe('write mode: command palette + focus/zen', () => {
       await expect(editor).toBeFocused({ timeout: 10_000 });
 
       const unique = `CMDK_${Date.now()}`;
-      await editor.fill(`# ${docA}\n\n${unique}`);
+      await page.keyboard.type(`# ${docA}\n\n${unique}`, { delay: 10 });
       await expect(page.getByTestId('statusbar-save')).toContainText('已保存', { timeout: 30_000 });
 
       const filePath = path.join(userDataDir, 'documents', `${docA}.md`);
       const content = await readFile(filePath, 'utf8');
       expect(content).toContain(unique);
     } finally {
-      await app1.electronApp.close();
+      await closeWriteNowApp(app1.electronApp);
     }
 
     // Relaunch with the same userDataDir → recent should still be there
@@ -58,34 +82,35 @@ test.describe('write mode: command palette + focus/zen', () => {
     try {
       const { page } = app2;
 
-      await page.keyboard.press('Control+K');
+      await openCommandPalette(page);
       const cmdk = page.getByTestId('cmdk');
-      await expect(cmdk).toBeVisible();
 
       // Default selection should prefer recent when query is empty → Enter should open the recent file.
       await page.keyboard.press('Enter');
       await expect(cmdk).toBeHidden({ timeout: 10_000 });
       await expect(page.getByTestId('wm-header')).toContainText(`${docA}.md`, { timeout: 10_000 });
     } finally {
-      await app2.electronApp.close();
+      await closeWriteNowApp(app2.electronApp);
     }
   });
 
-  test('Cmd/Ctrl+\\\\ toggles Focus/Zen; Esc exits Focus and editor stays usable', async () => {
+  test('WM-002 Cmd/Ctrl+\\ toggles Focus/Zen; Esc exits Focus and editor stays usable', async () => {
     const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'writenow-e2e-focus-'));
     const { electronApp, page } = await launchWriteNowApp({ userDataDir });
     try {
       const docName = `Focus-${Date.now()}`;
+      const docPath = path.join(userDataDir, 'documents', `${docName}.md`);
+
       await createNewFile(page, docName);
 
       const editor = page.getByTestId('tiptap-editor');
       await editor.click();
 
       const unique = `FOCUS_${Date.now()}`;
-      await editor.fill(`# ${docName}\n\n${unique}`);
+      await page.keyboard.type(`# ${docName}\n\n${unique}`, { delay: 10 });
       await expect(page.getByTestId('statusbar-save')).toContainText('已保存', { timeout: 30_000 });
 
-      await page.keyboard.press('Control+\\');
+      await enterFocusMode(page);
       await expect(page.getByTestId('wm-focus-root')).toHaveAttribute('data-focus-mode', '1');
       await expect(page.getByTestId('wm-focus-hud')).toBeVisible();
       await expect(page.getByTestId('wm-header')).toBeHidden();
@@ -109,8 +134,12 @@ test.describe('write mode: command palette + focus/zen', () => {
       await expect(page.getByTestId('wm-focus-hud')).toBeHidden();
       await expect(page.getByTestId('wm-header')).toBeVisible();
       await expect(page.getByTestId('statusbar')).toBeVisible();
+
+      const content = await readFile(docPath, 'utf8');
+      expect(content).toContain(unique);
+      expect(content).toContain('still typing');
     } finally {
-      await electronApp.close();
+      await closeWriteNowApp(electronApp);
     }
   });
 });
