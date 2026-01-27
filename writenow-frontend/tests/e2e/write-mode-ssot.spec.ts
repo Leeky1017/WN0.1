@@ -65,7 +65,7 @@ test.describe('write mode SSOT', () => {
     await expect(
       page
         .getByTestId('layout-sidebar')
-        .getByRole('button', { name: new RegExp(`^${escapeRegExp(docName)}\\.md$`) }),
+        .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(docName)}\\.md$`) }),
     ).toBeVisible({ timeout: 30_000 });
 
     const editor = page.getByTestId('tiptap-editor');

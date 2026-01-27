@@ -186,6 +186,7 @@ export const FileItem = memo(function FileItem({
   return (
     <button
       type="button"
+      role="treeitem"
       aria-selected={selected}
       onClick={onSelect}
       onDoubleClick={onDoubleClick}

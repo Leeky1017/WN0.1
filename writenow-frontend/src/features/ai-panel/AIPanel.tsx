@@ -3,13 +3,16 @@
  * Why: Connect presentational UI to real AI orchestration (skills list + streaming + cancel) via useAISkill + stores.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ChevronDown, Send, Square } from 'lucide-react';
 
 import { MessageBubble } from '@/components/composed/message-bubble';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAIStore } from '@/stores/aiStore';
+import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
+import { useLayoutStore } from '@/stores/layoutStore';
+import { useSettingsPanelStore } from '@/stores/settingsPanelStore';
 
 import { useAISkill } from './useAISkill';
 
@@ -39,6 +42,59 @@ export function AIPanel() {
     if (!canCancel) return;
     await cancelRun();
   }, [cancelRun, canCancel]);
+
+  useEffect(() => {
+    const focusEditor = () => {
+      requestAnimationFrame(() => {
+        const el = document.querySelector<HTMLElement>('[data-testid="tiptap-editor"]');
+        el?.focus();
+      });
+    };
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+
+      // Why: Esc must follow a stable priority to keep Write Mode predictable.
+      // Priority: Review -> AI cancel -> Focus exit -> overlays close.
+      const ai = useAIStore.getState();
+      if (ai.diff) {
+        event.preventDefault();
+        ai.setDiff(null);
+        return;
+      }
+
+      if (ai.status === 'thinking' || ai.status === 'streaming') {
+        event.preventDefault();
+        void cancelRun();
+        return;
+      }
+
+      const layout = useLayoutStore.getState();
+      if (layout.focusMode) {
+        event.preventDefault();
+        layout.exitFocusMode();
+        return;
+      }
+
+      const cmdk = useCommandPaletteStore.getState();
+      if (cmdk.open) {
+        event.preventDefault();
+        cmdk.closePalette();
+        focusEditor();
+        return;
+      }
+
+      const settings = useSettingsPanelStore.getState();
+      if (settings.open) {
+        event.preventDefault();
+        settings.closePanel();
+        focusEditor();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [cancelRun]);
 
   return (
     <div className="h-full w-full flex flex-col bg-[var(--bg-surface)]" data-testid="ai-panel">
