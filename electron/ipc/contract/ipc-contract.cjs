@@ -309,6 +309,20 @@ export type AiSkillCancelResponse = {
   canceled: true;
 };
 
+export type AiSkillFeedbackRequest = {
+  runId: string;
+  action: 'accept' | 'reject' | 'partial';
+  projectId?: string;
+  evidenceRef?: JsonValue;
+};
+
+export type AiSkillFeedbackResponse = {
+  recorded: true;
+  feedbackId: string;
+  learned: UserMemory[];
+  ignored: number;
+};
+
 export type SearchHit = {
   id: string;
   title: string;

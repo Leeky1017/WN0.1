@@ -1,5 +1,7 @@
 const Anthropic = require('@anthropic-ai/sdk')
+const { randomUUID } = require('node:crypto')
 const { incrementWritingStats, toLocalDateKey } = require('../lib/writing-stats.cjs')
+const { selectMemoryForInjection, formatMemoryForPreferencesSection, ingestPreferenceSignals } = require('./memory.cjs')
 
 const AI_STREAM_EVENT = 'ai:skill:stream'
 
@@ -176,6 +178,85 @@ function shouldFallbackPromptCaching(err) {
   return message.includes('cache_control') || message.includes('cache control') || message.includes('system')
 }
 
+function normalizeProjectId(value) {
+  const id = coerceString(value)
+  return id || null
+}
+
+function normalizeFeedbackAction(value) {
+  const raw = coerceString(value)
+  if (raw === 'accept' || raw === 'reject' || raw === 'partial') return raw
+  return ''
+}
+
+function normalizeSignalArray(value) {
+  if (!Array.isArray(value)) return []
+  const out = []
+  for (const item of value) {
+    if (typeof item !== 'string') continue
+    const trimmed = item.trim()
+    if (!trimmed) continue
+    out.push(trimmed)
+  }
+  return out
+}
+
+function extractFeedbackSignals(action, evidenceRef) {
+  if (isRecord(evidenceRef) && isRecord(evidenceRef.signals)) {
+    const signals = evidenceRef.signals
+    const accepted = normalizeSignalArray(signals.accepted)
+    const rejected = normalizeSignalArray(signals.rejected)
+    return { accepted, rejected }
+  }
+
+  const single =
+    typeof evidenceRef === 'string'
+      ? evidenceRef.trim()
+      : isRecord(evidenceRef) && typeof evidenceRef.signal === 'string'
+        ? evidenceRef.signal.trim()
+        : ''
+
+  if (!single) return { accepted: [], rejected: [] }
+  if (action === 'accept') return { accepted: [single], rejected: [] }
+  if (action === 'reject') return { accepted: [], rejected: [single] }
+  return { accepted: [], rejected: [] }
+}
+
+/**
+ * Inject preferences into the stable system prompt.
+ * Why: P1-001 requires "user preferences" to be present by default with deterministic formatting.
+ */
+function injectPreferencesIntoSystemPrompt(systemPrompt, preferencesText) {
+  const system = typeof systemPrompt === 'string' ? systemPrompt : ''
+  const block = typeof preferencesText === 'string' && preferencesText.trim() ? preferencesText : '(none)'
+
+  const placeholders = ['{{WN_USER_PREFERENCES}}', '{{WN_PREFERENCES}}']
+  for (const token of placeholders) {
+    if (system.includes(token)) return system.split(token).join(block)
+  }
+
+  const headingRe = /^##\s*(用户偏好|User Preferences)\s*$/im
+  if (!headingRe.test(system)) {
+    return `${system}\n\n## 用户偏好\n${block}`
+  }
+
+  const lines = system.split('\n')
+  const idx = lines.findIndex((line) => /^##\s*(用户偏好|User Preferences)\s*$/i.test(line.trim()))
+  if (idx < 0) return `${system}\n\n## 用户偏好\n${block}`
+
+  let end = lines.length
+  for (let i = idx + 1; i < lines.length; i += 1) {
+    if (/^##\s+/.test(lines[i].trim())) {
+      end = i
+      break
+    }
+  }
+
+  const before = lines.slice(0, idx + 1)
+  const after = lines.slice(end)
+  return [...before, block, ...after].join('\n')
+}
+
 function toUsageSummary(usage) {
   if (!usage || typeof usage !== 'object') return null
   const record = usage
@@ -230,6 +311,12 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
   const db = options.db ?? null
 
   const runs = new Map()
+  const runLedger = new Map()
+
+  function rememberRun(runId, record) {
+    runLedger.set(runId, record)
+    setTimeout(() => runLedger.delete(runId), 60 * 60 * 1000).unref?.()
+  }
 
   function assertConfigured() {
     const provider = resolveAiProvider(config)
@@ -259,15 +346,28 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
     }
 
     const prompt = payload?.prompt
-    const system = requirePromptString(prompt?.systemPrompt, 'prompt.systemPrompt')
+    const contextProjectId = normalizeProjectId(payload?.context?.projectId)
+    const injectedContextRules = isRecord(payload?.injected?.contextRules) ? payload.injected.contextRules : undefined
+    const injectedRefs = normalizeInjectedRefs(payload?.injected?.refs)
+
+    const injectedMemoryProvided = Array.isArray(payload?.injected?.memory) ? payload.injected.memory : []
+    let injectedMemory = injectedMemoryProvided
+    if (injectedMemory.length === 0 && db) {
+      try {
+        const selection = selectMemoryForInjection({ db, config, projectId: contextProjectId ?? undefined })
+        injectedMemory = selection.items
+      } catch (error) {
+        logger?.warn?.('ai', 'auto memory injection failed', { skillId, message: error?.message })
+        injectedMemory = []
+      }
+    }
+
+    const preferencesText = formatMemoryForPreferencesSection(injectedMemory)
+    const system = injectPreferencesIntoSystemPrompt(requirePromptString(prompt?.systemPrompt, 'prompt.systemPrompt'), preferencesText)
     const user = requirePromptString(prompt?.userContent, 'prompt.userContent')
     const prefixHash = fnv1a32Hex(system)
     const stablePrefixHash = prefixHash
     const promptHash = fnv1a32Hex(`${system}\n\n---\n\n${user}`)
-
-    const injectedMemory = Array.isArray(payload?.injected?.memory) ? payload.injected.memory : []
-    const injectedRefs = normalizeInjectedRefs(payload?.injected?.refs)
-    const injectedContextRules = isRecord(payload?.injected?.contextRules) ? payload.injected.contextRules : undefined
 
     const ai = assertConfigured()
     const model = resolveModel(config, skillRow)
@@ -279,6 +379,14 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
     const runId = generateRunId()
     const controller = new AbortController()
     runs.set(runId, { controller, status: 'streaming' })
+    rememberRun(runId, {
+      runId,
+      skillId,
+      projectId: contextProjectId,
+      startedAt: nowIso(),
+      injected: { memory: injectedMemory, refs: injectedRefs, ...(injectedContextRules ? { contextRules: injectedContextRules } : {}) },
+      prompt: { stablePrefixHash, promptHash },
+    })
 
     const sender = evt.sender
 
@@ -420,6 +528,8 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
         }
       } finally {
         runs.delete(runId)
+        const record = runLedger.get(runId)
+        if (record) record.completedAt = nowIso()
       }
     })()
 
@@ -429,6 +539,66 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
       injected: { memory: injectedMemory, refs: injectedRefs, ...(injectedContextRules ? { contextRules: injectedContextRules } : {}) },
       prompt: { prefixHash, stablePrefixHash, promptHash },
     }
+  })
+
+  handleInvoke('ai:skill:feedback', async (_evt, payload) => {
+    if (!db) throw createIpcError('DB_ERROR', 'Database is not ready')
+    const database = db
+
+    const runId = coerceString(payload?.runId)
+    if (!runId) throw createIpcError('INVALID_ARGUMENT', 'runId is required')
+
+    const action = normalizeFeedbackAction(payload?.action)
+    if (!action) throw createIpcError('INVALID_ARGUMENT', 'Invalid action', { action: payload?.action })
+
+    const record = runLedger.get(runId)
+    if (!record) throw createIpcError('NOT_FOUND', 'Run not found', { runId })
+
+    const projectId = normalizeProjectId(payload?.projectId) ?? record.projectId
+    if (!projectId) throw createIpcError('INVALID_ARGUMENT', 'projectId is required')
+
+    const evidenceRef = typeof payload?.evidenceRef === 'undefined' ? null : payload.evidenceRef
+    let evidenceJson = null
+    if (evidenceRef !== null) {
+      try {
+        evidenceJson = JSON.stringify(evidenceRef)
+      } catch (error) {
+        throw createIpcError('INVALID_ARGUMENT', 'evidenceRef must be JSON-serializable', {
+          message: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+
+    const feedbackId = randomUUID()
+    const createdAt = nowIso()
+
+    try {
+      database
+        .prepare(
+          `INSERT INTO skill_run_feedback (id, run_id, project_id, skill_id, action, evidence_ref, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(feedbackId, runId, projectId, record.skillId, action, evidenceJson, createdAt)
+    } catch (error) {
+      logger?.error?.('ai', 'feedback insert failed', { runId, message: error?.message })
+      throw createIpcError('DB_ERROR', 'Failed to record feedback', { message: error?.message })
+    }
+
+    let learned = []
+    let ignored = 0
+    if (action === 'accept' || action === 'reject') {
+      const signals = extractFeedbackSignals(action, evidenceRef)
+      const ingested = ingestPreferenceSignals({
+        db: database,
+        config,
+        logger,
+        payload: { projectId, signals },
+      })
+      learned = Array.isArray(ingested?.learned) ? ingested.learned : []
+      ignored = typeof ingested?.ignored === 'number' && Number.isFinite(ingested.ignored) ? ingested.ignored : 0
+    }
+
+    return { recorded: true, feedbackId, learned, ignored }
   })
 
   handleInvoke('ai:skill:cancel', async (_evt, payload) => {
