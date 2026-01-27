@@ -897,12 +897,13 @@ CREATE TABLE settings (
     - 移除 `writenow-frontend-old/`（旧前端）
     - 移除 `figma参考/`（旧参考代码）
     - 移除 `backup/`（临时备份）
-- 暂停的工作（待重新排期）：
-  - `openspec/specs/skill-system-v2/spec.md`（任务 004–010）
-  - `openspec/specs/sprint-ide-advanced/spec.md`
-  - `openspec/specs/sprint-frontend-polish/spec.md`（前端优化：代码质量/构建优化/测试覆盖/样式UI/响应式，待商业化基石完成后启动）
-- 已废弃：
-  - `openspec/specs/wn-frontend-deep-remediation/spec.md`（legacy remediation 计划已失效；UI baseline 已切换为 `writenow-frontend/`）
+- 待执行的 Plan（商业化基石）：
+  - `.cursor/plans/ai_memory_research_report_c05e39ce.plan.md`（AI 记忆系统研究 + 实施路线）
+  - `.cursor/plans/wn_open_source_optimization_c81686d6.plan.md`（开源方案优化路线）
+  - `.cursor/plans/前端优化策略建议_8d3c4032.plan.md`（前端优化调研，待商业化基石完成后启动）
+- OpenSpec 归档（2026-01-27）：
+  - 已归档 15 个旧 Sprint/Remediation specs 到 `openspec/specs/_archived/`
+  - 保留活跃 specs：`api-contract/`（IPC 契约）、`writenow-spec/`（项目主规范）
 
 ### Sprint 1：可用的编辑器（1-2周）✅ 已完成
 - [x] TipTap 编辑器集成
