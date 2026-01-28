@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAIStore } from '@/stores/aiStore';
 import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
+import { useEditorRuntimeStore } from '@/stores/editorRuntimeStore';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useSettingsPanelStore } from '@/stores/settingsPanelStore';
 
@@ -58,6 +59,14 @@ export function AIPanel() {
     try {
       await acceptDiff();
     } finally {
+      // Why: CI flakes showed `wm-review-root` can remain visible after clicking Accept even when the editor diff session
+      // has already been cleared/applied. We force-clear the Review UI if there is no surfaced error so the user/test
+      // is never stuck in review state.
+      const state = useAIStore.getState();
+      if (state.diff && !state.lastError) {
+        state.setDiff(null);
+        useEditorRuntimeStore.getState().activeEditor?.commands.clearAiDiff();
+      }
       setIsApplying(false);
     }
   }, [acceptDiff, diff, isApplying]);

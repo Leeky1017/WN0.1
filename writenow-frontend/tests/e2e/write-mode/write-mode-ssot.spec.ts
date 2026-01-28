@@ -68,7 +68,7 @@ test.describe('@write-mode write mode SSOT', () => {
 
       const entry = page
         .getByTestId('layout-sidebar')
-        .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(docName)}\\.md$`) });
+        .getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(docName)}\\.md`) });
       await expect(entry).toBeVisible({ timeout: 30_000 });
       await entry.click();
 
