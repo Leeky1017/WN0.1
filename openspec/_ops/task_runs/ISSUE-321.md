@@ -1,7 +1,7 @@
 # ISSUE-321
 - Issue: #321
 - Branch: task/321-e2e-write-mode-flake-fixes
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/322
 
 ## Plan
 - 修复 `e2e-write-mode` flake：Review Accept 清理确定性 + E2E teardown/端口释放兜底。
