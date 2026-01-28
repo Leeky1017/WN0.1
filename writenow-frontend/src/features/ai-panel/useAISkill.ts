@@ -259,8 +259,34 @@ export function useAISkill(): UseAISkillResult {
     }
 
     const before = getMarkdownFromEditor(editor);
-    const applied = editor.commands.acceptAiDiff();
-    if (!applied) return;
+    let applied = editor.commands.acceptAiDiff();
+    if (!applied) {
+      const snapshot = diff.selection;
+      if (!snapshot) {
+        setLastError({ code: 'INTERNAL', message: 'Missing selection snapshot for applying AI diff' });
+        return;
+      }
+
+      // Why: Some editor lifecycles can drop the in-editor diff session (e.g. re-mount or external content sync).
+      // We re-create the preview session from the stored diff state so Accept remains deterministic.
+      const previewed = editor.commands.showAiDiff({
+        runId: diff.runId,
+        originalText: diff.originalText,
+        suggestedText: diff.suggestedText,
+        selection: { from: snapshot.from, to: snapshot.to },
+        createdAt: diff.createdAt,
+      });
+      if (!previewed) {
+        setLastError({ code: 'CONFLICT', message: 'Selection changed; cannot apply AI diff safely' });
+        return;
+      }
+
+      applied = editor.commands.acceptAiDiff();
+      if (!applied) {
+        setLastError({ code: 'INTERNAL', message: 'Failed to apply AI diff after re-syncing the preview session' });
+        return;
+      }
+    }
 
     const after = getMarkdownFromEditor(editor);
     const reason = diff.skillId ? `ai:${diff.skillId}` : 'ai';
