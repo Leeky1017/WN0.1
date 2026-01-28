@@ -44,7 +44,12 @@ export function useBreakpoint(): UseBreakpointResult {
     const tabletQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.mobile}px) and (max-width: ${BREAKPOINTS.tablet - 1}px)`);
 
     const handleChange = () => {
-      setWidth(window.innerWidth);
+      const currentWidth = window.innerWidth;
+      // Why: During Electron app startup, window.innerWidth can be 0 before the window fully initializes.
+      // Only update if we have a valid width, otherwise keep the initial fallback.
+      if (currentWidth > 0) {
+        setWidth(currentWidth);
+      }
     };
 
     // Initial sync
