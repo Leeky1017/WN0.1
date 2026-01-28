@@ -1,7 +1,7 @@
 # ISSUE-340
 - Issue: #340
 - Branch: task/340-docs-ai-memory-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/341
  
 ## Plan
 - 为已合并的 ai-memory P2-001/P2-002（#329, PR #337）补齐文档收口：task cards 勾选 + 完成元信息
