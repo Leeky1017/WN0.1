@@ -5,7 +5,7 @@ import Database = require('better-sqlite3');
 
 export type SqliteDatabase = ReturnType<typeof Database>;
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 export type InitDatabaseOptions = Readonly<{
     /**
@@ -167,6 +167,34 @@ function migrateToV9(_db: SqliteDatabase): void {
     // V9 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
 }
 
+function migrateToV10(db: SqliteDatabase): void {
+    // Why: `user_memory` needs audit fields + soft delete (tombstone) without losing existing user data.
+    const tx = db.transaction(() => {
+        if (!hasColumn(db, 'user_memory', 'confidence')) {
+            db.exec('ALTER TABLE user_memory ADD COLUMN confidence REAL NOT NULL DEFAULT 1.0');
+        }
+        if (!hasColumn(db, 'user_memory', 'evidence_json')) {
+            db.exec("ALTER TABLE user_memory ADD COLUMN evidence_json TEXT NOT NULL DEFAULT '[]'");
+        }
+        if (!hasColumn(db, 'user_memory', 'metadata_json')) {
+            db.exec("ALTER TABLE user_memory ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}'");
+        }
+        if (!hasColumn(db, 'user_memory', 'revision')) {
+            db.exec('ALTER TABLE user_memory ADD COLUMN revision INTEGER NOT NULL DEFAULT 1');
+        }
+        if (!hasColumn(db, 'user_memory', 'deleted_at')) {
+            db.exec('ALTER TABLE user_memory ADD COLUMN deleted_at TEXT');
+        }
+
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_user_memory_scope_active_updated
+          ON user_memory(project_id, deleted_at, updated_at DESC)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_user_memory_type_active_updated
+          ON user_memory(type, deleted_at, updated_at DESC)`);
+    });
+
+    tx();
+}
+
 function runMigrations(db: SqliteDatabase): void {
     const current = getStoredSchemaVersion(db);
     if (current >= SCHEMA_VERSION) return;
@@ -178,6 +206,7 @@ function runMigrations(db: SqliteDatabase): void {
     if (current < 7) migrateToV7(db);
     if (current < 8) migrateToV8(db);
     if (current < 9) migrateToV9(db);
+    if (current < 10) migrateToV10(db);
     setStoredSchemaVersion(db, SCHEMA_VERSION);
 }
 

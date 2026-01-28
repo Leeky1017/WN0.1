@@ -531,12 +531,23 @@ export type UserMemoryType = 'preference' | 'feedback' | 'style';
 
 export type UserMemoryOrigin = 'manual' | 'learned';
 
+export type UserMemoryEvidence = {
+  kind: 'run' | 'file' | 'paragraph' | 'feedback' | 'custom';
+  ref: string;
+  meta?: JsonValue;
+};
+
 export type UserMemory = {
   id: string;
   type: UserMemoryType;
   content: string;
   projectId: string | null;
   origin: UserMemoryOrigin;
+  confidence: number;
+  evidence: UserMemoryEvidence[];
+  metadata: JsonValue;
+  revision: number;
+  deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -631,12 +642,18 @@ export type MemoryPreferencesClearResponse = {
 
 export type MemoryInjectionPreviewRequest = {
   projectId?: string;
+  queryText?: string;
 };
 
 export type MemoryInjectionPreviewResponse = {
   settings: MemorySettings;
   injected: {
     memory: UserMemory[];
+    semanticMemory?: UserMemory[];
+    recall?: {
+      mode: 'deterministic' | 'semantic';
+      reason?: 'EMPTY_QUERY' | 'VEC_UNAVAILABLE' | 'DIMENSION_CONFLICT' | 'ENCODING_FAILED' | 'UNKNOWN';
+    };
   };
 };
 

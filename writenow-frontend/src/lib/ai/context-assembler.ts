@@ -391,13 +391,16 @@ export async function assembleSkillRunRequest(input: AssembleSkillRunInput): Pro
  
   const injectedRefs: string[] = []
   let injectedMemory: UserMemory[] = []
+  let semanticMemory: UserMemory[] = []
   let styleGuide: { ref: string; content: string } | null = null
   let characters: Array<{ ref: string; content: string }> = []
   let outlineText: string | null = null
  
   if (contextRules.user_preferences && projectId) {
-    const mem = await invokeSafe('memory:injection:preview', { projectId })
+    const queryText = clampCodePoints([input.instruction, input.text].map((s) => coerceString(s)).filter(Boolean).join('\n\n'), 2000)
+    const mem = await invokeSafe('memory:injection:preview', queryText ? { projectId, queryText } : { projectId })
     injectedMemory = Array.isArray(mem?.injected?.memory) ? mem!.injected.memory : []
+    semanticMemory = Array.isArray(mem?.injected?.semanticMemory) ? mem!.injected.semanticMemory : []
   }
  
   if (contextRules.style_guide && projectId) {
@@ -620,11 +623,16 @@ export async function assembleSkillRunRequest(input: AssembleSkillRunInput): Pro
     outlineText,
   })
  
-  const userContent = buildUserContent({
+  const userContentBase = buildUserContent({
     recentSummary,
     currentContext: renderedUserPrompt,
     outputFormat: outputFormatText,
   })
+  const semanticBlock =
+    Array.isArray(semanticMemory) && semanticMemory.length > 0
+      ? ['## 相关用户记忆（语义召回）', formatMemoryForPrompt(semanticMemory)].join('\n')
+      : ''
+  const userContent = [userContentBase, semanticBlock].map((s) => s.trim()).filter(Boolean).join('\n\n')
  
   const refs = normalizeInjectedRefs(injectedRefs)
  

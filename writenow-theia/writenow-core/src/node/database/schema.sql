@@ -163,9 +163,20 @@ CREATE TABLE IF NOT EXISTS user_memory (
   type TEXT NOT NULL,                -- 'preference' | 'feedback' | 'style'
   content TEXT NOT NULL,
   project_id TEXT,                   -- NULL = 全局
+  confidence REAL NOT NULL DEFAULT 1.0,
+  evidence_json TEXT NOT NULL DEFAULT '[]',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  revision INTEGER NOT NULL DEFAULT 1,
+  deleted_at TEXT,                   -- NULL=active, ISO timestamp=tombstone
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_memory_scope_active_updated
+  ON user_memory(project_id, deleted_at, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_user_memory_type_active_updated
+  ON user_memory(type, deleted_at, updated_at DESC);
 
 -- SKILL 反馈事件（采纳/拒绝/部分采纳）
 CREATE TABLE IF NOT EXISTS skill_run_feedback (
