@@ -5,7 +5,7 @@ import Database = require('better-sqlite3');
 
 export type SqliteDatabase = ReturnType<typeof Database>;
 
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 export type InitDatabaseOptions = Readonly<{
     /**
@@ -163,6 +163,10 @@ function migrateToV8(_db: SqliteDatabase): void {
     // V8 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
 }
 
+function migrateToV9(_db: SqliteDatabase): void {
+    // V9 adds additive tables only (CREATE TABLE IF NOT EXISTS in schema.sql).
+}
+
 function runMigrations(db: SqliteDatabase): void {
     const current = getStoredSchemaVersion(db);
     if (current >= SCHEMA_VERSION) return;
@@ -173,6 +177,7 @@ function runMigrations(db: SqliteDatabase): void {
     if (current < 6) migrateToV6(db);
     if (current < 7) migrateToV7(db);
     if (current < 8) migrateToV8(db);
+    if (current < 9) migrateToV9(db);
     setStoredSchemaVersion(db, SCHEMA_VERSION);
 }
 

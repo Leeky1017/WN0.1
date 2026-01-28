@@ -452,8 +452,14 @@ export async function assembleSkillRunRequest(input: AssembleSkillRunInput): Pro
     const items = Array.isArray(res?.items) ? res!.items : []
     const lines = items.slice(0, contextRules.recent_summary).map((item) => {
       const summary = coerceString(item.summary) || '(empty)'
+      const quality = coerceString(item.summaryQuality) || 'placeholder'
       const updatedAt = coerceString(item.updatedAt)
-      return `- ${updatedAt ? `[${updatedAt}] ` : ''}${summary}`
+      const fullPath = coerceString(item.fullPath)
+      if (fullPath) {
+        // Why: Keep E2E/auditability via injected.refs; MUST be project-relative and never leak machine paths.
+        injectedRefs.push(`.writenow/${fullPath}`)
+      }
+      return `- ${updatedAt ? `[${updatedAt}] ` : ''}[${quality}] ${summary}`
     })
     recentSummary = lines.length > 0 ? lines.join('\n') : '(none)'
   }

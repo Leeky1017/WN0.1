@@ -17,6 +17,7 @@ import { WritenowSqliteDb } from './database/writenow-sqlite-db';
 import { EmbeddingServiceImpl } from './embedding/embedding-service';
 import { VectorStore } from './rag/vector-store';
 import { AiService as AiServiceImpl } from './services/ai-service';
+import { CharactersService } from './services/characters-service';
 import { ContextService } from './services/context-service';
 import { FilesService } from './services/files-service';
 import { EmbeddingRpcService } from './services/embedding-rpc-service';
@@ -60,6 +61,7 @@ export default new ContainerModule(bind => {
     bind(RetrievalService).toSelf().inSingletonScope();
     bind(SearchService).toSelf().inSingletonScope();
     bind(ContextService).toSelf().inSingletonScope();
+    bind(CharactersService).toSelf().inSingletonScope();
     bind(MemoryService).toSelf().inSingletonScope();
     bind(StatsService).toSelf().inSingletonScope();
     bind(SnapshotService).toSelf().inSingletonScope();

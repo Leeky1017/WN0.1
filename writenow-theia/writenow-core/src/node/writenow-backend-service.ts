@@ -6,6 +6,7 @@ import type { WritenowRpcService } from '../common/writenow-protocol';
 
 import { TheiaInvokeRegistry, toIpcError } from './theia-invoke-adapter';
 import { WritenowSqliteDb } from './database/writenow-sqlite-db';
+import { CharactersService } from './services/characters-service';
 import { ContextService } from './services/context-service';
 import { EmbeddingRpcService } from './services/embedding-rpc-service';
 import { ExportService } from './services/export-service';
@@ -36,6 +37,7 @@ export class WritenowBackendService implements WritenowRpcService {
         @inject(RetrievalService) retrievalService: RetrievalService,
         @inject(SearchService) searchService: SearchService,
         @inject(ContextService) contextService: ContextService,
+        @inject(CharactersService) charactersService: CharactersService,
         @inject(MemoryService) memoryService: MemoryService,
         @inject(StatsService) statsService: StatsService,
         @inject(SnapshotService) snapshotService: SnapshotService,
@@ -53,6 +55,7 @@ export class WritenowBackendService implements WritenowRpcService {
         retrievalService.register(this.registry);
         searchService.register(this.registry);
         contextService.register(this.registry);
+        charactersService.register(this.registry);
         memoryService.register(this.registry);
 
         // Stats service (stats:getToday, stats:getRange, stats:increment)
