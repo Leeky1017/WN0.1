@@ -1,7 +1,7 @@
 # ISSUE-348
 - Issue: #348
 - Branch: task/348-frontend-plan-delivery
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/349
 
 ## Plan
 - 将本地 `writenow-frontend/` 改动迁移到 worktree 分支并提交 PR（遵循 OpenSpec + Rulebook + GitHub 流程）。
@@ -49,4 +49,13 @@
   - `vitest run` (73 tests passed)
   - `tsc -b && vite build` (pass)
 - Evidence: `writenow-frontend/` build output includes chunk warnings (circular chunk) but build succeeded
+
+### 2026-01-29 PR: create + auto-merge
+- Command: `gh pr create ...`
+- Key output: `PR created: https://github.com/Leeky1017/WN0.1/pull/349`
+- Evidence: PR `#349` (Closes #348)
+
+- Command: `gh pr merge 349 --auto --squash`
+- Key output: `auto-merge enabled`
+- Evidence: PR checks must pass before merge
 
