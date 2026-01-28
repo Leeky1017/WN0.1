@@ -55,3 +55,8 @@
 - Command: `cd writenow-frontend && WN_SMOKE_LAUNCH=1 npm run package:smoke`
 - Key output: backend reached `[backend] ready`; renderer crashed in WSL smoke (`render-process-gone exitCode=133`) — see `/tmp/writenow-packaging-smoke-*/logs/main.log`
 
+### 2026-01-28 15:20 Packaged launch smoke (WSL2)
+- Command: `cd writenow-frontend && WN_SMOKE_LAUNCH=1 npm run package:smoke`
+- Key output: exit 0; `main.log` contains `[backend] ready` + `[renderer] did-finish-load`
+- Note: launch smoke 默认不再强制 `WN_DISABLE_GPU=1`；在 WSL2 上若强制 `WN_DISABLE_GPU=1` 可能触发 Chromium shared memory 相关 renderer crash
+

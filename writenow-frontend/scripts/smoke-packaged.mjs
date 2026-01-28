@@ -141,7 +141,6 @@ async function launchAndWaitReady(appDir, preferredNames) {
   const env = {
     ...process.env,
     WN_E2E: '1',
-    WN_DISABLE_GPU: '1',
     WN_OPEN_DEVTOOLS: '0',
     WN_USER_DATA_DIR: userDataDir,
     // Why: Some CI/WSL environments have restricted /tmp; keep Chromium temp usage under the isolated userData.
@@ -149,6 +148,9 @@ async function launchAndWaitReady(appDir, preferredNames) {
     TMP: tmpDir,
     TEMP: tmpDir,
     XDG_RUNTIME_DIR: runtimeDir,
+  }
+  if ((process.env.WN_DISABLE_GPU ?? '').trim() === '1') {
+    env.WN_DISABLE_GPU = '1'
   }
 
   const child = spawn(exePath, [], { cwd: appDir, env, stdio: ['ignore', 'pipe', 'pipe'] })

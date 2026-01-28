@@ -53,8 +53,8 @@ RUN_LOG: openspec/_ops/task_runs/ISSUE-326.md
 - [x] 随包资源可被正确复制/识别（路径稳定、升级不破坏）
 - [x] 模型/资源合规信息齐全（来源/许可证/hash/版本）
 
-> 注：`WN_SMOKE_LAUNCH=1` 的 packaged launch smoke 在部分 WSL/CI 环境可能因 Chromium shared memory 限制导致 renderer crash；
-> 建议在标准 Linux runner（可用 GUI/Xvfb）上执行 launch smoke 作为 release 前门禁。
+> 注：WSL2（带 WSLg）可直接跑 `WN_SMOKE_LAUNCH=1 npm run package:smoke`；
+> 若强制设置 `WN_DISABLE_GPU=1` 导致 renderer crash（Chromium shared memory 相关），请去掉 `WN_DISABLE_GPU` 再跑（smoke 默认不强制禁用 GPU）。
 
 ## 产出
 

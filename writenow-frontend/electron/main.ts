@@ -35,6 +35,7 @@ const PRELOAD_PATH = path.join(__dirname, '../preload/index.cjs')
 const SECURE_STORE_FILENAME = 'secure-store.json'
 const AI_KEY_STORAGE_KEY = 'writenow_ai_api_key_v1'
 const IS_E2E = process.env.WN_E2E === '1'
+const IS_WSL = process.platform === 'linux' && os.release().toLowerCase().includes('microsoft')
 
 const requestedUserDataDir = typeof process.env.WN_USER_DATA_DIR === 'string' ? process.env.WN_USER_DATA_DIR.trim() : ''
 if (requestedUserDataDir) {
@@ -50,6 +51,9 @@ if (requestedUserDataDir) {
 if (process.env.WN_DISABLE_GPU === '1') {
   // Why: Some CI/WSL environments crash Electron when GPU initialization fails. Keep the behavior opt-in so local
   // E2E runs can decide based on the runner (set `WN_DISABLE_GPU=1` when needed).
+  //
+  // Note: Chromium's `--disable-dev-shm-usage` forces shared memory to use `/tmp`. On WSL, this can be flaky and
+  // lead to renderer crashes, while `/dev/shm` is usually available. Allow WSL to keep `/dev/shm` by default.
   app.disableHardwareAcceleration()
   app.commandLine.appendSwitch('disable-gpu')
   app.commandLine.appendSwitch('disable-gpu-compositing')
@@ -57,7 +61,9 @@ if (process.env.WN_DISABLE_GPU === '1') {
   app.commandLine.appendSwitch('disable-setuid-sandbox')
   app.commandLine.appendSwitch('no-sandbox')
   app.commandLine.appendSwitch('use-gl', 'swiftshader')
-  app.commandLine.appendSwitch('disable-dev-shm-usage')
+  if ((process.env.WN_DISABLE_DEV_SHM_USAGE ?? '').trim() === '1' || !IS_WSL) {
+    app.commandLine.appendSwitch('disable-dev-shm-usage')
+  }
   app.commandLine.appendSwitch('disable-seccomp-filter-sandbox')
 }
 
