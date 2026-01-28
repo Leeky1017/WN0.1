@@ -7,8 +7,11 @@
 | ID | P1-002 |
 | Phase | 1 - 偏好自动化 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | done |
 | 依赖 | P1-001 |
+| Issue | #282 |
+| PR | #284 |
+| RUN_LOG | openspec/_ops/task_runs/ISSUE-282.md |
 
 ## 必读前置（执行前必须阅读）
 
@@ -22,19 +25,19 @@
 
 ## 任务清单
 
-- [ ] 新增 IPC：`ai:skill:feedback`（payload 含 runId / action / projectId / evidenceRef）
-- [ ] 将 `accept/reject` 映射为可审计的反馈记录（SQLite）
-- [ ] 在 `ai:skill:feedback` 内部调用 `memory:preferences:ingest`（或等价内部函数）更新偏好
-- [ ] 失败语义完整：取消/超时必须返回 `CANCELED`/`TIMEOUT` 且清理 pending 状态
-- [ ] 更新 IPC contract（`src/types/ipc-generated.ts`）并通过 CI 校验
-- [ ] 增加 E2E：运行一次 SKILL → 采纳/拒绝 → 再次运行同类 SKILL，验证偏好变化可观测
+- [x] 新增 IPC：`ai:skill:feedback`（payload 含 runId / action / projectId / evidenceRef）
+- [x] 将 `accept/reject` 映射为可审计的反馈记录（SQLite）
+- [x] 在 `ai:skill:feedback` 内部调用 `memory:preferences:ingest`（或等价内部函数）更新偏好
+- [x] 失败语义完整：取消/超时必须返回 `CANCELED`/`TIMEOUT` 且清理 pending 状态
+- [x] 更新 IPC contract（`src/types/ipc-generated.ts`）并通过 CI 校验
+- [x] 增加 E2E：运行一次 SKILL → 采纳/拒绝 → 再次运行同类 SKILL，验证偏好变化可观测
 
 ## 验收标准
 
-- [ ] 反馈事件可追溯（可查询到 runId→action→evidence 引用）
-- [ ] `accept/reject` 能触发偏好更新（无 silent failure）
-- [ ] IPC 错误码稳定且可诊断（不泄漏异常堆栈）
-- [ ] E2E 通过并写入 RUN_LOG 证据
+- [x] 反馈事件可追溯（可查询到 runId→action→evidence 引用）
+- [x] `accept/reject` 能触发偏好更新（无 silent failure）
+- [x] IPC 错误码稳定且可诊断（不泄漏异常堆栈）
+- [x] E2E 通过并写入 RUN_LOG 证据
 
 ## 可观测信号 / 验证方式
 

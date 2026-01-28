@@ -909,16 +909,23 @@ CREATE TABLE settings (
   - Phase 2：✅ 已完成（2026-01-28；Issue #306，PR #309；Issue #307，PR #308）
     - [x] P2-001：Playwright 真实 E2E（Write Mode 主路径 + 取消/超时/恢复；CI: e2e-write-mode）
     - [x] P2-002：性能预算 + 自动化测量（perf marks + E2E 断言）
+  - Phase 3：✅ 已完成（2026-01-28；Issue #326，PR #331）
+    - [x] P3-001：随包资源策略（字体/本地模型/预编译依赖 + 自动化验收）
 - Sprint AI-Memory（AI 记忆 + 上下文工程）：
-  - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
+  - Phase 0：✅ 已完成（2026-01-27；Issue #279，PR #280）
     - [x] P0-001：SKILL `context_rules` 声明式注入
     - [x] P0-002：KV-cache 稳定前缀模板（stablePrefixHash）
-    - [ ] P0-003 ~ P0-006：偏好自动注入、反馈追踪、文件化设定
+  - Phase 1：✅ 已完成（2026-01-28；Issue #282，PR #284）
+    - [x] P1-001：偏好自动注入到 SKILL 流程
+    - [x] P1-002：采纳/拒绝自动追踪（反馈 → 学习）
+  - Phase 2：✅ 已完成（2026-01-28；PR #337）
+    - [x] P2-001：Full→Compact 压缩
+    - [x] P2-002：设定文件化按需加载
 - Sprint Open-Source-Opt（开源方案优化）：
-  - Phase 0：🚧 进行中（2026-01-27；Issue #279，PR #280）
+  - Phase 0：✅ 已完成（2026-01-27；Issue #279，PR #280）
     - [x] P0-001：Provider Native Prompt Caching（Anthropic `cache_control: ephemeral`）
-    - [ ] P0-002：TipTap AI Diff Extension（WIP）
-  - Phase 1：✅ 已完成（2026-01-27；Issue #293，PR #298）
+  - Phase 1：✅ 已完成（2026-01-28；Issue #291，PR #294；Issue #293，PR #298）
+    - [x] P1-001：TipTap AI Diff Extension
     - [x] P1-002：本地 LLM Tab 续写（node-llama-cpp）
   - Phase 2：✅ 已完成（2026-01-28；Issue #303，PR #304；Issue #327，PR #328）
     - [x] P2-001：Playwright 真实 E2E（核心创作路径 + AI 边界分支）
