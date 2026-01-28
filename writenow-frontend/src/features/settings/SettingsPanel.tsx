@@ -3,11 +3,12 @@
  * Why: Host user-facing configuration, including Local LLM Tab completion opt-in + model management.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { SidebarPanelSection } from '@/components/layout/sidebar-panel';
 import { Button, Input, Switch } from '@/components/ui';
 import { useLocalLlm } from '@/lib/electron';
+import { useAiProxySettings } from '@/lib/rpc/useAiProxySettings';
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
@@ -237,7 +238,138 @@ export function SettingsPanel() {
           </div>
         )}
       </SidebarPanelSection>
+
+      <AiProxySection />
     </div>
+  );
+}
+
+/**
+ * AI Proxy (Advanced) section
+ * Why: Allow users to configure optional LiteLLM proxy for multi-model support.
+ */
+function AiProxySection() {
+  const aiProxy = useAiProxySettings();
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Use derived values from settings, with fallback empty strings
+  const baseUrl = aiProxy.settings?.baseUrl ?? '';
+  const hasApiKey = aiProxy.settings?.hasApiKey ?? false;
+
+  const handleToggle = useCallback(
+    async (enabled: boolean) => {
+      await aiProxy.updateSettings({ enabled });
+    },
+    [aiProxy],
+  );
+
+  const handleBaseUrlChange = useCallback(
+    async (value: string) => {
+      await aiProxy.updateSettings({ baseUrl: value });
+    },
+    [aiProxy],
+  );
+
+  const handleApiKeyChange = useCallback(
+    async (value: string) => {
+      // Only save if user entered a non-empty, non-placeholder key
+      if (value && value !== '••••••••') {
+        await aiProxy.updateSettings({ apiKey: value });
+      }
+    },
+    [aiProxy],
+  );
+
+  const handleTest = useCallback(async () => {
+    if (!baseUrl) {
+      setTestResult({ success: false, message: '请先输入代理地址' });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    const result = await aiProxy.testConnection(baseUrl);
+    setTestResult(result);
+    setTesting(false);
+  }, [aiProxy, baseUrl]);
+
+  return (
+    <SidebarPanelSection title="AI 代理（高级）" defaultCollapsed>
+      <div className="space-y-3">
+        <div className="px-2 py-2 text-[10px] text-[var(--fg-muted)] leading-relaxed">
+          启用后，AI 请求将通过代理服务器转发，支持多模型切换、缓存、故障转移等高级功能。
+          <br />
+          推荐使用 <a href="https://docs.litellm.ai/" target="_blank" rel="noopener noreferrer" className="underline">LiteLLM</a> 作为代理。
+        </div>
+
+        <div className="flex items-center justify-between px-2">
+          <div className="flex flex-col">
+            <div className="text-[12px] font-semibold text-[var(--fg-default)]">启用代理</div>
+            <div className="text-[10px] text-[var(--fg-muted)] mt-0.5">开启后 AI 请求将走代理转发</div>
+          </div>
+          <Switch
+            checked={Boolean(aiProxy.settings?.enabled)}
+            onCheckedChange={(checked) => void handleToggle(checked)}
+            disabled={aiProxy.loading}
+          />
+        </div>
+
+        <div className="px-2 space-y-2">
+          <div className="space-y-1">
+            <div className="text-[10px] text-[var(--fg-muted)]">代理地址 (Base URL)</div>
+            <Input
+              inputSize="sm"
+              key={`baseUrl:${baseUrl}`}
+              defaultValue={baseUrl}
+              onBlur={(e) => void handleBaseUrlChange(e.currentTarget.value)}
+              placeholder="http://localhost:4000"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-[10px] text-[var(--fg-muted)]">API Key（可选）</div>
+            <Input
+              inputSize="sm"
+              type="password"
+              key={`apiKey:${hasApiKey}`}
+              defaultValue={hasApiKey ? '••••••••' : ''}
+              onBlur={(e) => void handleApiKeyChange(e.currentTarget.value)}
+              placeholder="sk-..."
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={testing}
+              disabled={testing || !baseUrl}
+              onClick={() => void handleTest()}
+            >
+              测试连接
+            </Button>
+          </div>
+
+          {testResult && (
+            <div
+              className={`text-[11px] px-2 py-1 rounded-md border ${
+                testResult.success
+                  ? 'text-[var(--success)] border-[var(--success)]/40 bg-[var(--bg-elevated)]'
+                  : 'text-[var(--error)] border-[var(--error)]/40 bg-[var(--bg-elevated)]'
+              }`}
+            >
+              {testResult.message}
+            </div>
+          )}
+
+          {aiProxy.error && (
+            <div className="text-[11px] text-[var(--error)] px-2 py-1 rounded-md border border-[var(--error)]/40 bg-[var(--bg-elevated)]">
+              {aiProxy.error}
+            </div>
+          )}
+        </div>
+      </div>
+    </SidebarPanelSection>
   );
 }
 

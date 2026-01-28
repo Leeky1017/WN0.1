@@ -323,6 +323,44 @@ export type AiSkillFeedbackResponse = {
   ignored: number;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Proxy Settings (optional LiteLLM integration)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AiProxySettings = {
+  enabled: boolean;
+  baseUrl: string;
+  apiKey: string;
+  hasApiKey: boolean;
+};
+
+export type AiProxySettingsGetRequest = Record<string, never>;
+
+export type AiProxySettingsGetResponse = {
+  settings: AiProxySettings;
+};
+
+export type AiProxySettingsUpdateRequest = {
+  enabled?: boolean;
+  baseUrl?: string;
+  apiKey?: string;
+};
+
+export type AiProxySettingsUpdateResponse = {
+  settings: AiProxySettings;
+};
+
+export type AiProxyTestRequest = {
+  baseUrl: string;
+  apiKey?: string;
+};
+
+export type AiProxyTestResponse = {
+  success: boolean;
+  message: string;
+  models?: string[];
+};
+
 export type SearchHit = {
   id: string;
   title: string;

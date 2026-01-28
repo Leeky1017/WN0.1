@@ -104,6 +104,9 @@ export type IpcChannel =
   | 'skill:read'
   | 'skill:toggle'
   | 'skill:write'
+  | 'ai:proxy:settings:get'
+  | 'ai:proxy:settings:update'
+  | 'ai:proxy:test'
   | 'ai:skill:cancel'
   | 'ai:skill:feedback'
   | 'ai:skill:run'
@@ -416,6 +419,44 @@ export type AiSkillFeedbackResponse = {
   feedbackId: string;
   learned: UserMemory[];
   ignored: number;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Proxy Settings (optional LiteLLM integration)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AiProxySettings = {
+  enabled: boolean;
+  baseUrl: string;
+  apiKey: string;
+  hasApiKey: boolean;
+};
+
+export type AiProxySettingsGetRequest = Record<string, never>;
+
+export type AiProxySettingsGetResponse = {
+  settings: AiProxySettings;
+};
+
+export type AiProxySettingsUpdateRequest = {
+  enabled?: boolean;
+  baseUrl?: string;
+  apiKey?: string;
+};
+
+export type AiProxySettingsUpdateResponse = {
+  settings: AiProxySettings;
+};
+
+export type AiProxyTestRequest = {
+  baseUrl: string;
+  apiKey?: string;
+};
+
+export type AiProxyTestResponse = {
+  success: boolean;
+  message: string;
+  models?: string[];
 };
 
 export type SearchHit = {
@@ -1540,6 +1581,9 @@ export type IpcInvokePayloadMap = {
   'skill:read': SkillReadRequest;
   'skill:toggle': SkillToggleRequest;
   'skill:write': SkillWriteRequest;
+  'ai:proxy:settings:get': AiProxySettingsGetRequest;
+  'ai:proxy:settings:update': AiProxySettingsUpdateRequest;
+  'ai:proxy:test': AiProxyTestRequest;
   'ai:skill:cancel': AiSkillCancelRequest;
   'ai:skill:feedback': AiSkillFeedbackRequest;
   'ai:skill:run': AiSkillRunRequest;
@@ -1635,6 +1679,9 @@ export type IpcInvokeDataMap = {
   'skill:read': SkillReadResponse;
   'skill:toggle': SkillToggleResponse;
   'skill:write': SkillWriteResponse;
+  'ai:proxy:settings:get': AiProxySettingsGetResponse;
+  'ai:proxy:settings:update': AiProxySettingsUpdateResponse;
+  'ai:proxy:test': AiProxyTestResponse;
   'ai:skill:cancel': AiSkillCancelResponse;
   'ai:skill:feedback': AiSkillFeedbackResponse;
   'ai:skill:run': AiSkillRunResponse;

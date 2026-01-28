@@ -1,7 +1,16 @@
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { ILogger } from '@theia/core/lib/common/logger';
 
-import type { IpcChannel, IpcResponse } from '../common/ipc-generated';
+import type {
+    AiProxySettings,
+    AiProxySettingsGetResponse,
+    AiProxySettingsUpdateRequest,
+    AiProxySettingsUpdateResponse,
+    AiProxyTestRequest,
+    AiProxyTestResponse,
+    IpcChannel,
+    IpcResponse,
+} from '../common/ipc-generated';
 import type { WritenowRpcService } from '../common/writenow-protocol';
 
 import { TheiaInvokeRegistry, toIpcError } from './theia-invoke-adapter';
@@ -71,6 +80,143 @@ export class WritenowBackendService implements WritenowRpcService {
         this.registry.handleInvoke('export:markdown', (_event: unknown, payload: unknown) => exportService.exportMarkdown(payload as never));
         this.registry.handleInvoke('export:docx', (_event: unknown, payload: unknown) => exportService.exportDocx(payload as never));
         this.registry.handleInvoke('export:pdf', (_event: unknown, payload: unknown) => exportService.exportPdf(payload as never));
+
+        // AI Proxy settings (ai:proxy:settings:get, ai:proxy:settings:update, ai:proxy:test)
+        const db = sqliteDb.db;
+        this.registry.handleInvoke('ai:proxy:settings:get', (): AiProxySettingsGetResponse => {
+            return { settings: this.readAiProxySettings(db) };
+        });
+        this.registry.handleInvoke('ai:proxy:settings:update', (_event: unknown, payload: unknown): AiProxySettingsUpdateResponse => {
+            const request = payload as AiProxySettingsUpdateRequest;
+            if (typeof request?.enabled === 'boolean') {
+                this.writeSetting(db, 'ai.proxy.enabled', request.enabled);
+            }
+            if (typeof request?.baseUrl === 'string') {
+                this.writeSetting(db, 'ai.proxy.baseUrl', request.baseUrl.replace(/\/+$/, ''));
+            }
+            if (typeof request?.apiKey === 'string') {
+                this.writeSetting(db, 'ai.proxy.apiKey', request.apiKey);
+            }
+            this.logger.info('[ai-proxy] settings updated');
+            return { settings: this.readAiProxySettings(db) };
+        });
+        this.registry.handleInvoke('ai:proxy:test', async (_event: unknown, payload: unknown): Promise<AiProxyTestResponse> => {
+            const request = payload as AiProxyTestRequest;
+            const baseUrl = typeof request?.baseUrl === 'string' ? request.baseUrl.replace(/\/+$/, '') : '';
+            if (!baseUrl) {
+                return { success: false, message: 'baseUrl 是必填项' };
+            }
+            const apiKey = typeof request?.apiKey === 'string' ? request.apiKey.trim() : '';
+            const modelsUrl = `${baseUrl}/v1/models`;
+
+            try {
+                const headers: Record<string, string> = { 'content-type': 'application/json' };
+                if (apiKey) headers.authorization = `Bearer ${apiKey}`;
+
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+
+                const res = await fetch(modelsUrl, {
+                    method: 'GET',
+                    headers,
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeout);
+
+                if (!res.ok) {
+                    const text = await res.text().catch(() => '');
+                    return { success: false, message: `HTTP ${res.status}: ${text.slice(0, 200) || res.statusText}` };
+                }
+
+                const json = await res.json().catch(() => null) as { data?: Array<{ id?: unknown }> } | null;
+                const models = Array.isArray(json?.data)
+                    ? json.data.map((m) => (typeof m?.id === 'string' ? m.id : '')).filter(Boolean).slice(0, 20)
+                    : [];
+
+                return { success: true, message: `连接成功，共 ${models.length} 个模型可用`, models };
+            } catch (error: unknown) {
+                const err = error as { name?: string; message?: string };
+                if (err?.name === 'AbortError') {
+                    return { success: false, message: '连接超时（10秒）' };
+                }
+                return { success: false, message: err?.message || '连接失败' };
+            }
+        });
+    }
+
+    private readSetting(db: import('./database/init').SqliteDatabase, key: string): string | null {
+        try {
+            const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value?: unknown } | undefined;
+            if (row && typeof row.value === 'string') {
+                return JSON.parse(row.value) as string;
+            }
+        } catch {
+            // ignore parse errors
+        }
+        return null;
+    }
+
+    private readSettingBoolean(db: import('./database/init').SqliteDatabase, key: string): boolean | null {
+        try {
+            const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value?: unknown } | undefined;
+            if (row && typeof row.value === 'string') {
+                const parsed = JSON.parse(row.value);
+                if (typeof parsed === 'boolean') return parsed;
+            }
+        } catch {
+            // ignore parse errors
+        }
+        return null;
+    }
+
+    private writeSetting(db: import('./database/init').SqliteDatabase, key: string, value: unknown): void {
+        try {
+            db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(
+                key,
+                JSON.stringify(value),
+            );
+        } catch {
+            // ignore write errors
+        }
+    }
+
+    private readAiProxySettings(db: import('./database/init').SqliteDatabase): AiProxySettings {
+        // Env vars take precedence over SQLite
+        const envEnabled = process.env.WN_AI_PROXY_ENABLED;
+        const envBaseUrl = process.env.WN_AI_PROXY_BASE_URL;
+        const envApiKey = process.env.WN_AI_PROXY_API_KEY;
+
+        let enabled = false;
+        if (envEnabled !== undefined) {
+            enabled = envEnabled === 'true' || envEnabled === '1';
+        } else {
+            const fromDb = this.readSettingBoolean(db, 'ai.proxy.enabled');
+            if (fromDb !== null) enabled = fromDb;
+        }
+
+        let baseUrl = '';
+        if (envBaseUrl) {
+            baseUrl = envBaseUrl.replace(/\/+$/, '');
+        } else {
+            const fromDb = this.readSetting(db, 'ai.proxy.baseUrl');
+            if (fromDb) baseUrl = fromDb.replace(/\/+$/, '');
+        }
+
+        let apiKey = '';
+        let hasApiKey = false;
+        if (envApiKey && envApiKey.trim()) {
+            apiKey = '••••••••';
+            hasApiKey = true;
+        } else {
+            const fromDb = this.readSetting(db, 'ai.proxy.apiKey');
+            if (fromDb && fromDb.trim()) {
+                apiKey = '••••••••';
+                hasApiKey = true;
+            }
+        }
+
+        return { enabled, baseUrl, apiKey, hasApiKey };
     }
 
     async invoke(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>> {
