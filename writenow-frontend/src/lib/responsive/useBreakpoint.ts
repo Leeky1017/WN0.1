@@ -29,7 +29,10 @@ export interface UseBreakpointResult {
 export function useBreakpoint(): UseBreakpointResult {
   const getInitialWidth = () => {
     if (typeof window === 'undefined') return BREAKPOINTS.tablet;
-    return window.innerWidth;
+    const width = window.innerWidth;
+    // Why: During Electron app startup, window.innerWidth can be 0 before the window fully initializes.
+    // Default to tablet breakpoint (1280) to avoid incorrectly detecting mobile and hiding the sidebar.
+    return width > 0 ? width : BREAKPOINTS.tablet;
   };
 
   const [width, setWidth] = useState(getInitialWidth);
