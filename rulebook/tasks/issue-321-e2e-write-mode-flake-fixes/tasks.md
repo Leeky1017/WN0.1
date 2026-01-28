@@ -5,7 +5,7 @@
 
 ## 2. Testing
 - [x] 2.1 本地门禁：`npm run contract:check`；`writenow-frontend` 下 `npm run lint`、`npm run build`、`npm run build:electron`。
-- [ ] 2.2 CI 门禁：watch `e2e-write-mode` 直到跑绿（必要时迭代修复）。
+- [x] 2.2 CI 门禁：watch `e2e-write-mode` 直到跑绿（必要时迭代修复）。
 
 ## 3. Documentation
 - [x] 3.1 新增 `openspec/_ops/task_runs/ISSUE-321.md` 并按关键步骤追加 Runs（命令 + 关键输出 + 证据）。
