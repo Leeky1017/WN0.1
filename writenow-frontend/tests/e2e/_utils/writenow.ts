@@ -12,6 +12,7 @@ export type LaunchWriteNowResult = {
   electronApp: ElectronApplication;
   page: Page;
   userDataDir: string;
+  backendPid: number | null;
 };
 
 export function isWSL(): boolean {
@@ -69,7 +70,15 @@ export async function launchWriteNowApp(options: LaunchWriteNowOptions): Promise
     );
   }
 
-  return { electronApp, page, userDataDir: options.userDataDir };
+  let backendPid: number | null = null;
+  const pidDeadline = Date.now() + 2_000;
+  while (!backendPid && Date.now() < pidDeadline) {
+    backendPid = await readBackendPidFromPidFile(options.userDataDir);
+    if (backendPid) break;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  return { electronApp, page, userDataDir: options.userDataDir, backendPid };
 }
 
 export async function createNewFile(page: Page, name: string): Promise<void> {
@@ -85,37 +94,40 @@ export async function createNewFile(page: Page, name: string): Promise<void> {
   ).toBeVisible({ timeout: 30_000 });
 }
 
-async function killBackendFromPidFile(userDataDir: string): Promise<void> {
+type BackendPidFileRecord = {
+  pid: number;
+};
+
+async function readBackendPidFromPidFile(userDataDir: string): Promise<number | null> {
   const pidFilePath = path.join(userDataDir, 'backend.pid');
-  let pid: number | null = null;
   try {
     const raw = await readFile(pidFilePath, 'utf8');
     const parsed = JSON.parse(raw) as unknown;
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      const record = parsed as { pid?: unknown };
-      if (typeof record.pid === 'number' && Number.isFinite(record.pid) && record.pid > 0) {
-        pid = record.pid;
-      }
+      const record = parsed as Partial<BackendPidFileRecord>;
+      if (typeof record.pid === 'number' && Number.isFinite(record.pid) && record.pid > 0) return record.pid;
     }
   } catch {
-    pid = null;
+    // ignore
   }
 
-  if (!pid) return;
+  return null;
+}
 
+async function killPid(pid: number, timeoutMs: number): Promise<void> {
   try {
     process.kill(pid, 'SIGTERM');
   } catch {
     // ignore
   }
 
-  const deadline = Date.now() + 2_000;
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
       process.kill(pid, 0);
       // still alive
     } catch {
-      break;
+      return;
     }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
@@ -124,6 +136,19 @@ async function killBackendFromPidFile(userDataDir: string): Promise<void> {
     process.kill(pid, 'SIGKILL');
   } catch {
     // ignore
+  }
+}
+
+async function cleanupBackendProcess(userDataDir: string, pidHint: number | null): Promise<void> {
+  const pidFilePath = path.join(userDataDir, 'backend.pid');
+
+  const pidFromFile = await readBackendPidFromPidFile(userDataDir);
+  const pidSet = new Set<number>();
+  if (pidHint) pidSet.add(pidHint);
+  if (pidFromFile) pidSet.add(pidFromFile);
+
+  for (const pid of pidSet) {
+    await killPid(pid, 2_000);
   }
 
   try {
@@ -154,5 +179,29 @@ export async function closeWriteNowApp(app: LaunchWriteNowResult): Promise<void>
   }
 
   // Why: If Electron is SIGKILLed, its backend child can outlive and keep port 3000 occupied → cascading E2E failures.
-  await killBackendFromPidFile(app.userDataDir);
+  await cleanupBackendProcess(app.userDataDir, app.backendPid);
+}
+
+/**
+ * Force-close the Electron app to simulate a crash, then ensure test isolation by cleaning up the backend.
+ *
+ * Why: WM-005 validates recovery after an unexpected shutdown. In CI, the orphan backend can keep port 3000 occupied,
+ * causing cascading E2E failures and Playwright worker teardown timeouts.
+ */
+export async function forceCloseWriteNowApp(app: LaunchWriteNowResult): Promise<void> {
+  const proc = app.electronApp.process();
+  if (proc && proc.exitCode === null) {
+    try {
+      proc.kill('SIGKILL');
+    } catch {
+      try {
+        proc.kill();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  await app.electronApp.close().catch(() => undefined);
+  await cleanupBackendProcess(app.userDataDir, app.backendPid);
 }
