@@ -1,7 +1,7 @@
 # ISSUE-333
 - Issue: #333
 - Branch: task/333-open-source-opt-closeout
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/334
 
 ## Plan
 - 归档 rulebook task：将 `rulebook/tasks/issue-327-*` 与 `rulebook/tasks/issue-330-*` 移动至 `rulebook/tasks/archive/`（保留证据索引与元数据）。
@@ -33,3 +33,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 5 passed, 0 failed (5 items)`
 - Evidence: console output
+
+### 2026-01-28 14:52 PR created + auto-merge enabled
+- Command: `gh pr create ...` + `gh pr merge 334 --auto --squash --delete-branch`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/334`
+- Evidence: PR #334
