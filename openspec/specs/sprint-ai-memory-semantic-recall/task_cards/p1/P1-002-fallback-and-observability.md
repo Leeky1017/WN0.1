@@ -1,9 +1,9 @@
 # P1-002: 降级策略 + 可观测日志 + E2E 覆盖（语义召回不阻断）
 
 Status: Draft  
-Issue: #344  
+Issue: #346  
 PR: <fill-after-created>  
-RUN_LOG: openspec/_ops/task_runs/ISSUE-344.md
+RUN_LOG: openspec/_ops/task_runs/ISSUE-346.md
 
 ## 元信息
 

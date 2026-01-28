@@ -40,6 +40,7 @@ function stringifyVector(vector: readonly number[]): string {
 export type VectorStoreChunkEmbedding = Readonly<{ chunkId: string; embedding: readonly number[] }>;
 export type VectorStoreArticleEmbedding = Readonly<{ id: string; embedding: readonly number[] }>;
 export type VectorStoreEntityEmbedding = Readonly<{ entityId: string; entityType: string; embedding: readonly number[] }>;
+export type VectorStoreUserMemoryEmbedding = Readonly<{ memoryId: string; embedding: readonly number[] }>;
 
 export type QuerySimilarOptions = Readonly<{
     topK?: number;
@@ -142,6 +143,28 @@ export class VectorStore {
         }
     }
 
+    ensureUserMemoryIndex(dimension: number): void {
+        if (process.env.WN_E2E === '1' && process.env.WN_E2E_DISABLE_USER_MEMORY_VEC === '1') {
+            // Why: E2E must deterministically exercise the "sqlite-vec unavailable" fallback path without relying on
+            // platform-specific extension loading failures.
+            throw createIpcError('DB_ERROR', 'sqlite-vec user memory index is disabled (E2E)', { env: 'WN_E2E_DISABLE_USER_MEMORY_VEC' });
+        }
+
+        this.ensureReady(dimension);
+        const db = this.db;
+        try {
+            db.exec(`CREATE VIRTUAL TABLE IF NOT EXISTS user_memory_vec USING vec0(
+                memory_id TEXT PRIMARY KEY,
+                embedding FLOAT[${dimension}]
+            )`);
+        } catch (error) {
+            this.logger.error(`[vec] failed to create user_memory_vec: ${error instanceof Error ? error.message : String(error)}`);
+            throw createIpcError('DB_ERROR', 'Failed to initialize user memory vector schema', {
+                message: error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
+
     upsertArticleEmbeddings(items: readonly VectorStoreArticleEmbedding[]): void {
         const db = this.db;
         if (!Array.isArray(items)) throw createIpcError('INVALID_ARGUMENT', 'items must be an array');
@@ -197,6 +220,38 @@ export class VectorStore {
             }
         });
 
+        tx();
+    }
+
+    upsertUserMemoryEmbeddings(items: readonly VectorStoreUserMemoryEmbedding[]): void {
+        const db = this.db;
+        if (!Array.isArray(items)) throw createIpcError('INVALID_ARGUMENT', 'items must be an array');
+
+        const tx = db.transaction(() => {
+            const del = db.prepare('DELETE FROM user_memory_vec WHERE memory_id = ?');
+            const ins = db.prepare('INSERT INTO user_memory_vec(memory_id, embedding) VALUES (?, vec_f32(?))');
+            for (const item of items) {
+                const memoryId = typeof item?.memoryId === 'string' ? item.memoryId : '';
+                if (!memoryId) throw createIpcError('INVALID_ARGUMENT', 'memoryId is required');
+                del.run(memoryId);
+                ins.run(memoryId, stringifyVector(item.embedding));
+            }
+        });
+
+        tx();
+    }
+
+    deleteUserMemoryEmbeddings(memoryIds: readonly string[]): void {
+        const db = this.db;
+        const ids = Array.isArray(memoryIds) ? memoryIds : [];
+        const tx = db.transaction(() => {
+            const del = db.prepare('DELETE FROM user_memory_vec WHERE memory_id = ?');
+            for (const id of ids) {
+                const memoryId = typeof id === 'string' ? id : '';
+                if (!memoryId) continue;
+                del.run(memoryId);
+            }
+        });
         tx();
     }
 
@@ -304,6 +359,36 @@ export class VectorStore {
                 distance: typeof row?.distance === 'number' ? row.distance : Number(row?.distance ?? 0),
             }))
             .filter((row) => row.entityId && row.entityType);
+    }
+
+    querySimilarUserMemory(queryEmbedding: readonly number[], options: QuerySimilarOptions = {}): Array<{ memoryId: string; distance: number }> {
+        const db = this.db;
+        const topK = typeof options.topK === 'number' ? Math.max(1, Math.min(50, options.topK)) : 20;
+        const offset = typeof options.offset === 'number' && options.offset >= 0 ? options.offset : 0;
+        const maxDistance =
+            typeof options.maxDistance === 'number' && Number.isFinite(options.maxDistance) && options.maxDistance >= 0 ? options.maxDistance : null;
+
+        const vector = stringifyVector(queryEmbedding);
+        const k = Math.min(200, offset + topK);
+
+        const rows =
+            maxDistance === null
+                ? (db
+                      .prepare('SELECT memory_id, distance FROM user_memory_vec WHERE embedding MATCH vec_f32(?) AND k = ? ORDER BY distance')
+                      .all(vector, k) as Array<{ memory_id?: unknown; distance?: unknown }>)
+                : (db
+                      .prepare(
+                          'SELECT memory_id, distance FROM user_memory_vec WHERE embedding MATCH vec_f32(?) AND k = ? AND distance <= ? ORDER BY distance',
+                      )
+                      .all(vector, k, maxDistance) as Array<{ memory_id?: unknown; distance?: unknown }>);
+
+        return rows
+            .map((row) => ({
+                memoryId: typeof row?.memory_id === 'string' ? row.memory_id : '',
+                distance: typeof row?.distance === 'number' ? row.distance : Number(row?.distance ?? 0),
+            }))
+            .filter((row) => row.memoryId)
+            .slice(offset, offset + topK);
     }
 }
 

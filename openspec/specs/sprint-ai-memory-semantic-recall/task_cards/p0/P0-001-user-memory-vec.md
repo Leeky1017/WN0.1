@@ -1,9 +1,9 @@
 # P0-001: `user_memory_vec`（语义召回索引）+ preview `queryText` 接入
 
 Status: Draft  
-Issue: #344  
+Issue: #346  
 PR: <fill-after-created>  
-RUN_LOG: openspec/_ops/task_runs/ISSUE-344.md
+RUN_LOG: openspec/_ops/task_runs/ISSUE-346.md
 
 ## 元信息
 

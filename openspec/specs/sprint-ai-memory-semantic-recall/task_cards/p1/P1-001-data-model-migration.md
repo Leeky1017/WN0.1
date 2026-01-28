@@ -1,9 +1,9 @@
 # P1-001: `user_memory` 数据模型增强 + `migrateToV10` + IPC 契约同步
 
 Status: Draft  
-Issue: #344  
+Issue: #346  
 PR: <fill-after-created>  
-RUN_LOG: openspec/_ops/task_runs/ISSUE-344.md
+RUN_LOG: openspec/_ops/task_runs/ISSUE-346.md
 
 ## 元信息
 
@@ -21,7 +21,7 @@ RUN_LOG: openspec/_ops/task_runs/ISSUE-344.md
 - [ ] `openspec/specs/sprint-ai-memory-semantic-recall/design/02-user-memory-data-model.md`
 - [ ] `openspec/specs/api-contract/spec.md`（错误码/Envelope）
 - [ ] `writenow-theia/writenow-core/src/node/database/schema.sql`
-- [ ] `writenow-theia/writenow-core/src/node/database/init.ts`（迁移版本：当前 `SCHEMA_VERSION=9`）
+- [ ] `writenow-theia/writenow-core/src/node/database/init.ts`（迁移版本：目标 `SCHEMA_VERSION=10`）
 - [ ] `writenow-theia/writenow-core/src/node/services/memory-service.ts`
 - [ ] `electron/ipc/contract/ipc-contract.cjs`（IPC contract SSOT）
 
