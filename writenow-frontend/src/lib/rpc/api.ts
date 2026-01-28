@@ -8,7 +8,7 @@ import type {
   IpcInvokeDataMap,
   IpcError,
 } from '@/types/ipc-generated'
-import { rpcClient } from './client'
+import { connectionManager } from './connection-manager'
 
 /**
  * Custom error class for RPC errors
@@ -42,7 +42,10 @@ export async function invoke<T extends IpcChannel>(
   channel: T,
   payload: IpcInvokePayloadMap[T]
 ): Promise<IpcInvokeDataMap[T]> {
-  const response = await rpcClient.invoke<IpcInvokeDataMap[T]>(channel, payload)
+  // Why: Use connectionManager instead of legacy rpcClient to ensure connection state is synchronized
+  // with useRpcConnection hook. This fixes the race condition where isConnected reports true but
+  // rpcClient.connection is still null.
+  const response = await connectionManager.invoke<IpcInvokeDataMap[T]>(channel, payload)
   
   if (!response.ok) {
     throw RpcError.fromIpcError(response.error)
