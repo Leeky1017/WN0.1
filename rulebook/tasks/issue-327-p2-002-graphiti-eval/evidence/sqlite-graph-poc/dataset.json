@@ -1,0 +1,162 @@
+{
+  "project": {
+    "id": "p2-002-graphiti-eval-sample",
+    "name": "P2-002 Graphiti Eval Sample",
+    "description": "用于验证写作场景：人物关系、设定冲突、事件链（含时序字段）。"
+  },
+  "entities": [
+    {
+      "id": "ent_zhangsan",
+      "type": "Character",
+      "name": "张三",
+      "description": "主角之一，性格谨慎。"
+    },
+    {
+      "id": "ent_lisi",
+      "type": "Character",
+      "name": "李四",
+      "description": "主角之一，擅长交际。"
+    },
+    {
+      "id": "ent_wangwu",
+      "type": "Character",
+      "name": "王五",
+      "description": "配角，关键设定包含年龄随章节出现冲突。"
+    },
+    {
+      "id": "ent_old_town",
+      "type": "Location",
+      "name": "老城",
+      "description": "故事发生的主要地点。"
+    },
+    {
+      "id": "ent_evt_meet",
+      "type": "Event",
+      "name": "老城初遇",
+      "description": "张三与李四在老城第一次相遇。",
+      "metadata": { "chapterIndex": 1, "occurred_at": "2030-01-05T10:00:00Z", "source": "chapter-1.md" }
+    },
+    {
+      "id": "ent_evt_mission",
+      "type": "Event",
+      "name": "共同任务",
+      "description": "两人接到同一任务，被迫合作。",
+      "metadata": { "chapterIndex": 2, "occurred_at": "2030-02-10T09:00:00Z", "source": "chapter-2.md" }
+    },
+    {
+      "id": "ent_evt_conflict",
+      "type": "Event",
+      "name": "利益冲突",
+      "description": "任务中出现利益分歧，关系开始紧张。",
+      "metadata": { "chapterIndex": 3, "occurred_at": "2030-03-18T20:00:00Z", "source": "chapter-3.md" }
+    },
+    {
+      "id": "ent_evt_ch4_turn",
+      "type": "Event",
+      "name": "第四章转折",
+      "description": "第三章之后的关键转折事件。",
+      "metadata": { "chapterIndex": 4, "occurred_at": "2030-04-02T08:00:00Z", "source": "chapter-4.md" }
+    },
+    {
+      "id": "ent_evt_ch5_aftermath",
+      "type": "Event",
+      "name": "余波",
+      "description": "转折后的余波事件。",
+      "metadata": { "chapterIndex": 5, "occurred_at": "2030-05-07T12:00:00Z", "source": "chapter-5.md" }
+    },
+    {
+      "id": "ent_fact_wangwu_age_28",
+      "type": "Fact",
+      "name": "王五年龄=28",
+      "description": "第二章提到王五 28 岁。",
+      "metadata": { "kind": "age", "value": 28, "valid_from": "2030-02-01T00:00:00Z", "valid_to": "2030-03-01T00:00:00Z", "source": "chapter-2.md" }
+    },
+    {
+      "id": "ent_fact_wangwu_age_35",
+      "type": "Fact",
+      "name": "王五年龄=35",
+      "description": "第四章提到王五 35 岁（可能为修正或时间推进）。",
+      "metadata": { "kind": "age", "value": 35, "valid_from": "2030-04-01T00:00:00Z", "valid_to": null, "source": "chapter-4.md" }
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel_zhangsan_at_old_town",
+      "from": "ent_zhangsan",
+      "to": "ent_old_town",
+      "type": "LOCATED_IN",
+      "metadata": { "valid_from": "2030-01-01T00:00:00Z", "valid_to": null, "source": "chapter-1.md" }
+    },
+    {
+      "id": "rel_lisi_at_old_town",
+      "from": "ent_lisi",
+      "to": "ent_old_town",
+      "type": "LOCATED_IN",
+      "metadata": { "valid_from": "2030-01-01T00:00:00Z", "valid_to": null, "source": "chapter-1.md" }
+    },
+    {
+      "id": "rel_zhangsan_knows_lisi",
+      "from": "ent_zhangsan",
+      "to": "ent_lisi",
+      "type": "KNOWS",
+      "metadata": { "met_at": "ent_evt_meet", "valid_from": "2030-01-05T10:00:00Z", "valid_to": "2030-03-18T20:00:00Z", "source": "chapter-1.md" }
+    },
+    {
+      "id": "rel_zhangsan_rivals_lisi",
+      "from": "ent_zhangsan",
+      "to": "ent_lisi",
+      "type": "RIVALS",
+      "metadata": { "valid_from": "2030-03-18T20:00:00Z", "valid_to": null, "source": "chapter-3.md" }
+    },
+    {
+      "id": "rel_lisi_mentors_wangwu",
+      "from": "ent_lisi",
+      "to": "ent_wangwu",
+      "type": "MENTORS",
+      "metadata": { "valid_from": "2030-02-10T09:00:00Z", "valid_to": null, "source": "chapter-2.md" }
+    },
+    {
+      "id": "rel_wangwu_has_fact_28",
+      "from": "ent_wangwu",
+      "to": "ent_fact_wangwu_age_28",
+      "type": "HAS_FACT",
+      "metadata": { "valid_from": "2030-02-01T00:00:00Z", "valid_to": "2030-03-01T00:00:00Z", "source": "chapter-2.md" }
+    },
+    {
+      "id": "rel_wangwu_has_fact_35",
+      "from": "ent_wangwu",
+      "to": "ent_fact_wangwu_age_35",
+      "type": "HAS_FACT",
+      "metadata": { "valid_from": "2030-04-01T00:00:00Z", "valid_to": null, "source": "chapter-4.md" }
+    },
+    {
+      "id": "rel_evt1_next_evt2",
+      "from": "ent_evt_meet",
+      "to": "ent_evt_mission",
+      "type": "NEXT_EVENT",
+      "metadata": { "valid_from": "2030-02-10T09:00:00Z", "valid_to": null, "source": "chapter-2.md" }
+    },
+    {
+      "id": "rel_evt2_next_evt3",
+      "from": "ent_evt_mission",
+      "to": "ent_evt_conflict",
+      "type": "NEXT_EVENT",
+      "metadata": { "valid_from": "2030-03-18T20:00:00Z", "valid_to": null, "source": "chapter-3.md" }
+    },
+    {
+      "id": "rel_evt3_next_evt4",
+      "from": "ent_evt_conflict",
+      "to": "ent_evt_ch4_turn",
+      "type": "NEXT_EVENT",
+      "metadata": { "valid_from": "2030-04-02T08:00:00Z", "valid_to": null, "source": "chapter-4.md" }
+    },
+    {
+      "id": "rel_evt4_next_evt5",
+      "from": "ent_evt_ch4_turn",
+      "to": "ent_evt_ch5_aftermath",
+      "type": "NEXT_EVENT",
+      "metadata": { "valid_from": "2030-05-07T12:00:00Z", "valid_to": null, "source": "chapter-5.md" }
+    }
+  ]
+}
+
