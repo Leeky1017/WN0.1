@@ -4,7 +4,7 @@
 |-------------|--------------------------------------------------------------|
 | Issue       | #335                                                         |
 | Branch      | task/335-litellm-settings-ui                                 |
-| PR          | <fill-after-created>                                         |
+| PR          | https://github.com/Leeky1017/WN0.1/pull/336                  |
 | Rulebook    | rulebook/tasks/issue-335-litellm-settings-ui/                |
 | Status      | in_progress                                                  |
 | Created     | 2026-01-28                                                   |
