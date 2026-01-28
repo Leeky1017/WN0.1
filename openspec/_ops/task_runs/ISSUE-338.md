@@ -2,7 +2,7 @@
 
 - Issue: #338
 - Branch: task/338-creator-workbench-plan
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/339
 
 ## Plan
 
@@ -25,3 +25,9 @@
   - 依赖关系图
   - 里程碑与任务卡片
 - Evidence: `.cursor/plans/创作者工作台路线规划_c4f0dd68.plan.md`
+
+### 2026-01-28 创建 PR
+
+- Command: `gh pr create`
+- Key output: PR #339 created
+- Evidence: https://github.com/Leeky1017/WN0.1/pull/339
