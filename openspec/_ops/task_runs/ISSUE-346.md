@@ -1,7 +1,7 @@
 # ISSUE-346
 - Issue: #346
 - Branch: task/346-ai-memory-semantic-recall
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/347
 
 ## Plan
 - Read Sprint spec + task cards, then inspect current IPC/DB/memory injection implementation.

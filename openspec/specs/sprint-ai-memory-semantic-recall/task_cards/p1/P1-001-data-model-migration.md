@@ -1,8 +1,8 @@
 # P1-001: `user_memory` 数据模型增强 + `migrateToV10` + IPC 契约同步
 
-Status: Draft  
+Status: done  
 Issue: #346  
-PR: <fill-after-created>  
+PR: https://github.com/Leeky1017/WN0.1/pull/347  
 RUN_LOG: openspec/_ops/task_runs/ISSUE-346.md
 
 ## 元信息
@@ -12,18 +12,18 @@ RUN_LOG: openspec/_ops/task_runs/ISSUE-346.md
 | ID | P1-001 |
 | Phase | 1 - 数据模型增强 |
 | 优先级 | P1 |
-| 状态 | Draft |
+| 状态 | done |
 | 依赖 | P0-001 |
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `openspec/specs/sprint-ai-memory-semantic-recall/spec.md`
-- [ ] `openspec/specs/sprint-ai-memory-semantic-recall/design/02-user-memory-data-model.md`
-- [ ] `openspec/specs/api-contract/spec.md`（错误码/Envelope）
-- [ ] `writenow-theia/writenow-core/src/node/database/schema.sql`
-- [ ] `writenow-theia/writenow-core/src/node/database/init.ts`（迁移版本：目标 `SCHEMA_VERSION=10`）
-- [ ] `writenow-theia/writenow-core/src/node/services/memory-service.ts`
-- [ ] `electron/ipc/contract/ipc-contract.cjs`（IPC contract SSOT）
+- [x] `openspec/specs/sprint-ai-memory-semantic-recall/spec.md`
+- [x] `openspec/specs/sprint-ai-memory-semantic-recall/design/02-user-memory-data-model.md`
+- [x] `openspec/specs/api-contract/spec.md`（错误码/Envelope）
+- [x] `writenow-theia/writenow-core/src/node/database/schema.sql`
+- [x] `writenow-theia/writenow-core/src/node/database/init.ts`（迁移版本：目标 `SCHEMA_VERSION=10`）
+- [x] `writenow-theia/writenow-core/src/node/services/memory-service.ts`
+- [x] `electron/ipc/contract/ipc-contract.cjs`（IPC contract SSOT）
 
 ## 目标
 
@@ -47,30 +47,30 @@ RUN_LOG: openspec/_ops/task_runs/ISSUE-346.md
 
 ## 任务清单
 
-- [ ] 更新 `schema.sql`：`user_memory` 的 `CREATE TABLE` 包含新增列与索引
-- [ ] 更新 `init.ts`：
-  - [ ] `SCHEMA_VERSION = 10`
-  - [ ] `migrateToV10(db)`：对存量 DB 逐列 `ALTER TABLE`，并创建索引
-- [ ] 更新 `MemoryService`：
-  - [ ] 默认过滤 `deleted_at IS NULL`
-  - [ ] `memory:delete` 改为软删除（设置 `deleted_at`，递增 `revision`）
-  - [ ] `mapMemoryRow()` / 请求校验按新字段扩展（JSON 字段稳定序列化/反序列化）
-- [ ] 更新 IPC contract（SSOT）：同步 `UserMemory` 字段与（如需要）delete 语义说明
+- [x] 更新 `schema.sql`：`user_memory` 的 `CREATE TABLE` 包含新增列与索引
+- [x] 更新 `init.ts`：
+  - [x] `SCHEMA_VERSION = 10`
+  - [x] `migrateToV10(db)`：对存量 DB 逐列 `ALTER TABLE`，并创建索引
+- [x] 更新 `MemoryService`：
+  - [x] 默认过滤 `deleted_at IS NULL`
+  - [x] `memory:delete` 改为软删除（设置 `deleted_at`，递增 `revision`）
+  - [x] `mapMemoryRow()` / 请求校验按新字段扩展（JSON 字段稳定序列化/反序列化）
+- [x] 更新 IPC contract（SSOT）：同步 `UserMemory` 字段与（如需要）delete 语义说明
 
 ## 验收标准
 
-- [ ] 存量 DB 从 v9 升级到 v10 后：
-  - [ ] `user_memory` 新列存在且有合理默认值
-  - [ ] 索引创建成功
-  - [ ] 旧数据不丢失
-- [ ] `memory:list` / `memory:injection:preview` 默认不返回已软删除条目（`deleted_at IS NULL`）
-- [ ] `memory:delete` 变为软删除语义（`deleted_at` 被设置；条目不再出现在默认查询/注入中）
-- [ ] IPC 契约从 SSOT 同步生成且 `npm run contract:check` 通过
+- [x] 存量 DB 从 v9 升级到 v10 后：
+  - [x] `user_memory` 新列存在且有合理默认值
+  - [x] 索引创建成功
+  - [x] 旧数据不丢失
+- [x] `memory:list` / `memory:injection:preview` 默认不返回已软删除条目（`deleted_at IS NULL`）
+- [x] `memory:delete` 变为软删除语义（`deleted_at` 被设置；条目不再出现在默认查询/注入中）
+- [x] IPC 契约从 SSOT 同步生成且 `npm run contract:check` 通过
 
 ## E2E 场景（建议步骤）
 
-- [ ] 创建一条 `user_memory`
-- [ ] 执行 `memory:delete`
-- [ ] 断言：`memory:list` / `memory:injection:preview` 不再返回该条目
-- [ ] 断言：DB 中该条目仍存在且 `deleted_at` 非空（可审计）
+- [x] 创建一条 `user_memory`
+- [x] 执行 `memory:delete`
+- [x] 断言：`memory:list` / `memory:injection:preview` 不再返回该条目
+- [x] 断言：DB 中该条目仍存在且 `deleted_at` 非空（可审计）
 
