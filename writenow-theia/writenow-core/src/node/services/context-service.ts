@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
@@ -39,6 +40,8 @@ import type {
     WritenowSettingsFile,
 } from '../../common/ipc-generated';
 import { TheiaInvokeRegistry } from '../theia-invoke-adapter';
+import { type SqliteDatabase } from '../database/init';
+import { WritenowSqliteDb } from '../database/writenow-sqlite-db';
 import { WRITENOW_DATA_DIR } from '../writenow-data-dir';
 
 type JsonReadResult =
@@ -141,6 +144,7 @@ async function safeReadUtf8(filePath: string): Promise<Utf8ReadResult> {
     } catch (error) {
         const code = error && typeof error === 'object' ? (error as { code?: unknown }).code : null;
         if (code === 'ENOENT') return { ok: false, error: { code: 'NOT_FOUND', message: 'Not found' } };
+        if (code === 'EACCES' || code === 'EPERM') return { ok: false, error: { code: 'PERMISSION_DENIED', message: 'Permission denied' } };
         return { ok: false, error: { code: 'IO_ERROR', message: 'I/O error', details: { cause: String(code || '') } } };
     }
 }
@@ -183,11 +187,62 @@ async function writeUtf8Atomic(filePath: string, content: string): Promise<void>
         const code = error && typeof error === 'object' ? (error as { code?: unknown }).code : null;
         const cleanupCode = cleanupError && typeof cleanupError === 'object' ? (cleanupError as { code?: unknown }).code : null;
         throw createIpcError('IO_ERROR', 'Atomic write failed', {
-            filePath,
+            path: base,
             cause: String(code || ''),
             ...(cleanupError ? { cleanupCause: String(cleanupCode || ''), cleanupMessage: (cleanupError as { message?: unknown }).message } : {}),
         });
     }
+}
+
+function stableJsonStringify(value: unknown): string {
+    const seen = new Set<unknown>();
+    const normalize = (v: unknown): unknown => {
+        if (v === null || typeof v !== 'object') return v;
+        if (seen.has(v)) return null;
+        seen.add(v);
+        if (Array.isArray(v)) return v.map(normalize);
+        const obj = v as Record<string, unknown>;
+        const keys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
+        const out: Record<string, unknown> = {};
+        for (const k of keys) out[k] = normalize(obj[k]);
+        return out;
+    };
+    return JSON.stringify(normalize(value), null, 2);
+}
+
+function normalizeInlineWhitespace(text: string): string {
+    return (typeof text === 'string' ? text : '').replace(/\s+/g, ' ').trim();
+}
+
+function sliceCodePoints(text: string, maxCodePoints: number): string {
+    const max = typeof maxCodePoints === 'number' && Number.isFinite(maxCodePoints) && maxCodePoints > 0 ? Math.floor(maxCodePoints) : 0;
+    if (max <= 0) return '';
+    const arr = Array.from(typeof text === 'string' ? text : '');
+    if (arr.length <= max) return arr.join('');
+    return arr.slice(0, max).join('');
+}
+
+function estimateTokensRough(text: string): number {
+    // Why: Rough estimate for compaction thresholds; keep deterministic.
+    return Math.ceil((typeof text === 'string' ? text.length : 0) / 2);
+}
+
+function shouldCompactConversation(stats: { messageCount: number; tokenEstimate: number }): boolean {
+    // Why: Keep short conversations cheap to save; compact only when history is "long enough".
+    return stats.messageCount >= 30 || stats.tokenEstimate >= 2400;
+}
+
+function buildHeuristicCompactSummary(record: WritenowConversationRecord): string {
+    const skills = normalizeStringArray(record.analysis?.skillsUsed).sort((a, b) => a.localeCompare(b));
+    const lastUser = [...record.messages].reverse().find((m) => m.role === 'user' && coerceString(m.content));
+    const lastAssistant = [...record.messages].reverse().find((m) => m.role === 'assistant' && coerceString(m.content));
+    const u = lastUser ? sliceCodePoints(normalizeInlineWhitespace(lastUser.content), 80) : '';
+    const a = lastAssistant ? sliceCodePoints(normalizeInlineWhitespace(lastAssistant.content), 80) : '';
+    const parts: string[] = [];
+    if (skills.length > 0) parts.push(`skills=${skills.join(',')}`);
+    if (u) parts.push(`U:${u}`);
+    if (a) parts.push(`A:${a}`);
+    return parts.length > 0 ? parts.join(' | ') : '(empty)';
 }
 
 function normalizeConversationMessage(value: unknown): WritenowConversationMessage | null {
@@ -298,6 +353,7 @@ export class ContextService {
     constructor(
         @inject(ILogger) private readonly logger: ILogger,
         @inject(WRITENOW_DATA_DIR) private readonly dataDir: string,
+        @inject(WritenowSqliteDb) private readonly sqliteDb: WritenowSqliteDb,
     ) {}
 
     register(registry: TheiaInvokeRegistry): void {
@@ -462,7 +518,7 @@ export class ContextService {
             userPreferences: normalizeUserPreferences(conv?.userPreferences),
         };
 
-        const record: WritenowConversationRecord = {
+        let record: WritenowConversationRecord = {
             version: 1,
             id: conversationId,
             articleId,
@@ -474,6 +530,37 @@ export class ContextService {
 
         await this.ensureScaffold(projectId);
         const filePath = this.getConversationFilePath(projectId, conversationId);
+
+        // P2-001: Full (file) -> Compact (SQLite) compaction for long conversations.
+        try {
+            const tokenEstimate = messages.reduce((sum, m) => sum + estimateTokensRough(m.content), 0);
+            const messageCount = messages.length;
+            const stats = { messageCount, tokenEstimate };
+            if (shouldCompactConversation(stats)) {
+                const summaryText = buildHeuristicCompactSummary(record);
+                record = {
+                    ...record,
+                    analysis: {
+                        ...record.analysis,
+                        summary: summaryText,
+                        summaryQuality: 'heuristic',
+                    },
+                };
+                this.upsertConversationCompact({
+                    projectId,
+                    filePath,
+                    record,
+                    messageCount,
+                    tokenEstimate,
+                    reason: 'threshold',
+                    threshold: { messageCount: 30, tokenEstimate: 2400 },
+                });
+            }
+        } catch (error) {
+            // Why: Compaction must be best-effort; never block saving the full conversation record.
+            this.logger.warn(`[context] compaction skipped: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
         await writeUtf8Atomic(filePath, JSON.stringify(record, null, 2) + '\n');
 
         const indexLoaded = await this.loadConversationIndex(projectId);
@@ -556,6 +643,23 @@ export class ContextService {
 
         await writeUtf8Atomic(filePath, JSON.stringify(nextRecord, null, 2) + '\n');
 
+        // P2-001: Keep Compact store in sync with analysis updates (heuristic/L2).
+        try {
+            const tokenEstimate = nextRecord.messages.reduce((sum, m) => sum + estimateTokensRough(m.content), 0);
+            const messageCount = nextRecord.messages.length;
+            this.upsertConversationCompact({
+                projectId,
+                filePath,
+                record: nextRecord,
+                messageCount,
+                tokenEstimate,
+                reason: 'analysis_update',
+                threshold: { messageCount: 0, tokenEstimate: 0 },
+            });
+        } catch (error) {
+            this.logger.warn(`[context] compact upsert skipped: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
         const indexLoaded = await this.loadConversationIndex(projectId);
         const nextItems = indexLoaded.index.items.filter((item) => item.id !== conversationId);
         const indexItem = toConversationIndexItem(this.getWritenowRoot(projectId), filePath, nextRecord);
@@ -566,6 +670,92 @@ export class ContextService {
         await writeUtf8Atomic(indexLoaded.indexPath, JSON.stringify(nextIndex, null, 2) + '\n');
 
         return { updated: true, index: indexItem };
+    }
+
+    /**
+     * Persist Compact summary for long sessions.
+     *
+     * Why: Keep prompt injection cheap by defaulting to Compact summaries, while preserving Full records on disk
+     * with a project-relative reference for audit/backtrace.
+     *
+     * Failure: Must be best-effort; callers wrap this in try/catch so conversation persistence never blocks.
+     */
+    private upsertConversationCompact(input: {
+        projectId: string;
+        filePath: string;
+        record: WritenowConversationRecord;
+        messageCount: number;
+        tokenEstimate: number;
+        reason: 'threshold' | 'analysis_update';
+        threshold: { messageCount: number; tokenEstimate: number };
+    }): void {
+        const db: SqliteDatabase = this.sqliteDb.db;
+        const rel = this.toRelPath(input.projectId, input.filePath);
+        const fullRef = `.writenow/${rel}`;
+        const stats = { messageCount: input.messageCount, tokenEstimate: input.tokenEstimate };
+        const skillsUsed = normalizeStringArray(input.record.analysis.skillsUsed).sort((a, b) => a.localeCompare(b));
+
+        const compact = {
+            version: 1,
+            projectId: input.projectId,
+            conversationId: input.record.id,
+            articleId: input.record.articleId,
+            fullRef,
+            stats,
+            summary: input.record.analysis.summary,
+            summaryQuality: input.record.analysis.summaryQuality,
+            skillsUsed,
+            userPreferences: normalizeUserPreferences(input.record.analysis.userPreferences),
+        };
+
+        const compactJson = stableJsonStringify(compact);
+
+        db.prepare(
+            `INSERT INTO conversation_compacts
+              (project_id, conversation_id, article_id, full_ref, compact_json, summary, summary_quality, message_count, token_estimate, created_at, updated_at, compacted_at)
+              VALUES (@project_id, @conversation_id, @article_id, @full_ref, @compact_json, @summary, @summary_quality, @message_count, @token_estimate, @created_at, @updated_at, @compacted_at)
+              ON CONFLICT(project_id, conversation_id) DO UPDATE SET
+                article_id = excluded.article_id,
+                full_ref = excluded.full_ref,
+                compact_json = excluded.compact_json,
+                summary = excluded.summary,
+                summary_quality = excluded.summary_quality,
+                message_count = excluded.message_count,
+                token_estimate = excluded.token_estimate,
+                created_at = excluded.created_at,
+                updated_at = excluded.updated_at,
+                compacted_at = excluded.compacted_at`,
+        ).run({
+            project_id: input.projectId,
+            conversation_id: input.record.id,
+            article_id: input.record.articleId,
+            full_ref: fullRef,
+            compact_json: compactJson,
+            summary: input.record.analysis.summary,
+            summary_quality: input.record.analysis.summaryQuality,
+            message_count: input.messageCount,
+            token_estimate: input.tokenEstimate,
+            created_at: input.record.createdAt,
+            updated_at: input.record.updatedAt,
+            compacted_at: input.record.updatedAt,
+        });
+
+        db.prepare(
+            `INSERT OR REPLACE INTO conversation_compaction_events
+              (id, project_id, conversation_id, article_id, triggered_at, reason, threshold_json, stats_json, full_ref, compact_ref)
+              VALUES (@id, @project_id, @conversation_id, @article_id, @triggered_at, @reason, @threshold_json, @stats_json, @full_ref, @compact_ref)`,
+        ).run({
+            id: randomUUID(),
+            project_id: input.projectId,
+            conversation_id: input.record.id,
+            article_id: input.record.articleId,
+            triggered_at: input.record.updatedAt,
+            reason: input.reason,
+            threshold_json: stableJsonStringify(input.threshold),
+            stats_json: stableJsonStringify(stats),
+            full_ref: fullRef,
+            compact_ref: `db:conversation_compacts:${input.projectId}:${input.record.id}`,
+        });
     }
 
     private getOrCreateState(projectId: string): ProjectContextState {

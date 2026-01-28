@@ -232,3 +232,37 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL
 );
 
+-- P2-001: 历史对话 Full → Compact（Compact 存 SQLite，Full 以文件引用回溯）
+CREATE TABLE IF NOT EXISTS conversation_compacts (
+  project_id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL,
+  article_id TEXT NOT NULL,
+  full_ref TEXT NOT NULL,             -- project-relative: ".writenow/conversations/<id>.json"
+  compact_json TEXT NOT NULL,         -- stable JSON string (deterministic)
+  summary TEXT NOT NULL,
+  summary_quality TEXT NOT NULL,      -- 'placeholder' | 'heuristic' | 'l2'
+  message_count INTEGER NOT NULL,
+  token_estimate INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  compacted_at TEXT NOT NULL,
+  PRIMARY KEY (project_id, conversation_id)
+);
+CREATE INDEX IF NOT EXISTS idx_conversation_compacts_project_article_updated
+  ON conversation_compacts(project_id, article_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS conversation_compaction_events (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL,
+  article_id TEXT NOT NULL,
+  triggered_at TEXT NOT NULL,
+  reason TEXT NOT NULL,               -- e.g. 'threshold' | 'analysis_update'
+  threshold_json TEXT NOT NULL,
+  stats_json TEXT NOT NULL,
+  full_ref TEXT NOT NULL,
+  compact_ref TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_conversation_compaction_events_project_time
+  ON conversation_compaction_events(project_id, triggered_at DESC);
+

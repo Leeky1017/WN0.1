@@ -104,6 +104,9 @@ async function safeReadUtf8(filePath) {
   } catch (error) {
     const code = error && typeof error === 'object' ? error.code : null
     if (code === 'ENOENT') return { ok: false, error: { code: 'NOT_FOUND', message: 'Not found' } }
+    if (code === 'EACCES' || code === 'EPERM') {
+      return { ok: false, error: { code: 'PERMISSION_DENIED', message: 'Permission denied' } }
+    }
     return { ok: false, error: { code: 'IO_ERROR', message: 'I/O error', details: { cause: String(code || '') } } }
   }
 }
@@ -182,11 +185,142 @@ async function writeUtf8Atomic(filePath, content) {
     const code = error && typeof error === 'object' ? error.code : null
     const cleanupCode = cleanupError && typeof cleanupError === 'object' ? cleanupError.code : null
     throw createIpcError('IO_ERROR', 'Atomic write failed', {
-      filePath,
+      path: base,
       cause: String(code || ''),
       ...(cleanupError ? { cleanupCause: String(cleanupCode || ''), cleanupMessage: cleanupError?.message } : {}),
     })
   }
+}
+
+function stableJsonStringify(value) {
+  const seen = new Set()
+  const normalize = (v) => {
+    if (v === null || typeof v !== 'object') return v
+    if (seen.has(v)) return null
+    seen.add(v)
+    if (Array.isArray(v)) return v.map(normalize)
+    const obj = v
+    const keys = Object.keys(obj).sort((a, b) => a.localeCompare(b))
+    const out = {}
+    for (const k of keys) out[k] = normalize(obj[k])
+    return out
+  }
+  return JSON.stringify(normalize(value), null, 2)
+}
+
+function normalizeInlineWhitespace(text) {
+  return (typeof text === 'string' ? text : '').replace(/\s+/g, ' ').trim()
+}
+
+function sliceCodePoints(text, maxCodePoints) {
+  const max = typeof maxCodePoints === 'number' && Number.isFinite(maxCodePoints) && maxCodePoints > 0 ? Math.floor(maxCodePoints) : 0
+  if (max <= 0) return ''
+  const arr = Array.from(typeof text === 'string' ? text : '')
+  if (arr.length <= max) return arr.join('')
+  return arr.slice(0, max).join('')
+}
+
+function estimateTokensRough(text) {
+  // Why: Rough estimate for compaction thresholds; keep deterministic and cheap.
+  // Chinese tends to be denser than English; ~2 chars/token is a conservative heuristic.
+  return Math.ceil((typeof text === 'string' ? text.length : 0) / 2)
+}
+
+function ensureConversationCompactSchema(db, logger) {
+  if (!db || typeof db.exec !== 'function') return { ok: false, reason: 'no_db' }
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS conversation_compacts (
+  project_id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL,
+  article_id TEXT NOT NULL,
+  full_ref TEXT NOT NULL,
+  compact_json TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  summary_quality TEXT NOT NULL,
+  message_count INTEGER NOT NULL,
+  token_estimate INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  compacted_at TEXT NOT NULL,
+  PRIMARY KEY (project_id, conversation_id)
+);`)
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_conversation_compacts_project_article_updated ON conversation_compacts(project_id, article_id, updated_at DESC);'
+    )
+    db.exec(`CREATE TABLE IF NOT EXISTS conversation_compaction_events (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL,
+  article_id TEXT NOT NULL,
+  triggered_at TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  threshold_json TEXT NOT NULL,
+  stats_json TEXT NOT NULL,
+  full_ref TEXT NOT NULL,
+  compact_ref TEXT NOT NULL
+);`)
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_conversation_compaction_events_project_time ON conversation_compaction_events(project_id, triggered_at DESC);'
+    )
+    return { ok: true }
+  } catch (error) {
+    logger?.warn?.('context', 'failed to ensure compaction schema', { message: error?.message })
+    return { ok: false, reason: 'db_error' }
+  }
+}
+
+function shouldCompactConversation(stats) {
+  const messageCount = typeof stats?.messageCount === 'number' ? stats.messageCount : 0
+  const tokenEstimate = typeof stats?.tokenEstimate === 'number' ? stats.tokenEstimate : 0
+  // Why: Keep short conversations cheap to save; compact only when history is "long enough".
+  if (messageCount >= 30) return true
+  if (tokenEstimate >= 2400) return true
+  return false
+}
+
+function buildHeuristicCompactSummary(record, limits) {
+  const maxSnippet = typeof limits?.maxSnippetCodePoints === 'number' ? limits.maxSnippetCodePoints : 80
+  const skills = normalizeStringArray(record?.analysis?.skillsUsed).sort((a, b) => a.localeCompare(b))
+  const lastUser = [...(record?.messages ?? [])].reverse().find((m) => m?.role === 'user' && coerceString(m?.content))
+  const lastAssistant = [...(record?.messages ?? [])].reverse().find((m) => m?.role === 'assistant' && coerceString(m?.content))
+
+  const u = lastUser ? sliceCodePoints(normalizeInlineWhitespace(lastUser.content), maxSnippet) : ''
+  const a = lastAssistant ? sliceCodePoints(normalizeInlineWhitespace(lastAssistant.content), maxSnippet) : ''
+
+  const parts = []
+  if (skills.length > 0) parts.push(`skills=${skills.join(',')}`)
+  if (u) parts.push(`U:${u}`)
+  if (a) parts.push(`A:${a}`)
+  return parts.length > 0 ? parts.join(' | ') : '(empty)'
+}
+
+function upsertConversationCompact(db, input) {
+  if (!db) return
+  db.prepare(
+    `INSERT INTO conversation_compacts
+      (project_id, conversation_id, article_id, full_ref, compact_json, summary, summary_quality, message_count, token_estimate, created_at, updated_at, compacted_at)
+      VALUES (@project_id, @conversation_id, @article_id, @full_ref, @compact_json, @summary, @summary_quality, @message_count, @token_estimate, @created_at, @updated_at, @compacted_at)
+      ON CONFLICT(project_id, conversation_id) DO UPDATE SET
+        article_id = excluded.article_id,
+        full_ref = excluded.full_ref,
+        compact_json = excluded.compact_json,
+        summary = excluded.summary,
+        summary_quality = excluded.summary_quality,
+        message_count = excluded.message_count,
+        token_estimate = excluded.token_estimate,
+        created_at = excluded.created_at,
+        updated_at = excluded.updated_at,
+        compacted_at = excluded.compacted_at`
+  ).run(input)
+}
+
+function insertConversationCompactionEvent(db, evt) {
+  if (!db) return
+  db.prepare(
+    `INSERT OR REPLACE INTO conversation_compaction_events
+      (id, project_id, conversation_id, article_id, triggered_at, reason, threshold_json, stats_json, full_ref, compact_ref)
+      VALUES (@id, @project_id, @conversation_id, @article_id, @triggered_at, @reason, @threshold_json, @stats_json, @full_ref, @compact_ref)`
+  ).run(evt)
 }
 
 async function loadConversationIndex(projectId) {
@@ -669,6 +803,8 @@ function stopWatch(projectId) {
 }
 
 function registerContextIpcHandlers(ipcMain, options = {}) {
+  const db = options.db ?? null
+  const logger = options.logger ?? null
   const handleInvoke =
     typeof options.handleInvoke === 'function' ? options.handleInvoke : (channel, handler) => ipcMain.handle(channel, handler)
 
@@ -752,7 +888,7 @@ function registerContextIpcHandlers(ipcMain, options = {}) {
       userPreferences: normalizeUserPreferences(conv?.userPreferences),
     }
 
-    const record = {
+    let record = {
       version: 1,
       id: conversationId,
       articleId,
@@ -764,6 +900,73 @@ function registerContextIpcHandlers(ipcMain, options = {}) {
 
     await ensureWritenowScaffold(projectId)
     const conversationPath = getConversationFilePath(projectId, conversationId)
+
+    // P2-001: Full (file) -> Compact (SQLite) compaction for long conversations.
+    try {
+      const tokenEstimate = messages.reduce((sum, m) => sum + estimateTokensRough(typeof m?.content === 'string' ? m.content : ''), 0)
+      const messageCount = Array.isArray(messages) ? messages.length : 0
+      const stats = { messageCount, tokenEstimate }
+      if (shouldCompactConversation(stats)) {
+        const summary = buildHeuristicCompactSummary(record, { maxSnippetCodePoints: 80 })
+        record = {
+          ...record,
+          analysis: {
+            ...record.analysis,
+            summary,
+            summaryQuality: 'heuristic',
+          },
+        }
+
+        const schema = ensureConversationCompactSchema(db, logger)
+        if (schema.ok) {
+          const rel = toRelPath(projectId, conversationPath)
+          const fullRef = `.writenow/${rel}`
+          const compact = {
+            version: 1,
+            projectId,
+            conversationId: record.id,
+            articleId: record.articleId,
+            fullRef,
+            stats,
+            summary,
+            summaryQuality: 'heuristic',
+            skillsUsed: normalizeStringArray(record.analysis?.skillsUsed).sort((a, b) => a.localeCompare(b)),
+            userPreferences: normalizeUserPreferences(record.analysis?.userPreferences),
+          }
+          const compactJson = stableJsonStringify(compact)
+          upsertConversationCompact(db, {
+            project_id: projectId,
+            conversation_id: record.id,
+            article_id: record.articleId,
+            full_ref: fullRef,
+            compact_json: compactJson,
+            summary,
+            summary_quality: 'heuristic',
+            message_count: messageCount,
+            token_estimate: tokenEstimate,
+            created_at: record.createdAt,
+            updated_at: record.updatedAt,
+            compacted_at: record.updatedAt,
+          })
+          insertConversationCompactionEvent(db, {
+            id: `cmp_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`,
+            project_id: projectId,
+            conversation_id: record.id,
+            article_id: record.articleId,
+            triggered_at: record.updatedAt,
+            reason: 'threshold',
+            threshold_json: stableJsonStringify({ messageCount: 30, tokenEstimate: 2400 }),
+            stats_json: stableJsonStringify(stats),
+            full_ref: fullRef,
+            compact_ref: `db:conversation_compacts:${projectId}:${record.id}`,
+          })
+        }
+      }
+    } catch (error) {
+      // Why: Compaction must be best-effort; never block saving the full conversation record.
+      logger?.warn?.('context', 'compaction skipped', { message: error?.message })
+    }
+
     await writeUtf8Atomic(conversationPath, JSON.stringify(record, null, 2) + '\n')
 
     const indexLoaded = await loadConversationIndex(projectId)
@@ -847,6 +1050,49 @@ function registerContextIpcHandlers(ipcMain, options = {}) {
     }
 
     await writeUtf8Atomic(filePath, JSON.stringify(nextRecord, null, 2) + '\n')
+
+    // P2-001: Keep Compact store in sync with analysis updates (heuristic/L2).
+    try {
+      const schema = ensureConversationCompactSchema(db, logger)
+      if (schema.ok) {
+        const tokenEstimate = Array.isArray(nextRecord.messages)
+          ? nextRecord.messages.reduce((sum, m) => sum + estimateTokensRough(typeof m?.content === 'string' ? m.content : ''), 0)
+          : 0
+        const messageCount = Array.isArray(nextRecord.messages) ? nextRecord.messages.length : 0
+        const rel = toRelPath(projectId, filePath)
+        const fullRef = `.writenow/${rel}`
+        const stats = { messageCount, tokenEstimate }
+        const compact = {
+          version: 1,
+          projectId,
+          conversationId: nextRecord.id,
+          articleId: nextRecord.articleId,
+          fullRef,
+          stats,
+          summary: nextRecord.analysis.summary,
+          summaryQuality: nextRecord.analysis.summaryQuality,
+          skillsUsed: normalizeStringArray(nextRecord.analysis?.skillsUsed),
+          userPreferences: normalizeUserPreferences(nextRecord.analysis?.userPreferences),
+        }
+        const compactJson = stableJsonStringify(compact)
+        upsertConversationCompact(db, {
+          project_id: projectId,
+          conversation_id: nextRecord.id,
+          article_id: nextRecord.articleId,
+          full_ref: fullRef,
+          compact_json: compactJson,
+          summary: nextRecord.analysis.summary,
+          summary_quality: nextRecord.analysis.summaryQuality,
+          message_count: messageCount,
+          token_estimate: tokenEstimate,
+          created_at: nextRecord.createdAt,
+          updated_at: nextRecord.updatedAt,
+          compacted_at: nextRecord.updatedAt,
+        })
+      }
+    } catch (error) {
+      logger?.warn?.('context', 'compact upsert skipped', { message: error?.message })
+    }
 
     const indexLoaded = await loadConversationIndex(projectId)
     const nextItems = indexLoaded.index.items.filter((item) => item.id !== conversationId)
