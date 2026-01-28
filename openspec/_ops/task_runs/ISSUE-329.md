@@ -49,3 +49,20 @@
 - Key output: `writenow-core: $ tsc` (no errors)
 - Evidence: `writenow-theia/writenow-core/src/node/**`
 
+### 2026-01-28 CI (PR #337)
+- Command: `gh pr checks 337`
+- Key output: `ci/e2e-write-mode/e2e-perf/openspec-log-guard/merge-serial all pass`
+- Evidence:
+  - `https://github.com/Leeky1017/WN0.1/actions/runs/21431237464` (ci)
+  - `https://github.com/Leeky1017/WN0.1/actions/runs/21431237441` (e2e-write-mode)
+  - `https://github.com/Leeky1017/WN0.1/actions/runs/21431237459` (e2e-perf)
+  - `https://github.com/Leeky1017/WN0.1/actions/runs/21431237429` (openspec-log-guard)
+  - `https://github.com/Leeky1017/WN0.1/actions/runs/21431237431` (merge-serial)
+
+### 2026-01-28 Merge
+- Command: `gh pr view 337 --json state,mergedAt,mergeCommit`
+- Key output: `state=MERGED; mergeCommit=3b35a01`
+- Evidence:
+  - PR: `https://github.com/Leeky1017/WN0.1/pull/337`
+  - Merge commit: `3b35a01bea3bcf982e7e81b34fa3ba6fa40e7517`
+

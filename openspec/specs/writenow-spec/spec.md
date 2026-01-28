@@ -8,6 +8,7 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 - 架构主线：Eclipse Theia（✅ 迁移完成：Phase 0–3，2026-01-24）
 - 前端基线：`writenow-frontend/`（✅ Frontend V2 Phase 0–6 完成：2026-01-26；Electron 34 + Vite 6 + React 18）
 - 代码基线：`writenow-theia/`（production Theia workspace：browser + electron + writenow-core extension）
+- AI Memory：P2-001/P2-002（Full→Compact 压缩 + 设定文件化按需加载）✅（2026-01-28，PR #337）
 - Legacy 清理：`theia-poc/` 已移除；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/`（contract SSOT）+ `skills/`（builtin packages）；前端架构重构后已移除：`writenow-frontend-old/`（旧前端）、`figma参考/`（旧参考代码）、`backup/`（临时备份）
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
