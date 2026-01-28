@@ -7,13 +7,18 @@
 | ID | P2-001 |
 | Phase | 2 - 长会话支撑 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
 | 依赖 | P0-002 |
+
+Status: done
+Issue: #329
+PR: https://github.com/Leeky1017/WN0.1/pull/337
+RUN_LOG: openspec/_ops/task_runs/ISSUE-329.md
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `openspec/specs/sprint-ai-memory/design/01-memory-layers.md`（Layer 4 定义）
-- [ ] `electron/ipc/context.cjs`（现有 summary/analysis 结构）
+- [x] `openspec/specs/sprint-ai-memory/design/01-memory-layers.md`（Layer 4 定义）
+- [x] `electron/ipc/context.cjs`（现有 summary/analysis 结构）
 
 ## 目标
 
@@ -21,18 +26,18 @@
 
 ## 任务清单
 
-- [ ] 定义 Full 与 Compact 的存储结构（SQLite + 文件引用）
-- [ ] 实现 compaction 触发条件（按 token 估算/条目数/时间）
-- [ ] 生成 Compact 摘要（结构化、可确定性序列化）
-- [ ] 注入策略：默认注入 Compact；Full 仅在按需查看/回溯时加载
-- [ ] 增加 E2E：构造长历史项目 → 多次运行 SKILL → 触发 compaction → 验证仍可继续运行且引用可追溯
+- [x] 定义 Full 与 Compact 的存储结构（SQLite + 文件引用）
+- [x] 实现 compaction 触发条件（按 token 估算/条目数/时间）
+- [x] 生成 Compact 摘要（结构化、可确定性序列化）
+- [x] 注入策略：默认注入 Compact；Full 仅在按需查看/回溯时加载
+- [x] 增加 E2E：构造长历史项目 → 多次运行 SKILL → 触发 compaction → 验证仍可继续运行且引用可追溯
 
 ## 验收标准
 
-- [ ] Compact 摘要稳定可复现（相同输入生成相同序列化结果）
-- [ ] compaction 不会导致上下文链路卡死（取消/超时可恢复）
-- [ ] 可回溯：Compact 记录包含 Full 的引用（文件路径/条目 ID）
-- [ ] E2E 通过并写入 RUN_LOG 证据
+- [x] Compact 摘要稳定可复现（相同输入生成相同序列化结果）
+- [x] compaction 不会导致上下文链路卡死（取消/超时可恢复）
+- [x] 可回溯：Compact 记录包含 Full 的引用（文件路径/条目 ID）
+- [x] E2E 通过并写入 RUN_LOG 证据
 
 ## 可观测信号 / 验证方式
 
@@ -45,10 +50,10 @@
 
 ## E2E 场景（建议步骤）
 
-- [ ] 构造长历史：连续运行多次 SKILL 生成足够多的历史记录
-- [ ] 触发 compaction（通过阈值或强制入口）
-- [ ] 断言：Compact 摘要生成且被后续注入使用（可通过 injected.refs 或调试视图确认）
-- [ ] 通过引用回溯到 Full 内容并验证一致性
+- [x] 构造长历史：连续运行多次 SKILL 生成足够多的历史记录
+- [x] 触发 compaction（通过阈值或强制入口）
+- [x] 断言：Compact 摘要生成且被后续注入使用（可通过 injected.refs 或调试视图确认）
+- [x] 通过引用回溯到 Full 内容并验证一致性
 
 ## 产出
 

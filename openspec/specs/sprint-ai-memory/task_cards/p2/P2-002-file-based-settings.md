@@ -7,14 +7,19 @@
 | ID | P2-002 |
 | Phase | 2 - 长会话支撑 |
 | 优先级 | P1 |
-| 状态 | Pending |
+| 状态 | Done |
 | 依赖 | P0-001 |
+
+Status: done
+Issue: #329
+PR: https://github.com/Leeky1017/WN0.1/pull/337
+RUN_LOG: openspec/_ops/task_runs/ISSUE-329.md
 
 ## 必读前置（执行前必须阅读）
 
-- [ ] `openspec/specs/sprint-ai-memory/design/01-memory-layers.md`（Layer 3 定义）
-- [ ] `openspec/specs/sprint-ai-memory/design/04-skill-context-injection.md`
-- [ ] `electron/ipc/characters.cjs`
+- [x] `openspec/specs/sprint-ai-memory/design/01-memory-layers.md`（Layer 3 定义）
+- [x] `openspec/specs/sprint-ai-memory/design/04-skill-context-injection.md`
+- [x] `electron/ipc/characters.cjs`
 
 ## 目标
 
@@ -22,18 +27,18 @@
 
 ## 任务清单
 
-- [ ] 定义项目内设定文件规范（目录/命名/格式，例如 `.writenow/characters/*.md|json`）
-- [ ] characters.cjs 支持“按需读取 + 摘要/片段裁剪 + 引用返回”
-- [ ] 与 `context_rules` 联动：只有声明 `characters/style_guide` 的 SKILL 才加载
-- [ ] 注入内容必须带证据引用（文件路径/条目 ID/范围），便于可追溯
-- [ ] 增加 E2E：创建人物卡文件 → 运行需要人物设定的 SKILL → 验证按需加载与引用可观测
+- [x] 定义项目内设定文件规范（目录/命名/格式，例如 `.writenow/characters/*.md|json`）
+- [x] characters.cjs 支持“按需读取 + 摘要/片段裁剪 + 引用返回”
+- [x] 与 `context_rules` 联动：只有声明 `characters/style_guide` 的 SKILL 才加载
+- [x] 注入内容必须带证据引用（文件路径/条目 ID/范围），便于可追溯
+- [x] 增加 E2E：创建人物卡文件 → 运行需要人物设定的 SKILL → 验证按需加载与引用可观测
 
 ## 验收标准
 
-- [ ] 大设定默认不常驻 prompt；按需加载且遵循预算裁剪
-- [ ] 引用可追溯：输出/注入元数据包含来源引用（project-relative，禁止绝对路径）
-- [ ] 缺失文件/权限/IO 错误返回稳定错误码（`NOT_FOUND`/`IO_ERROR`），UI 不挂起
-- [ ] E2E 通过并写入 RUN_LOG 证据
+- [x] 大设定默认不常驻 prompt；按需加载且遵循预算裁剪
+- [x] 引用可追溯：输出/注入元数据包含来源引用（project-relative，禁止绝对路径）
+- [x] 缺失文件/权限/IO 错误返回稳定错误码（`NOT_FOUND`/`IO_ERROR`），UI 不挂起
+- [x] E2E 通过并写入 RUN_LOG 证据
 
 ## 可观测信号 / 验证方式
 
@@ -45,11 +50,11 @@
 
 ## E2E 场景（建议步骤）
 
-- [ ] 写入 `.writenow/characters/zhangsan.md`（真实文件）
-- [ ] 运行一个 `context_rules.characters=false` 的 SKILL
-- [ ] 断言：`injected.refs[]` 不包含 characters 引用
-- [ ] 运行一个 `context_rules.characters=true` 的 SKILL
-- [ ] 断言：`injected.refs[]` 包含 `.writenow/characters/zhangsan.md` 且不出现绝对路径
+- [x] 写入 `.writenow/characters/zhangsan.md`（真实文件）
+- [x] 运行一个 `context_rules.characters=false` 的 SKILL
+- [x] 断言：`injected.refs[]` 不包含 characters 引用
+- [x] 运行一个 `context_rules.characters=true` 的 SKILL
+- [x] 断言：`injected.refs[]` 包含 `.writenow/characters/zhangsan.md` 且不出现绝对路径
 
 ## 产出
 
