@@ -1,7 +1,7 @@
 # ISSUE-326
 - Issue: #326
 - Branch: task/326-p3-001-packaging-offline
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/331
 
 ## Plan
 - 固化打包流水线：强制构建 Theia backend → 校验/补齐随包资源 → 再执行 electron-builder
