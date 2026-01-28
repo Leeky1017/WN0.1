@@ -1,7 +1,7 @@
 # ISSUE-330
 - Issue: #330
 - Branch: task/330-p3-001-litellm-proxy
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/332
 
 ## Plan
 - 在 `electron/ipc/ai.cjs` 增加 LiteLLM Proxy 可选路由（默认关闭），确保启用后单链路、失败语义可判定且不记录 prompt 明文。
@@ -46,3 +46,8 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output:
   - `Totals: 5 passed, 0 failed (5 items)`
+
+### 2026-01-28 14:35 PR created + auto-merge enabled
+- Command: `gh pr create ...` + `gh pr merge 332 --auto --squash --delete-branch`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/332`
+- Evidence: PR #332
