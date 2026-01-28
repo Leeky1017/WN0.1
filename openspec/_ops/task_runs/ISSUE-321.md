@@ -1,7 +1,11 @@
 # ISSUE-321
 - Issue: #321
 - Branch: task/321-e2e-write-mode-flake-fixes
+<<<<<<< HEAD
 - PR: https://github.com/Leeky1017/WN0.1/pull/323
+=======
+- PR: https://github.com/Leeky1017/WN0.1/pull/322
+>>>>>>> origin/main
 
 ## Plan
 - 修复 `e2e-write-mode` flake：Review Accept 清理确定性 + E2E teardown/端口释放兜底。
@@ -50,6 +54,7 @@
 - Key output: `8 skipped` (WSL 环境跳过；CI 作为真实门禁验证)
 - Evidence: `writenow-frontend/tests/e2e/write-mode/*.spec.ts`
 
+<<<<<<< HEAD
 ### 2026-01-28 03:13 UTC — CI re-run on PR #322 still failing
 - Command: `gh run view 21423330925 --log-failed`
 - Key output: `WM-003 wm-review-root still visible after Accept`; `WM-005 treeitem exact name match failed (element(s) not found)`
@@ -65,3 +70,5 @@
 - Key output: lint/build success
 - Evidence: `writenow-frontend/dist/`, `writenow-frontend/dist-electron/`
 
+=======
+>>>>>>> origin/main
