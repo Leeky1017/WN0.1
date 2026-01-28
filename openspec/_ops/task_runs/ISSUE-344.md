@@ -1,7 +1,7 @@
 # ISSUE-344
 - Issue: #344
 - Branch: task/344-ai-memory-semantic-recall
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/345
 
 ## Plan
 - Read baseline `sprint-ai-memory` + related design/implementation; extract semantic-recall delta
