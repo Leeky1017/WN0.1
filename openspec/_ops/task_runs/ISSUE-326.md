@@ -49,6 +49,7 @@
 ### 2026-01-28 14:55 Packaged launch smoke (linux)
 - Command: `cd writenow-frontend && WN_SMOKE_LAUNCH=1 npm run package:smoke`
 - Key output: backend reached `[backend] ready`; renderer crashed in WSL smoke (`render-process-gone exitCode=133`) — see `/tmp/writenow-packaging-smoke-*/logs/main.log`
+- Key hint: app stderr shows `platform_shared_memory_region_posix.cc` failures when creating shared memory under `/tmp` (WSL environment-specific)
 
 ### 2026-01-28 14:55 Packaged launch smoke (linux)
 - Command: `cd writenow-frontend && WN_SMOKE_LAUNCH=1 npm run package:smoke`
