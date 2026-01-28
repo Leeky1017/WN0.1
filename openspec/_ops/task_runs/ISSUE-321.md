@@ -50,3 +50,18 @@
 - Key output: `8 skipped` (WSL 环境跳过；CI 作为真实门禁验证)
 - Evidence: `writenow-frontend/tests/e2e/write-mode/*.spec.ts`
 
+### 2026-01-28 03:13 UTC — CI re-run on PR #322 still failing
+- Command: `gh run view 21423330925 --log-failed`
+- Key output: `WM-003 wm-review-root still visible after Accept`; `WM-005 treeitem exact name match failed (element(s) not found)`
+- Evidence: https://github.com/Leeky1017/WN0.1/actions/runs/21423330925
+
+### 2026-01-28 03:15 UTC — Download artifacts for failing run
+- Command: `gh run download 21423330925 -D /tmp/wn-artifacts-21423330925`
+- Key output: downloaded `playwright-write-mode-artifacts` (screenshots + trace.zip + per-test main.log)
+- Evidence: `/tmp/wn-artifacts-21423330925/`
+
+### 2026-01-28 03:22 UTC — Patch + local rebuild
+- Command: `cd writenow-frontend && npm run lint && npm run build && npm run build:electron`
+- Key output: lint/build success
+- Evidence: `writenow-frontend/dist/`, `writenow-frontend/dist-electron/`
+
