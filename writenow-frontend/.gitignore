@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Bundled offline assets (downloaded at package time)
+resources/models/*.gguf
+resources/models/*.part
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

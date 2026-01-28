@@ -319,8 +319,14 @@ class LocalLlmService {
     for (const model of LOCAL_LLM_MODELS) {
       const resolved = this.resolveModelPath(model.id)
       if (!resolved) continue
-      const modelPath = resolved.modelPath
-      if (modelPath && fs.existsSync(modelPath)) installedModelIds.push(model.id)
+      const { descriptor, modelPath } = resolved
+      if (descriptor.id === 'custom') {
+        if (modelPath && fs.existsSync(modelPath)) installedModelIds.push(model.id)
+        continue
+      }
+
+      const bundledPath = this.resolveBundledModelPath(descriptor)
+      if ((modelPath && fs.existsSync(modelPath)) || bundledPath) installedModelIds.push(model.id)
     }
     return ipcOk({ models: LOCAL_LLM_MODELS, installedModelIds, state: this.state, settings: this.settings })
   }
@@ -388,32 +394,52 @@ class LocalLlmService {
         return ipcErr('MODEL_NOT_READY', 'Custom model file not found', { modelId, modelPath })
       }
 
-      if (!allowDownload) {
+      const bundledPath = this.resolveBundledModelPath(descriptor)
+      if (bundledPath) {
+        if (this.downloadInFlight) {
+          if (this.downloadModelId !== modelId) {
+            return ipcErr('CONFLICT', 'Another model download is in progress', { downloadingModelId: this.downloadModelId })
+          }
+          try {
+            await this.downloadInFlight
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            return ipcErr('IO_ERROR', 'Bundled model copy failed', { modelId, modelPath, bundledPath, message }, true)
+          }
+        } else {
+          try {
+            await this.startBundledModelCopy({ descriptor, modelId, modelPath, bundledPath })
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            return ipcErr('IO_ERROR', 'Bundled model copy failed', { modelId, modelPath, bundledPath, message }, true)
+          }
+        }
+      } else if (!allowDownload) {
         this.setState({ status: 'idle', modelId, modelPath })
         return ipcErr('MODEL_NOT_READY', 'Model not downloaded', { modelId, modelPath })
-      }
-
-      if (!descriptor.url || !descriptor.filename || !descriptor.sha256) {
-        this.setState({ status: 'idle', modelId, modelPath })
-        return ipcErr('UNSUPPORTED', 'Model download is not available for this model', { modelId })
-      }
-
-      if (this.downloadInFlight) {
-        if (this.downloadModelId !== modelId) {
-          return ipcErr('CONFLICT', 'Another model download is in progress', { downloadingModelId: this.downloadModelId })
-        }
-        try {
-          await this.downloadInFlight
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error)
-          return ipcErr('IO_ERROR', 'Model download failed', { modelId, modelPath, message }, true)
-        }
       } else {
-        try {
-          await this.startModelDownload({ descriptor, modelId, modelPath })
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error)
-          return ipcErr('IO_ERROR', 'Model download failed', { modelId, modelPath, message }, true)
+        if (!descriptor.url || !descriptor.filename || !descriptor.sha256) {
+          this.setState({ status: 'idle', modelId, modelPath })
+          return ipcErr('UNSUPPORTED', 'Model download is not available for this model', { modelId })
+        }
+
+        if (this.downloadInFlight) {
+          if (this.downloadModelId !== modelId) {
+            return ipcErr('CONFLICT', 'Another model download is in progress', { downloadingModelId: this.downloadModelId })
+          }
+          try {
+            await this.downloadInFlight
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            return ipcErr('IO_ERROR', 'Model download failed', { modelId, modelPath, message }, true)
+          }
+        } else {
+          try {
+            await this.startModelDownload({ descriptor, modelId, modelPath })
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            return ipcErr('IO_ERROR', 'Model download failed', { modelId, modelPath, message }, true)
+          }
         }
       }
     }
@@ -667,6 +693,61 @@ class LocalLlmService {
     return { descriptor, modelPath: path.join(modelDir, filename) }
   }
 
+  /**
+   * Resolve a bundled model path from `extraResources` when available.
+   * Why: Packaged builds may ship a default GGUF so offline users can enable Tab completion without downloading.
+   */
+  private resolveBundledModelPath(descriptor: LocalLlmModelDescriptor): string | null {
+    if (!app.isPackaged) return null
+    const filename = typeof descriptor.filename === 'string' ? descriptor.filename.trim() : ''
+    if (!filename) return null
+    const bundledPath = path.join(process.resourcesPath, 'models', filename)
+    return fs.existsSync(bundledPath) ? bundledPath : null
+  }
+
+  /**
+   * Copy a bundled model from `process.resourcesPath/models` into `userData/models`.
+   * Why: `process.resourcesPath` is typically read-only; local LLM runtime may need writable neighbors/caches.
+   */
+  private async startBundledModelCopy(args: {
+    descriptor: LocalLlmModelDescriptor
+    modelId: string
+    modelPath: string
+    bundledPath: string
+  }): Promise<void> {
+    const { descriptor, modelId, modelPath, bundledPath } = args
+    if (this.downloadInFlight) {
+      await this.downloadInFlight
+      return
+    }
+
+    const controller = new AbortController()
+    this.downloadController = controller
+    this.downloadModelId = modelId
+
+    this.downloadInFlight = this.copyBundledModelToPath({
+      descriptor,
+      modelId,
+      modelPath,
+      bundledPath,
+      signal: controller.signal,
+    }).finally(() => {
+      this.downloadInFlight = null
+      this.downloadModelId = null
+      this.downloadController = null
+    })
+
+    try {
+      await this.downloadInFlight
+    } catch (error) {
+      const isCanceled = controller.signal.aborted
+      const code: IpcErrorCode = isCanceled ? 'CANCELED' : 'IO_ERROR'
+      const message = error instanceof Error ? error.message : String(error)
+      this.setState({ status: 'error', modelId, modelPath, error: { code, message } })
+      throw error
+    }
+  }
+
   private async startModelDownload(args: {
     descriptor: LocalLlmModelDescriptor
     modelId: string
@@ -701,6 +782,121 @@ class LocalLlmService {
       const message = error instanceof Error ? error.message : String(error)
       this.setState({ status: 'error', modelId, modelPath, error: { code, message } })
       throw error
+    }
+  }
+
+  private async copyBundledModelToPath(args: {
+    descriptor: LocalLlmModelDescriptor
+    modelId: string
+    modelPath: string
+    bundledPath: string
+    signal: AbortSignal
+  }): Promise<void> {
+    const { descriptor, modelId, modelPath, bundledPath, signal } = args
+
+    const expectedSha256 = typeof descriptor.sha256 === 'string' ? descriptor.sha256.trim().toLowerCase() : ''
+    const expectedSizeBytes = typeof descriptor.sizeBytes === 'number' && Number.isFinite(descriptor.sizeBytes) ? descriptor.sizeBytes : undefined
+
+    const dir = path.dirname(modelPath)
+    fs.mkdirSync(dir, { recursive: true })
+
+    const tempPath = `${modelPath}.part`
+    try {
+      if (fs.existsSync(tempPath)) fs.rmSync(tempPath, { force: true })
+    } catch {
+      // ignore
+    }
+
+    let totalBytes = expectedSizeBytes
+    try {
+      const stat = fs.statSync(bundledPath)
+      if (Number.isFinite(stat.size) && stat.size > 0) totalBytes = stat.size
+    } catch {
+      // ignore
+    }
+
+    this.setState({
+      status: 'downloading',
+      modelId,
+      modelPath,
+      progress: { receivedBytes: 0, totalBytes },
+      error: undefined,
+    })
+
+    let receivedBytes = 0
+    let lastEmitAt = 0
+    const throttleMs = 160
+
+    const updateProgress = () => {
+      const now = Date.now()
+      if (now - lastEmitAt < throttleMs && receivedBytes < (totalBytes ?? Number.POSITIVE_INFINITY)) return
+      lastEmitAt = now
+      this.setState({
+        status: 'downloading',
+        modelId,
+        modelPath,
+        progress: { receivedBytes, totalBytes },
+        error: undefined,
+      })
+    }
+
+    const progressStream = new Transform({
+      transform(chunk, _encoding, callback) {
+        receivedBytes += chunk.length
+        updateProgress()
+        callback(null, chunk)
+      },
+    })
+
+    const readStream = fs.createReadStream(bundledPath)
+    const writeStream = fs.createWriteStream(tempPath)
+    const abortHandler = () => {
+      try {
+        readStream.destroy(new Error('aborted'))
+      } catch {
+        // ignore
+      }
+      try {
+        writeStream.destroy(new Error('aborted'))
+      } catch {
+        // ignore
+      }
+    }
+
+    if (signal.aborted) abortHandler()
+    signal.addEventListener('abort', abortHandler, { once: true })
+
+    try {
+      await pipeline(readStream, progressStream, writeStream)
+      updateProgress()
+
+      if (typeof expectedSizeBytes === 'number') {
+        const stat = fs.statSync(tempPath)
+        if (stat.size !== expectedSizeBytes) {
+          throw new Error(`Size mismatch (expected=${expectedSizeBytes}, actual=${stat.size})`)
+        }
+      }
+
+      if (expectedSha256) {
+        const actualSha256 = await this.sha256File(tempPath)
+        if (actualSha256.toLowerCase() !== expectedSha256) {
+          throw new Error(`SHA256 mismatch (expected=${expectedSha256}, actual=${actualSha256})`)
+        }
+      }
+
+      if (fs.existsSync(modelPath)) fs.rmSync(modelPath, { force: true })
+      fs.renameSync(tempPath, modelPath)
+
+      this.setState({ status: 'idle', modelId, modelPath, progress: undefined, error: undefined })
+    } catch (error) {
+      try {
+        if (fs.existsSync(tempPath)) fs.rmSync(tempPath, { force: true })
+      } catch {
+        // ignore
+      }
+      throw error
+    } finally {
+      signal.removeEventListener('abort', abortHandler)
     }
   }
 
@@ -1015,6 +1211,11 @@ function createMainWindow(): BrowserWindow {
 
   window.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
     logger.error(`[renderer] did-fail-load code=${errorCode} desc=${errorDescription} url=${validatedURL}`)
+  })
+
+  window.webContents.on('did-finish-load', () => {
+    // Why: Packaging smoke needs a deterministic readiness marker without relying on UI selectors.
+    logger.info('[renderer] did-finish-load')
   })
 
   window.on('closed', () => {

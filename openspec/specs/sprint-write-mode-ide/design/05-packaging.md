@@ -14,21 +14,25 @@
 
 ## 2. 当前基础（Repo 事实）
 
-- electron-builder 配置：`writenow-frontend/electron-builder.json5`
+- electron-builder 配置：`writenow-frontend/electron-builder.json`
 - backend 资源随包：`extraResources` 已把 `writenow-theia/browser-app` 打包到 `theia-backend`
 - Electron 主进程：`writenow-frontend/electron/main.ts`（支持 `WN_USER_DATA_DIR`、log 落盘）
+- 资源准备脚本：`writenow-frontend/scripts/prepare-packaging.mjs`（强制构建 Theia backend + 补齐关键资源；可选下载随包模型）
+- 字体：已移除 Google Fonts 依赖，改为随包本地字体（`@fontsource-variable/*`）
+- 合规清单：`writenow-frontend/resources/licenses/THIRD_PARTY_ASSETS.md`
 
 ### 2.0.1 打包一致性风险（Repo 事实）
 
 `writenow-frontend/electron/main.ts` 在 packaged 模式下会从 `process.resourcesPath/theia-backend` 启动后端；
-该目录来自 `writenow-frontend/electron-builder.json5` 的 `extraResources`。
+该目录来自 `writenow-frontend/electron-builder.json` 的 `extraResources`。
 
-但 `writenow-frontend/package.json` 的打包脚本（`npm run package`）目前只执行 `electron-vite build` + `electron-builder`，
-**并未强制先构建 Theia backend**（`writenow-theia/browser-app`）。
+此前 `writenow-frontend/package.json` 的打包脚本只执行 `electron-vite build` + `electron-builder`，
+**未强制先构建 Theia backend**（`writenow-theia/browser-app`）。
 
 风险：发布安装包时可能携带“旧后端/缺后端”，导致用户启动失败或功能缺失（高成本事故）。
 
-策略：把 “build theia backend → copy into extraResources → package” 变成一个不可绕过的脚本（并在 CI/release 中执行）。
+落地：`npm run package*` 统一前置执行 `node scripts/prepare-packaging.mjs`，把
+“build theia backend → 校验/补齐关键资源 → package” 变成不可绕过的链路（CI/release MUST 使用该路径）。
 
 ---
 
@@ -69,13 +73,13 @@ WN 的策略：既然“体积不是问题”，优先 A。
 ### 3.2 资源布局（建议）
 
 - `extraResources/models/<model>.gguf`（随包只读资源）
-- 首次启动时复制到 `app.getPath('userData')/models/`（用户可管理/替换）
+- 在用户启用本地 LLM / 点击“校验/加载”时按需复制到 `app.getPath('userData')/models/`（用户可管理/替换；避免拖慢冷启动）
 
 原因：
 - extraResources 目录通常只读，不能在其中写入缓存
 - userData 是稳定的可写位置，适合版本升级与用户控制
 
-### 3.2.1 最小实现（代码示例：首次复制）
+### 3.2.1 最小实现（代码示例：按需复制）
 
 ```ts
 import fs from 'node:fs'
@@ -104,6 +108,19 @@ Why：复制到 userData 能让用户后续替换模型、并避免在只读 res
   - 模型文件大小
   - 本地运行（不上传）
   - 存储路径
+
+#### 3.3.1 当前随包资源清单（实现态）
+
+> 说明：
+> - 字体通过 `@fontsource-variable/*` 进入 renderer 资源（不依赖 Google Fonts）。
+> - 模型文件默认不入 git；打包时可选下载后随包（见 `writenow-frontend/resources/models/README.md`）。
+
+| 资源 | 来源 | 许可证 | 版本 | 校验信息 |
+|------|------|--------|------|----------|
+| Inter Variable | `@fontsource-variable/inter` | OFL-1.1 | 5.2.8 | publishHash `b8ad7daf87329f52` |
+| Noto Serif SC Variable | `@fontsource-variable/noto-serif-sc` | OFL-1.1 | 5.2.10 | publishHash `510fa6b6bbdfb305` |
+| Qwen2.5 0.5B Instruct (Q4_K_M, GGUF) | HuggingFace（见 `LOCAL_LLM_MODELS`） | 待确认（发布前必须核对） | - | SHA256 `750f8f144f0504208add7897f01c7d2350a7363d8855eab59e137a1041e90394` |
+| Qwen2.5 0.5B Instruct (Q2_K, GGUF) | HuggingFace（见 `LOCAL_LLM_MODELS`） | 待确认（发布前必须核对） | - | SHA256 `0183050b0aa6a58c451fb558d3fdfa550c3dd6ba835561805778d30bdd79e44a` |
 
 ---
 
