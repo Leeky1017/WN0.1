@@ -1,7 +1,7 @@
 # ISSUE-319
 - Issue: #319
 - Branch: task/319-e2e-write-mode-ci-stabilize
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/320
 
 ## Plan
 - Stabilize `e2e-write-mode` CI by fixing flake sources (Review Accept, crash recovery, teardown).
