@@ -97,3 +97,21 @@
 - Command: `gh pr merge --auto --squash 318`
 - Key output: `autoMergeRequest.enabledAt=2026-01-27T23:35:05Z`
 - Evidence: `gh pr view 318 --json autoMergeRequest,mergeStateStatus`
+
+### 2026-01-27 23:45 UTC — CI failure analysis (PR #318)
+- Command: `gh run view 21418524498 --log-failed`
+- Key output: `e2e-write-mode` failed: Worker teardown timeout; WM-003 review Accept did not clear `wm-review-root`; WM-005 `firstWindow` timeout + `port 3000 in use`.
+- Evidence: https://github.com/Leeky1017/WN0.1/actions/runs/21418524498
+
+- Command: `gh run download 21418524498 -n playwright-write-mode-artifacts -D /tmp/wn-artifacts-318`
+- Key output: downloaded Playwright artifacts (trace/screenshot + per-test `main.log`)
+- Evidence: `/tmp/wn-artifacts-318/` (local)
+
+- Command: `cat /tmp/wn-artifacts-318/tmp/writenow-e2e-recover-paaOpP/logs/main.log`
+- Key output: `[backend] port 3000 in use; waiting for release`
+- Evidence: `/tmp/wn-artifacts-318/tmp/writenow-e2e-recover-paaOpP/logs/main.log`
+
+### 2026-01-27 23:56 UTC — Fix attempt (Accept resiliency + crash cleanup)
+- Command: `git commit -m "fix(e2e): stabilize AI accept + crash recovery cleanup (#316)"`
+- Key output: `bb09e51 fix(e2e): stabilize AI accept + crash recovery cleanup (#316)`
+- Evidence: `writenow-frontend/src/features/ai-panel/useAISkill.ts`, `writenow-frontend/tests/e2e/_utils/writenow.ts`, `writenow-frontend/tests/e2e/write-mode/write-mode-ssot.spec.ts`
