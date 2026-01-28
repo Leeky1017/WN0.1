@@ -51,7 +51,9 @@ jobs:
 
       - name: Run perf E2E
         working-directory: writenow-frontend
-        run: xvfb-run -a npx playwright test tests/e2e/perf
+        # Why: Set 1920x1080 resolution to ensure the app window (1400x900) fits within the virtual screen.
+        # Default xvfb resolution may cause responsive breakpoint issues.
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" npx playwright test tests/e2e/perf
 
       - name: Upload Playwright artifacts
         if: failure()
