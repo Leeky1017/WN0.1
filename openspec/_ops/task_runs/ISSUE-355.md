@@ -4,7 +4,7 @@
 
 - Issue: #355
 - Branch: task/355-rpc-use-connectionmanager
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/356
 
 ## Problem
 
