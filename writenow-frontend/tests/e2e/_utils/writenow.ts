@@ -1,7 +1,10 @@
 import { readFile, unlink } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 
 import { expect, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
+
+const GLOBAL_BACKEND_PID_FILE = path.join(os.tmpdir(), 'writenow-backend.pid');
 
 export type LaunchWriteNowOptions = {
   userDataDir: string;
@@ -70,19 +73,7 @@ export async function launchWriteNowApp(options: LaunchWriteNowOptions): Promise
     // Why: If `firstWindow` / readiness checks fail, Playwright won't have a handle to close the app.
     // We must hard-clean here to avoid cascading port-3000 conflicts and worker teardown hangs.
     const backendPidOnFailure = await readBackendPidFromPidFile(options.userDataDir);
-    const proc = electronApp.process();
-    await electronApp.close().catch(() => undefined);
-    if (proc && proc.exitCode === null) {
-      try {
-        proc.kill('SIGKILL');
-      } catch {
-        try {
-          proc.kill();
-        } catch {
-          // ignore
-        }
-      }
-    }
+    await closeElectronAppHard(electronApp, 5_000);
     await cleanupBackendProcess(options.userDataDir, backendPidOnFailure);
 
     throw new Error(
@@ -122,8 +113,7 @@ type BackendPidFileRecord = {
   pid: number;
 };
 
-async function readBackendPidFromPidFile(userDataDir: string): Promise<number | null> {
-  const pidFilePath = path.join(userDataDir, 'backend.pid');
+async function readBackendPidFromPidFilePath(pidFilePath: string): Promise<number | null> {
   try {
     const raw = await readFile(pidFilePath, 'utf8');
     const parsed = JSON.parse(raw) as unknown;
@@ -135,6 +125,15 @@ async function readBackendPidFromPidFile(userDataDir: string): Promise<number | 
     // ignore
   }
 
+  return null;
+}
+
+async function readBackendPidFromPidFile(userDataDir: string): Promise<number | null> {
+  const candidates = [path.join(userDataDir, 'backend.pid'), GLOBAL_BACKEND_PID_FILE];
+  for (const pidFilePath of candidates) {
+    const pid = await readBackendPidFromPidFilePath(pidFilePath);
+    if (pid) return pid;
+  }
   return null;
 }
 
@@ -180,9 +179,31 @@ async function killPid(pid: number, timeoutMs: number): Promise<boolean> {
   return !isPidAlive(pid);
 }
 
-async function cleanupBackendProcess(userDataDir: string, pidHint: number | null): Promise<void> {
-  const pidFilePath = path.join(userDataDir, 'backend.pid');
+async function closeElectronAppHard(electronApp: ElectronApplication, timeoutMs: number): Promise<void> {
+  const proc = electronApp.process();
+  const closePromise = electronApp.close().catch(() => undefined);
+  await Promise.race([
+    closePromise,
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs);
+    }),
+  ]);
 
+  if (proc && proc.exitCode === null) {
+    try {
+      proc.kill('SIGKILL');
+    } catch {
+      try {
+        proc.kill();
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+async function cleanupBackendProcess(userDataDir: string, pidHint: number | null): Promise<void> {
+  const userPidFilePath = path.join(userDataDir, 'backend.pid');
   const pidFromFile = await readBackendPidFromPidFile(userDataDir);
   const pidSet = new Set<number>();
   if (pidHint) pidSet.add(pidHint);
@@ -197,13 +218,20 @@ async function cleanupBackendProcess(userDataDir: string, pidHint: number | null
     }
   }
 
-  if (allKilled) {
+  if (!allKilled) return;
+
+  const maybeUnlink = async (pidFilePath: string): Promise<void> => {
+    const pid = await readBackendPidFromPidFilePath(pidFilePath);
+    if (pid && isPidAlive(pid)) return;
     try {
       await unlink(pidFilePath);
     } catch {
       // ignore
     }
-  }
+  };
+
+  await maybeUnlink(userPidFilePath);
+  await maybeUnlink(GLOBAL_BACKEND_PID_FILE);
 }
 
 /**
@@ -212,19 +240,7 @@ async function cleanupBackendProcess(userDataDir: string, pidHint: number | null
  * Why: Playwright worker teardown can hang if Electron lingers (WSL/CI flake).
  */
 export async function closeWriteNowApp(app: LaunchWriteNowResult): Promise<void> {
-  const proc = app.electronApp.process();
-  await app.electronApp.close().catch(() => undefined);
-  if (proc && proc.exitCode === null) {
-    try {
-      proc.kill('SIGKILL');
-    } catch {
-      try {
-        proc.kill();
-      } catch {
-        // ignore
-      }
-    }
-  }
+  await closeElectronAppHard(app.electronApp, 5_000);
 
   // Why: If Electron is SIGKILLed, its backend child can outlive and keep port 3000 occupied → cascading E2E failures.
   await cleanupBackendProcess(app.userDataDir, app.backendPid);
@@ -250,6 +266,6 @@ export async function forceCloseWriteNowApp(app: LaunchWriteNowResult): Promise<
     }
   }
 
-  await app.electronApp.close().catch(() => undefined);
+  await closeElectronAppHard(app.electronApp, 2_000);
   await cleanupBackendProcess(app.userDataDir, app.backendPid);
 }

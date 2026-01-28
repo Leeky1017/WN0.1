@@ -92,6 +92,24 @@ function getMarkdownFromEditor(editor: Editor): string {
   return editor.getText();
 }
 
+function normalizeAiSelectionText(text: string): string {
+  return text.replace(/\r\n/g, '\n').trimEnd();
+}
+
+function getEditorTextBetween(editor: Editor, from: number, to: number): string {
+  return editor.state.doc.textBetween(from, to, '\n');
+}
+
+function isFullDocumentSelection(editor: Editor, selection: EditorSelectionSnapshot): boolean {
+  const maxPos = editor.state.doc.content.size;
+  const from = Math.min(selection.from, selection.to);
+  const to = Math.max(selection.from, selection.to);
+
+  // Why: ProseMirror selection coordinates can be off-by-one at document boundaries depending on the schema/layout.
+  // For E2E's Control+A path we only need a coarse "covers whole doc" signal to choose a safe fallback.
+  return from <= 1 && to >= maxPos - 1;
+}
+
 /**
  * Why: We need a deterministic snapshot for AI diff preview/apply. If the user didn't select a range, we treat the whole
  * document as the scope (still deterministic) so Review Mode can be applied safely.
@@ -259,9 +277,24 @@ export function useAISkill(): UseAISkillResult {
     }
 
     const before = getMarkdownFromEditor(editor);
+    const snapshot = diff.selection;
+
+    const tryApplyFullDocumentFallback = (): boolean => {
+      if (!snapshot) return false;
+      if (!isFullDocumentSelection(editor, snapshot)) return false;
+      const maxPos = editor.state.doc.content.size;
+      const current = normalizeAiSelectionText(getEditorTextBetween(editor, 0, maxPos));
+      if (current !== normalizeAiSelectionText(diff.originalText)) return false;
+
+      // Why: If the in-editor diff session was dropped (remount/external sync) but the document is unchanged,
+      // we can safely apply a whole-document replacement for the Control+A path (used by E2E for determinism).
+      editor.commands.clearAiDiff();
+      editor.commands.setContent(diff.suggestedText, { emitUpdate: true, contentType: 'markdown' });
+      return true;
+    };
+
     let applied = editor.commands.acceptAiDiff();
     if (!applied) {
-      const snapshot = diff.selection;
       if (!snapshot) {
         setLastError({ code: 'INTERNAL', message: 'Missing selection snapshot for applying AI diff' });
         return;
@@ -277,22 +310,30 @@ export function useAISkill(): UseAISkillResult {
         createdAt: diff.createdAt,
       });
       if (!previewed) {
-        setLastError({ code: 'CONFLICT', message: 'Selection changed; cannot apply AI diff safely' });
-        return;
+        if (!tryApplyFullDocumentFallback()) {
+          setLastError({ code: 'CONFLICT', message: 'Selection changed; cannot apply AI diff safely' });
+          return;
+        }
+        applied = true;
       }
 
-      applied = editor.commands.acceptAiDiff();
       if (!applied) {
-        setLastError({ code: 'INTERNAL', message: 'Failed to apply AI diff after re-syncing the preview session' });
-        return;
+        applied = editor.commands.acceptAiDiff();
+        if (!applied && !tryApplyFullDocumentFallback()) {
+          setLastError({ code: 'INTERNAL', message: 'Failed to apply AI diff after re-syncing the preview session' });
+          return;
+        }
+        applied = true;
       }
     }
 
+    editor.commands.clearAiDiff();
     const after = getMarkdownFromEditor(editor);
     const reason = diff.skillId ? `ai:${diff.skillId}` : 'ai';
 
     // Why: Applying the diff is the user-visible action. Version snapshots are best-effort and must not block the UI.
     setDiff(null);
+    setLastError(null);
 
     const persistSnapshot = async (name: string, content: string, actor: 'auto' | 'ai'): Promise<void> => {
       try {

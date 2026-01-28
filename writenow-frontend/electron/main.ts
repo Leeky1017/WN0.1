@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, safeStorage } from 'electron'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -983,9 +984,11 @@ function ensureWorkspaceDir(): string {
 
 /**
  * Why: Track backend child PID across hard-kills so E2E can clean up stale servers.
+ * E2E uses randomized `WN_USER_DATA_DIR` per test, so this file must live in a stable location to prevent
+ * port-3000 cascades when a prior test times out before cleanup.
  */
 function getBackendPidFilePath(): string {
-  return path.join(app.getPath('userData'), 'backend.pid')
+  return path.join(os.tmpdir(), 'writenow-backend.pid')
 }
 
 /**
