@@ -923,6 +923,127 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
     logger?.info?.('ai', 'run canceled', { runId })
     return { canceled: true }
   })
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AI Proxy Settings (optional LiteLLM integration)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Read current AI Proxy settings.
+   * Why: Allow Settings UI to display proxy configuration status.
+   */
+  handleInvoke('ai:proxy:settings:get', async () => {
+    const enabled = resolveAiProxyEnabled(config)
+    const baseUrl = resolveAiProxyBaseUrl(config)
+    const apiKey = resolveAiProxyApiKey(config, logger)
+    return {
+      settings: {
+        enabled,
+        baseUrl,
+        apiKey: apiKey ? '••••••••' : '',
+        hasApiKey: Boolean(apiKey),
+      },
+    }
+  })
+
+  /**
+   * Update AI Proxy settings.
+   * Why: Allow Settings UI to configure proxy without environment variables.
+   */
+  handleInvoke('ai:proxy:settings:update', async (_evt, payload) => {
+    if (!config) throw createIpcError('INTERNAL', 'Config is not available')
+
+    const enabledPatch = typeof payload?.enabled === 'boolean' ? payload.enabled : undefined
+    const baseUrlPatch = typeof payload?.baseUrl === 'string' ? payload.baseUrl : undefined
+    const apiKeyPatch = typeof payload?.apiKey === 'string' ? payload.apiKey : undefined
+
+    // Apply patches
+    if (enabledPatch !== undefined) {
+      config.set('ai.proxy.enabled', enabledPatch)
+    }
+    if (baseUrlPatch !== undefined) {
+      config.set('ai.proxy.baseUrl', normalizeHttpBaseUrl(baseUrlPatch))
+    }
+    if (apiKeyPatch !== undefined) {
+      // Use secure storage if available
+      if (typeof config.setSecure === 'function') {
+        try {
+          config.setSecure('ai.proxy.apiKey', apiKeyPatch)
+        } catch (error) {
+          logger?.warn?.('ai', 'secure storage unavailable, falling back to regular config', { message: error?.message })
+          config.set('ai.proxy.apiKey', apiKeyPatch)
+        }
+      } else {
+        config.set('ai.proxy.apiKey', apiKeyPatch)
+      }
+    }
+
+    // Re-read and return current state
+    const enabled = resolveAiProxyEnabled(config)
+    const baseUrl = resolveAiProxyBaseUrl(config)
+    const apiKey = resolveAiProxyApiKey(config, logger)
+
+    logger?.info?.('ai', 'proxy settings updated', { enabled, baseUrl: baseUrl || '(empty)', hasApiKey: Boolean(apiKey) })
+
+    return {
+      settings: {
+        enabled,
+        baseUrl,
+        apiKey: apiKey ? '••••••••' : '',
+        hasApiKey: Boolean(apiKey),
+      },
+    }
+  })
+
+  /**
+   * Test AI Proxy connection by listing available models.
+   * Why: Allow users to verify proxy configuration before enabling.
+   */
+  handleInvoke('ai:proxy:test', async (_evt, payload) => {
+    const baseUrl = normalizeHttpBaseUrl(payload?.baseUrl)
+    if (!baseUrl) throw createIpcError('INVALID_ARGUMENT', 'baseUrl is required')
+
+    const apiKey = coerceString(payload?.apiKey)
+    const modelsUrl = `${baseUrl}/v1/models`
+
+    try {
+      const headers = { 'content-type': 'application/json' }
+      if (apiKey) headers.authorization = `Bearer ${apiKey}`
+
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 10000)
+
+      const res = await fetch(modelsUrl, {
+        method: 'GET',
+        headers,
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeout)
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        return {
+          success: false,
+          message: `HTTP ${res.status}: ${text.slice(0, 200) || res.statusText}`,
+        }
+      }
+
+      const json = await res.json().catch(() => null)
+      const models = Array.isArray(json?.data) ? json.data.map((m) => m?.id || '').filter(Boolean).slice(0, 20) : []
+
+      return {
+        success: true,
+        message: `连接成功，共 ${models.length} 个模型可用`,
+        models,
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        return { success: false, message: '连接超时（10秒）' }
+      }
+      return { success: false, message: error?.message || '连接失败' }
+    }
+  })
 }
 
 module.exports = { registerAiIpcHandlers, AI_STREAM_EVENT }

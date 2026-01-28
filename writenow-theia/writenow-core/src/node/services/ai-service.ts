@@ -169,19 +169,67 @@ function resolveModel(fallback: string | null): string {
 
 type AiTransport = 'direct' | 'litellm';
 
-function resolveAiProxyEnabled(): boolean {
+type SqliteDatabase = import('../../node/database/init').SqliteDatabase;
+
+function readSetting(db: SqliteDatabase | null, key: string): string | null {
+    if (!db) return null;
+    try {
+        const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value?: unknown } | undefined;
+        if (row && typeof row.value === 'string') {
+            const parsed = JSON.parse(row.value);
+            return typeof parsed === 'string' ? parsed : null;
+        }
+    } catch {
+        // ignore parse errors
+    }
+    return null;
+}
+
+function readSettingBoolean(db: SqliteDatabase | null, key: string): boolean | null {
+    if (!db) return null;
+    try {
+        const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value?: unknown } | undefined;
+        if (row && typeof row.value === 'string') {
+            const parsed = JSON.parse(row.value);
+            if (typeof parsed === 'boolean') return parsed;
+            if (typeof parsed === 'string') {
+                const lowered = parsed.toLowerCase();
+                if (lowered === 'true' || lowered === '1') return true;
+                if (lowered === 'false' || lowered === '0') return false;
+            }
+        }
+    } catch {
+        // ignore parse errors
+    }
+    return null;
+}
+
+function resolveAiProxyEnabledWithDb(db: SqliteDatabase | null): boolean {
+    // Env var takes precedence
     const env = resolveBoolean(process.env.WN_AI_PROXY_ENABLED);
     if (env !== null) return env;
+    // Then check SQLite
+    const fromDb = readSettingBoolean(db, 'ai.proxy.enabled');
+    if (fromDb !== null) return fromDb;
     return false;
 }
 
-function resolveAiProxyBaseUrl(): string {
-    return coerceString(process.env.WN_AI_PROXY_BASE_URL);
+function resolveAiProxyBaseUrlWithDb(db: SqliteDatabase | null): string {
+    // Env var takes precedence
+    const env = coerceString(process.env.WN_AI_PROXY_BASE_URL);
+    if (env) return env.replace(/\/+$/, '');
+    // Then check SQLite
+    const fromDb = readSetting(db, 'ai.proxy.baseUrl');
+    return fromDb ? fromDb.replace(/\/+$/, '') : '';
 }
 
-function resolveAiProxyApiKey(): string | null {
+function resolveAiProxyApiKeyWithDb(db: SqliteDatabase | null): string | null {
+    // Env var takes precedence
     const raw = typeof process.env.WN_AI_PROXY_API_KEY === 'string' ? process.env.WN_AI_PROXY_API_KEY.trim() : '';
-    return raw || null;
+    if (raw) return raw;
+    // Then check SQLite
+    const fromDb = readSetting(db, 'ai.proxy.apiKey');
+    return fromDb || null;
 }
 
 function resolveLiteLlmChatCompletionsUrl(baseUrl: string): string {
@@ -444,10 +492,10 @@ export class AiService implements AIServiceShape {
             injectedContextRules = request.injected.contextRules;
         }
 
-        const proxyEnabled = resolveAiProxyEnabled();
+        const proxyEnabled = resolveAiProxyEnabledWithDb(db);
         const transport: AiTransport = proxyEnabled ? 'litellm' : 'direct';
-        const proxyBaseUrl = proxyEnabled ? resolveAiProxyBaseUrl() : '';
-        const proxyApiKey = proxyEnabled ? resolveAiProxyApiKey() : null;
+        const proxyBaseUrl = proxyEnabled ? resolveAiProxyBaseUrlWithDb(db) : '';
+        const proxyApiKey = proxyEnabled ? resolveAiProxyApiKeyWithDb(db) : null;
 
         if (proxyEnabled && !proxyBaseUrl) {
             return ipcErr({ code: 'INVALID_ARGUMENT', message: 'AI proxy baseUrl is not configured', details: { key: 'ai.proxy.baseUrl' } });
