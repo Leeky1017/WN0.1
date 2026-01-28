@@ -18,6 +18,7 @@
 - backend 资源随包：`extraResources` 已把 `writenow-theia/browser-app` 打包到 `theia-backend`
 - Electron 主进程：`writenow-frontend/electron/main.ts`（支持 `WN_USER_DATA_DIR`、log 落盘）
 - 资源准备脚本：`writenow-frontend/scripts/prepare-packaging.mjs`（强制构建 Theia backend + 补齐关键资源；可选下载随包模型）
+- Theia backend 运行时依赖：`extraResources` 同步随包 `writenow-theia/node_modules` 到 `theia-backend/node_modules`（保证 `better-sqlite3` 等 external native deps 在 packaged 环境可被 require）
 - 字体：已移除 Google Fonts 依赖，改为随包本地字体（`@fontsource-variable/*`）
 - 合规清单：`writenow-frontend/resources/licenses/THIRD_PARTY_ASSETS.md`
 
@@ -134,6 +135,9 @@ Why：复制到 userData 能让用户后续替换模型、并避免在只读 res
 策略：
 - CI 构建时进行 `electron:rebuild` 或等价步骤
 - release pipeline 生成 per-platform 安装包
+
+落地（实现态）：
+- `writenow-frontend/scripts/prepare-packaging.mjs` 在打包前对 `writenow-theia` 执行 `electron-rebuild`（匹配当前 Electron 版本的 ABI），避免 packaged 环境出现 `NODE_MODULE_VERSION` 不匹配导致的崩溃。
 
 ---
 

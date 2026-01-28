@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const FRONTEND_ROOT = path.resolve(__dirname, '..')
-const PRODUCT_NAME = 'WriteNow'
+const FALLBACK_PRODUCT_NAME = 'WriteNow'
 
 function resolveBackendEntry(baseDir) {
   const candidates = [
@@ -58,7 +58,7 @@ function resolveResourcesDir(appDir) {
   throw new Error(`Unable to locate resources directory under ${appDir}`)
 }
 
-function resolveExecutable(appDir) {
+function resolveExecutable(appDir, preferredNames) {
   // mac
   if (process.platform === 'darwin') {
     const macApp = appDir.endsWith('.app')
@@ -86,8 +86,9 @@ function resolveExecutable(appDir) {
 
   // linux
   const entries = fs.readdirSync(appDir, { withFileTypes: true })
+  const ignored = new Set(['chrome-sandbox', 'chrome_crashpad_handler'])
   const executables = entries
-    .filter((e) => e.isFile() && !e.name.includes('.'))
+    .filter((e) => e.isFile() && !e.name.includes('.') && !ignored.has(e.name))
     .map((e) => path.join(appDir, e.name))
     .filter((p) => {
       try {
@@ -98,7 +99,10 @@ function resolveExecutable(appDir) {
       }
     })
 
-  const preferred = executables.find((p) => path.basename(p).toLowerCase() === PRODUCT_NAME.toLowerCase())
+  const preferredLower = (Array.isArray(preferredNames) ? preferredNames : [])
+    .map((name) => (typeof name === 'string' ? name.trim().toLowerCase() : ''))
+    .filter(Boolean)
+  const preferred = executables.find((p) => preferredLower.includes(path.basename(p).toLowerCase()))
   return preferred ?? executables[0] ?? ''
 }
 
@@ -110,6 +114,12 @@ function readTextSafe(filePath) {
   }
 }
 
+function tailText(text, maxChars) {
+  if (!text) return ''
+  if (text.length <= maxChars) return text
+  return text.slice(-maxChars)
+}
+
 async function waitFor(check, timeoutMs, intervalMs) {
   const deadline = Date.now() + timeoutMs
   while (true) {
@@ -119,32 +129,78 @@ async function waitFor(check, timeoutMs, intervalMs) {
   }
 }
 
-async function launchAndWaitReady(appDir) {
-  const exePath = resolveExecutable(appDir)
+async function launchAndWaitReady(appDir, preferredNames) {
+  const exePath = resolveExecutable(appDir, preferredNames)
   if (!exePath) throw new Error(`Unable to resolve executable under ${appDir}`)
 
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'writenow-packaging-smoke-'))
+  const tmpDir = path.join(userDataDir, 'tmp')
+  const runtimeDir = path.join(userDataDir, 'runtime')
+  fs.mkdirSync(tmpDir, { recursive: true })
+  fs.mkdirSync(runtimeDir, { recursive: true })
   const env = {
     ...process.env,
     WN_E2E: '1',
     WN_DISABLE_GPU: '1',
     WN_OPEN_DEVTOOLS: '0',
     WN_USER_DATA_DIR: userDataDir,
+    // Why: Some CI/WSL environments have restricted /tmp; keep Chromium temp usage under the isolated userData.
+    TMPDIR: tmpDir,
+    TMP: tmpDir,
+    TEMP: tmpDir,
+    XDG_RUNTIME_DIR: runtimeDir,
   }
 
-  const child = spawn(exePath, [], { cwd: appDir, env, stdio: 'ignore' })
+  const child = spawn(exePath, [], { cwd: appDir, env, stdio: ['ignore', 'pipe', 'pipe'] })
   const logPath = path.join(userDataDir, 'logs', 'main.log')
+  console.log(`[packaging-smoke] launching ${exePath}`)
+  console.log(`[packaging-smoke] userData: ${userDataDir}`)
+
+  let stdoutTail = ''
+  let stderrTail = ''
+  child.stdout?.on('data', (chunk) => {
+    stdoutTail = tailText(`${stdoutTail}${chunk.toString()}`, 4000)
+  })
+  child.stderr?.on('data', (chunk) => {
+    stderrTail = tailText(`${stderrTail}${chunk.toString()}`, 4000)
+  })
+
+  let exitInfo = null
+  child.once('exit', (code, signal) => {
+    exitInfo = { code, signal }
+  })
 
   try {
     await waitFor(
       () => {
+        if (exitInfo) {
+          const text = readTextSafe(logPath)
+          const hint = text ? `\n--- main.log tail ---\n${tailText(text, 4000)}` : ''
+          throw new Error(`App exited early (code=${exitInfo.code ?? 'null'} signal=${exitInfo.signal ?? 'null'})${hint}`)
+        }
         if (!fs.existsSync(logPath)) return false
         const text = readTextSafe(logPath)
+        if (text.includes('[renderer] render-process-gone')) {
+          throw new Error('Renderer crashed during launch')
+        }
+        if (text.includes('[renderer] did-fail-load')) {
+          throw new Error('Renderer failed to load during launch')
+        }
+        if (text.includes('[main] failed to start')) {
+          throw new Error('Main process failed to start during launch')
+        }
         return text.includes('[backend] ready') && text.includes('[renderer] did-finish-load')
       },
       60_000,
       250,
     )
+  } catch (error) {
+    const text = readTextSafe(logPath)
+    const hint = text ? `\n--- main.log tail ---\n${tailText(text, 4000)}` : ''
+    const message = error instanceof Error ? error.message : String(error)
+    const outHint = stdoutTail ? `\n--- app stdout tail ---\n${stdoutTail}` : ''
+    const errHint = stderrTail ? `\n--- app stderr tail ---\n${stderrTail}` : ''
+    throw new Error(`${message}${hint}${outHint}${errHint}`)
   } finally {
     try {
       child.kill('SIGTERM')
@@ -165,7 +221,9 @@ async function launchAndWaitReady(appDir) {
 }
 
 async function main() {
-  const version = JSON.parse(fs.readFileSync(path.join(FRONTEND_ROOT, 'package.json'), 'utf8')).version ?? '0.0.0'
+  const pkg = JSON.parse(fs.readFileSync(path.join(FRONTEND_ROOT, 'package.json'), 'utf8'))
+  const version = pkg.version ?? '0.0.0'
+  const preferredExeNames = [pkg.name ?? '', FALLBACK_PRODUCT_NAME].filter(Boolean)
   const outputDir = (process.env.WN_PACKAGING_OUTPUT_DIR ?? '').trim() || path.join(FRONTEND_ROOT, 'release', version)
 
   const unpackedDir = (process.env.WN_PACKAGED_APP_DIR ?? '').trim() || findLatestUnpackedDir(outputDir)
@@ -186,13 +244,18 @@ async function main() {
   if (!fs.existsSync(licensesPath)) throw new Error(`Missing licenses manifest: ${licensesPath}`)
   if (!fs.existsSync(modelsDir)) throw new Error(`Missing models dir: ${modelsDir}`)
 
+  const betterSqlite3Dir = path.join(theiaDir, 'node_modules', 'better-sqlite3')
+  if (!fs.existsSync(betterSqlite3Dir)) {
+    throw new Error(`Missing better-sqlite3 in theia-backend node_modules: ${betterSqlite3Dir}`)
+  }
+
   const backendEntry = resolveBackendEntry(theiaDir)
   const schemaPath = path.join(path.dirname(backendEntry), 'schema.sql')
   if (!fs.existsSync(schemaPath)) throw new Error(`Missing schema.sql next to backend entry: ${schemaPath}`)
 
   // Optional: launch check (needs a GUI environment on Linux CI).
   if ((process.env.WN_SMOKE_LAUNCH ?? '').trim() === '1') {
-    await launchAndWaitReady(unpackedDir)
+    await launchAndWaitReady(unpackedDir, preferredExeNames)
   }
 }
 

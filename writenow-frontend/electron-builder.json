@@ -16,6 +16,11 @@
       "filter": ["**/*"]
     },
     {
+      "from": "../writenow-theia/node_modules",
+      "to": "theia-backend/node_modules",
+      "filter": ["**/*"]
+    },
+    {
       "from": "resources/models",
       "to": "models",
       "filter": ["**/*"]

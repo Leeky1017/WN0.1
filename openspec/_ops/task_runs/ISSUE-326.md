@@ -40,3 +40,17 @@
 - Command: `npx -y @fission-ai/openspec@0.17.2 validate --specs --strict --no-interactive`
 - Key output: `Totals: 5 passed, 0 failed (5 items)`
 
+### 2026-01-28 14:25 Packaged build smoke (linux --dir)
+- Command: `cd writenow-frontend && npm run package:linux -- --dir`
+- Key output: `release/0.0.0/linux-unpacked` produced (electron-builder exit 0)
+- Command: `cd writenow-frontend && npm run package:smoke`
+- Key output: exit 0
+
+### 2026-01-28 14:55 Packaged launch smoke (linux)
+- Command: `cd writenow-frontend && WN_SMOKE_LAUNCH=1 npm run package:smoke`
+- Key output: backend reached `[backend] ready`; renderer crashed in WSL smoke (`render-process-gone exitCode=133`) — see `/tmp/writenow-packaging-smoke-*/logs/main.log`
+
+### 2026-01-28 14:55 Packaged launch smoke (linux)
+- Command: `cd writenow-frontend && WN_SMOKE_LAUNCH=1 npm run package:smoke`
+- Key output: backend reached `[backend] ready`; renderer crashed in WSL smoke (`render-process-gone exitCode=133`) — see `/tmp/writenow-packaging-smoke-*/logs/main.log`
+

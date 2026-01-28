@@ -12,6 +12,11 @@ const __dirname = path.dirname(__filename)
 const FRONTEND_ROOT = path.resolve(__dirname, '..')
 const REPO_ROOT = path.resolve(FRONTEND_ROOT, '..')
 
+function readJson(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf8')
+  return JSON.parse(raw)
+}
+
 function run(command, args, options) {
   const res = spawnSync(command, args, {
     cwd: options?.cwd,
@@ -63,6 +68,31 @@ function ensureBackendSchemaSql(entryPath) {
   }
 
   fs.copyFileSync(sourcePath, destPath)
+}
+
+function resolveElectronVersion() {
+  const candidates = [
+    path.join(FRONTEND_ROOT, 'node_modules', 'electron', 'package.json'),
+    path.join(FRONTEND_ROOT, 'node_modules', 'electron', 'dist', 'version'),
+  ]
+
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate)) continue
+    try {
+      if (candidate.endsWith('package.json')) {
+        const parsed = readJson(candidate)
+        const version = typeof parsed?.version === 'string' ? parsed.version.trim() : ''
+        if (version) return version
+      } else {
+        const version = fs.readFileSync(candidate, 'utf8').trim()
+        if (version) return version
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  throw new Error('Unable to resolve Electron version (expected writenow-frontend/node_modules/electron to be installed)')
 }
 
 async function sha256File(filePath) {
@@ -175,9 +205,29 @@ async function main() {
   ensureDir(path.join(resourcesDir, 'models'))
   ensureDir(path.join(resourcesDir, 'licenses'))
 
+  const electronVersion = resolveElectronVersion()
+
   if ((process.env.WN_SKIP_THEIA_BUILD ?? '').trim() !== '1') {
     console.log('[packaging] building Theia backend (browser-app)')
     run('npm', ['run', 'theia:build:browser'], { cwd: REPO_ROOT })
+  }
+
+  if ((process.env.WN_SKIP_ELECTRON_REBUILD ?? '').trim() !== '1') {
+    console.log(`[packaging] electron-rebuild Theia native modules (electron=${electronVersion})`)
+    run(
+      'npx',
+      [
+        'electron-rebuild',
+        '--version',
+        electronVersion,
+        '--module-dir',
+        path.join(REPO_ROOT, 'writenow-theia'),
+        '--which-module',
+        'better-sqlite3,native-keymap,sqlite-vec',
+        '--force',
+      ],
+      { cwd: FRONTEND_ROOT },
+    )
   }
 
   const theiaBackendDir = path.join(REPO_ROOT, 'writenow-theia', 'browser-app')

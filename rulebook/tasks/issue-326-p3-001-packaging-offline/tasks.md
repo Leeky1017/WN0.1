@@ -10,4 +10,4 @@
 
 ## 3. Documentation
 - [x] 3.1 更新 `design/05-packaging.md`：随包资源清单 + 合规信息（来源/许可证/hash/版本）
-- [ ] 3.2 回填 task card：验收项勾选 + 元信息（Issue/PR/RUN_LOG）
+- [x] 3.2 回填 task card：验收项勾选 + 元信息（Issue/PR/RUN_LOG）
