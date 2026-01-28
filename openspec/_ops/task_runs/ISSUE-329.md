@@ -1,7 +1,7 @@
 # ISSUE-329
 - Issue: #329
 - Branch: task/329-ai-memory-p2-001-002
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/337
 
 ## Plan
 - 落地 P2-001：历史结果 Full → Compact 压缩（确定性序列化 + 可回溯引用 + 可观测压缩事件）
