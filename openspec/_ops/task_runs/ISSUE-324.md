@@ -1,7 +1,7 @@
 # ISSUE-324
 - Issue: #324
 - Branch: task/324-archive-issue-321-task
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/325
 
 ## Plan
 - 归档已完成的 Rulebook task：`issue-321-e2e-write-mode-flake-fixes`。
