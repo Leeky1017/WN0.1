@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useElectronApi } from '@/lib/electron';
 import { useRpcConnection } from '@/lib/hooks';
+import { configureWnE2E } from '@/lib/e2e';
 import { configureWnPerf } from '@/lib/perf';
 import { useStatusBarStore } from '@/stores/statusBarStore';
 
@@ -23,6 +24,10 @@ export function WriteModePage() {
 
   useEffect(() => {
     configureWnPerf({ enabled: isE2E });
+  }, [isE2E]);
+
+  useEffect(() => {
+    configureWnE2E({ enabled: isE2E });
   }, [isE2E]);
 
   useEffect(() => {

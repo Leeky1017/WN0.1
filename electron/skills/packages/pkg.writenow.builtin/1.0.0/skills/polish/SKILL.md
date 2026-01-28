@@ -7,6 +7,14 @@ tags: [rewrite]
 kind: single
 scope: builtin
 packageId: pkg.writenow.builtin
+context_rules:
+  surrounding: 500
+  user_preferences: true
+  style_guide: true
+  characters: false
+  outline: false
+  recent_summary: 3
+  knowledge_graph: false
 modelProfile:
   tier: high
   preferred: claude-3-5-sonnet-latest
