@@ -6,15 +6,10 @@
 - Branch: task/355-rpc-use-connectionmanager
 - PR: https://github.com/Leeky1017/WN0.1/pull/356
 
-## Problem
+## Plan
 
-Screenshot from failed E2E test showed file tree displaying "Not connected to backend" while status bar showed "已连接".
-
-Root cause: `api.ts`'s `invoke()` was using the legacy `rpcClient` which has its own connection state, while `useRpcConnection` uses the new `connectionManager`. They were not synchronized.
-
-## Solution
-
-Update `api.ts` to use `connectionManager.invoke()` instead of `rpcClient.invoke()`.
+- Fix connection state desync between `connectionManager` and `rpcClient`
+- Update `api.ts` to use `connectionManager.invoke()` instead of `rpcClient.invoke()`
 
 ## Runs
 
