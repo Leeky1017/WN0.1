@@ -921,6 +921,13 @@ CREATE TABLE settings (
   - Phase 2：✅ 已完成（2026-01-28；PR #337）
     - [x] P2-001：Full→Compact 压缩
     - [x] P2-002：设定文件化按需加载
+- Sprint AI-Memory Semantic Recall（用户记忆语义召回）：
+  - Status: Draft（Spec: `openspec/specs/sprint-ai-memory-semantic-recall/spec.md`；Issue #344）
+  - Phase 0：Draft
+    - [ ] P0-001：`user_memory_vec` 语义召回索引 + `memory:injection:preview(queryText?)`
+  - Phase 1：Draft
+    - [ ] P1-001：`user_memory` 数据模型增强（confidence/evidence/metadata/revision/deleted_at）+ `migrateToV10` + IPC 契约同步
+    - [ ] P1-002：降级策略 + 可观测日志 + E2E 覆盖（语义召回不阻断 SKILL）
 - Sprint Open-Source-Opt（开源方案优化）：
   - Phase 0：✅ 已完成（2026-01-27；Issue #279，PR #280）
     - [x] P0-001：Provider Native Prompt Caching（Anthropic `cache_control: ephemeral`）
