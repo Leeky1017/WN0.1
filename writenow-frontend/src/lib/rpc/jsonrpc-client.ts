@@ -76,12 +76,16 @@ export class JsonRpcWebSocketClient {
       throw new Error('No URL provided for connection');
     }
 
-    if (this.currentStatus === 'connected' && this.connection) return;
+    if (this.currentStatus === 'connected' && this.connection) {
+      if (this.connectUrl === targetUrl) return;
+      this.disconnect();
+    }
     if (this.currentStatus === 'connecting' && this.connectInFlight && this.connectUrl === targetUrl) {
       return this.connectInFlight;
     }
 
     this.shouldReconnect = true;
+    this.clearReconnectTimeout();
     this.setStatus('connecting');
     this.connectUrl = targetUrl;
 

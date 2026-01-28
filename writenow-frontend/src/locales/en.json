@@ -1,0 +1,80 @@
+{
+  "common": {
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "language": "Language",
+    "clear": "Clear",
+    "apply": "Apply",
+    "applyReconnect": "Apply & reconnect"
+  },
+  "activityBar": {
+    "files": "Files",
+    "search": "Search",
+    "outline": "Outline",
+    "history": "History",
+    "memory": "Memory",
+    "skills": "Skills",
+    "projects": "Projects",
+    "settings": "Settings",
+    "new": "New"
+  },
+  "sidebar": {
+    "title": {
+      "files": "Explorer",
+      "search": "Search",
+      "outline": "Outline",
+      "history": "History",
+      "memory": "Memory",
+      "skills": "Skills",
+      "projects": "Projects",
+      "settings": "Settings"
+    }
+  },
+  "settings": {
+    "section": {
+      "appearance": "Appearance & Editor",
+      "ai": "AI",
+      "memory": "Memory",
+      "connectionAdvanced": "Connection (Advanced)",
+      "localLlm": "Local LLM Tab Completion",
+      "aiProxyAdvanced": "AI Proxy (Advanced)",
+      "language": "Language",
+      "update": "Updates"
+    },
+    "label": {
+      "theme": "Theme",
+      "editorMode": "Default editor mode",
+      "language": "Language",
+      "languageHint": "Takes effect immediately (persists after restart)"
+    },
+    "connection": {
+      "priority": "Priority: user settings > VITE_RPC_URL > default.",
+      "currentUsing": "Current:",
+      "status": "Status:",
+      "applyReconnect": "Apply & reconnect",
+      "clear": "Clear"
+    }
+  },
+  "update": {
+    "currentVersion": "Current version",
+    "latestVersion": "Latest",
+    "lastCheckedAt": "Last checked",
+    "status": "Status",
+    "refresh": "Refresh",
+    "check": "Check for updates",
+    "download": "Download",
+    "install": "Install & restart",
+    "skip": "Skip this version",
+    "clearSkipped": "Clear skipped",
+    "skippedVersion": "Skipped version",
+    "statusText": {
+      "idle": "Idle",
+      "checking": "Checking…",
+      "available": "Available",
+      "not_available": "Up to date",
+      "downloading": "Downloading…",
+      "downloaded": "Downloaded",
+      "error": "Error"
+    }
+  }
+}

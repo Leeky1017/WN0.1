@@ -27,3 +27,6 @@ export type { ThemeState } from './themeStore';
 
 export { useSettingsPanelStore } from './settingsPanelStore';
 export type { SettingsPanelState } from './settingsPanelStore';
+
+export { useExportDialogStore } from './exportDialogStore';
+export type { ExportDialogState } from './exportDialogStore';

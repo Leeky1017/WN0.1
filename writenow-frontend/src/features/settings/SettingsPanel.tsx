@@ -4,11 +4,41 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { SidebarPanelSection } from '@/components/layout/sidebar-panel';
 import { Button, Input, Switch } from '@/components/ui';
+import { UpdateSection } from '@/features/update';
+import { normalizeAppLanguage, setStoredLanguage, type AppLanguage } from '@/lib/i18n/i18n';
+import { useRpcConnection } from '@/lib/hooks';
 import { useLocalLlm } from '@/lib/electron';
+import { rpcClient } from '@/lib/rpc';
+import { aiClient } from '@/lib/rpc/ai-client';
+import { skillsClient } from '@/lib/rpc/skills-client';
+import { getRpcWsUrl, getUserRpcWsUrlOverride, setUserRpcWsUrlOverride } from '@/lib/rpc/rpcUrl';
 import { useAiProxySettings } from '@/lib/rpc/useAiProxySettings';
+import type { Theme } from '@/lib/theme/themeManager';
+import type { EditorMode } from '@/stores';
+
+import { useSettings } from './useSettings';
+
+const THEME_OPTIONS = [
+  { value: 'system', label: '跟随系统' },
+  { value: 'midnight', label: 'Midnight（默认）' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'light', label: 'Light' },
+  { value: 'high-contrast', label: 'High Contrast' },
+] as const satisfies readonly { value: Theme; label: string }[];
+
+const EDITOR_MODE_OPTIONS = [
+  { value: 'richtext', label: '富文本（TipTap）' },
+  { value: 'markdown', label: 'Markdown' },
+] as const satisfies readonly { value: EditorMode; label: string }[];
+
+const LANGUAGE_OPTIONS = [
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'en', label: 'English' },
+] as const satisfies readonly { value: AppLanguage; label: string }[];
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
@@ -22,14 +52,16 @@ function formatBytes(bytes: number): string {
 }
 
 export function SettingsPanel() {
+  const { t, i18n } = useTranslation();
+  const appSettings = useSettings();
   const localLlm = useLocalLlm();
 
-  const settings = localLlm.settings;
+  const localLlmSettings = localLlm.settings;
   const state = localLlm.state;
   const models = localLlm.models;
   const installedModelIds = localLlm.installedModelIds;
 
-  const selectedModelId = settings?.modelId ?? '';
+  const selectedModelId = localLlmSettings?.modelId ?? '';
   const selectedModel = useMemo(() => models.find((m) => m.id === selectedModelId) ?? null, [models, selectedModelId]);
 
   const selectedInstalled = selectedModelId ? installedModelIds.includes(selectedModelId) : false;
@@ -38,6 +70,47 @@ export function SettingsPanel() {
   const totalBytes = progress?.totalBytes ?? selectedModel?.sizeBytes;
   const receivedBytes = progress?.receivedBytes ?? 0;
   const percent = totalBytes ? Math.min(100, Math.max(0, Math.round((receivedBytes / totalBytes) * 100))) : null;
+
+  const [rpcUrlOverride, setRpcUrlOverride] = useState(() => getUserRpcWsUrlOverride() ?? '');
+  const resolvedRpcUrl = getRpcWsUrl();
+  const rpc = useRpcConnection({ autoConnect: false, url: resolvedRpcUrl });
+  const [rpcApplying, setRpcApplying] = useState(false);
+  const [rpcApplyError, setRpcApplyError] = useState<string | null>(null);
+
+  const language = useMemo(() => normalizeAppLanguage(i18n.language), [i18n.language]);
+  const handleLanguageChange = useCallback(
+    async (next: AppLanguage) => {
+      setStoredLanguage(next);
+      await i18n.changeLanguage(next);
+    },
+    [i18n],
+  );
+
+  const handleApplyRpcUrl = useCallback(async () => {
+    setRpcApplyError(null);
+    setRpcApplying(true);
+    try {
+      setUserRpcWsUrlOverride(rpcUrlOverride);
+      setRpcUrlOverride(getUserRpcWsUrlOverride() ?? '');
+      const nextUrl = getRpcWsUrl();
+      await rpcClient.connect(nextUrl);
+      // Keep other shared JSON-RPC clients consistent with the main backend URL.
+      await Promise.all([aiClient.connect(nextUrl), skillsClient.connect(nextUrl)]);
+    } catch (error) {
+      setRpcApplyError(error instanceof Error ? error.message : '连接失败');
+    } finally {
+      setRpcApplying(false);
+    }
+  }, [rpcUrlOverride]);
+
+  const applyMemoryThreshold = useCallback(
+    async (raw: string) => {
+      const value = Number(raw);
+      if (!Number.isFinite(value)) return;
+      await appSettings.updateMemorySettings({ preferenceLearningThreshold: value });
+    },
+    [appSettings],
+  );
 
   const applyNumberSetting = useCallback(
     async (key: 'maxTokens' | 'temperature' | 'timeoutMs' | 'idleDelayMs', raw: string) => {
@@ -81,7 +154,203 @@ export function SettingsPanel() {
 
   return (
     <div className="p-3 space-y-3">
-      <SidebarPanelSection title="本地 LLM Tab 续写">
+      <SidebarPanelSection title={t('settings.section.appearance')}>
+        <div className="px-2 space-y-3">
+          <div className="space-y-1">
+            <div className="text-[10px] text-[var(--fg-muted)]">{t('settings.label.language')}</div>
+            <select
+              value={language}
+              aria-label={t('settings.label.language')}
+              data-testid="settings-language-select"
+              onChange={(e) => void handleLanguageChange(normalizeAppLanguage(e.target.value))}
+              className="w-full h-8 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] text-[12px] px-2"
+            >
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <div className="text-[10px] text-[var(--fg-muted)] leading-relaxed">{t('settings.label.languageHint')}</div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-[10px] text-[var(--fg-muted)]">{t('settings.label.theme')}</div>
+            <select
+              value={appSettings.theme}
+              onChange={(e) => {
+                const next = THEME_OPTIONS.find((opt) => opt.value === e.target.value)?.value;
+                if (!next) return;
+                appSettings.setTheme(next);
+              }}
+              className="w-full h-8 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] text-[12px] px-2"
+            >
+              {THEME_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-[10px] text-[var(--fg-muted)]">{t('settings.label.editorMode')}</div>
+            <select
+              value={appSettings.defaultEditorMode}
+              onChange={(e) => {
+                const next = EDITOR_MODE_OPTIONS.find((opt) => opt.value === e.target.value)?.value;
+                if (!next) return;
+                appSettings.setDefaultEditorMode(next);
+              }}
+              className="w-full h-8 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] text-[12px] px-2"
+            >
+              {EDITOR_MODE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </SidebarPanelSection>
+
+      <UpdateSection />
+
+      <SidebarPanelSection title={t('settings.section.ai')}>
+        <div className="px-2 space-y-2">
+          <div className="text-[10px] text-[var(--fg-muted)] leading-relaxed">
+            API Key 将用于请求云端模型；本地续写（Tab）与 AI 代理可独立配置。
+          </div>
+          <Input
+            inputSize="sm"
+            type="password"
+            key={`aiApiKey:${appSettings.aiApiKey ? 'set' : 'empty'}`}
+            defaultValue={appSettings.aiApiKey}
+            onBlur={(e) => void appSettings.setAiApiKey(e.currentTarget.value)}
+            placeholder="sk-..."
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!appSettings.aiApiKey}
+              onClick={() => void appSettings.setAiApiKey('')}
+            >
+              清除
+            </Button>
+          </div>
+        </div>
+      </SidebarPanelSection>
+
+      <SidebarPanelSection title={t('settings.section.memory')}>
+        <div className="px-2 space-y-3">
+          {appSettings.memoryLoading && (
+            <div className="text-[11px] text-[var(--fg-muted)]">正在加载记忆设置…</div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <div className="text-[12px] font-semibold text-[var(--fg-default)]">记忆注入</div>
+              <div className="text-[10px] text-[var(--fg-muted)] mt-0.5">将相关记忆注入到 AI 上下文中（可随时关闭）</div>
+            </div>
+            <Switch
+              checked={Boolean(appSettings.memorySettings?.injectionEnabled)}
+              onCheckedChange={(checked) => void appSettings.updateMemorySettings({ injectionEnabled: checked })}
+              disabled={!appSettings.memorySettings || appSettings.memoryLoading}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <div className="text-[12px] font-semibold text-[var(--fg-default)]">偏好学习</div>
+              <div className="text-[10px] text-[var(--fg-muted)] mt-0.5">根据你的接受/拒绝行为自动总结偏好</div>
+            </div>
+            <Switch
+              checked={Boolean(appSettings.memorySettings?.preferenceLearningEnabled)}
+              onCheckedChange={(checked) => void appSettings.updateMemorySettings({ preferenceLearningEnabled: checked })}
+              disabled={!appSettings.memorySettings || appSettings.memoryLoading}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <div className="text-[12px] font-semibold text-[var(--fg-default)]">隐私模式</div>
+              <div className="text-[10px] text-[var(--fg-muted)] mt-0.5">开启后将减少/停用偏好学习与记忆写入</div>
+            </div>
+            <Switch
+              checked={Boolean(appSettings.memorySettings?.privacyModeEnabled)}
+              onCheckedChange={(checked) => void appSettings.updateMemorySettings({ privacyModeEnabled: checked })}
+              disabled={!appSettings.memorySettings || appSettings.memoryLoading}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-[10px] text-[var(--fg-muted)]">学习阈值</div>
+            <Input
+              inputSize="sm"
+              type="number"
+              min={0}
+              step={0.05}
+              key={`preferenceLearningThreshold:${appSettings.memorySettings?.preferenceLearningThreshold ?? ''}`}
+              defaultValue={
+                appSettings.memorySettings ? String(appSettings.memorySettings.preferenceLearningThreshold) : ''
+              }
+              onBlur={(e) => void applyMemoryThreshold(e.currentTarget.value)}
+              disabled={!appSettings.memorySettings || appSettings.memoryLoading || !appSettings.memorySettings?.preferenceLearningEnabled}
+            />
+            <div className="text-[10px] text-[var(--fg-muted)] leading-relaxed">
+              阈值越高越“谨慎”，学习条目更少；阈值越低越“积极”，更容易写入偏好。
+            </div>
+          </div>
+
+          {appSettings.memoryError && (
+            <div className="text-[11px] text-[var(--error)] px-2 py-1 rounded-md border border-[var(--error)]/40 bg-[var(--bg-elevated)]">
+              {appSettings.memoryError}
+            </div>
+          )}
+        </div>
+      </SidebarPanelSection>
+
+      <SidebarPanelSection title={t('settings.section.connectionAdvanced')} defaultCollapsed>
+        <div className="px-2 space-y-2">
+          <div className="text-[10px] text-[var(--fg-muted)] leading-relaxed">
+            {t('settings.connection.priority')}
+            <br />
+            {t('settings.connection.currentUsing')}<code className="break-all">{resolvedRpcUrl}</code>
+            <br />
+            {t('settings.connection.status')}<span className="text-[var(--fg-default)]">{rpc.status}</span>
+          </div>
+
+          <Input
+            inputSize="sm"
+            value={rpcUrlOverride}
+            onChange={(e) => setRpcUrlOverride(e.currentTarget.value)}
+            placeholder="ws://localhost:3000/standalone-rpc"
+          />
+
+          <div className="flex items-center gap-2">
+            <Button variant="primary" size="sm" loading={rpcApplying} onClick={() => void handleApplyRpcUrl()}>
+              {t('settings.connection.applyReconnect')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!rpcUrlOverride || rpcApplying}
+              onClick={() => setRpcUrlOverride('')}
+            >
+              {t('settings.connection.clear')}
+            </Button>
+          </div>
+
+          {(rpcApplyError || rpc.error) && (
+            <div className="text-[11px] text-[var(--error)] px-2 py-1 rounded-md border border-[var(--error)]/40 bg-[var(--bg-elevated)]">
+              {rpcApplyError ?? rpc.error}
+            </div>
+          )}
+        </div>
+      </SidebarPanelSection>
+
+      <SidebarPanelSection title={t('settings.section.localLlm')}>
         {!localLlm.supported && (
           <div className="px-2 py-2 text-[11px] text-[var(--fg-muted)]">
             当前构建未暴露 `electronAPI.localLlm`，无法启用本地续写。
@@ -96,11 +365,11 @@ export function SettingsPanel() {
                 <div className="text-[10px] text-[var(--fg-muted)] mt-0.5">默认关闭；不会自动下载模型，需你确认后手动下载。</div>
               </div>
               <Switch
-                checked={Boolean(settings?.enabled)}
+                checked={Boolean(localLlmSettings?.enabled)}
                 onCheckedChange={(checked) => {
                   void localLlm.updateSettings({ enabled: checked });
                 }}
-                disabled={!settings}
+                disabled={!localLlmSettings}
               />
             </div>
 
@@ -110,7 +379,7 @@ export function SettingsPanel() {
                 value={selectedModelId}
                 onChange={(e) => void localLlm.updateSettings({ modelId: e.target.value })}
                 className="w-full h-8 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] text-[12px] px-2"
-                disabled={!settings || models.length === 0}
+                disabled={!localLlmSettings || models.length === 0}
               >
                 {models.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -190,8 +459,8 @@ export function SettingsPanel() {
                 <div className="text-[10px] text-[var(--fg-muted)]">停顿阈值 (ms)</div>
                 <Input
                   inputSize="sm"
-                  key={`idleDelayMs:${settings?.idleDelayMs ?? ''}`}
-                  defaultValue={settings ? String(settings.idleDelayMs) : ''}
+                  key={`idleDelayMs:${localLlmSettings?.idleDelayMs ?? ''}`}
+                  defaultValue={localLlmSettings ? String(localLlmSettings.idleDelayMs) : ''}
                   onBlur={(e) => void applyNumberSetting('idleDelayMs', e.currentTarget.value)}
                   type="number"
                   min={200}
@@ -202,8 +471,8 @@ export function SettingsPanel() {
                 <div className="text-[10px] text-[var(--fg-muted)]">超时 (ms)</div>
                 <Input
                   inputSize="sm"
-                  key={`timeoutMs:${settings?.timeoutMs ?? ''}`}
-                  defaultValue={settings ? String(settings.timeoutMs) : ''}
+                  key={`timeoutMs:${localLlmSettings?.timeoutMs ?? ''}`}
+                  defaultValue={localLlmSettings ? String(localLlmSettings.timeoutMs) : ''}
                   onBlur={(e) => void applyNumberSetting('timeoutMs', e.currentTarget.value)}
                   type="number"
                   min={1000}
@@ -214,8 +483,8 @@ export function SettingsPanel() {
                 <div className="text-[10px] text-[var(--fg-muted)]">Max tokens</div>
                 <Input
                   inputSize="sm"
-                  key={`maxTokens:${settings?.maxTokens ?? ''}`}
-                  defaultValue={settings ? String(settings.maxTokens) : ''}
+                  key={`maxTokens:${localLlmSettings?.maxTokens ?? ''}`}
+                  defaultValue={localLlmSettings ? String(localLlmSettings.maxTokens) : ''}
                   onBlur={(e) => void applyNumberSetting('maxTokens', e.currentTarget.value)}
                   type="number"
                   min={8}
@@ -226,8 +495,8 @@ export function SettingsPanel() {
                 <div className="text-[10px] text-[var(--fg-muted)]">Temperature</div>
                 <Input
                   inputSize="sm"
-                  key={`temperature:${settings?.temperature ?? ''}`}
-                  defaultValue={settings ? String(settings.temperature) : ''}
+                  key={`temperature:${localLlmSettings?.temperature ?? ''}`}
+                  defaultValue={localLlmSettings ? String(localLlmSettings.temperature) : ''}
                   onBlur={(e) => void applyNumberSetting('temperature', e.currentTarget.value)}
                   type="number"
                   min={0}
@@ -249,6 +518,7 @@ export function SettingsPanel() {
  * Why: Allow users to configure optional LiteLLM proxy for multi-model support.
  */
 function AiProxySection() {
+  const { t } = useTranslation();
   const aiProxy = useAiProxySettings();
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -294,7 +564,7 @@ function AiProxySection() {
   }, [aiProxy, baseUrl]);
 
   return (
-    <SidebarPanelSection title="AI 代理（高级）" defaultCollapsed>
+    <SidebarPanelSection title={t('settings.section.aiProxyAdvanced')} defaultCollapsed>
       <div className="space-y-3">
         <div className="px-2 py-2 text-[10px] text-[var(--fg-muted)] leading-relaxed">
           启用后，AI 请求将通过代理服务器转发，支持多模型切换、缓存、故障转移等高级功能。

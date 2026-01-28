@@ -40,6 +40,7 @@
   --z-sticky: 20;          /* Sticky headers */
   --z-overlay: 30;         /* Modals, overlays */
   --z-popover: 40;         /* Popovers, tooltips */
+  --z-modal: 45;           /* Modal dialogs and mobile overlays */
   --z-toast: 50;           /* Toast notifications */
   --z-max: 9999;           /* Maximum (noise overlay) */
 }

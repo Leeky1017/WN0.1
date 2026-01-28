@@ -18,6 +18,8 @@ class RpcClient {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectDelay = 5000
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null
+  private shouldReconnect = true
   private listeners: Set<RpcConnectionListener> = new Set()
   private currentStatus: RpcConnectionStatus = 'disconnected'
   private connectInFlight: Promise<void> | null = null
@@ -29,13 +31,17 @@ class RpcClient {
    */
   async connect(url: string): Promise<void> {
     if (this.currentStatus === 'connected' && this.connection) {
-      return
+      if (this.connectUrl === url) return
+      // Why: Users can update the backend URL at runtime; switching URLs must be explicit and deterministic.
+      this.disconnect()
     }
 
     if (this.currentStatus === 'connecting' && this.connectInFlight && this.connectUrl === url) {
       return this.connectInFlight
     }
 
+    this.shouldReconnect = true
+    this.clearReconnectTimeout()
     this.setStatus('connecting')
     this.connectUrl = url
 
@@ -140,10 +146,13 @@ class RpcClient {
    * Disconnect from the backend
    */
   disconnect(): void {
+    this.shouldReconnect = false
+    this.clearReconnectTimeout()
     if (this.connection) {
       this.connection.dispose()
       this.connection = null
     }
+    this.connectInFlight = null
     this.setStatus('disconnected')
   }
 
@@ -153,6 +162,8 @@ class RpcClient {
   }
 
   private scheduleReconnect(url: string): void {
+    if (!this.shouldReconnect) return
+    if (this.connectUrl !== url) return
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('[RPC] Max reconnect attempts reached')
       this.setStatus('error')
@@ -162,11 +173,18 @@ class RpcClient {
     this.reconnectAttempts++
     console.log(`[RPC] Scheduling reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`)
     
-    setTimeout(() => {
+    this.clearReconnectTimeout()
+    this.reconnectTimeoutId = setTimeout(() => {
       this.connect(url).catch((error) => {
         console.error('[RPC] Reconnect failed:', error)
       })
     }, this.reconnectDelay)
+  }
+
+  private clearReconnectTimeout(): void {
+    if (!this.reconnectTimeoutId) return
+    clearTimeout(this.reconnectTimeoutId)
+    this.reconnectTimeoutId = null
   }
 }
 

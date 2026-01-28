@@ -4,10 +4,11 @@
  */
 
 import { create } from 'zustand';
+import type { Breakpoint } from '@/lib/responsive';
 
 const LAYOUT_STORAGE_KEY = 'writenow_layout_v1';
 
-export type SidebarView = 'files' | 'search' | 'outline' | 'history' | 'settings';
+export type SidebarView = 'files' | 'search' | 'outline' | 'history' | 'memory' | 'skills' | 'projects' | 'settings';
 
 type PersistedLayoutState = {
   sidebarCollapsed: boolean;
@@ -25,6 +26,10 @@ export interface LayoutState {
   activeSidebarView: SidebarView;
   /** Focus/Zen mode (write-first UI folding) */
   focusMode: boolean;
+  /** Current responsive breakpoint */
+  breakpoint: Breakpoint;
+  /** Mobile overlay mode - sidebar shown as overlay instead of inline */
+  mobileOverlayOpen: 'sidebar' | 'ai' | null;
 
   setSidebarCollapsed: (collapsed: boolean) => void;
   setRightPanelCollapsed: (collapsed: boolean) => void;
@@ -36,6 +41,12 @@ export interface LayoutState {
   toggleSidebar: () => void;
   toggleRightPanel: () => void;
   resetLayout: () => void;
+  /** Update breakpoint from resize handler */
+  setBreakpoint: (bp: Breakpoint) => void;
+  /** Open/close mobile overlay */
+  setMobileOverlay: (overlay: 'sidebar' | 'ai' | null) => void;
+  /** Toggle mobile overlay */
+  toggleMobileOverlay: (overlay: 'sidebar' | 'ai') => void;
 }
 
 function isSidebarView(value: unknown): value is SidebarView {
@@ -44,6 +55,9 @@ function isSidebarView(value: unknown): value is SidebarView {
     value === 'search' ||
     value === 'outline' ||
     value === 'history' ||
+    value === 'memory' ||
+    value === 'skills' ||
+    value === 'projects' ||
     value === 'settings'
   );
 }
@@ -93,6 +107,8 @@ export const useLayoutStore = create<LayoutState>((set, get) => {
     rightPanelCollapsed: initialState.rightPanelCollapsed ?? false,
     activeSidebarView: initialState.activeSidebarView ?? 'files',
     focusMode: initialState.focusMode ?? false,
+    breakpoint: 'desktop' as Breakpoint,
+    mobileOverlayOpen: null,
 
     setSidebarCollapsed: (collapsed) => {
       set({ sidebarCollapsed: collapsed });
@@ -127,13 +143,25 @@ export const useLayoutStore = create<LayoutState>((set, get) => {
     },
 
     toggleSidebar: () => {
-      const next = !get().sidebarCollapsed;
+      const { breakpoint, mobileOverlayOpen, sidebarCollapsed } = get();
+      // On mobile, use overlay mode instead of inline collapse
+      if (breakpoint === 'mobile') {
+        set({ mobileOverlayOpen: mobileOverlayOpen === 'sidebar' ? null : 'sidebar' });
+        return;
+      }
+      const next = !sidebarCollapsed;
       set({ sidebarCollapsed: next });
       persist({ sidebarCollapsed: next });
     },
 
     toggleRightPanel: () => {
-      const next = !get().rightPanelCollapsed;
+      const { breakpoint, mobileOverlayOpen, rightPanelCollapsed } = get();
+      // On mobile, use overlay mode instead of inline collapse
+      if (breakpoint === 'mobile') {
+        set({ mobileOverlayOpen: mobileOverlayOpen === 'ai' ? null : 'ai' });
+        return;
+      }
+      const next = !rightPanelCollapsed;
       set({ rightPanelCollapsed: next });
       persist({ rightPanelCollapsed: next });
     },
@@ -145,7 +173,27 @@ export const useLayoutStore = create<LayoutState>((set, get) => {
         rightPanelCollapsed: false,
         activeSidebarView: 'files',
         focusMode: false,
+        mobileOverlayOpen: null,
       });
+    },
+
+    setBreakpoint: (bp) => {
+      const current = get();
+      // Close mobile overlay when switching to larger breakpoint
+      if (bp !== 'mobile' && current.mobileOverlayOpen) {
+        set({ breakpoint: bp, mobileOverlayOpen: null });
+      } else {
+        set({ breakpoint: bp });
+      }
+    },
+
+    setMobileOverlay: (overlay) => {
+      set({ mobileOverlayOpen: overlay });
+    },
+
+    toggleMobileOverlay: (overlay) => {
+      const current = get();
+      set({ mobileOverlayOpen: current.mobileOverlayOpen === overlay ? null : overlay });
     },
   };
 });

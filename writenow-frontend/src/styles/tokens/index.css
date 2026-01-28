@@ -13,4 +13,6 @@
 
 /* Level 1: Theme Tokens (semantic variables) */
 @import "./theme-dark.css";
+@import "./theme-midnight.css";
+@import "./theme-high-contrast.css";
 @import "./theme-light.css";

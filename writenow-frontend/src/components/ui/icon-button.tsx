@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 import type { LucideIcon } from 'lucide-react';
 
 type IconButtonVariant = 'ghost' | 'subtle' | 'solid';
-type IconButtonSize = 'sm' | 'md' | 'lg';
+type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 
 interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** The Lucide icon component to render */
@@ -51,6 +51,7 @@ const variantStyles: Record<IconButtonVariant, string> = {
  * Why: Icons need to scale proportionally with button size.
  */
 const sizeConfig: Record<IconButtonSize, { button: string; icon: number }> = {
+  xs: { button: 'w-6 h-6', icon: 12 },
   sm: { button: 'w-7 h-7', icon: 14 },
   md: { button: 'w-8 h-8', icon: 16 },
   lg: { button: 'w-10 h-10', icon: 18 },
@@ -80,10 +81,16 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       tooltip,
       tooltipSide = 'bottom',
       disabled,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
       ...props
     },
     ref
   ) => {
+    // Why: Icon-only buttons must be labeled for assistive tech; prefer an explicit aria-label,
+    // otherwise fall back to tooltip text (if provided).
+    const computedAriaLabel = ariaLabel ?? (ariaLabelledBy ? undefined : tooltip);
+
     const button = (
       <button
         ref={ref}
@@ -103,6 +110,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           className
         )}
         {...props}
+        aria-label={computedAriaLabel}
+        aria-labelledby={ariaLabelledBy}
       >
         <Icon
           size={sizeConfig[size].icon}

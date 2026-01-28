@@ -9,12 +9,14 @@ import { ChevronDown, Send, Square } from 'lucide-react';
 import { MessageBubble } from '@/components/composed/message-bubble';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { invokeSafe } from '@/lib/rpc';
 import { useAIStore } from '@/stores/aiStore';
 import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
 import { useEditorRuntimeStore } from '@/stores/editorRuntimeStore';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useSettingsPanelStore } from '@/stores/settingsPanelStore';
 
+import { ContextPreview } from './ContextPreview';
 import { useAISkill } from './useAISkill';
 
 export function AIPanel() {
@@ -31,6 +33,16 @@ export function AIPanel() {
   const diff = useAIStore((s) => s.diff);
 
   const [isApplying, setIsApplying] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | undefined>(undefined);
+
+  // Load current project ID for context preview
+  useEffect(() => {
+    invokeSafe('project:getCurrent', {}).then((res) => {
+      setCurrentProjectId(res?.projectId ?? undefined);
+    }).catch(() => {
+      // Why: Project context is optional; failures are non-blocking.
+    });
+  }, []);
 
   const canSend = Boolean((selectedSkillId ?? '').trim()) && status !== 'thinking' && status !== 'streaming' && !diff;
   const canCancel = status === 'thinking' || status === 'streaming';
@@ -163,6 +175,9 @@ export function AIPanel() {
           )}
         </div>
       </div>
+
+      {/* Context Preview */}
+      <ContextPreview projectId={currentProjectId} />
 
       {skillsError && (
         <div className="px-3 py-2 text-[11px] text-[var(--error)] border-b border-[var(--border-subtle)]">

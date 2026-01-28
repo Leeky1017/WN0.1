@@ -14,7 +14,7 @@ test.describe('local LLM tab completion', () => {
 
     const { electronApp, page } = await launchWriteNowApp({ userDataDir });
     try {
-      await page.getByRole('button', { name: 'Settings' }).click();
+      await page.getByTestId('activity-tab-settings').click();
       await expect(page.getByText('本地 LLM Tab 续写')).toBeVisible();
 
       const toggle = page.getByRole('switch').first();
@@ -41,7 +41,7 @@ test.describe('local LLM tab completion', () => {
       await expect(editor).toBeVisible();
 
       // Enable local LLM (custom model path via env)
-      await page.getByRole('button', { name: 'Settings' }).click();
+      await page.getByTestId('activity-tab-settings').click();
       await expect(page.getByText('本地 LLM Tab 续写')).toBeVisible();
 
       await page.locator('select').selectOption('custom');

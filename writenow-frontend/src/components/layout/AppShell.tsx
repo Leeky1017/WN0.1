@@ -1,18 +1,33 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { ActivityBar, type SidebarTab } from './activity-bar';
 import { SidebarPanel } from './sidebar-panel';
 import { Header } from './header';
 import { Footer } from './footer';
-import { SearchField } from '@/components/composed/search-field';
+import { MobileOverlay } from './MobileOverlay';
+import { Toaster } from '@/components/ui/toaster';
+import { transitions } from '@/lib/motion';
+import { useConnectionToast } from '@/lib/hooks/useConnectionToast';
 
 import { AIPanel } from '@/features/ai-panel/AIPanel';
 import { CommandPalette } from '@/features/command-palette';
+import { CrashRecoveryDialog } from '@/features/crash-recovery/CrashRecoveryDialog';
+import { ExportDialog } from '@/features/export/ExportDialog';
+import { MemoryPanel } from '@/features/memory/MemoryPanel';
+import { OutlinePanel } from '@/features/outline/OutlinePanel';
+import { ProjectsPanel } from '@/features/projects/ProjectsPanel';
+import { SearchPanel } from '@/features/search/SearchPanel';
 import { SettingsPanel } from '@/features/settings/SettingsPanel';
+import { SkillsPanel } from '@/features/skills/SkillsPanel';
+import { VersionHistoryPanel } from '@/features/version-history/VersionHistoryPanel';
 import { WriteModeEditorPanel } from '@/features/write-mode/WriteModeEditorPanel';
 import { WriteModeFileTree } from '@/features/write-mode/WriteModeFileTree';
 import { useWriteModeStore } from '@/features/write-mode/writeModeStore';
+import { createShortcutsHandler } from '@/lib/keyboard';
+import { useBreakpoint } from '@/lib/responsive';
 import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
+import { useExportDialogStore } from '@/stores/exportDialogStore';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useAIStore } from '@/stores/aiStore';
 import { useStatusBarStore } from '@/stores/statusBarStore';
@@ -27,9 +42,19 @@ import { useStatusBarStore } from '@/stores/statusBarStore';
  * - React.memo on child components (FileItem, MessageBubble)
  */
 export function AppShell() {
-  const [searchQuery, setSearchQuery] = useState('');
-
+  const { t } = useTranslation();
   const togglePalette = useCommandPaletteStore((s) => s.togglePalette);
+
+  // Export dialog state
+  const exportDialogOpen = useExportDialogStore((s) => s.open);
+  const closeExportDialog = useExportDialogStore((s) => s.closeDialog);
+
+  // Connection toast notifications
+  useConnectionToast();
+
+  // Responsive breakpoint
+  const { breakpoint, isMobile } = useBreakpoint();
+  const setBreakpoint = useLayoutStore((s) => s.setBreakpoint);
 
   const sidebarCollapsed = useLayoutStore((s) => s.sidebarCollapsed);
   const rightPanelCollapsed = useLayoutStore((s) => s.rightPanelCollapsed);
@@ -40,11 +65,20 @@ export function AppShell() {
   const toggleFocusMode = useLayoutStore((s) => s.toggleFocusMode);
   const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
   const toggleRightPanel = useLayoutStore((s) => s.toggleRightPanel);
+  const mobileOverlayOpen = useLayoutStore((s) => s.mobileOverlayOpen);
+  const setMobileOverlay = useLayoutStore((s) => s.setMobileOverlay);
 
-  const isSidebarOpen = !sidebarCollapsed && !focusMode;
-  const isAiPanelOpen = !rightPanelCollapsed && !focusMode;
+  // Sync breakpoint to store
+  useEffect(() => {
+    setBreakpoint(breakpoint);
+  }, [breakpoint, setBreakpoint]);
+
+  // On mobile, inline panels are always collapsed; overlays are used instead
+  const isSidebarOpen = isMobile ? false : (!sidebarCollapsed && !focusMode);
+  const isAiPanelOpen = isMobile ? false : (!rightPanelCollapsed && !focusMode);
 
   const activeFilePath = useWriteModeStore((s) => s.activeFilePath);
+  const markdown = useWriteModeStore((s) => s.markdown);
   const saveNow = useWriteModeStore((s) => s.saveNow);
 
   const saveStatus = useStatusBarStore((s) => s.saveStatus);
@@ -70,15 +104,24 @@ export function AppShell() {
   /**
    * Handle tab change with smart toggle behavior.
    * Clicking active tab collapses sidebar, clicking other tab opens it.
+   * On mobile, this operates on the overlay instead.
    */
   const handleTabChange = useCallback((tab: SidebarTab) => {
+    if (isMobile) {
+      // On mobile, always show the overlay and switch tabs
+      setActiveSidebarView(tab);
+      if (mobileOverlayOpen !== 'sidebar') {
+        setMobileOverlay('sidebar');
+      }
+      return;
+    }
     if (tab === activeSidebarTab) {
       toggleSidebar();
       return;
     }
     setActiveSidebarView(tab);
     setSidebarCollapsed(false);
-  }, [activeSidebarTab, setActiveSidebarView, setSidebarCollapsed, toggleSidebar]);
+  }, [activeSidebarTab, isMobile, mobileOverlayOpen, setActiveSidebarView, setMobileOverlay, setSidebarCollapsed, toggleSidebar]);
 
   const handleToggleSidebar = useCallback(() => {
     toggleSidebar();
@@ -90,15 +133,8 @@ export function AppShell() {
 
   /** Map sidebar tab to display title */
   const sidebarTitle = useMemo(() => {
-    const titles: Record<SidebarTab, string> = {
-      files: 'Explorer',
-      search: 'Search',
-      outline: 'Outline',
-      history: 'History',
-      settings: 'Settings',
-    };
-    return titles[activeSidebarTab];
-  }, [activeSidebarTab]);
+    return t(`sidebar.title.${activeSidebarTab}`);
+  }, [activeSidebarTab, t]);
 
   const handleRetrySave = useCallback(() => {
     void saveNow('retry').catch(() => {
@@ -106,7 +142,9 @@ export function AppShell() {
     });
   }, [saveNow]);
 
+  // Global keyboard shortcuts
   useEffect(() => {
+    // App-level shortcuts (Cmd+K, Cmd+\)
     const handler = (event: KeyboardEvent) => {
       const isCmdk = (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'k';
       if (isCmdk) {
@@ -126,6 +164,12 @@ export function AppShell() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [toggleFocusMode, togglePalette]);
+
+  // Editor formatting shortcuts (Cmd+B/I/E, Cmd+/, Cmd+Shift+P)
+  useEffect(() => {
+    const cleanup = createShortcutsHandler();
+    return cleanup;
+  }, []);
 
   return (
     <div
@@ -182,7 +226,7 @@ export function AppShell() {
               animate={{ 
                 opacity: isSidebarOpen ? 1 : 0,
               }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
+              transition={transitions.normal}
               className="h-full w-[260px]"
             >
             <SidebarPanel
@@ -195,52 +239,32 @@ export function AppShell() {
               
               {/* Search View */}
               {activeSidebarTab === 'search' && (
-                <div className="p-3 space-y-4">
-                  <SearchField
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    placeholder="Search in files..."
-                  />
-                  <div className="text-[11px] text-[var(--fg-muted)] text-center py-10 font-medium">
-                    {searchQuery ? `No results for "${searchQuery}"` : 'No recent searches'}
-                  </div>
-                </div>
+                <SearchPanel />
               )}
               
               {/* Outline View */}
               {activeSidebarTab === 'outline' && (
-                <div className="py-3 px-4 space-y-3">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-[11px] font-semibold text-[var(--fg-default)]">
-                      <span className="w-1 h-3 bg-[var(--accent-default)] rounded-full" />
-                      Prologue
-                    </div>
-                    <div className="pl-3 space-y-2 border-l border-[var(--border-subtle)] ml-0.5">
-                      <div className="text-[11px] text-[var(--fg-muted)] hover:text-[var(--fg-default)] cursor-pointer transition-colors">Scene 1: The Window</div>
-                      <div className="text-[11px] text-[var(--fg-muted)] hover:text-[var(--fg-default)] cursor-pointer transition-colors">Scene 2: The Letter</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] font-semibold text-[var(--fg-subtle)] opacity-50">
-                    <span className="w-1 h-3 bg-[var(--border-strong)] rounded-full" />
-                    Chapter 1
-                  </div>
-                </div>
+                <OutlinePanel />
               )}
               
               {/* History View */}
               {activeSidebarTab === 'history' && (
-                <div className="py-2 px-2 space-y-1">
-                  {[
-                    { time: '10 min ago', desc: 'Refined character intro' },
-                    { time: '1 hour ago', desc: 'Added sensory details' },
-                    { time: 'Yesterday', desc: 'Draft completed' },
-                  ].map((item, i) => (
-                    <div key={i} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] cursor-pointer group transition-colors">
-                      <div className="text-[11px] font-semibold text-[var(--fg-muted)] group-hover:text-[var(--fg-default)]">{item.desc}</div>
-                      <div className="text-[9px] text-[var(--fg-subtle)] mt-1 uppercase tracking-wider">{item.time}</div>
-                    </div>
-                  ))}
-                </div>
+                <VersionHistoryPanel />
+              )}
+              
+              {/* Memory View */}
+              {activeSidebarTab === 'memory' && (
+                <MemoryPanel />
+              )}
+              
+              {/* Skills View */}
+              {activeSidebarTab === 'skills' && (
+                <SkillsPanel />
+              )}
+              
+              {/* Projects View */}
+              {activeSidebarTab === 'projects' && (
+                <ProjectsPanel />
               )}
               
               {/* Settings View */}
@@ -278,7 +302,7 @@ export function AppShell() {
             animate={{ 
               opacity: isAiPanelOpen ? 1 : 0,
             }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={transitions.normal}
             className="w-[360px] h-full shadow-2xl"
           >
             <AIPanel />
@@ -322,6 +346,66 @@ export function AppShell() {
       )}
 
       <CommandPalette />
+      
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) closeExportDialog();
+        }}
+        title={fileName}
+        content={markdown}
+      />
+
+      {/* Crash Recovery Dialog - shown on startup if unclean exit detected */}
+      <CrashRecoveryDialog
+        onRecovered={(path, content) => {
+          // Why: After recovery, we should reload the file in the editor.
+          // The writeModeStore should handle this via its file loading mechanism.
+          console.log(`[CrashRecovery] Recovered file: ${path} (${content.length} chars)`);
+        }}
+      />
+
+      {/* Mobile Overlays - only rendered on mobile breakpoint */}
+      {isMobile && (
+        <>
+          {/* Sidebar Overlay */}
+          <MobileOverlay
+            open={mobileOverlayOpen === 'sidebar'}
+            onClose={() => setMobileOverlay(null)}
+            side="left"
+            title={sidebarTitle}
+          >
+            <div className="flex h-full">
+              <ActivityBar activeTab={activeSidebarTab} onTabChange={handleTabChange} />
+              <SidebarPanel title={sidebarTitle} className="flex-1 w-auto border-r-0">
+                {activeSidebarTab === 'files' && <WriteModeFileTree />}
+                {activeSidebarTab === 'search' && <SearchPanel />}
+                {activeSidebarTab === 'outline' && <OutlinePanel />}
+                {activeSidebarTab === 'history' && <VersionHistoryPanel />}
+                {activeSidebarTab === 'memory' && <MemoryPanel />}
+                {activeSidebarTab === 'skills' && <SkillsPanel />}
+                {activeSidebarTab === 'projects' && <ProjectsPanel />}
+                {activeSidebarTab === 'settings' && <SettingsPanel />}
+              </SidebarPanel>
+            </div>
+          </MobileOverlay>
+
+          {/* AI Panel Overlay */}
+          <MobileOverlay
+            open={mobileOverlayOpen === 'ai'}
+            onClose={() => setMobileOverlay(null)}
+            side="right"
+            title="AI Assistant"
+            className="w-[320px] max-w-[calc(100vw-48px)]"
+          >
+            <AIPanel />
+          </MobileOverlay>
+        </>
+      )}
+
+      {/* Toast Notifications */}
+      <Toaster />
     </div>
   );
 }

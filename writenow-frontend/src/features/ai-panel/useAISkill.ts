@@ -256,12 +256,33 @@ export function useAISkill(): UseAISkillResult {
   }, [activeEditor, cancelRunLocal, setDiff, setStatusBarAIStatus]);
 
   const rejectDiff = useCallback(async () => {
+    const state = useAIStore.getState();
+    const diff = state.diff;
+    const runId = diff?.runId;
+    const projectRes = await invokeSafe('project:getCurrent', {});
+    const projectId = projectRes?.projectId ?? undefined;
+
     const editor = useEditorRuntimeStore.getState().activeEditor;
     if (editor) {
       editor.commands.rejectAiDiff();
     }
     setDiff(null);
     setLastError(null);
+
+    // Why: Best-effort feedback submission for preference learning; failures are logged but don't block UI.
+    if (runId) {
+      invokeSafe('ai:skill:feedback', {
+        runId,
+        action: 'reject',
+        projectId,
+      }).then((res) => {
+        if (res) {
+          console.log(`[AI] Feedback recorded: reject (learned=${res.learned.length}, ignored=${res.ignored})`);
+        }
+      }).catch((err) => {
+        console.warn('[AI] Failed to submit feedback:', err);
+      });
+    }
   }, [setDiff, setLastError]);
 
   const acceptDiff = useCallback(async () => {
@@ -332,6 +353,7 @@ export function useAISkill(): UseAISkillResult {
     const reason = diff.skillId ? `ai:${diff.skillId}` : 'ai';
 
     // Why: Applying the diff is the user-visible action. Version snapshots are best-effort and must not block the UI.
+    const runIdForFeedback = diff.runId;
     setDiff(null);
     setLastError(null);
 
@@ -350,6 +372,22 @@ export function useAISkill(): UseAISkillResult {
     void (async () => {
       await persistSnapshot('Before AI', before, 'auto');
       await persistSnapshot('AI Apply', after, 'ai');
+
+      // Why: Best-effort feedback submission for preference learning; failures are logged but don't block UI.
+      const projectRes = await invokeSafe('project:getCurrent', {});
+      const projectId = projectRes?.projectId ?? undefined;
+      try {
+        const feedbackRes = await invokeSafe('ai:skill:feedback', {
+          runId: runIdForFeedback,
+          action: 'accept',
+          projectId,
+        });
+        if (feedbackRes) {
+          console.log(`[AI] Feedback recorded: accept (learned=${feedbackRes.learned.length}, ignored=${feedbackRes.ignored})`);
+        }
+      } catch (err) {
+        console.warn('[AI] Failed to submit feedback:', err);
+      }
     })();
   }, [setDiff, setLastError]);
 

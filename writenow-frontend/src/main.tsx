@@ -1,10 +1,21 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import { initI18n } from '@/lib/i18n/i18n';
+
+import './index.css';
+import App from './App.tsx';
+
+async function bootstrap() {
+  await initI18n();
+  const root = document.getElementById('root');
+  if (!root) throw new Error('Missing #root element');
+
+  createRoot(root).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+void bootstrap();
