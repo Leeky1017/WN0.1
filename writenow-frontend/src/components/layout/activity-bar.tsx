@@ -4,7 +4,10 @@ import {
   LayoutTemplate, 
   History, 
   Settings,
-  Plus
+  Plus,
+  Brain,
+  Zap,
+  FolderCog,
 } from 'lucide-react';
 import { IconButton } from '@/components/ui/icon-button';
 import { Avatar } from '@/components/ui/avatar';
@@ -17,9 +20,10 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /** Tab identifier type for sidebar navigation */
-export type SidebarTab = 'files' | 'search' | 'outline' | 'history' | 'settings';
+export type SidebarTab = 'files' | 'search' | 'outline' | 'history' | 'memory' | 'skills' | 'projects' | 'settings';
 
 interface ActivityBarProps {
   /** Currently active tab */
@@ -32,7 +36,7 @@ interface ActivityBarProps {
 interface NavItem {
   id: SidebarTab;
   icon: LucideIcon;
-  label: string;
+  labelKey: string;
 }
 
 /**
@@ -40,10 +44,13 @@ interface NavItem {
  * Why: Separate main navigation from settings for logical grouping.
  */
 const NAV_ITEMS: NavItem[] = [
-  { id: 'files', icon: Library, label: 'Files' },
-  { id: 'search', icon: Search, label: 'Search' },
-  { id: 'outline', icon: LayoutTemplate, label: 'Outline' },
-  { id: 'history', icon: History, label: 'History' },
+  { id: 'files', icon: Library, labelKey: 'activityBar.files' },
+  { id: 'search', icon: Search, labelKey: 'activityBar.search' },
+  { id: 'outline', icon: LayoutTemplate, labelKey: 'activityBar.outline' },
+  { id: 'history', icon: History, labelKey: 'activityBar.history' },
+  { id: 'memory', icon: Brain, labelKey: 'activityBar.memory' },
+  { id: 'skills', icon: Zap, labelKey: 'activityBar.skills' },
+  { id: 'projects', icon: FolderCog, labelKey: 'activityBar.projects' },
 ];
 
 /**
@@ -64,6 +71,7 @@ const NAV_ITEMS: NavItem[] = [
  * ```
  */
 export function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
+  const { t } = useTranslation();
   return (
     <TooltipProvider delayDuration={300}>
       <aside className="w-12 h-full flex flex-col bg-[var(--bg-surface)] border-r border-[var(--border-subtle)]">
@@ -72,8 +80,9 @@ export function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
           {NAV_ITEMS.map((item) => (
             <ActivityBarItem
               key={item.id}
+              id={item.id}
               icon={item.icon}
-              label={item.label}
+              label={t(item.labelKey)}
               active={activeTab === item.id}
               onClick={() => onTabChange(item.id)}
             />
@@ -86,7 +95,7 @@ export function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
             icon={Plus} 
             variant="subtle" 
             size="sm" 
-            tooltip="New"
+            tooltip={t('activityBar.new')}
             tooltipSide="right"
           />
         </div>
@@ -96,8 +105,9 @@ export function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
         {/* Bottom Actions */}
         <div className="flex flex-col items-center gap-1 py-2">
           <ActivityBarItem
+            id="settings"
             icon={Settings}
-            label="Settings"
+            label={t('activityBar.settings')}
             active={activeTab === 'settings'}
             onClick={() => onTabChange('settings')}
           />
@@ -109,6 +119,8 @@ export function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
 }
 
 interface ActivityBarItemProps {
+  /** Stable ID for tests and analytics */
+  id: SidebarTab;
   /** Lucide icon component */
   icon: LucideIcon;
   /** Tooltip label */
@@ -129,16 +141,17 @@ interface ActivityBarItemProps {
  * Active indicator: Uses CSS box-shadow for the glow effect
  * to avoid additional DOM elements and layout calculations.
  */
-function ActivityBarItem({ icon: Icon, label, active, onClick }: ActivityBarItemProps) {
+function ActivityBarItem({ id, icon: Icon, label, active, onClick }: ActivityBarItemProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
+          data-testid={`activity-tab-${id}`}
           aria-label={label}
           className={cn(
             'relative w-10 h-10 flex items-center justify-center rounded-lg',
-            'transition-all duration-[100ms] ease-out',
+            'transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]',
             active
               ? 'bg-[var(--bg-active)] text-[var(--fg-default)]'
               : 'text-[var(--fg-muted)] hover:text-[var(--fg-default)] hover:bg-[var(--bg-hover)]'

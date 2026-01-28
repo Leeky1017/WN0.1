@@ -6,8 +6,7 @@
 import type { IpcResponse, SkillListRequest, SkillListResponse, SkillReadRequest, SkillReadResponse } from '@/types/ipc-generated';
 
 import { JsonRpcWebSocketClient, type JsonRpcConnectionStatus, type JsonRpcStatusListener } from './jsonrpc-client';
-
-const DEFAULT_SKILLS_URL = 'ws://localhost:3000/standalone-rpc';
+import { getRpcWsUrl } from './rpcUrl';
 
 export class SkillsJsonRpcClient {
   private readonly client = new JsonRpcWebSocketClient();
@@ -31,7 +30,7 @@ export class SkillsJsonRpcClient {
     this.client.setOnReconnected(callback);
   }
 
-  async connect(url: string = DEFAULT_SKILLS_URL): Promise<void> {
+  async connect(url: string = getRpcWsUrl()): Promise<void> {
     await this.client.connect(url);
   }
 

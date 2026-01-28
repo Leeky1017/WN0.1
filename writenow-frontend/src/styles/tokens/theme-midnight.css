@@ -1,0 +1,52 @@
+/**
+ * WriteNow Design System - Midnight Theme
+ *
+ * Why: ThemeManager defaults to `midnight`; this theme must be implemented explicitly.
+ */
+
+[data-theme="midnight"] {
+  /* ===== Background (deep blue-black) ===== */
+  --bg-base: #05070d;
+  --bg-surface: #0a0e18;
+  --bg-elevated: #101827;
+  --bg-overlay: rgba(0, 0, 0, 0.82);
+  --bg-input: #0f1726;
+  --bg-hover: #172033;
+  --bg-active: #24314b;
+
+  /* ===== Foreground (Text) ===== */
+  --fg-default: #eef3ff;
+  --fg-muted: #a6b3cc;
+  --fg-subtle: #73819b;
+  --fg-disabled: #4b5870;
+  --fg-placeholder: #4b5870;
+  --fg-on-accent: #ffffff;
+
+  /* ===== Border ===== */
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --border-focus: #60a5fa; /* blue-400 */
+
+  /* ===== Accent (indigo) ===== */
+  --accent-default: #6366f1; /* indigo-500 */
+  --accent-hover: #818cf8; /* indigo-400 */
+  --accent-active: #4f46e5; /* indigo-600 */
+  --accent-muted: rgba(99, 102, 241, 0.16);
+  --accent-subtle: rgba(99, 102, 241, 0.08);
+
+  /* ===== Semantic Colors ===== */
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-muted: rgba(245, 158, 11, 0.15);
+  --error: #ef4444;
+  --error-muted: rgba(239, 68, 68, 0.15);
+
+  /* ===== Special Colors ===== */
+  --code-bg: #070a12;
+  --code-border: rgba(255, 255, 255, 0.07);
+
+  --glass-bg: rgba(5, 7, 13, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.07);
+}

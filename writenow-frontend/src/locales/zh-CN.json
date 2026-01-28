@@ -1,0 +1,80 @@
+{
+  "common": {
+    "expand": "展开",
+    "collapse": "收起",
+    "language": "语言",
+    "clear": "清空",
+    "apply": "应用",
+    "applyReconnect": "应用并重连"
+  },
+  "activityBar": {
+    "files": "文件",
+    "search": "搜索",
+    "outline": "大纲",
+    "history": "历史",
+    "memory": "记忆",
+    "skills": "技能",
+    "projects": "项目",
+    "settings": "设置",
+    "new": "新建"
+  },
+  "sidebar": {
+    "title": {
+      "files": "资源管理器",
+      "search": "搜索",
+      "outline": "大纲",
+      "history": "历史",
+      "memory": "记忆",
+      "skills": "技能",
+      "projects": "项目",
+      "settings": "设置"
+    }
+  },
+  "settings": {
+    "section": {
+      "appearance": "外观与编辑器",
+      "ai": "AI",
+      "memory": "记忆（Memory）",
+      "connectionAdvanced": "连接（高级）",
+      "localLlm": "本地 LLM Tab 续写",
+      "aiProxyAdvanced": "AI 代理（高级）",
+      "language": "语言",
+      "update": "更新"
+    },
+    "label": {
+      "theme": "主题",
+      "editorMode": "默认编辑模式",
+      "language": "语言",
+      "languageHint": "切换后立即生效（重启后保持）"
+    },
+    "connection": {
+      "priority": "优先级：用户设置 > VITE_RPC_URL > 默认值。",
+      "currentUsing": "当前使用：",
+      "status": "状态：",
+      "applyReconnect": "应用并重连",
+      "clear": "清空"
+    }
+  },
+  "update": {
+    "currentVersion": "当前版本",
+    "latestVersion": "最新版本",
+    "lastCheckedAt": "上次检查",
+    "status": "状态",
+    "refresh": "刷新状态",
+    "check": "检查更新",
+    "download": "下载更新",
+    "install": "安装并重启",
+    "skip": "跳过此版本",
+    "clearSkipped": "清除跳过记录",
+    "skippedVersion": "已跳过版本",
+    "statusText": {
+      "idle": "空闲",
+      "checking": "检查中…",
+      "available": "有更新",
+      "not_available": "已是最新",
+      "downloading": "下载中…",
+      "downloaded": "已下载",
+      "error": "错误"
+    }
+  }
+}

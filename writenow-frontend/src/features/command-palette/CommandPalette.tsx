@@ -11,13 +11,14 @@ import { ArrowRight, Clock, Command as CommandIcon, FileText, Sparkles, X } from
 import { cn } from '@/lib/utils';
 import { useAIStore } from '@/stores/aiStore';
 import { useCommandPaletteStore } from '@/stores/commandPaletteStore';
+import { useExportDialogStore } from '@/stores/exportDialogStore';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useWriteModeStore } from '@/features/write-mode/writeModeStore';
 import type { SkillListItem } from '@/types/ipc-generated';
 
 import { useCommands } from './useCommands';
 
-type CommandId = 'toggle-focus' | 'toggle-ai-panel' | 'toggle-sidebar' | 'open-settings' | 'clear-recent';
+type CommandId = 'toggle-focus' | 'toggle-ai-panel' | 'toggle-sidebar' | 'open-settings' | 'export-document' | 'clear-recent';
 
 type CommandDef = {
   id: CommandId;
@@ -69,6 +70,8 @@ export function CommandPalette() {
 
   const setSelectedSkillId = useAIStore((s) => s.setSelectedSkillId);
 
+  const openExportDialog = useExportDialogStore((s) => s.openDialog);
+
   const focusEditor = useCallback(() => {
     requestAnimationFrame(() => {
       const el = document.querySelector<HTMLElement>('[data-testid="tiptap-editor"]');
@@ -115,13 +118,19 @@ export function CommandPalette() {
         },
       },
       {
+        id: 'export-document',
+        label: '导出文档',
+        keywords: 'export 导出 markdown docx pdf',
+        run: () => openExportDialog(),
+      },
+      {
         id: 'clear-recent',
         label: '清空最近使用',
         keywords: 'recent 清空',
         run: () => clearRecent(),
       },
     ],
-    [clearRecent, focusMode, setActiveSidebarView, setSidebarCollapsed, toggleFocusMode, toggleRightPanel, toggleSidebar],
+    [clearRecent, focusMode, openExportDialog, setActiveSidebarView, setSidebarCollapsed, toggleFocusMode, toggleRightPanel, toggleSidebar],
   );
 
   const recordAndClose = useCallback(

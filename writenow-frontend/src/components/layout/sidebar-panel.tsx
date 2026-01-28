@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarPanelProps {
   /** Panel title displayed in the header */
@@ -88,6 +89,8 @@ interface SidebarPanelSectionProps {
   title?: string;
   /** Section content */
   children: ReactNode;
+  /** Whether this section starts collapsed (makes the section collapsible when provided). */
+  defaultCollapsed?: boolean;
   /** Additional class names */
   className?: string;
 }
@@ -109,16 +112,40 @@ interface SidebarPanelSectionProps {
 export function SidebarPanelSection({ 
   title, 
   children, 
-  className 
+  defaultCollapsed,
+  className,
 }: SidebarPanelSectionProps) {
+  const { t } = useTranslation();
+  const isCollapsible = typeof defaultCollapsed === 'boolean';
+  const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
+
   return (
     <section className={cn('py-2 px-2', className)}>
       {title && (
-        <h3 className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-subtle)]">
-          {title}
-        </h3>
+        <div className="px-2 mb-2 flex items-center justify-between">
+          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-subtle)]">
+            {title}
+          </h3>
+          {isCollapsible && (
+            <button
+              type="button"
+              className="text-[10px] text-[var(--fg-subtle)] hover:text-[var(--fg-default)] px-1"
+              aria-expanded={!collapsed}
+              aria-label={
+                title
+                  ? `${collapsed ? t('common.expand') : t('common.collapse')} ${title}`
+                  : collapsed
+                    ? t('common.expand')
+                    : t('common.collapse')
+              }
+              onClick={() => setCollapsed((v) => !v)}
+            >
+              {collapsed ? t('common.expand') : t('common.collapse')}
+            </button>
+          )}
+        </div>
       )}
-      {children}
+      {collapsed ? null : children}
     </section>
   );
 }

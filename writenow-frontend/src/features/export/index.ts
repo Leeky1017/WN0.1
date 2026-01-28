@@ -1,17 +1,18 @@
 /**
  * Export feature barrel export
- * Note: ExportDialog component requires additional UI components (Dialog, Separator) to be implemented.
- * For now, we export the basic types and can add the component later.
+ * Provides document export capabilities (Markdown, DOCX, PDF)
  */
 
-export type ExportFormat = 'markdown' | 'text' | 'html' | 'docx' | 'pdf';
+export { ExportDialog } from './ExportDialog';
+export { useExport } from './useExport';
+export type { ExportFormat } from './useExport';
 
-export interface ExportOptions {
+export type ExportOptions = {
   title: string;
   markdown: string;
   html: string;
   text: string;
-}
+};
 
 /**
  * Download content as a file via Blob
@@ -45,7 +46,7 @@ export function sanitizeBaseName(name: string): string {
 }
 
 /**
- * Export content as markdown file
+ * Export content as markdown file (browser download)
  */
 export function exportMarkdown(title: string, markdown: string): void {
   const baseName = sanitizeBaseName(title);
@@ -53,7 +54,7 @@ export function exportMarkdown(title: string, markdown: string): void {
 }
 
 /**
- * Export content as plain text file
+ * Export content as plain text file (browser download)
  */
 export function exportText(title: string, text: string): void {
   const baseName = sanitizeBaseName(title);
@@ -61,7 +62,7 @@ export function exportText(title: string, text: string): void {
 }
 
 /**
- * Export content as HTML file
+ * Export content as HTML file (browser download)
  */
 export function exportHtml(title: string, html: string): void {
   const baseName = sanitizeBaseName(title);

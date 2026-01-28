@@ -15,8 +15,7 @@ import type {
 import type { AiStreamEvent } from '@/types/theia-ai';
 
 import { JsonRpcWebSocketClient, type JsonRpcConnectionStatus, type JsonRpcStatusListener } from './jsonrpc-client';
-
-const DEFAULT_AI_URL = 'ws://localhost:3000/standalone-rpc';
+import { getRpcWsUrl } from './rpcUrl';
 
 export type AiStreamListener = (event: AiStreamEvent) => void;
 
@@ -73,7 +72,7 @@ export class AiJsonRpcClient {
     return this.client.onStatusChange(listener);
   }
 
-  async connect(url: string = DEFAULT_AI_URL): Promise<void> {
+  async connect(url: string = getRpcWsUrl()): Promise<void> {
     await this.client.connect(url);
     if (!this.unsubscribeNotification) {
       this.unsubscribeNotification = this.client.onNotification('onStreamEvent', (payload) => {
