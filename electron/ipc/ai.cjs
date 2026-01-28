@@ -92,6 +92,38 @@ function resolveAiApiKey(config, logger) {
   return null
 }
 
+function normalizeHttpBaseUrl(value) {
+  const raw = coerceString(value)
+  return raw ? raw.replace(/\/+$/, '') : ''
+}
+
+function resolveAiProxyEnabled(config) {
+  const env = resolveBoolean(process.env.WN_AI_PROXY_ENABLED)
+  if (env !== null) return env
+  const configured = resolveBoolean(config?.get?.('ai.proxy.enabled'))
+  if (configured !== null) return configured
+  return false
+}
+
+function resolveAiProxyBaseUrl(config) {
+  const env = normalizeHttpBaseUrl(process.env.WN_AI_PROXY_BASE_URL)
+  const configured = normalizeHttpBaseUrl(config?.get?.('ai.proxy.baseUrl'))
+  return env || configured || ''
+}
+
+function resolveAiProxyApiKey(config, logger) {
+  const env = coerceString(process.env.WN_AI_PROXY_API_KEY)
+  try {
+    const secure = config?.getSecure?.('ai.proxy.apiKey')
+    const value = coerceString(secure)
+    if (value) return value
+  } catch (error) {
+    logger?.warn?.('ai', 'secure proxy api key unavailable, fallback to env', { message: error?.message })
+  }
+  if (env) return env
+  return null
+}
+
 function resolveNumber(value) {
   if (typeof value === 'number' && Number.isFinite(value)) return value
   if (typeof value === 'string') {
@@ -302,6 +334,203 @@ function normalizeInjectedRefs(value) {
   return normalized
 }
 
+function isAbortError(err) {
+  return Boolean(err && typeof err === 'object' && (err.name === 'AbortError' || err.code === 'ABORT_ERR'))
+}
+
+function createHttpError({ name, message, status, details }) {
+  const error = new Error(message)
+  error.name = name
+  error.status = status
+  if (typeof details !== 'undefined') error.details = details
+  return error
+}
+
+async function readResponseTextSafe(resp) {
+  try {
+    const text = await resp.text()
+    const trimmed = typeof text === 'string' ? text.trim() : ''
+    return trimmed.length > 4096 ? `${trimmed.slice(0, 4096)}…` : trimmed
+  } catch {
+    return ''
+  }
+}
+
+function toLiteLlmChatMessages(system, user) {
+  return [
+    { role: 'system', content: system },
+    { role: 'user', content: user },
+  ]
+}
+
+function createTimeoutController(timeoutMs) {
+  const ms = typeof timeoutMs === 'number' && Number.isFinite(timeoutMs) ? Math.floor(timeoutMs) : 0
+  if (ms <= 0) return { controller: null, cancel: () => undefined }
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(new Error('timeout')), ms)
+  timer.unref?.()
+  return { controller, cancel: () => clearTimeout(timer) }
+}
+
+function mergeAbortSignals(signals) {
+  const list = Array.isArray(signals) ? signals.filter(Boolean) : []
+  if (list.length === 0) return undefined
+  if (list.length === 1) return list[0]
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.any === 'function') {
+    return AbortSignal.any(list)
+  }
+  // Fallback: no merge support → best-effort (use first signal).
+  return list[0]
+}
+
+async function toLiteLlmUpstreamError(resp) {
+  const status = typeof resp?.status === 'number' ? resp.status : 0
+  const text = await readResponseTextSafe(resp)
+
+  let parsed = null
+  if (text) {
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      parsed = null
+    }
+  }
+
+  const message =
+    coerceString(parsed?.error?.message) ||
+    coerceString(parsed?.message) ||
+    (text ? text : `Upstream error (${status || 'unknown'})`)
+
+  const name =
+    status === 401 || status === 403
+      ? 'AuthenticationError'
+      : status === 429
+        ? 'RateLimitError'
+        : status === 408
+          ? 'APIConnectionTimeoutError'
+          : 'UpstreamError'
+
+  return createHttpError({ name, message, status, details: status ? { status } : undefined })
+}
+
+async function litellmChatCompletion({ baseUrl, apiKey, payload, signal, timeoutMs }) {
+  const timeout = createTimeoutController(timeoutMs)
+  const mergedSignal = mergeAbortSignals([signal, timeout.controller?.signal])
+
+  try {
+    const resp = await fetch(`${normalizeHttpBaseUrl(baseUrl)}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: mergedSignal,
+    })
+
+    if (!resp.ok) throw await toLiteLlmUpstreamError(resp)
+
+    const json = await resp.json().catch(() => null)
+    const content = json?.choices?.[0]?.message?.content
+    const text = typeof content === 'string' ? content.trim() : ''
+    const usage = json?.usage ?? null
+    return { text, usage }
+  } catch (error) {
+    if (isAbortError(error)) {
+      if (timeout.controller?.signal.aborted) {
+        const e = new Error('Request timed out')
+        e.name = 'APIConnectionTimeoutError'
+        throw e
+      }
+      const e = new Error('Canceled')
+      e.name = 'APIUserAbortError'
+      throw e
+    }
+    throw error
+  } finally {
+    timeout.cancel()
+  }
+}
+
+async function litellmChatCompletionStream({ baseUrl, apiKey, payload, signal, timeoutMs, onDelta }) {
+  const timeout = createTimeoutController(timeoutMs)
+  const mergedSignal = mergeAbortSignals([signal, timeout.controller?.signal])
+  const url = `${normalizeHttpBaseUrl(baseUrl)}/v1/chat/completions`
+
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}),
+      },
+      body: JSON.stringify({ ...payload, stream: true }),
+      signal: mergedSignal,
+    })
+
+    if (!resp.ok) throw await toLiteLlmUpstreamError(resp)
+    if (!resp.body) throw createHttpError({ name: 'UpstreamError', message: 'Upstream stream body is empty', status: resp.status || 0 })
+
+    const reader = resp.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    // Why: LiteLLM exposes OpenAI-compatible SSE streaming; parse "data: {json}" lines until "[DONE]".
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true }).replace(/\r/g, '')
+
+      // Split on blank line boundaries (SSE event delimiter).
+      while (true) {
+        const idx = buffer.indexOf('\n\n')
+        if (idx < 0) break
+        const eventBlock = buffer.slice(0, idx)
+        buffer = buffer.slice(idx + 2)
+
+        const lines = eventBlock.split('\n')
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed.startsWith('data:')) continue
+          const data = trimmed.slice('data:'.length).trim()
+          if (!data) continue
+          if (data === '[DONE]') return
+
+          let json = null
+          try {
+            json = JSON.parse(data)
+          } catch {
+            json = null
+          }
+
+          const delta = json?.choices?.[0]?.delta?.content
+          if (typeof delta === 'string' && delta) {
+            try {
+              onDelta(delta)
+            } catch {
+              // consumer error: ignore to keep stream alive
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    if (isAbortError(error)) {
+      if (timeout.controller?.signal.aborted) {
+        const e = new Error('Request timed out')
+        e.name = 'APIConnectionTimeoutError'
+        throw e
+      }
+      const e = new Error('Canceled')
+      e.name = 'APIUserAbortError'
+      throw e
+    }
+    throw error
+  } finally {
+    timeout.cancel()
+  }
+}
+
 function registerAiIpcHandlers(ipcMain, options = {}) {
   const handleInvoke =
     typeof options.handleInvoke === 'function' ? options.handleInvoke : (channel, handler) => ipcMain.handle(channel, handler)
@@ -319,11 +548,21 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
   }
 
   function assertConfigured() {
+    const proxyEnabled = resolveAiProxyEnabled(config)
+    if (proxyEnabled) {
+      const baseUrl = resolveAiProxyBaseUrl(config)
+      if (!baseUrl) {
+        throw createIpcError('INVALID_ARGUMENT', 'AI proxy baseUrl is not configured', { key: 'ai.proxy.baseUrl' })
+      }
+      const apiKey = resolveAiProxyApiKey(config, logger)
+      return { transport: 'litellm', provider: 'litellm', baseUrl, apiKey, proxyEnabled: true }
+    }
+
     const provider = resolveAiProvider(config)
     const baseUrl = resolveAiBaseUrl(config)
     const apiKey = resolveAiApiKey(config, logger)
     if (!apiKey) throw createIpcError('INVALID_ARGUMENT', 'AI API key is not configured', { provider })
-    return { provider, baseUrl, apiKey }
+    return { transport: 'direct', provider, baseUrl, apiKey, proxyEnabled: false }
   }
 
   handleInvoke('ai:skill:run', async (evt, payload) => {
@@ -390,7 +629,17 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
 
     const sender = evt.sender
 
-    logger?.info?.('ai', 'run start', { runId, skillId, model, baseUrl: ai.baseUrl, promptHash, stablePrefixHash, promptCachingEnabled })
+    logger?.info?.('ai', 'run start', {
+      runId,
+      skillId,
+      model,
+      transport: ai.transport,
+      baseUrl: ai.baseUrl,
+      proxyEnabled: ai.proxyEnabled,
+      promptHash,
+      stablePrefixHash,
+      promptCachingEnabled,
+    })
 
     if (db) {
       try {
@@ -402,6 +651,66 @@ function registerAiIpcHandlers(ipcMain, options = {}) {
 
     void (async () => {
       try {
+        if (ai.transport === 'litellm') {
+          const payload = {
+            model,
+            max_tokens: maxTokens,
+            temperature,
+            messages: toLiteLlmChatMessages(system, user),
+          }
+
+          if (stream) {
+            let assembled = ''
+            await litellmChatCompletionStream({
+              baseUrl: ai.baseUrl,
+              apiKey: ai.apiKey,
+              payload,
+              signal: controller.signal,
+              timeoutMs,
+              onDelta: (delta) => {
+                if (typeof delta !== 'string' || !delta) return
+                assembled += delta
+                try {
+                  sender.send(AI_STREAM_EVENT, { type: 'delta', runId, text: delta })
+                } catch (error) {
+                  logger?.debug?.('ai', 'stream delta send failed', { runId, message: error?.message })
+                }
+              },
+            })
+
+            const finalText = coerceString(assembled)
+            try {
+              sender.send(AI_STREAM_EVENT, {
+                type: 'done',
+                runId,
+                result: { text: finalText, meta: { provider: ai.provider, model } },
+              })
+            } catch (error) {
+              logger?.debug?.('ai', 'stream done send failed', { runId, message: error?.message })
+            }
+          } else {
+            const resp = await litellmChatCompletion({
+              baseUrl: ai.baseUrl,
+              apiKey: ai.apiKey,
+              payload,
+              signal: controller.signal,
+              timeoutMs,
+            })
+
+            try {
+              sender.send(AI_STREAM_EVENT, {
+                type: 'done',
+                runId,
+                result: { text: coerceString(resp?.text), meta: { provider: ai.provider, model } },
+              })
+            } catch (error) {
+              logger?.debug?.('ai', 'non-stream done send failed', { runId, message: error?.message })
+            }
+          }
+
+          return
+        }
+
         const client = new Anthropic({
           apiKey: ai.apiKey,
           baseURL: ai.baseUrl,

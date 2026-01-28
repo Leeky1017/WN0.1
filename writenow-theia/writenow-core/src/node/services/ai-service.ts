@@ -1,3 +1,6 @@
+import { Readable } from 'node:stream';
+import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
+
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { ILogger } from '@theia/core/lib/common/logger';
 
@@ -164,6 +167,30 @@ function resolveModel(fallback: string | null): string {
     return env || fallback || 'claude-3-5-sonnet-latest';
 }
 
+type AiTransport = 'direct' | 'litellm';
+
+function resolveAiProxyEnabled(): boolean {
+    const env = resolveBoolean(process.env.WN_AI_PROXY_ENABLED);
+    if (env !== null) return env;
+    return false;
+}
+
+function resolveAiProxyBaseUrl(): string {
+    return coerceString(process.env.WN_AI_PROXY_BASE_URL);
+}
+
+function resolveAiProxyApiKey(): string | null {
+    const raw = typeof process.env.WN_AI_PROXY_API_KEY === 'string' ? process.env.WN_AI_PROXY_API_KEY.trim() : '';
+    return raw || null;
+}
+
+function resolveLiteLlmChatCompletionsUrl(baseUrl: string): string {
+    const trimmed = coerceString(baseUrl).replace(/\/+$/, '');
+    if (!trimmed) return '';
+    if (trimmed.endsWith('/v1')) return `${trimmed}/chat/completions`;
+    return `${trimmed}/v1/chat/completions`;
+}
+
 function toStreamError(error: unknown): IpcError {
     if (!error || typeof error !== 'object') return { code: 'INTERNAL', message: 'Internal error' };
 
@@ -241,6 +268,34 @@ function toUsageSummary(usage: unknown): Record<string, number> | null {
         if (typeof value === 'number' && Number.isFinite(value)) out[key] = value;
     }
     return Object.keys(out).length > 0 ? out : null;
+}
+
+type LiteLlmChatMessage = {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string;
+};
+
+function toLiteLlmChatMessages(systemPrompt: string, userContent: string): LiteLlmChatMessage[] {
+    return [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+    ];
+}
+
+function createHttpError(options: Readonly<{ status: number; message: string; code?: string }>): Error {
+    const error = new Error(options.message);
+    (error as { name?: string }).name = 'HttpError';
+    (error as { status?: number }).status = options.status;
+    if (options.code) (error as { code?: string }).code = options.code;
+    return error;
+}
+
+async function readResponseTextSafe(res: { text: () => Promise<string> }): Promise<string> {
+    try {
+        return await res.text();
+    } catch {
+        return '';
+    }
 }
 
 function safeSkillRow(value: unknown): {
@@ -389,8 +444,19 @@ export class AiService implements AIServiceShape {
             injectedContextRules = request.injected.contextRules;
         }
 
-        const apiKey = resolveApiKey();
-        if (!apiKey) return ipcErr({ code: 'INVALID_ARGUMENT', message: 'AI API key is not configured', details: { provider: 'anthropic' } });
+        const proxyEnabled = resolveAiProxyEnabled();
+        const transport: AiTransport = proxyEnabled ? 'litellm' : 'direct';
+        const proxyBaseUrl = proxyEnabled ? resolveAiProxyBaseUrl() : '';
+        const proxyApiKey = proxyEnabled ? resolveAiProxyApiKey() : null;
+
+        if (proxyEnabled && !proxyBaseUrl) {
+            return ipcErr({ code: 'INVALID_ARGUMENT', message: 'AI proxy baseUrl is not configured', details: { key: 'ai.proxy.baseUrl' } });
+        }
+
+        const directApiKey = resolveApiKey();
+        if (!proxyEnabled && !directApiKey) {
+            return ipcErr({ code: 'INVALID_ARGUMENT', message: 'AI API key is not configured', details: { provider: 'anthropic' } });
+        }
 
         const runId = generateRunId();
         const controller = new AbortController();
@@ -403,24 +469,42 @@ export class AiService implements AIServiceShape {
         const temperature = resolveTemperature();
         const maxTokens = resolveMaxTokens();
         const timeoutMs = resolveTimeoutMs();
-        const baseUrl = resolveBaseUrl();
-        const promptCachingEnabled = resolvePromptCachingEnabled();
+
+        this.logger.info(`[ai] run start: ${runId} transport=${transport} model=${model}`);
 
         // Fire-and-forget streaming work; the RPC response only acknowledges start.
-        void this.runAnthropic({
-            runId,
-            controller,
-            stream: options.stream,
-            systemPrompt,
-            userContent,
-            model,
-            maxTokens,
-            temperature,
-            timeoutMs,
-            baseUrl,
-            apiKey,
-            promptCachingEnabled,
-        });
+        if (transport === 'litellm') {
+            void this.runLiteLlm({
+                runId,
+                controller,
+                stream: options.stream,
+                systemPrompt,
+                userContent,
+                model,
+                maxTokens,
+                temperature,
+                timeoutMs,
+                baseUrl: proxyBaseUrl,
+                apiKey: proxyApiKey,
+            });
+        } else {
+            const baseUrl = resolveBaseUrl();
+            const promptCachingEnabled = resolvePromptCachingEnabled();
+            void this.runAnthropic({
+                runId,
+                controller,
+                stream: options.stream,
+                systemPrompt,
+                userContent,
+                model,
+                maxTokens,
+                temperature,
+                timeoutMs,
+                baseUrl,
+                apiKey: directApiKey || '',
+                promptCachingEnabled,
+            });
+        }
 
         return ipcOk({
             runId,
@@ -562,6 +646,202 @@ export class AiService implements AIServiceShape {
             this.logger.error(`[ai] run error: ${runId} (${streamError.code}) ${streamError.message}`);
             this.emit({ type: 'error', runId, error: streamError });
         } finally {
+            this.runs.delete(runId);
+        }
+    }
+
+    private async runLiteLlm(args: {
+        runId: string;
+        controller: AbortController;
+        stream: boolean;
+        systemPrompt: string;
+        userContent: string;
+        model: string;
+        maxTokens: number;
+        temperature: number;
+        timeoutMs: number;
+        baseUrl: string;
+        apiKey: string | null;
+    }): Promise<void> {
+        const { runId, controller } = args;
+
+        const url = resolveLiteLlmChatCompletionsUrl(args.baseUrl);
+        if (!url) {
+            this.emit({ type: 'error', runId, error: { code: 'INVALID_ARGUMENT', message: 'AI proxy baseUrl is not configured', details: { key: 'ai.proxy.baseUrl' } } });
+            this.runs.delete(runId);
+            return;
+        }
+
+        const timeoutController = new AbortController();
+        let didTimeout = false;
+        const timer = setTimeout(() => {
+            didTimeout = true;
+            try {
+                timeoutController.abort();
+            } catch {
+                // ignore
+            }
+        }, Math.max(1, args.timeoutMs));
+
+        const mergedController = new AbortController();
+        const forwardAbort = () => {
+            if (mergedController.signal.aborted) return;
+            try {
+                mergedController.abort();
+            } catch {
+                // ignore
+            }
+        };
+
+        controller.signal.addEventListener('abort', forwardAbort);
+        timeoutController.signal.addEventListener('abort', forwardAbort);
+
+        const startedAt = Date.now();
+
+        try {
+            const headers: Record<string, string> = { 'content-type': 'application/json' };
+            if (args.apiKey) headers.authorization = `Bearer ${args.apiKey}`;
+
+            const payload: Record<string, unknown> = {
+                model: args.model,
+                messages: toLiteLlmChatMessages(args.systemPrompt, args.userContent),
+                max_tokens: args.maxTokens,
+                temperature: args.temperature,
+                ...(args.stream ? { stream: true } : {}),
+            };
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload),
+                signal: mergedController.signal,
+            });
+
+            if (!res.ok) {
+                const raw = await readResponseTextSafe(res);
+                let message = `LiteLLM upstream error (${res.status})`;
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw) as unknown;
+                        const record = parsed as { error?: unknown };
+                        const errObj = record && typeof record === 'object' ? (record as { error?: unknown }).error : null;
+                        const errMessage = errObj && typeof errObj === 'object' ? (errObj as { message?: unknown }).message : null;
+                        if (typeof errMessage === 'string' && errMessage.trim()) message = errMessage.trim();
+                        else message = raw.slice(0, 800);
+                    } catch {
+                        message = raw.slice(0, 800);
+                    }
+                }
+                throw createHttpError({ status: res.status, message });
+            }
+
+            if (args.stream) {
+                if (!res.body) {
+                    throw createHttpError({ status: 502, message: 'LiteLLM stream response has no body' });
+                }
+
+                const nodeStream = Readable.fromWeb(res.body as unknown as NodeReadableStream);
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let assembled = '';
+                let sawDone = false;
+
+                streamLoop: for await (const chunk of nodeStream) {
+                    buffer += decoder.decode(chunk as Uint8Array, { stream: true }).replace(/\r/g, '');
+                    let idx = buffer.indexOf('\n\n');
+                    while (idx >= 0) {
+                        const block = buffer.slice(0, idx);
+                        buffer = buffer.slice(idx + 2);
+                        idx = buffer.indexOf('\n\n');
+
+                        for (const line of block.split('\n')) {
+                            const trimmed = line.trim();
+                            if (!trimmed.startsWith('data:')) continue;
+                            const data = trimmed.slice(5).trimStart();
+                            if (!data) continue;
+                            if (data === '[DONE]') {
+                                sawDone = true;
+                                break streamLoop;
+                            }
+                            let parsed: unknown = null;
+                            try {
+                                parsed = JSON.parse(data) as unknown;
+                            } catch {
+                                continue;
+                            }
+
+                            const choices = parsed && typeof parsed === 'object' ? (parsed as { choices?: unknown }).choices : null;
+                            const first = Array.isArray(choices) ? choices[0] : null;
+                            const delta = first && typeof first === 'object' ? (first as { delta?: unknown }).delta : null;
+                            const content = delta && typeof delta === 'object' ? (delta as { content?: unknown }).content : null;
+                            if (typeof content !== 'string' || !content) continue;
+
+                            assembled += content;
+                            this.emit({ type: 'delta', runId, text: content });
+                        }
+                    }
+                }
+
+                try {
+                    nodeStream.destroy();
+                } catch {
+                    // ignore
+                }
+
+                const finalText = coerceString(assembled);
+                this.logger.info(`[ai] run done: ${runId} transport=litellm stream=true latencyMs=${Date.now() - startedAt}`);
+                this.emit({
+                    type: 'done',
+                    runId,
+                    result: { text: finalText, meta: { provider: 'litellm', model: args.model, ...(sawDone ? {} : { truncated: true }) } },
+                });
+                return;
+            }
+
+            const json = (await res.json().catch(async () => {
+                const raw = await readResponseTextSafe(res);
+                throw createHttpError({ status: 502, message: raw || 'Invalid JSON response from LiteLLM' });
+            })) as unknown;
+
+            const choices = json && typeof json === 'object' ? (json as { choices?: unknown }).choices : null;
+            const first = Array.isArray(choices) ? choices[0] : null;
+            const message = first && typeof first === 'object' ? (first as { message?: unknown }).message : null;
+            const content = message && typeof message === 'object' ? (message as { content?: unknown }).content : null;
+            const text = typeof content === 'string' ? content.trim() : '';
+
+            const usage = json && typeof json === 'object' ? (json as { usage?: unknown }).usage : null;
+            if (usage && typeof usage === 'object') {
+                const u = usage as { prompt_tokens?: unknown; completion_tokens?: unknown; total_tokens?: unknown };
+                const summary: Record<string, number> = {};
+                if (typeof u.prompt_tokens === 'number' && Number.isFinite(u.prompt_tokens)) summary.prompt_tokens = u.prompt_tokens;
+                if (typeof u.completion_tokens === 'number' && Number.isFinite(u.completion_tokens)) summary.completion_tokens = u.completion_tokens;
+                if (typeof u.total_tokens === 'number' && Number.isFinite(u.total_tokens)) summary.total_tokens = u.total_tokens;
+                if (Object.keys(summary).length > 0) this.logger.info(`[ai] run usage: ${runId} ${JSON.stringify(summary)}`);
+            }
+
+            this.logger.info(`[ai] run done: ${runId} transport=litellm stream=false latencyMs=${Date.now() - startedAt}`);
+            this.emit({
+                type: 'done',
+                runId,
+                result: { text, meta: { provider: 'litellm', model: args.model } },
+            });
+        } catch (error) {
+            const maybeAbort = error && typeof error === 'object' ? (error as { name?: unknown; code?: unknown }).name : '';
+            const maybeCode = error && typeof error === 'object' ? (error as { name?: unknown; code?: unknown }).code : '';
+            const isAbort =
+                maybeAbort === 'AbortError' ||
+                maybeAbort === 'APIUserAbortError' ||
+                maybeCode === 'ABORT_ERR' ||
+                (typeof maybeCode === 'string' && maybeCode.toLowerCase() === 'abort_err');
+
+            const normalized = didTimeout && isAbort ? createHttpError({ status: 408, message: 'Request timed out', code: 'ETIMEDOUT' }) : error;
+            const streamError = toStreamError(normalized);
+            this.logger.error(`[ai] run error: ${runId} (${streamError.code}) ${streamError.message}`);
+            this.emit({ type: 'error', runId, error: streamError });
+        } finally {
+            clearTimeout(timer);
+            controller.signal.removeEventListener('abort', forwardAbort);
+            timeoutController.signal.removeEventListener('abort', forwardAbort);
             this.runs.delete(runId);
         }
     }

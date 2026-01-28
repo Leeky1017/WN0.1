@@ -1,0 +1,24 @@
+## LiteLLM example config for WriteNow (optional)
+## Why: Provide a power-user/Dev-mode proxy setup without making LiteLLM a default dependency.
+##
+## Notes:
+## - This file is NOT used by WriteNow automatically.
+## - Please refer to LiteLLM official docs for the authoritative schema/fields.
+
+model_list:
+  # Alias a Claude model (Anthropic)
+  - model_name: claude-sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4-20250514
+
+  # Alias an OpenAI model
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+
+litellm_settings:
+  cache: true
+  cache_params:
+    type: disk
+    ttl: 600
+
