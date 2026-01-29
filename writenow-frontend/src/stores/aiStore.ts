@@ -20,6 +20,25 @@ export interface AiMessage {
 
 export type AiRunStatus = 'idle' | 'thinking' | 'streaming' | 'canceled' | 'error';
 
+/** AI interaction mode (Cursor-style). */
+export type AiMode = 'agent' | 'plan' | 'ask';
+
+/** AI model selection. */
+export interface AiModelOption {
+  id: string;
+  name: string;
+  provider: string;
+}
+
+/** Default models available. */
+export const DEFAULT_MODELS: AiModelOption[] = [
+  { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI' },
+  { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
+  { id: 'claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic' },
+  { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', provider: 'Anthropic' },
+  { id: 'local', name: '本地模型', provider: 'Local' },
+];
+
 export interface AiDiffState {
   runId: string;
   skillId: string;
@@ -43,6 +62,13 @@ export interface AiState {
   skills: SkillListItem[];
   selectedSkillId: string | null;
 
+  /** Current AI interaction mode (agent/plan/ask). */
+  mode: AiMode;
+  /** Selected model ID. */
+  selectedModelId: string;
+  /** Available models. */
+  models: AiModelOption[];
+
   input: string;
   messages: AiMessage[];
 
@@ -54,6 +80,9 @@ export interface AiState {
 
   setSkills: (skills: SkillListItem[]) => void;
   setSelectedSkillId: (id: string | null) => void;
+  setMode: (mode: AiMode) => void;
+  setSelectedModelId: (id: string) => void;
+  setModels: (models: AiModelOption[]) => void;
   setInput: (value: string) => void;
 
   addUserMessage: (content: string, skillId?: string) => string;
@@ -82,6 +111,9 @@ export interface AiState {
 export const useAIStore = create<AiState>((set, get) => ({
   skills: [],
   selectedSkillId: null,
+  mode: 'agent',
+  selectedModelId: 'gpt-4',
+  models: DEFAULT_MODELS,
   input: '',
   messages: [],
   status: 'idle',
@@ -91,6 +123,9 @@ export const useAIStore = create<AiState>((set, get) => ({
 
   setSkills: (skills) => set({ skills }),
   setSelectedSkillId: (id) => set({ selectedSkillId: id }),
+  setMode: (mode) => set({ mode }),
+  setSelectedModelId: (id) => set({ selectedModelId: id }),
+  setModels: (models) => set({ models }),
   setInput: (value) => set({ input: value }),
 
   addUserMessage: (content, skillId) => {
@@ -146,8 +181,11 @@ export const useAIStore = create<AiState>((set, get) => ({
       currentRunId: null,
       lastError: null,
       diff: null,
-      // keep skills selection
+      // keep skills/mode/model selection
       selectedSkillId: get().selectedSkillId,
       skills: get().skills,
+      mode: get().mode,
+      selectedModelId: get().selectedModelId,
+      models: get().models,
     }),
 }));
