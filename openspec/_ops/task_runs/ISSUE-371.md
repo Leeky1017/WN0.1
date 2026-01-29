@@ -2,7 +2,7 @@
 
 - Issue: #371
 - Branch: task/371-writenow-ui-init
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/372
 
 ## Plan
 
