@@ -15,11 +15,13 @@
 
 ### 1. Repro from CI logs (2026-01-29)
 
-- Symptom: `project:bootstrap` returns `ok=false` in `ai-memory-p2-001/002` E2E tests
-- Key evidence: `__WN_E2E__` bridge uses legacy `rpcClient.invoke()` while UI connection indicator uses `connectionManager`
+- Command: `gh run view 21452153666 --log | grep -A 20 "Error:"`
+- Key output: `project:bootstrap` returns `ok=false` with "Not connected to backend"
+- Evidence: Screenshot shows UI "已连接" but E2E bridge uses legacy `rpcClient.invoke()` while UI uses `connectionManager`
 
 ### 2. Fix `wnE2eBridge` to use `connectionManager` (2026-01-29)
 
-- Change: `writenow-frontend/src/lib/e2e/wnE2eBridge.ts`
+- Command: `edit writenow-frontend/src/lib/e2e/wnE2eBridge.ts`
 - Key output: `invokeIpc()` now ensures `connectionManager.connect()` and calls `connectionManager.invoke()`
+- Evidence: Code diff in PR #358
 
