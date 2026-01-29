@@ -1,0 +1,102 @@
+/* ==========================================================================
+   WriteNow Font Definitions
+   字体系统: Inter (UI), Lora (正文), JetBrains Mono (代码)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Inter - UI 字体
+   权重: 300 (Light), 400 (Regular), 500 (Medium), 600 (SemiBold)
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/Inter-Light.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Inter-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Inter-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+}
+
+/* --------------------------------------------------------------------------
+   Lora - 正文字体 (Serif)
+   权重: 400 (Regular), 500 (Medium), 600 (SemiBold)
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Lora-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Lora-Italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Lora-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Lora-SemiBold.woff2') format('woff2');
+}
+
+/* --------------------------------------------------------------------------
+   JetBrains Mono - 代码字体
+   权重: 400 (Regular), 500 (Medium)
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMono-Medium.woff2') format('woff2');
+}
+
+/* --------------------------------------------------------------------------
+   Fallback: Google Fonts CDN
+   如果本地字体未加载，使用 Google Fonts 作为后备
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
