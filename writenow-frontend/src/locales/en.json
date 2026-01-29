@@ -5,7 +5,73 @@
     "language": "Language",
     "clear": "Clear",
     "apply": "Apply",
-    "applyReconnect": "Apply & reconnect"
+    "applyReconnect": "Apply & reconnect",
+    "send": "Send",
+    "cancel": "Cancel"
+  },
+  "aiPanel": {
+    "title": "AI",
+    "collapsePanel": "Collapse AI Panel",
+    "toggleContext": "Toggle context preview",
+    "inputPlaceholder": "Enter instructions... (/ for commands, Ctrl+Enter to send)",
+    "emptyState": "Enter instructions to start, or use / to see available commands.",
+    "selectMode": "Select mode",
+    "selectModel": "Select model",
+    "selectSkill": "Select skill",
+    "loadingSkills": "Loading...",
+    "noSkills": "No skills",
+    "status": {
+      "streaming": "Streaming...",
+      "thinking": "Thinking...",
+      "error": "Error"
+    },
+    "mode": {
+      "agent": "Agent",
+      "plan": "Plan",
+      "ask": "Ask"
+    },
+    "review": {
+      "title": "Reviewing AI changes",
+      "accept": "Accept",
+      "reject": "Reject",
+      "original": "Original",
+      "suggested": "Suggested"
+    },
+    "slashCommands": {
+      "title": "Slash Commands",
+      "continue": "Continue writing",
+      "continueDesc": "Let AI continue the current content",
+      "polish": "Polish",
+      "polishDesc": "Improve expression and fluency",
+      "rewrite": "Rewrite",
+      "rewriteDesc": "Express in a different way",
+      "expand": "Expand",
+      "expandDesc": "Add more details and content",
+      "summarize": "Summarize",
+      "summarizeDesc": "Extract key points",
+      "brainstorm": "Brainstorm",
+      "brainstormDesc": "Generate creative ideas",
+      "custom": "Custom instruction",
+      "customDesc": "Enter your specific needs",
+      "navigation": "↑↓ Navigate · Enter Select · Esc Close"
+    },
+    "context": {
+      "title": "Context Preview",
+      "enabled": "Memory injection enabled",
+      "disabled": "Memory injection disabled",
+      "refresh": "Refresh preview",
+      "loading": "Loading...",
+      "empty": "No memory to inject",
+      "emptyDisabled": "Memory injection disabled, no memory will be injected",
+      "hint": "Memory helps AI better understand your preferences and style",
+      "info": "These memories will be injected into the next AI run context. You can manage injection behavior in \"Settings → Memory\"."
+    },
+    "memory": {
+      "preference": "Preference",
+      "feedback": "Feedback",
+      "style": "Style",
+      "learned": "Learned"
+    }
   },
   "activityBar": {
     "files": "Files",
