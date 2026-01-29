@@ -2,7 +2,7 @@
 
 - Issue: #367
 - Branch: task/367-variant-design-spec
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/368
 
 ## Plan
 
