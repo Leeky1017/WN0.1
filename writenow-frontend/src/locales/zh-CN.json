@@ -139,7 +139,7 @@
       "privacyMode": "隐私模式",
       "privacyModeDesc": "开启后将减少/停用偏好学习与记忆写入",
       "threshold": "学习阈值",
-      "thresholdDesc": "阈值越高越"谨慎"，学习条目更少；阈值越低越"积极"，更容易写入偏好。"
+      "thresholdDesc": "阈值越高越「谨慎」，学习条目更少；阈值越低越「积极」，更容易写入偏好。"
     },
     "connection": {
       "priority": "优先级：用户设置 > VITE_RPC_URL > 默认值。",
