@@ -1,264 +1,265 @@
 ---
 name: Variant 设计落地
 overview: 废弃现有 writenow-frontend 代码，基于 Variant 深色极简设计重新实现 WriteNow 前端。设计稿未覆盖的页面由 Agent 按已有风格推导，保持视觉一致性。
+spec_authority: Variant/DESIGN_SPEC.md
 todos:
   - id: p0-init-project
-    content: "P0-01: 创建 writenow-ui 项目目录，初始化 package.json (React 18, TypeScript 5, Vite 6)"
+    content: "P0-01: 创建 writenow-ui 项目目录，初始化 package.json | 规范: DESIGN_SPEC.md 1.2 技术栈"
     status: pending
   - id: p0-tailwind
-    content: "P0-02: 安装配置 Tailwind CSS 4，创建 tailwind.config.ts"
+    content: "P0-02: 安装配置 Tailwind CSS 4 | 规范: DESIGN_SPEC.md 1.2 技术栈"
     status: pending
   - id: p0-tokens-css
-    content: "P0-03: 创建 src/styles/tokens.css，定义所有 CSS Variables (颜色/间距/圆角/字体/动效)"
+    content: "P0-03: 创建 tokens.css (所有 CSS Variables) | 规范: DESIGN_SPEC.md 2.1 tokens.css (完整复制)"
     status: pending
   - id: p0-fonts
-    content: "P0-04: 下载并配置 Web 字体 (Inter/Lora/JetBrains Mono)，创建 @font-face 声明"
+    content: "P0-04: 配置 Web 字体 (Inter/Lora/JetBrains Mono) | 规范: DESIGN_SPEC.md 2.1 字体系统"
     status: pending
   - id: p0-globals
-    content: "P0-05: 创建 src/styles/globals.css，引入 tokens.css，设置全局重置样式"
+    content: "P0-05: 创建 globals.css | 规范: DESIGN_SPEC.md 2.1 全局重置"
     status: pending
   - id: p0-tsconfig
-    content: "P0-06: 配置 tsconfig.json 严格模式，设置路径别名 (@/)"
+    content: "P0-06: 配置 tsconfig.json 严格模式 | 规范: DESIGN_SPEC.md 1.3 项目目录结构"
     status: pending
   - id: p1a-button
-    content: "P1A-01: primitives/Button (Primary/Secondary/Ghost/Icon, disabled/loading)"
+    content: "P1A-01: primitives/Button | 规范: DESIGN_SPEC.md 3.1 Button (Props + 像素规范 + 代码)"
     status: pending
   - id: p1a-input
-    content: "P1A-02: primitives/Input (Text/Password/Search, icon slot, error 状态)"
+    content: "P1A-02: primitives/Input | 规范: DESIGN_SPEC.md 3.2 Input (Props + 像素规范)"
     status: pending
   - id: p1a-textarea
-    content: "P1A-03: primitives/Textarea (自动高度, 字数统计)"
+    content: "P1A-03: primitives/Textarea | 规范: DESIGN_SPEC.md 3.8 Textarea (Props + 像素规范)"
     status: pending
   - id: p1a-card
-    content: "P1A-04: primitives/Card (Default/Hover/Active, 24px 圆角)"
+    content: "P1A-04: primitives/Card | 规范: DESIGN_SPEC.md 3.3 Card (Props + 像素规范)"
     status: pending
   - id: p1a-badge
-    content: "P1A-05: primitives/Badge (Default/Success/Warning/Error)"
+    content: "P1A-05: primitives/Badge | 规范: DESIGN_SPEC.md 3.4 Badge (Props + 变体颜色)"
     status: pending
   - id: p1a-divider
-    content: "P1A-06: primitives/Divider (Horizontal/Vertical, label slot)"
+    content: "P1A-06: primitives/Divider | 规范: DESIGN_SPEC.md 3.7 Divider (Props + 像素规范)"
     status: pending
   - id: p1a-switch
-    content: "P1A-07: primitives/Switch (基于 Radix Switch)"
+    content: "P1A-07: primitives/Switch | 规范: DESIGN_SPEC.md 3.5 Switch (Props + 像素规范)"
     status: pending
   - id: p1a-checkbox
-    content: "P1A-08: primitives/Checkbox (基于 Radix Checkbox)"
+    content: "P1A-08: primitives/Checkbox | 规范: DESIGN_SPEC.md 3.6 Checkbox (Props + 像素规范)"
     status: pending
   - id: p1a-tooltip
-    content: "P1A-09: primitives/Tooltip (基于 Radix Tooltip, 300ms 延迟)"
+    content: "P1A-09: primitives/Tooltip | 规范: DESIGN_SPEC.md 3.10 Tooltip (Props + 像素规范)"
     status: pending
   - id: p1a-avatar
-    content: "P1A-10: primitives/Avatar (Image/Fallback/Initials)"
+    content: "P1A-10: primitives/Avatar | 规范: DESIGN_SPEC.md 3.9 Avatar (Props + 像素规范)"
     status: pending
   - id: p1a-spinner
-    content: "P1A-11: primitives/Spinner (sm/md/lg)"
+    content: "P1A-11: primitives/Spinner | 规范: DESIGN_SPEC.md 3.14 Spinner (Props + 像素规范)"
     status: pending
   - id: p1a-select
-    content: "P1A-12: primitives/Select (基于 Radix Select, 下拉选择)"
+    content: "P1A-12: primitives/Select | 规范: DESIGN_SPEC.md 3.15 Select (Props + 像素规范)"
     status: pending
   - id: p1a-popover
-    content: "P1A-13: primitives/Popover (基于 Radix Popover)"
+    content: "P1A-13: primitives/Popover | 规范: DESIGN_SPEC.md 3.11 Popover (Props + 像素规范)"
     status: pending
   - id: p1a-dialog
-    content: "P1A-14: primitives/Dialog (基于 Radix Dialog, 遮罩+居中)"
+    content: "P1A-14: primitives/Dialog | 规范: DESIGN_SPEC.md 3.12 Dialog (Props + 像素规范)"
     status: pending
   - id: p1a-toast
-    content: "P1A-15: primitives/Toast (Sonner 或自建, 4 种变体)"
+    content: "P1A-15: primitives/Toast | 规范: DESIGN_SPEC.md 3.13 Toast (Props + 像素规范)"
     status: pending
   - id: p1b-empty-state
-    content: "P1B-01: patterns/EmptyState (图标 + 文案 + 操作按钮)"
+    content: "P1B-01: patterns/EmptyState | 规范: DESIGN_SPEC.md 5.1 EmptyState (Props + 像素规范 + 代码)"
     status: pending
   - id: p1b-loading-state
-    content: "P1B-02: patterns/LoadingState (骨架屏/Spinner)"
+    content: "P1B-02: patterns/LoadingState | 规范: DESIGN_SPEC.md 5.2 LoadingState (Props + Skeleton + 代码)"
     status: pending
   - id: p1b-error-state
-    content: "P1B-03: patterns/ErrorState (图标 + 文案 + 重试)"
+    content: "P1B-03: patterns/ErrorState | 规范: DESIGN_SPEC.md 5.3 ErrorState (Props + 像素规范 + 代码)"
     status: pending
   - id: p1b-confirm-dialog
-    content: "P1B-04: patterns/ConfirmDialog (危险操作确认)"
+    content: "P1B-04: patterns/ConfirmDialog | 规范: DESIGN_SPEC.md 5.4 ConfirmDialog (Props + 代码)"
     status: pending
   - id: p1b-code-block
-    content: "P1B-05: patterns/CodeBlock (语法高亮 + 复制)"
+    content: "P1B-05: patterns/CodeBlock | 规范: DESIGN_SPEC.md 5.5 CodeBlock (Props + 像素规范 + 代码)"
     status: pending
   - id: p2-icon-bar
-    content: "P2-01: 实现 IconBar 组件 (48px 宽图标导航条，含 Tooltip 悬浮显示)"
+    content: "P2-01: layout/IconBar | 规范: DESIGN_SPEC.md 4.2 Icon Bar (Props + 像素规范 + 代码)"
     status: pending
   - id: p2-resizer
-    content: "P2-02: 实现 Resizer 组件 (可拖拽分割线，含 min/max 宽度限制)"
+    content: "P2-02: layout/Resizer | 规范: DESIGN_SPEC.md 4.6 Resizer (Props + 像素规范 + 代码)"
     status: pending
   - id: p2-sidebar-content
-    content: "P2-03: 实现 SidebarContent 组件 (可折叠内容区，含 Section/Item 子组件)"
+    content: "P2-03: layout/SidebarContent | 规范: DESIGN_SPEC.md 4.3 Sidebar Content (Props + 代码)"
     status: pending
   - id: p2-panel
-    content: "P2-04: 实现 Panel 组件 (右侧面板，可折叠，支持 280px/360px 两种宽度)"
+    content: "P2-04: layout/Panel | 规范: DESIGN_SPEC.md 4.5 Panel (Props + 像素规范)"
     status: pending
   - id: p2-toolbar
-    content: "P2-05: 实现 Toolbar 组件 (60px/80px 两种高度，flex 布局)"
+    content: "P2-05: layout/Toolbar | 规范: DESIGN_SPEC.md 4.4 Toolbar (Props + 像素规范)"
     status: pending
   - id: p2-app-shell
-    content: "P2-06: 实现 AppShell 组件 (整合 IconBar/Sidebar/Main/Panel，管理折叠和拖拽状态)"
+    content: "P2-06: layout/AppShell | 规范: DESIGN_SPEC.md 4.1 AppShell (布局结构 + Props + 代码)"
     status: pending
   - id: p2-layout-store
-    content: "P2-07: 创建 layoutStore (Zustand)，管理 sidebarWidth/panelWidth/collapsed 状态"
+    content: "P2-07: stores/layoutStore | 规范: DESIGN_SPEC.md 4.1 AppShell (状态管理)"
     status: pending
   - id: p3-router
-    content: "P3-01: 配置 React Router，定义路由结构 (/login, /dashboard, /editor/:id)"
+    content: "P3-01: 配置 React Router | 规范: DESIGN_SPEC.md 1.3 项目目录结构 (pages/)"
     status: pending
   - id: p3-auth-store
-    content: "P3-02: 创建 authStore，实现本地单用户模式 (临时方案，预留 API 对接)"
+    content: "P3-02: 创建 authStore (本地单用户模式) | 规范: DESIGN_SPEC.md 11.7 临时方案"
     status: pending
   - id: p3-login-form
-    content: "P3-03: 实现 LoginForm 组件 (Email/Password 输入，Remember Me，Submit)"
+    content: "P3-03: features/auth/LoginForm | 规范: DESIGN_SPEC.md 7.1 Login 页面 (像素规范)"
     status: pending
   - id: p3-login-oauth
-    content: "P3-04: 实现 OAuthButtons 组件 (GitHub/SSO 按钮，点击预留)"
+    content: "P3-04: features/auth/OAuthButtons | 规范: DESIGN_SPEC.md 7.1 Login 页面"
     status: pending
   - id: p3-login-page
-    content: "P3-05: 组装 Login 页面 (Logo + Form + OAuth + Links，对照 design-255901f0)"
+    content: "P3-05: pages/Login | 规范: DESIGN_SPEC.md 7.1 + 设计稿 design-255901f0"
     status: pending
   - id: p3-project-store
-    content: "P3-06: 创建 projectStore，对接现有 project:* IPC (list/create/update/delete)"
+    content: "P3-06: stores/projectStore | 规范: DESIGN_SPEC.md 11.1 后端现有能力 (project:*)"
     status: pending
   - id: p3-project-card
-    content: "P3-07: 实现 ProjectCard 组件 (封面/标题/摘要/日期/标签，240px 高度)"
+    content: "P3-07: features/dashboard/ProjectCard | 规范: DESIGN_SPEC.md 6.1 ProjectCard (像素规范)"
     status: pending
   - id: p3-hero-card
-    content: "P3-08: 实现 HeroCard 组件 (特色项目大卡片，320px 最小高度)"
+    content: "P3-08: features/dashboard/HeroCard | 规范: DESIGN_SPEC.md 6.2 HeroCard (像素规范)"
     status: pending
   - id: p3-dashboard-grid
-    content: "P3-09: 实现 Dashboard 项目网格布局 (Bento Grid 风格)"
+    content: "P3-09: features/dashboard/Grid | 规范: DESIGN_SPEC.md 7.2 Dashboard 页面"
     status: pending
   - id: p3-dashboard-sidebar
-    content: "P3-10: 实现 Dashboard Sidebar (Projects 列表 + Collections 列表)"
+    content: "P3-10: features/dashboard/Sidebar | 规范: DESIGN_SPEC.md 4.3 Sidebar Content"
     status: pending
   - id: p3-dashboard-page
-    content: "P3-11: 组装 Dashboard 页面 (对照 design-a2aabb70)"
+    content: "P3-11: pages/Dashboard | 规范: DESIGN_SPEC.md 7.2 + 设计稿 design-a2aabb70"
     status: pending
   - id: p3-editor-store
-    content: "P3-12: 创建 editorStore，管理当前文档状态 (path/isDirty/saveStatus)"
+    content: "P3-12: stores/editorStore | 规范: DESIGN_SPEC.md 8.1 核心用户流程 (编辑流程)"
     status: pending
   - id: p3-editor-toolbar
-    content: "P3-13: 实现 EditorToolbar (文档标题/保存状态/操作按钮)"
+    content: "P3-13: features/editor/Toolbar | 规范: DESIGN_SPEC.md 4.4 Toolbar + 7.3 Editor"
     status: pending
   - id: p3-editor-tiptap
-    content: "P3-14: 集成 TipTap 编辑器，应用 Design Tokens 样式"
+    content: "P3-14: TipTap 集成 | 规范: DESIGN_SPEC.md 7.3 Editor 页面 (正文样式规范)"
     status: pending
   - id: p3-editor-details
-    content: "P3-15: 实现 EditorDetailsPanel (右侧详情面板：封面/标签/字数/阅读时间)"
+    content: "P3-15: features/editor/DetailsPanel | 规范: DESIGN_SPEC.md 4.5 Panel"
     status: pending
   - id: p3-editor-page
-    content: "P3-16: 组装 Editor 页面 (对照 design-a565d21b)"
+    content: "P3-16: pages/Editor | 规范: DESIGN_SPEC.md 7.3 + 设计稿 design-a565d21b"
     status: pending
   - id: p4-ai-store
-    content: "P4-01: 创建/复用 aiStore，对接现有 ai:skill:run IPC"
+    content: "P4-01: stores/aiStore | 规范: DESIGN_SPEC.md 11.1 后端现有能力 (ai:*)"
     status: pending
   - id: p4-message-bubble
-    content: "P4-02: 实现 MessageBubble 组件 (User/Assistant 两种样式)"
+    content: "P4-02: features/ai/MessageBubble | 规范: DESIGN_SPEC.md 6.3 MessageBubble (像素规范)"
     status: pending
   - id: p4-code-block
-    content: "P4-03: 实现 CodeBlock 组件 (语法高亮/复制/应用按钮)"
+    content: "P4-03: features/ai/CodeBlock | 规范: DESIGN_SPEC.md 5.5 CodeBlock (完整参照)"
     status: pending
   - id: p4-ai-input
-    content: "P4-04: 实现 AIInput 组件 (多行输入/发送按钮/快捷键)"
+    content: "P4-04: features/ai/AIInput | 规范: DESIGN_SPEC.md 3.8 Textarea (基础) + AI 场景扩展"
     status: pending
   - id: p4-ai-header
-    content: "P4-05: 实现 AIHeader 组件 (模型选择/角色选择/折叠按钮)"
+    content: "P4-05: features/ai/AIHeader | 规范: DESIGN_SPEC.md 4.5 Panel (AI 变体 360px)"
     status: pending
   - id: p4-ai-panel
-    content: "P4-06: 组装 AIPanel 组件 (360px 宽度，消息列表+输入区)"
+    content: "P4-06: features/ai/AIPanel | 规范: DESIGN_SPEC.md 4.5 Panel (AI 360px) + 8.1.7 AI 对话流程"
     status: pending
   - id: p4-ai-integration
-    content: "P4-07: 将 AIPanel 集成到 Editor 页面 (作为右侧 Panel)"
+    content: "P4-07: AI Panel 集成到 Editor | 规范: DESIGN_SPEC.md 4.1 AppShell (Panel 整合)"
     status: pending
   - id: p5-settings-store
-    content: "P5-01: 创建 settingsStore，定义 UserSettings schema，localStorage 持久化"
+    content: "P5-01: stores/settingsStore | 规范: DESIGN_SPEC.md 11.7 临时方案 (localStorage)"
     status: pending
   - id: p5-settings-nav
-    content: "P5-02: 实现 SettingsNav 组件 (左侧导航列表)"
+    content: "P5-02: features/settings/SettingsNav | 规范: DESIGN_SPEC.md 7.4 Settings Modal"
     status: pending
   - id: p5-settings-section
-    content: "P5-03: 实现 SettingsSection 组件 (右侧内容区容器)"
+    content: "P5-03: features/settings/SettingsSection | 规范: DESIGN_SPEC.md 7.4 Settings Modal"
     status: pending
   - id: p5-settings-writing
-    content: "P5-04: 实现 Writing Experience 设置页 (Focus Mode/Typewriter/Smart Punctuation)"
+    content: "P5-04: features/settings/WritingSettings | 规范: DESIGN_SPEC.md 7.4 + 8.1.3 设置流程"
     status: pending
   - id: p5-settings-data
-    content: "P5-05: 实现 Data & Storage 设置页 (Auto Save/Backup 设置)"
+    content: "P5-05: features/settings/DataSettings | 规范: DESIGN_SPEC.md 7.4 Settings Modal"
     status: pending
   - id: p5-settings-appearance
-    content: "P5-06: 实现 Appearance 设置页 (Theme/Font/Scale)"
+    content: "P5-06: features/settings/AppearanceSettings | 规范: DESIGN_SPEC.md 7.4 Settings Modal"
     status: pending
   - id: p5-settings-modal
-    content: "P5-07: 组装 SettingsModal 组件 (对照 design-5d03b9cc)"
+    content: "P5-07: features/settings/SettingsModal | 规范: DESIGN_SPEC.md 7.4 + 设计稿 design-5d03b9cc"
     status: pending
   - id: p6-file-store
-    content: "P6-01: 创建/复用 fileStore，对接现有 file:* IPC (list/create/delete/read/write)"
+    content: "P6-01: stores/fileStore | 规范: DESIGN_SPEC.md 11.1 后端现有能力 (file:*)"
     status: pending
   - id: p6-file-tree-item
-    content: "P6-02: 实现 FileTreeItem 组件 (文件/文件夹，展开/折叠，右键菜单)"
+    content: "P6-02: features/files/FileTreeItem | 规范: DESIGN_SPEC.md 4.3 Sidebar + 8.1.6 文件管理流程"
     status: pending
   - id: p6-file-tree
-    content: "P6-03: 实现 FileTree 组件 (递归渲染，拖拽排序预留)"
+    content: "P6-03: features/files/FileTree | 规范: DESIGN_SPEC.md 4.3 Sidebar (递归渲染)"
     status: pending
   - id: p6-file-tree-integration
-    content: "P6-04: 将 FileTree 集成到 Sidebar"
+    content: "P6-04: FileTree 集成到 Sidebar | 规范: DESIGN_SPEC.md 4.1 AppShell"
     status: pending
   - id: p7-command-store
-    content: "P7-01: 创建 commandStore，定义命令注册机制"
+    content: "P7-01: stores/commandStore | 规范: DESIGN_SPEC.md 8.1.4 搜索流程"
     status: pending
   - id: p7-command-palette
-    content: "P7-02: 实现 CommandPalette 组件 (Cmd+K 唤起，搜索/快捷键显示)"
+    content: "P7-02: features/command/CommandPalette | 规范: DESIGN_SPEC.md 8.1.4 + 8.3 键盘导航"
     status: pending
   - id: p7-version-store
-    content: "P7-03: 创建/复用 versionStore，对接现有 version:* IPC"
+    content: "P7-03: stores/versionStore | 规范: DESIGN_SPEC.md 11.1 后端现有能力 (version:*)"
     status: pending
   - id: p7-version-item
-    content: "P7-04: 实现 VersionItem 组件 (时间/描述/恢复按钮)"
+    content: "P7-04: features/version/VersionItem | 规范: DESIGN_SPEC.md 8.1.5 版本历史流程"
     status: pending
   - id: p7-version-panel
-    content: "P7-05: 实现 VersionHistoryPanel 组件"
+    content: "P7-05: features/version/VersionHistoryPanel | 规范: DESIGN_SPEC.md 4.5 Panel + 8.1.5"
     status: pending
   - id: p7-export-dialog
-    content: "P7-06: 实现 ExportDialog 组件 (格式选择/导出按钮)"
+    content: "P7-06: features/export/ExportDialog | 规范: DESIGN_SPEC.md 3.12 Dialog (基础) + 9. 推导规则"
     status: pending
   - id: p7-toast
-    content: "P7-07: 实现 Toast 组件 (Success/Error/Info 三种类型)"
+    content: "P7-07: patterns/Toast 集成 | 规范: DESIGN_SPEC.md 3.13 Toast (已有规范)"
     status: pending
   - id: p8-register-page
-    content: "P8-01: 实现 Register 页面 (按 Login 风格推导)"
+    content: "P8-01: pages/Register | 规范: DESIGN_SPEC.md 9. Agent 推导规则 (参照 Login)"
     status: pending
   - id: p8-forgot-password
-    content: "P8-02: 实现 Forgot Password 页面 (按 Login 风格推导)"
+    content: "P8-02: pages/ForgotPassword | 规范: DESIGN_SPEC.md 9. Agent 推导规则 (参照 Login)"
     status: pending
   - id: p8-skills-panel
-    content: "P8-03: 实现 SkillsPanel 组件 (技能列表/开关)"
+    content: "P8-03: features/ai/SkillsPanel | 规范: DESIGN_SPEC.md 9. 推导规则 (参照 AI Panel)"
     status: pending
   - id: p8-memory-panel
-    content: "P8-04: 实现 MemoryPanel 组件 (记忆列表/编辑)"
+    content: "P8-04: features/ai/MemoryPanel | 规范: DESIGN_SPEC.md 9. 推导规则 (参照 Context Panel)"
     status: pending
   - id: p8-search-panel
-    content: "P8-05: 实现 SearchPanel 组件 (全文搜索/语义搜索切换)"
+    content: "P8-05: features/search/SearchPanel | 规范: DESIGN_SPEC.md 8.1.4 搜索流程"
     status: pending
   - id: p9-project-extend
-    content: "P9-01: 扩展 Project 模型 (status/coverImage/tags/wordCount/featured/collectionId)"
+    content: "P9-01: 扩展 Project 模型 | 规范: DESIGN_SPEC.md 11.3 数据模型扩展需求"
     status: pending
   - id: p9-collection-api
-    content: "P9-02: 实现 Collection CRUD API (collection:create/list/update/delete)"
+    content: "P9-02: Collection CRUD API | 规范: DESIGN_SPEC.md 11.6 API 契约新增清单"
     status: pending
   - id: p9-settings-api
-    content: "P9-03: 标准化 Settings API (定义 UserSettings schema)"
+    content: "P9-03: Settings API 标准化 | 规范: DESIGN_SPEC.md 11.6 API 契约新增清单"
     status: pending
   - id: p9-stats-extend
-    content: "P9-04: 扩展 Stats API (stats:goal:get/set, stats:activity:list)"
+    content: "P9-04: Stats API 扩展 | 规范: DESIGN_SPEC.md 11.2.5 统计功能扩展"
     status: pending
   - id: p9-upload-api
-    content: "P9-05: 实现图片上传 API (upload:image)"
+    content: "P9-05: 图片上传 API | 规范: DESIGN_SPEC.md 11.6 API 契约新增清单"
     status: pending
   - id: p9-auth-api
-    content: "P9-06: 实现认证 API (auth:login/register/logout/session) - 后续迭代"
+    content: "P9-06: 认证 API (后续迭代) | 规范: DESIGN_SPEC.md 11.2.1 用户认证系统"
     status: pending
   - id: p9-share-api
-    content: "P9-07: 实现分享 API (share:create/list/revoke) - 后续迭代"
+    content: "P9-07: 分享 API (后续迭代) | 规范: DESIGN_SPEC.md 11.2.4 分享功能"
     status: pending
 isProject: false
 ---
@@ -266,6 +267,77 @@ isProject: false
 # Variant 设计落地 - WriteNow 前端重新实现
 
 > 详细设计规范文档: [Variant/DESIGN_SPEC.md](/home/leeky/work/WriteNow/Variant/DESIGN_SPEC.md)
+
+---
+
+## 零、设计规范约束（宪法级，必须遵守）
+
+### SSOT（唯一权威规范）
+
+| 类型 | 路径 | 说明 |
+|------|------|------|
+| **设计规范** | `Variant/DESIGN_SPEC.md` | 唯一权威，禁止偏离 |
+| **设计稿** | `Variant/designs/*.html` | 11 个高保真设计稿 |
+
+### 必读前置
+
+**执行任何组件/页面任务前，必须先阅读：**
+
+1. `Variant/DESIGN_SPEC.md` **第二部分：Design Tokens 完整规范** (tokens.css)
+2. `Variant/DESIGN_SPEC.md` **对应组件章节** (Props + 像素规范 + 代码示例)
+3. 如有对应设计稿，必须同时参照 `Variant/designs/` 下的 HTML 文件
+
+### 禁止事项（硬禁）
+
+| 禁止行为 | 原因 |
+|----------|------|
+| 自定义颜色值 | 必须使用 `var(--color-*)` CSS 变量 |
+| 自定义间距值 | 必须使用 `var(--spacing-*)` 或规范中的标准值 |
+| 自定义圆角值 | 只允许 4px/6px/8px/16px/24px/100px |
+| 自定义字体 | 只允许 Inter/Lora/JetBrains Mono |
+| 自定义动效曲线 | 只允许 `cubic-bezier(0.2, 0.0, 0.2, 1)` |
+| "看起来差不多" | 必须像素级还原规范 |
+| 随意添加 hover 效果 | 必须按规范定义的状态实现 |
+| 跳过规范直接编码 | 必须先读规范再写代码 |
+
+### 验收标准模板
+
+每个组件/页面验收必须满足：
+
+```markdown
+## 验收检查清单
+
+### Props 对齐
+- [ ] Props 接口与 DESIGN_SPEC.md 一致
+- [ ] 所有 Props 都有正确的 TypeScript 类型
+
+### 视觉还原
+- [ ] 所有颜色使用 CSS Variables (禁止硬编码)
+- [ ] 像素规范完全还原 (字号/间距/圆角/尺寸)
+- [ ] 与设计稿对比无偏差
+
+### 交互状态
+- [ ] default 状态正确
+- [ ] hover 状态正确
+- [ ] focus 状态正确 (如适用)
+- [ ] active 状态正确 (如适用)
+- [ ] disabled 状态正确 (如适用)
+
+### 代码质量
+- [ ] 无 any 类型
+- [ ] 无 ESLint 错误
+- [ ] 组件可独立使用
+```
+
+### 图标系统约束
+
+| 约束 | 要求 |
+|------|------|
+| 图标库 | 只允许 Lucide React |
+| 图标尺寸 | 14px/16px/20px/48px |
+| 图标颜色 | 使用 `currentColor` 继承 |
+
+详见 `DESIGN_SPEC.md 3.16 图标系统`
 
 ---
 
