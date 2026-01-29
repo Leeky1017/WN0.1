@@ -4,7 +4,7 @@
  * and backend persistence, without requiring an AI API key in CI.
  */
 import type { AiSkillRunRequest, IpcChannel, IpcError, IpcResponse, SkillReadResponse } from '@/types/ipc-generated';
-import { rpcClient } from '@/lib/rpc';
+import { connectionManager } from '@/lib/rpc/connection-manager';
 import { skillsClient } from '@/lib/rpc/skills-client';
 import { assembleSkillRunRequest, ContextAssemblerError } from '@/lib/ai/context-assembler';
 
@@ -78,7 +78,24 @@ async function assembleForSkill(args: AssembleForSkillArgs): Promise<IpcResponse
 }
 
 async function invokeIpc(channel: IpcChannel, payload: unknown): Promise<IpcResponse<unknown>> {
-  return await rpcClient.invoke(channel, payload);
+  // Why: E2E bridge must use the same connection state as the app UI (useRpcConnection / connectionManager),
+  // otherwise tests can observe "connected" while RPC calls fail with "Not connected to backend".
+  try {
+    if (!connectionManager.isConnected) {
+      await connectionManager.connect();
+    }
+    return await connectionManager.invoke(channel, payload);
+  } catch (error) {
+    return ipcErr({
+      code: 'INTERNAL',
+      message: 'Failed to invoke backend',
+      retryable: true,
+      details: {
+        channel,
+        message: error instanceof Error ? error.message : String(error),
+      },
+    });
+  }
 }
 
 /**
