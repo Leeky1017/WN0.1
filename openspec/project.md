@@ -18,4 +18,5 @@ AI 驱动的文字创作 IDE
 - [sprint-7-cloud](specs/sprint-7-cloud/spec.md): 云服务
 - [skill-system-v2](specs/skill-system-v2/spec.md): SKILL 系统 V2（任务 004–010 暂停）
 - [wn-frontend-deep-remediation](specs/wn-frontend-deep-remediation/spec.md): 前端深度治理（Paused）
+- [writenow-frontend-gap-analysis](specs/writenow-frontend-gap-analysis/spec.md): writenow-frontend 差距补全（入口补齐 + task cards）
 - [sprint-ide-advanced](specs/sprint-ide-advanced/spec.md): IDE 高级能力（Paused）
