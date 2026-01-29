@@ -113,12 +113,70 @@
       "language": "语言",
       "languageHint": "切换后立即生效（重启后保持）"
     },
+    "theme": {
+      "system": "跟随系统",
+      "midnight": "Midnight（默认）",
+      "dark": "Dark",
+      "light": "Light",
+      "highContrast": "高对比度",
+      "zhCN": "简体中文",
+      "en": "English"
+    },
+    "editorMode": {
+      "richtext": "富文本（TipTap）",
+      "markdown": "Markdown"
+    },
+    "ai": {
+      "hint": "API Key 将用于请求云端模型；本地续写（Tab）与 AI 代理可独立配置。",
+      "apiKeyLabel": "API Key"
+    },
+    "memory": {
+      "loading": "正在加载记忆设置…",
+      "injection": "记忆注入",
+      "injectionDesc": "将相关记忆注入到 AI 上下文中（可随时关闭）",
+      "preferenceLearning": "偏好学习",
+      "preferenceLearningDesc": "根据你的接受/拒绝行为自动总结偏好",
+      "privacyMode": "隐私模式",
+      "privacyModeDesc": "开启后将减少/停用偏好学习与记忆写入",
+      "threshold": "学习阈值",
+      "thresholdDesc": "阈值越高越"谨慎"，学习条目更少；阈值越低越"积极"，更容易写入偏好。"
+    },
     "connection": {
       "priority": "优先级：用户设置 > VITE_RPC_URL > 默认值。",
       "currentUsing": "当前使用：",
       "status": "状态：",
       "applyReconnect": "应用并重连",
-      "clear": "清空"
+      "clear": "清空",
+      "urlLabel": "自定义 RPC URL",
+      "connectFailed": "连接失败"
+    },
+    "localLlm": {
+      "notSupported": "当前构建未暴露 `electronAPI.localLlm`，无法启用本地续写。",
+      "enable": "启用",
+      "enableDesc": "停顿触发 / 灰色预览 / Tab 接受 / Esc 取消。默认关闭；不会自动下载模型，需你确认后手动下载。",
+      "model": "模型",
+      "storagePath": "存储位置：",
+      "download": "下载模型",
+      "verify": "校验/加载",
+      "disableClean": "禁用并清理",
+      "status": "状态：",
+      "idleDelay": "停顿阈值 (ms)",
+      "timeout": "超时 (ms)",
+      "maxTokens": "Max tokens",
+      "temperature": "Temperature",
+      "downloadConfirm": "将下载本地模型{{size}}到 {{path}}。\n下载完成后离线可用。\n\n继续？",
+      "disableConfirm": "将禁用本地续写，并删除已下载的模型文件（不会删除自定义路径）。继续？"
+    },
+    "proxy": {
+      "hint": "启用后，AI 请求将通过代理服务器转发，支持多模型切换、缓存、故障转移等高级功能。",
+      "recommend": "推荐使用",
+      "asProxy": "作为代理。",
+      "enable": "启用代理",
+      "enableDesc": "开启后 AI 请求将走代理转发",
+      "baseUrl": "代理地址 (Base URL)",
+      "apiKey": "API Key（可选）",
+      "testConnection": "测试连接",
+      "enterUrlFirst": "请先输入代理地址"
     }
   },
   "update": {

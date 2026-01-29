@@ -113,12 +113,70 @@
       "language": "Language",
       "languageHint": "Takes effect immediately (persists after restart)"
     },
+    "theme": {
+      "system": "System",
+      "midnight": "Midnight (Default)",
+      "dark": "Dark",
+      "light": "Light",
+      "highContrast": "High Contrast",
+      "zhCN": "简体中文",
+      "en": "English"
+    },
+    "editorMode": {
+      "richtext": "Rich Text (TipTap)",
+      "markdown": "Markdown"
+    },
+    "ai": {
+      "hint": "API Key is used for cloud AI models; Local completion (Tab) and AI proxy can be configured separately.",
+      "apiKeyLabel": "API Key"
+    },
+    "memory": {
+      "loading": "Loading memory settings…",
+      "injection": "Memory Injection",
+      "injectionDesc": "Inject relevant memories into AI context (can be disabled anytime)",
+      "preferenceLearning": "Preference Learning",
+      "preferenceLearningDesc": "Automatically learn preferences from your accept/reject actions",
+      "privacyMode": "Privacy Mode",
+      "privacyModeDesc": "Reduces or disables preference learning and memory writes",
+      "threshold": "Learning Threshold",
+      "thresholdDesc": "Higher threshold = more conservative (fewer entries); Lower = more aggressive (easier to learn)."
+    },
     "connection": {
       "priority": "Priority: user settings > VITE_RPC_URL > default.",
       "currentUsing": "Current:",
       "status": "Status:",
       "applyReconnect": "Apply & reconnect",
-      "clear": "Clear"
+      "clear": "Clear",
+      "urlLabel": "Custom RPC URL",
+      "connectFailed": "Connection failed"
+    },
+    "localLlm": {
+      "notSupported": "Current build doesn't expose `electronAPI.localLlm`, local completion unavailable.",
+      "enable": "Enable",
+      "enableDesc": "Triggers on pause / Ghost preview / Tab to accept / Esc to cancel. Disabled by default; won't auto-download models.",
+      "model": "Model",
+      "storagePath": "Storage path:",
+      "download": "Download Model",
+      "verify": "Verify/Load",
+      "disableClean": "Disable & Clean",
+      "status": "Status:",
+      "idleDelay": "Idle delay (ms)",
+      "timeout": "Timeout (ms)",
+      "maxTokens": "Max tokens",
+      "temperature": "Temperature",
+      "downloadConfirm": "Will download local model{{size}} to {{path}}.\nAvailable offline after download.\n\nContinue?",
+      "disableConfirm": "Will disable local completion and delete downloaded model files (custom paths won't be deleted). Continue?"
+    },
+    "proxy": {
+      "hint": "When enabled, AI requests will be routed through proxy server, supporting multi-model switching, caching, failover, etc.",
+      "recommend": "Recommend using",
+      "asProxy": "as proxy.",
+      "enable": "Enable Proxy",
+      "enableDesc": "AI requests will go through proxy when enabled",
+      "baseUrl": "Proxy URL (Base URL)",
+      "apiKey": "API Key (Optional)",
+      "testConnection": "Test Connection",
+      "enterUrlFirst": "Please enter proxy URL first"
     }
   },
   "update": {
