@@ -2,7 +2,7 @@
 
 - Issue: #369
 - Branch: task/369-plan-spec-constraints
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/370
 
 ## Plan
 
