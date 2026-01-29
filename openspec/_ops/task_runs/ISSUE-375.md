@@ -2,7 +2,7 @@
 
 - Issue: #375
 - Branch: task/375-p1b-patterns
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/376
 
 ## Plan
 
