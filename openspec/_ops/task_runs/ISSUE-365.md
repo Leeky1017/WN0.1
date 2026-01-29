@@ -1,7 +1,7 @@
 # ISSUE-365
 - Issue: #365
 - Branch: task/365-frontend-gap-analysis-spec
-- PR: TBD
+- PR: https://github.com/Leeky1017/WN0.1/pull/366
 
 ## Plan
 - 复核并修正 `writenow-frontend-gap-analysis` 的 spec/design/task_cards，确保可执行且通过 OpenSpec strict validate。
@@ -34,4 +34,35 @@
 - Command: `rulebook task validate issue-365-frontend-gap-analysis-spec`
 - Key output: `✅ Task issue-365-frontend-gap-analysis-spec is valid`
 - Evidence: rulebook task validated
+
+### 2026-01-29 Setup: stash + worktree
+- Command: `git stash push -u -m "wip: issue-365 frontend-gap-analysis-spec"`
+- Key output: `Saved working directory and index state`
+- Evidence: changes moved into stash for worktree isolation
+
+- Command: `git worktree add -b "task/365-frontend-gap-analysis-spec" ".worktrees/issue-365-frontend-gap-analysis-spec" origin/main`
+- Key output: `Preparing worktree (new branch 'task/365-frontend-gap-analysis-spec')`
+- Evidence: `.worktrees/issue-365-frontend-gap-analysis-spec`
+
+- Command: `git stash pop stash@{0}`
+- Key output: `Dropped stash@{0}`
+- Evidence: changes restored into worktree
+
+### 2026-01-29 Verification: spec + rulebook + ci-equivalent
+- Command: `npx --yes openspec validate --specs --strict --no-interactive`
+- Key output: `Totals: 7 passed, 0 failed (7 items)`
+- Evidence: OpenSpec strict validate passed in worktree
+
+- Command: `npm ci && npm run contract:check && npm run lint && npm run build`
+- Key output: `compiled successfully` / `Totals: 7 passed, 0 failed (7 items)`
+- Evidence: local CI-equivalent checks passed (warnings present, no failures)
+
+### 2026-01-29 PR: push + create
+- Command: `git push -u origin HEAD`
+- Key output: `branch 'task/365-frontend-gap-analysis-spec' set up to track 'origin/task/365-frontend-gap-analysis-spec'`
+- Evidence: branch pushed to origin
+
+- Command: `gh pr create --title "spec(openspec): writenow-frontend gap analysis SSOT (#365)" --body "Closes #365 ..."`
+- Key output: `https://github.com/Leeky1017/WN0.1/pull/366`
+- Evidence: PR `#366` (Closes #365)
 
