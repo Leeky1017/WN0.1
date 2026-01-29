@@ -6,9 +6,9 @@
 
 ## Plan
 
-1. 实现 5 个 patterns 交互模式组件（EmptyState, LoadingState, ErrorState, ConfirmDialog, CodeBlock）
-2. 严格遵循 DESIGN_SPEC.md 第五部分规范
-3. 创建统一导出入口，通过类型检查
+- 实现 5 个 patterns 交互模式组件（EmptyState, LoadingState, ErrorState, ConfirmDialog, CodeBlock）
+- 严格遵循 DESIGN_SPEC.md 第五部分规范
+- 创建统一导出入口，通过类型检查
 
 ## Runs
 
