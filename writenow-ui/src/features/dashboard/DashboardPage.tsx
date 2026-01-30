@@ -1,17 +1,23 @@
 /**
  * DashboardPage
  * 
- * 仪表盘页面，展示项目列表。
- * 当前为简化版本，后续集成 AppShell 三栏布局。
+ * 仪表盘页面，使用 AppShell 三栏布局展示项目列表。
  * 
  * @see DESIGN_SPEC.md 7.2 Dashboard 页面
+ * @see design-a2aabb70
  */
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Folder, Search, Bot, Clock, Settings, Plus } from 'lucide-react';
+import { AppShell } from '../../components/layout/AppShell';
+import { IconBar, type IconBarItem } from '../../components/layout/IconBar';
+import { Toolbar } from '../../components/layout/Toolbar';
 import { DashboardGrid } from './components/DashboardGrid';
+import { DashboardSidebar } from './components/DashboardSidebar';
 import { useProjectStore, useFilteredProjects, useFeaturedProject } from '../../stores/projectStore';
+import { useLayoutStore } from '../../stores/layoutStore';
 import { LoadingState } from '../../components/patterns/LoadingState';
 import { ErrorState } from '../../components/patterns/ErrorState';
-import { Search, Plus } from 'lucide-react';
 import { Button } from '../../components/primitives/Button';
 import { Input } from '../../components/primitives/Input';
 
@@ -27,10 +33,30 @@ function Brand() {
   );
 }
 
+/**
+ * Icon Bar 导航项配置
+ */
+const ICON_BAR_ITEMS: IconBarItem[] = [
+  { id: 'projects', icon: <Folder />, label: 'Projects' },
+  { id: 'search', icon: <Search />, label: 'Search' },
+  { id: 'ai', icon: <Bot />, label: 'AI Assistant' },
+  { id: 'history', icon: <Clock />, label: 'Version History' },
+];
+
+const ICON_BAR_BOTTOM_ITEMS: IconBarItem[] = [
+  { id: 'settings', icon: <Settings />, label: 'Settings' },
+];
+
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { fetchProjects, isLoading, error, createProject } = useProjectStore();
   const projects = useFilteredProjects();
   const featuredProject = useFeaturedProject();
+  const { 
+    activeIconBarItem, 
+    setActiveIconBarItem, 
+    toggleSidebar,
+  } = useLayoutStore();
 
   // 初始加载
   useEffect(() => {
@@ -46,11 +72,19 @@ export function DashboardPage() {
         name: 'Untitled Project',
         description: '',
       });
-      // TODO: 导航到编辑器
-      console.log('Created project:', newProject.id);
+      // 导航到编辑器
+      navigate(`/editor/${newProject.id}`);
     } catch (err) {
       console.error('Failed to create project:', err);
     }
+  }
+
+  /**
+   * 处理 Icon Bar 选择
+   */
+  function handleIconBarSelect(id: string) {
+    setActiveIconBarItem(id);
+    // TODO: 根据不同的 icon 显示不同的侧边栏内容
   }
 
   // 加载状态
@@ -76,36 +110,52 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-[var(--color-bg-body)]">
+    <AppShell
+      iconBar={
+        <IconBar
+          items={ICON_BAR_ITEMS}
+          bottomItems={ICON_BAR_BOTTOM_ITEMS}
+          activeId={activeIconBarItem}
+          onSelect={handleIconBarSelect}
+          onToggleSidebar={toggleSidebar}
+        />
+      }
+      sidebar={
+        <DashboardSidebar
+          onCollapse={toggleSidebar}
+          onCreateProject={handleCreateProject}
+        />
+      }
+    >
       {/* Toolbar */}
-      <header className="h-20 px-12 flex items-center justify-between border-b border-[var(--color-border-default)] shrink-0">
-        {/* 左侧 - Brand */}
-        <Brand />
-        
-        {/* 中间 - 搜索框 */}
-        <div className="w-[300px]">
-          <Input
-            type="search"
-            placeholder="Search projects..."
-            leftSlot={<Search className="w-4 h-4" />}
-          />
-        </div>
-        
-        {/* 右侧 - 操作按钮 */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="primary"
-            size="md"
-            leftIcon={<Plus className="w-4 h-4" />}
-            onClick={handleCreateProject}
-          >
-            New Project
-          </Button>
-        </div>
-      </header>
+      <Toolbar
+        size="large"
+        left={<Brand />}
+        center={
+          <div className="w-[300px]">
+            <Input
+              type="search"
+              placeholder="Search projects..."
+              leftSlot={<Search className="w-4 h-4" />}
+            />
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-3">
+            <Button
+              variant="primary"
+              size="md"
+              leftIcon={<Plus className="w-4 h-4" />}
+              onClick={handleCreateProject}
+            >
+              New Project
+            </Button>
+          </div>
+        }
+      />
       
       {/* 主内容区 */}
-      <main className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto">
         <div className="max-w-[1400px] mx-auto px-12 py-8">
           <DashboardGrid
             projects={projects}
@@ -114,7 +164,7 @@ export function DashboardPage() {
             isLoading={isLoading}
           />
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

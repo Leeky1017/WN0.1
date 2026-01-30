@@ -11,3 +11,6 @@ export type { AuthState, User } from './authStore';
 
 export { useProjectStore, useFilteredProjects, useFeaturedProject } from './projectStore';
 export type { ProjectState, Project } from './projectStore';
+
+export { useEditorStore, useSaveStatusText } from './editorStore';
+export type { EditorState, SaveStatus, DocumentMeta } from './editorStore';
