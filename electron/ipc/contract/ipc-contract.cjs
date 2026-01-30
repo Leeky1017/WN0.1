@@ -477,11 +477,20 @@ export type RagRetrieveResponse = {
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 
+export type ProjectStatus = 'draft' | 'published' | 'archived';
+
 export type Project = {
   id: string;
   name: string;
   description?: string;
   styleGuide?: string;
+  // Extended fields (P9-01)
+  status: ProjectStatus;
+  coverImage?: string;
+  tags: string[];
+  wordCount: number;
+  featured: boolean;
+  collectionId?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -672,6 +681,12 @@ export type ProjectCreateRequest = {
   name: string;
   description?: string;
   styleGuide?: string;
+  // Extended fields (P9-01)
+  status?: ProjectStatus;
+  coverImage?: string;
+  tags?: string[];
+  featured?: boolean;
+  collectionId?: string;
 };
 
 export type ProjectCreateResponse = {
@@ -684,6 +699,13 @@ export type ProjectUpdateRequest = {
   name?: string;
   description?: string;
   styleGuide?: string;
+  // Extended fields (P9-01)
+  status?: ProjectStatus;
+  coverImage?: string;
+  tags?: string[];
+  wordCount?: number;
+  featured?: boolean;
+  collectionId?: string | null;
 };
 
 export type ProjectUpdateResponse = {
@@ -1435,6 +1457,275 @@ export type LocalLlmTabStreamEvent =
   | { type: 'delta'; runId: string; text: string }
   | { type: 'done'; runId: string; result: string; durationMs: number }
   | { type: 'error'; runId: string; error: IpcError };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Collection CRUD (P9-02)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type Collection = {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CollectionListRequest = Record<string, never>;
+
+export type CollectionListResponse = {
+  collections: Collection[];
+};
+
+export type CollectionCreateRequest = {
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+};
+
+export type CollectionCreateResponse = {
+  collection: Collection;
+};
+
+export type CollectionUpdateRequest = {
+  id: string;
+  name?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  order?: number;
+};
+
+export type CollectionUpdateResponse = {
+  collection: Collection;
+};
+
+export type CollectionDeleteRequest = {
+  id: string;
+};
+
+export type CollectionDeleteResponse = {
+  deleted: true;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User Settings (P9-03)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type UserSettings = {
+  writing: {
+    focusMode: boolean;
+    typewriterScroll: boolean;
+    smartPunctuation: boolean;
+    autoPairBrackets: boolean;
+  };
+  data: {
+    autoSaveEnabled: boolean;
+    autoSaveInterval: number;
+    backupEnabled: boolean;
+    backupInterval: number;
+  };
+  appearance: {
+    theme: 'dark' | 'light' | 'system';
+    fontFamily: string;
+    fontSize: number;
+    uiScale: number;
+  };
+  export: {
+    defaultFormat: 'docx' | 'pdf' | 'markdown';
+    includeMetadata: boolean;
+  };
+};
+
+export type SettingsGetRequest = Record<string, never>;
+
+export type SettingsGetResponse = {
+  settings: UserSettings;
+};
+
+export type SettingsUpdateRequest = {
+  writing?: Partial<UserSettings['writing']>;
+  data?: Partial<UserSettings['data']>;
+  appearance?: Partial<UserSettings['appearance']>;
+  export?: Partial<UserSettings['export']>;
+};
+
+export type SettingsUpdateResponse = {
+  settings: UserSettings;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stats Extension (P9-04)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type WritingGoal = {
+  weeklyGoal: number;
+  monthlyGoal: number;
+};
+
+export type StatsGoalGetRequest = Record<string, never>;
+
+export type StatsGoalGetResponse = {
+  goal: WritingGoal;
+};
+
+export type StatsGoalSetRequest = {
+  weeklyGoal?: number;
+  monthlyGoal?: number;
+};
+
+export type StatsGoalSetResponse = {
+  goal: WritingGoal;
+};
+
+export type Activity = {
+  id: string;
+  type: 'create' | 'edit' | 'delete' | 'publish' | 'share' | 'export';
+  projectId?: string;
+  projectName?: string;
+  description: string;
+  timestamp: string;
+};
+
+export type StatsActivityListRequest = {
+  limit?: number;
+  projectId?: string;
+};
+
+export type StatsActivityListResponse = {
+  activities: Activity[];
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Upload (P9-05)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type UploadImageRequest = {
+  data: string; // base64 encoded image data
+  mimeType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+};
+
+export type UploadImageResponse = {
+  url: string;
+  path: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth (P9-06 - Placeholder)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  role: 'free' | 'pro' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AuthSession = {
+  authenticated: boolean;
+  user: User | null;
+  mode: 'local' | 'cloud';
+};
+
+export type AuthSessionRequest = Record<string, never>;
+
+export type AuthSessionResponse = {
+  session: AuthSession;
+};
+
+export type AuthLoginRequest = {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+};
+
+export type AuthLoginResponse = {
+  token: string;
+  refreshToken: string;
+  user: User;
+};
+
+export type AuthRegisterRequest = {
+  email: string;
+  password: string;
+  name: string;
+};
+
+export type AuthRegisterResponse = {
+  ok: true;
+};
+
+export type AuthLogoutRequest = Record<string, never>;
+
+export type AuthLogoutResponse = {
+  ok: true;
+};
+
+export type AuthOauthInitRequest = {
+  provider: 'github' | 'sso';
+};
+
+export type AuthOauthInitResponse = {
+  redirectUrl: string;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Share (P9-07 - Placeholder)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ShareLink = {
+  id: string;
+  projectId: string;
+  token: string;
+  permission: 'view' | 'edit';
+  expiresAt?: string;
+  createdAt: string;
+  accessCount: number;
+};
+
+export type ShareCreateRequest = {
+  projectId: string;
+  permission: 'view' | 'edit';
+  expiresIn?: number;
+};
+
+export type ShareCreateResponse = {
+  share: ShareLink;
+};
+
+export type ShareListRequest = {
+  projectId?: string;
+};
+
+export type ShareListResponse = {
+  shares: ShareLink[];
+};
+
+export type ShareRevokeRequest = {
+  shareId: string;
+};
+
+export type ShareRevokeResponse = {
+  revoked: true;
+};
+
+export type ShareGetRequest = {
+  token: string;
+};
+
+export type ShareGetResponse = {
+  project: Project;
+  content: string;
+};
 `;
 
 module.exports = {
