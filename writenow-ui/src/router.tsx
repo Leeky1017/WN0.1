@@ -11,6 +11,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { LoginPage } from './features/auth/LoginPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
+import { EditorPage } from './features/editor/EditorPage';
 
 /**
  * 根布局组件
@@ -50,16 +51,10 @@ export const router = createBrowserRouter([
         path: 'dashboard',
         element: <DashboardPage />,
       },
-      // 编辑器 (占位，后续实现)
+      // 编辑器
       {
         path: 'editor/:id',
-        element: (
-          <div className="w-screen h-screen flex items-center justify-center bg-[var(--color-bg-body)]">
-            <p className="text-[var(--color-text-secondary)]">
-              Editor page - Coming soon
-            </p>
-          </div>
-        ),
+        element: <EditorPage />,
       },
     ],
   },
