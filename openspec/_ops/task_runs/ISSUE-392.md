@@ -6,11 +6,10 @@
 
 ## Plan
 
-1. Extend Project model with new fields (status, coverImage, tags, wordCount, featured, collectionId)
-2. Implement Collection, Settings, Stats extension, Upload, Auth, Share IPC handlers
-3. Update ipc-contract.cjs with new type definitions
-4. Run contract:generate to update TypeScript types
-5. Fix Theia projects-service.ts for compatibility
+- Extend Project model with new fields (status, coverImage, tags, wordCount, featured, collectionId)
+- Implement Collection, Settings, Stats extension, Upload, Auth, Share IPC handlers
+- Update ipc-contract.cjs with new type definitions and run contract:generate
+- Fix Theia projects-service.ts for compatibility
 
 ## Runs
 
