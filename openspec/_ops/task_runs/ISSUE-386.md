@@ -2,7 +2,7 @@
 
 - Issue: #386
 - Branch: task/386-settings-module
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/387
 
 ## Plan
 
