@@ -2,7 +2,7 @@
 
 - Issue: #392
 - Branch: task/392-p9-backend-api
-- PR: <pending>
+- PR: https://github.com/Leeky1017/WN0.1/pull/393
 
 ## Plan
 
