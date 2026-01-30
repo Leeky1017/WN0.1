@@ -64,7 +64,7 @@ export function DashboardGrid({
     <div className="flex flex-col gap-8">
       {/* Featured Project - HeroCard */}
       {featuredProject && (
-        <section>
+        <section className="animate-fade-in delay-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[14px] font-medium text-[var(--color-text-primary)]">
               Continue Writing
@@ -79,7 +79,7 @@ export function DashboardGrid({
 
       {/* 项目网格 */}
       {regularProjects.length > 0 && (
-        <section>
+        <section className="animate-fade-in delay-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[14px] font-medium text-[var(--color-text-primary)]">
               All Projects
@@ -89,40 +89,47 @@ export function DashboardGrid({
             </span>
           </div>
           
-          {/* Bento Grid - 自适应列数 */}
+          {/* Bento Grid - 自适应列数，卡片错开入场 */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {regularProjects.map((project) => (
-              <ProjectCard
+            {regularProjects.map((project, index) => (
+              <div
                 key={project.id}
-                project={project}
-                onProjectClick={handleProjectClick}
-              />
+                className={`animate-fade-in ${index < 3 ? `delay-${(index + 3) * 100}` : 'delay-400'}`}
+              >
+                <ProjectCard
+                  project={project}
+                  onProjectClick={handleProjectClick}
+                />
+              </div>
             ))}
             
             {/* 新建项目卡片 */}
-            <button
-              onClick={onCreateProject}
-              className="
-                h-[240px]
-                rounded-[24px]
-                border border-dashed border-[var(--color-border-default)]
-                bg-transparent
-                cursor-pointer
-                transition-all duration-[300ms]
-                flex flex-col items-center justify-center gap-4
-                hover:border-[var(--color-border-hover)]
-                hover:bg-[var(--color-bg-hover)]
-                focus:outline-none
-                focus:border-[var(--color-border-focus)]
-              "
-            >
-              <div className="w-12 h-12 rounded-full bg-[var(--color-bg-hover)] flex items-center justify-center">
-                <Plus className="w-6 h-6 text-[var(--color-text-secondary)]" />
-              </div>
-              <span className="text-[14px] text-[var(--color-text-secondary)]">
-                New Project
-              </span>
-            </button>
+            <div className={`animate-fade-in delay-400`}>
+              <button
+                onClick={onCreateProject}
+                className="
+                  w-full
+                  h-[240px]
+                  rounded-[24px]
+                  border border-dashed border-[var(--color-border-default)]
+                  bg-transparent
+                  cursor-pointer
+                  transition-all duration-[300ms]
+                  flex flex-col items-center justify-center gap-4
+                  hover:border-[var(--color-border-hover)]
+                  hover:bg-[var(--color-bg-hover)]
+                  focus:outline-none
+                  focus:border-[var(--color-border-focus)]
+                "
+              >
+                <div className="w-12 h-12 rounded-full bg-[var(--color-bg-hover)] flex items-center justify-center">
+                  <Plus className="w-6 h-6 text-[var(--color-text-secondary)]" />
+                </div>
+                <span className="text-[14px] text-[var(--color-text-secondary)]">
+                  New Project
+                </span>
+              </button>
+            </div>
           </div>
         </section>
       )}
