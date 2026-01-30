@@ -6,7 +6,7 @@
  * @see DESIGN_SPEC.md 7.1 Login 页面
  */
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../../../components/primitives/Input';
 import { Button } from '../../../components/primitives/Button';
 import { Checkbox } from '../../../components/primitives/Checkbox';
@@ -128,16 +128,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           disabled={isLoading}
         />
         
-        <button
-          type="button"
+        <Link
+          to="/forgot-password"
           className="text-[13px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
-          onClick={() => {
-            // TODO: 导航到 Forgot Password 页面
-            console.log('Forgot password clicked');
-          }}
         >
           Forgot your password?
-        </button>
+        </Link>
       </div>
       
       {/* API 错误提示 */}

@@ -3,6 +3,8 @@
  * 
  * 路由结构定义：
  * - /login: 登录页面
+ * - /register: 注册页面
+ * - /forgot-password: 忘记密码页面
  * - /dashboard: 仪表盘（项目列表）
  * - /editor/:id: 编辑器页面
  * 
@@ -10,6 +12,8 @@
  */
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { LoginPage } from './features/auth/LoginPage';
+import { RegisterPage } from './features/auth/RegisterPage';
+import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { EditorPage } from './features/editor/EditorPage';
 
@@ -45,6 +49,16 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      // 注册页面
+      {
+        path: 'register',
+        element: <RegisterPage />,
+      },
+      // 忘记密码页面
+      {
+        path: 'forgot-password',
+        element: <ForgotPasswordPage />,
       },
       // 仪表盘
       {

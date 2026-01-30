@@ -60,3 +60,12 @@ export {
   formatVersionTime,
 } from './versionStore';
 export type { VersionState, VersionItem, VersionDiff, VersionActor } from './versionStore';
+
+export { useSkillsStore, SKILL_CATEGORIES } from './skillsStore';
+export type { SkillsState, Skill, SkillCategory } from './skillsStore';
+
+export { useMemoryStore, MEMORY_TYPES, formatMemoryTime } from './memoryStore';
+export type { MemoryState, Memory, MemoryType, MemoryOrigin } from './memoryStore';
+
+export { useSearchStore, SEARCH_MODES, RESULT_TYPES } from './searchStore';
+export type { SearchState, SearchResult, SearchResultType, SearchMode } from './searchStore';
