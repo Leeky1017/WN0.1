@@ -14,3 +14,14 @@ export type { ProjectState, Project } from './projectStore';
 
 export { useEditorStore, useSaveStatusText } from './editorStore';
 export type { EditorState, SaveStatus, DocumentMeta } from './editorStore';
+
+export { useAIStore, useLastMessage, useIsRunning } from './aiStore';
+export type {
+  AIState,
+  AIMessage,
+  AIRunStatus,
+  AIModel,
+  AIRole,
+  MessageRole,
+  MessageStatus,
+} from './aiStore';
