@@ -2,7 +2,7 @@
 
 - Issue: #398
 - Branch: task/398-dashboard-animations
-- PR: <fill-after-created>
+- PR: https://github.com/Leeky1017/WN0.1/pull/399
 
 ## Plan
 
