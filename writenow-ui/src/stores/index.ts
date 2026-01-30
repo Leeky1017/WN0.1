@@ -41,3 +41,22 @@ export type {
   AppearanceSettings,
   SettingsSection,
 } from './settingsStore';
+
+export { useFileStore, useSelectedNode } from './fileStore';
+export type { FileState, FileNode, FileNodeType } from './fileStore';
+
+export {
+  useCommandStore,
+  useFilteredCommands,
+  useGroupedCommands,
+  useRecentCommands,
+  CATEGORY_LABELS,
+} from './commandStore';
+export type { CommandState, Command, CommandCategory } from './commandStore';
+
+export {
+  useVersionStore,
+  useSelectedVersion,
+  formatVersionTime,
+} from './versionStore';
+export type { VersionState, VersionItem, VersionDiff, VersionActor } from './versionStore';

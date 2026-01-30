@@ -7,13 +7,11 @@
  * @see design-a565d21b
  */
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Folder, Search, Bot, Clock, Settings } from 'lucide-react';
 import { AppShell } from '../../components/layout/AppShell';
 import { IconBar, type IconBarItem } from '../../components/layout/IconBar';
 import { SidebarContent } from '../../components/layout/Sidebar/SidebarContent';
-import { SidebarSection } from '../../components/layout/Sidebar/SidebarSection';
-import { SidebarItem } from '../../components/layout/Sidebar/SidebarItem';
 import { EditorToolbar } from './components/EditorToolbar';
 import { EditorTipTap } from './components/EditorTipTap';
 import { EditorDetailsPanel } from './components/EditorDetailsPanel';
@@ -22,7 +20,9 @@ import { ErrorState } from '../../components/patterns/ErrorState';
 import { useEditorStore } from '../../stores/editorStore';
 import { useProjectStore, type Project } from '../../stores/projectStore';
 import { useLayoutStore } from '../../stores/layoutStore';
+import { useFileStore, type FileNode } from '../../stores/fileStore';
 import { AIPanel } from '../ai-panel';
+import { FileTree } from '../file-tree';
 
 /**
  * Icon Bar 导航项配置
@@ -44,24 +44,23 @@ const ICON_BAR_BOTTOM_ITEMS: IconBarItem[] = [
 function EditorSidebar({ 
   project,
   onCollapse,
+  onFileSelect,
+  onFileOpen,
 }: { 
   project: Project | null;
   onCollapse?: () => void;
+  onFileSelect?: (node: FileNode) => void;
+  onFileOpen?: (node: FileNode) => void;
 }) {
   return (
     <SidebarContent
       title={project?.name || 'Untitled'}
       onCollapse={onCollapse}
     >
-      <SidebarSection title="Files">
-        {/* TODO: 对接 file:list IPC 显示文件树 */}
-        <SidebarItem icon={<Folder />}>Chapters</SidebarItem>
-        <SidebarItem icon={<Folder />} indent>Chapter 1</SidebarItem>
-        <SidebarItem icon={<Folder />} indent>Chapter 2</SidebarItem>
-        <SidebarItem icon={<Folder />} indent>Chapter 3</SidebarItem>
-        <SidebarItem icon={<Folder />}>Notes</SidebarItem>
-        <SidebarItem icon={<Folder />}>Research</SidebarItem>
-      </SidebarSection>
+      <FileTree
+        onFileSelect={onFileSelect}
+        onFileOpen={onFileOpen}
+      />
     </SidebarContent>
   );
 }
@@ -99,7 +98,9 @@ const MOCK_CONTENT = `
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { projects } = useProjectStore();
+  const { fetchFiles } = useFileStore();
   const { 
     activeIconBarItem, 
     setActiveIconBarItem, 
@@ -164,6 +165,11 @@ export function EditorPage() {
     return () => clearTimeout(timer);
   }, [id, projects, setCurrentProject, setDocumentContent]);
 
+  // 加载文件树
+  useEffect(() => {
+    fetchFiles(id);
+  }, [id, fetchFiles]);
+
   /**
    * 处理标题变更
    */
@@ -171,6 +177,24 @@ export function EditorPage() {
     setTitle(newTitle);
     // TODO: 对接 project:update IPC 更新项目名称
   }, []);
+
+  /**
+   * 处理文件选择
+   */
+  const handleFileSelect = useCallback((node: FileNode) => {
+    // TODO: 预览文件内容
+    console.log('Selected file:', node);
+  }, []);
+
+  /**
+   * 处理文件打开
+   */
+  const handleFileOpen = useCallback((node: FileNode) => {
+    // TODO: 对接 file:read IPC 加载文件内容
+    console.log('Open file:', node);
+    // 导航到文件编辑页面
+    navigate(`/editor/${id}?file=${encodeURIComponent(node.path)}`);
+  }, [id, navigate]);
 
   /**
    * 处理 Icon Bar 选择
@@ -271,6 +295,8 @@ export function EditorPage() {
         <EditorSidebar
           project={currentProject}
           onCollapse={toggleSidebar}
+          onFileSelect={handleFileSelect}
+          onFileOpen={handleFileOpen}
         />
       }
       panel={renderPanel()}
