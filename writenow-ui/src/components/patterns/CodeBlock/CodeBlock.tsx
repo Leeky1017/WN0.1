@@ -88,10 +88,10 @@ export function CodeBlock({
   return (
     <div
       className={clsx(
-        'border border-[#333333]',
+        'border border-[var(--color-border-hover)]',
         'rounded-lg',
         'overflow-hidden',
-        'bg-[#1a1a1a]',
+        'bg-[var(--color-bg-hover)]',
         className,
       )}
     >
@@ -100,12 +100,12 @@ export function CodeBlock({
         className={clsx(
           'h-9 px-3',
           'flex items-center justify-between',
-          'bg-[#0f0f0f]',
-          'border-b border-[#333333]',
+          'bg-[var(--color-bg-surface)]',
+          'border-b border-[var(--color-border-hover)]',
         )}
       >
         {/* 语言标签 */}
-        <span className="text-[11px] uppercase text-[#666666] tracking-wide">
+        <span className="text-[11px] uppercase text-[var(--color-text-tertiary)] tracking-wide">
           {language ?? 'code'}
         </span>
 
@@ -120,9 +120,9 @@ export function CodeBlock({
                 'w-7 h-7',
                 'flex items-center justify-center',
                 'rounded',
-                'text-[#666666]',
-                'hover:text-white',
-                'hover:bg-[#333333]',
+                'text-[var(--color-text-tertiary)]',
+                'hover:text-[var(--color-text-primary)]',
+                'hover:bg-[var(--color-border-hover)]',
                 'transition-colors duration-[150ms]',
               )}
               title="Apply"
@@ -186,7 +186,7 @@ export function CodeBlock({
                     'w-10',
                     'pr-4',
                     'text-right',
-                    'text-[#444444]',
+                    'text-[var(--color-text-tertiary)]',
                     'select-none',
                   )}
                 >

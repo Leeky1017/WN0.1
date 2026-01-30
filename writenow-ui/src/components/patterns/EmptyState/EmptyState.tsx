@@ -84,7 +84,7 @@ export function EmptyState({
 
       {/* 描述 */}
       {description && (
-        <p className="text-[13px] text-[#666666] leading-relaxed mb-6">
+        <p className="text-[13px] text-[var(--color-text-tertiary)] leading-relaxed mb-6">
           {description}
         </p>
       )}

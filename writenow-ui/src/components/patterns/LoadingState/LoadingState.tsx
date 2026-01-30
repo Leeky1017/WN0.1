@@ -55,7 +55,7 @@ export function Skeleton({
   return (
     <div
       className={clsx(
-        'bg-[#1a1a1a]',
+        'bg-[var(--color-bg-hover)]',
         roundedStyles[rounded],
         animate && 'animate-shimmer',
         className,

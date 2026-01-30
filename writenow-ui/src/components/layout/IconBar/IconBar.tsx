@@ -89,7 +89,7 @@ export function IconBar({
             'flex items-center justify-center',
             'rounded-lg',
             // 颜色和过渡
-            'text-[#666666]',
+            'text-[var(--color-text-tertiary)]',
             'hover:text-[var(--color-text-primary)]',
             'hover:bg-[var(--color-bg-hover)]',
             'transition-colors duration-[var(--duration-fast)]'
@@ -162,7 +162,7 @@ function IconBarButton({ item, isActive, onClick }: IconBarButtonProps) {
           // 状态样式
           isActive
             ? 'text-[var(--color-text-primary)] bg-[var(--color-bg-hover)]'
-            : 'text-[#666666] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]'
+            : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]'
         )}
         aria-label={item.label}
         aria-current={isActive ? 'page' : undefined}

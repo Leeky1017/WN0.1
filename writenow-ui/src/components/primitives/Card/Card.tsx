@@ -70,7 +70,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           // 可点击状态
           clickable && clsx(
             'cursor-pointer',
-            'hover:border-[var(--color-border-focus)]',
+            'hover:border-[var(--color-border-active)]',
             'hover:bg-[var(--color-bg-hover)]',
             'active:bg-[var(--color-bg-active)]',
           ),
