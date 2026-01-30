@@ -54,3 +54,11 @@
 - Issue: CI 失败 - `scripts/ipc-contract-sync.js` 仍引用已删除的 `writenow-frontend`
 - Command: 移除 `frontendOutPath` 引用
 - Key output: 脚本不再检查/生成 `writenow-frontend/src/types/ipc-generated.ts`
+
+### 2026-01-30 CI 修复（第二次）
+
+- Issue: CI 失败 - `writenow-theia/writenow-core` 构建脚本仍复制 `src/browser/style`
+- Command: 更新 `writenow-core/package.json`
+  - 移除 `copy-assets` 中的 browser style 复制
+  - 移除 `theiaExtensions.frontend` 入口
+- Key output: 构建脚本不再依赖已删除的 browser 目录

@@ -36,13 +36,12 @@
     "prepare": "yarn run clean && yarn run build",
     "clean": "rimraf lib",
     "build": "tsc && yarn run copy-assets",
-    "copy-assets": "cp src/node/database/schema.sql lib/node/database/ && cp -r src/browser/style lib/browser/",
+    "copy-assets": "cp src/node/database/schema.sql lib/node/database/",
     "rpc:smoke": "yarn run build && node scripts/rpc-smoke.cjs",
     "watch": "tsc -w"
   },
   "theiaExtensions": [
     {
-      "frontend": "lib/browser/writenow-core-frontend-module",
       "backend": "lib/node/writenow-core-backend-module"
     }
   ]
