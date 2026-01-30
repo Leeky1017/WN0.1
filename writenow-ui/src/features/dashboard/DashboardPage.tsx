@@ -128,31 +128,33 @@ export function DashboardPage() {
       }
     >
       {/* Toolbar */}
-      <Toolbar
-        size="large"
-        left={<Brand />}
-        center={
-          <div className="w-[300px]">
-            <Input
-              type="search"
-              placeholder="Search projects..."
-              leftSlot={<Search className="w-4 h-4" />}
-            />
-          </div>
-        }
-        right={
-          <div className="flex items-center gap-3">
-            <Button
-              variant="primary"
-              size="md"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={handleCreateProject}
-            >
-              New Project
-            </Button>
-          </div>
-        }
-      />
+      <div className="animate-fade-in">
+        <Toolbar
+          size="large"
+          left={<Brand />}
+          center={
+            <div className="w-[300px]">
+              <Input
+                type="search"
+                placeholder="Search projects..."
+                leftSlot={<Search className="w-4 h-4" />}
+              />
+            </div>
+          }
+          right={
+            <div className="flex items-center gap-3">
+              <Button
+                variant="primary"
+                size="md"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={handleCreateProject}
+              >
+                New Project
+              </Button>
+            </div>
+          }
+        />
+      </div>
       
       {/* 主内容区 */}
       <div className="flex-1 overflow-auto">
