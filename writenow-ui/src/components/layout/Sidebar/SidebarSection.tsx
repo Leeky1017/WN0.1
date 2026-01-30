@@ -43,7 +43,7 @@ export function SidebarSection({
           <span
             className={clsx(
               'text-[10px] uppercase tracking-[0.1em]',
-              'text-[#666666]'
+              'text-[var(--color-text-tertiary)]'
             )}
           >
             {title}

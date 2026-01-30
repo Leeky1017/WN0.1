@@ -45,10 +45,12 @@ export function LoginPage() {
       {/* 左侧面板 */}
       <div className="hidden lg:flex w-[40%] flex-col justify-between p-12 xl:p-16 border-r border-[var(--color-border-default)]">
         {/* 顶部 - Brand */}
-        <Brand />
+        <div className="animate-fade-in">
+          <Brand />
+        </div>
         
         {/* 中部 - Tagline */}
-        <div className="flex-1 flex items-center">
+        <div className="flex-1 flex items-center animate-fade-in delay-100">
           <h2 className="text-[30px] xl:text-[36px] font-light leading-tight text-[var(--color-text-primary)]">
             Where ideas become
             <br />
@@ -57,13 +59,13 @@ export function LoginPage() {
         </div>
         
         {/* 底部 - Footer */}
-        <div className="text-[12px] text-[var(--color-text-tertiary)]">
+        <div className="text-[12px] text-[var(--color-text-tertiary)] animate-fade-in delay-200">
           <span>&copy; 2026 WriteNow. All rights reserved.</span>
         </div>
       </div>
       
       {/* 右侧面板 */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-8 animate-fade-in delay-200">
         <div className="w-full max-w-[420px]">
           {/* Mobile Brand (仅移动端显示) */}
           <div className="lg:hidden mb-12 text-center">

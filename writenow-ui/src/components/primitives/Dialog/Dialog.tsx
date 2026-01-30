@@ -75,7 +75,7 @@ export function Dialog({
         <DialogPrimitive.Overlay
           className={clsx(
             'fixed inset-0',
-            'bg-black/80',
+            'bg-[var(--color-overlay)]',
             'z-50',
             'animate-fade-in',
             'data-[state=closed]:animate-fade-out',
@@ -120,7 +120,7 @@ export function Dialog({
                 'w-8 h-8',
                 'flex items-center justify-center',
                 'rounded-lg',
-                'text-[#666666]',
+                'text-[var(--color-text-tertiary)]',
                 'hover:text-[var(--color-text-primary)]',
                 'hover:bg-[var(--color-bg-hover)]',
                 'transition-colors duration-[150ms]',

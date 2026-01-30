@@ -45,6 +45,8 @@ export const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
         ref={ref}
         type="button"
         className={clsx(
+          // 用于 hover 控制子元素
+          'group relative',
           // 布局
           'w-full',
           'flex items-center gap-2',
@@ -58,13 +60,18 @@ export const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
           indent && 'pl-6',
           // 状态样式
           active
-            ? 'text-[var(--color-text-primary)] bg-[var(--color-bg-hover)]'
+            ? 'nav-item-active text-[var(--color-text-primary)] bg-[var(--color-bg-hover)]'
             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]',
           className
         )}
         aria-current={active ? 'page' : undefined}
         {...props}
       >
+        {/* + 指示器 - Variant 设计语言核心视觉识别符 */}
+        <span className="nav-item-indicator absolute -left-3 text-[var(--color-text-tertiary)] font-light text-sm">
+          +
+        </span>
+        
         {icon && (
           <span className="w-4 h-4 shrink-0 [&>svg]:w-4 [&>svg]:h-4 [&>svg]:stroke-[1.5]">
             {icon}

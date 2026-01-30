@@ -115,8 +115,8 @@ svg {
    滚动条样式
    -------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -204,19 +204,28 @@ svg {
   animation: spin 1s linear infinite;
 }
 
-/* Fade In 动画 */
+/* Fade In 动画 - 带 translateY 位移实现更自然的入场效果 */
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn var(--duration-normal) var(--ease-out);
+  animation: fadeIn 0.8s var(--ease-default) forwards;
+  opacity: 0;
 }
+
+/* 延迟类 - 用于实现区块依次入场 */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
 
 /* Fade Out 动画 */
 @keyframes fadeOut {
@@ -291,6 +300,21 @@ svg {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* --------------------------------------------------------------------------
+   导航项「+」指示器 - Variant 设计语言核心视觉识别符
+   -------------------------------------------------------------------------- */
+.nav-item-indicator {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.3s var(--ease-default);
+}
+
+.group:hover .nav-item-indicator,
+.nav-item-active .nav-item-indicator {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* --------------------------------------------------------------------------
