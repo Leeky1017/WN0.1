@@ -62,12 +62,31 @@ function setSetting(db: SqliteDatabase, key: string, value: unknown): void {
     );
 }
 
+/**
+ * Safely parses a JSON array string.
+ */
+function parseJsonArray(raw: unknown): string[] {
+    if (typeof raw !== 'string') return [];
+    try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter((item) => typeof item === 'string') : [];
+    } catch {
+        return [];
+    }
+}
+
 function mapProjectRow(row: unknown): Project {
     const record = row as {
         id?: unknown;
         name?: unknown;
         description?: unknown;
         style_guide?: unknown;
+        status?: unknown;
+        cover_image?: unknown;
+        tags?: unknown;
+        word_count?: unknown;
+        featured?: unknown;
+        collection_id?: unknown;
         created_at?: unknown;
         updated_at?: unknown;
     };
@@ -79,11 +98,26 @@ function mapProjectRow(row: unknown): Project {
     const createdAt = coerceString(record.created_at);
     const updatedAt = coerceString(record.updated_at);
 
+    // Extended fields (P9-01)
+    const statusRaw = coerceString(record.status);
+    const status = statusRaw === 'published' || statusRaw === 'archived' ? statusRaw : 'draft';
+    const coverImage = coerceString(record.cover_image) || undefined;
+    const tags = parseJsonArray(record.tags);
+    const wordCount = typeof record.word_count === 'number' ? record.word_count : 0;
+    const featured = record.featured === 1;
+    const collectionId = coerceString(record.collection_id) || undefined;
+
     return {
         id,
         name,
         description,
         styleGuide,
+        status,
+        coverImage,
+        tags,
+        wordCount,
+        featured,
+        collectionId,
         createdAt,
         updatedAt,
     };
@@ -91,7 +125,11 @@ function mapProjectRow(row: unknown): Project {
 
 function listProjects(db: SqliteDatabase): Project[] {
     const rows = db
-        .prepare('SELECT id, name, description, style_guide, created_at, updated_at FROM projects ORDER BY updated_at DESC')
+        .prepare(
+            `SELECT id, name, description, style_guide, status, cover_image, tags, word_count, featured, collection_id, created_at, updated_at 
+             FROM projects 
+             ORDER BY updated_at DESC`,
+        )
         .all();
     return rows.map(mapProjectRow).filter((project) => project.id && project.name);
 }
@@ -112,14 +150,10 @@ function ensureDefaultProject(db: SqliteDatabase): { created: boolean; projects:
 
     const id = randomUUID();
     const now = toIsoNow();
-    db.prepare('INSERT INTO projects (id, name, description, style_guide, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').run(
-        id,
-        '默认项目',
-        null,
-        null,
-        now,
-        now,
-    );
+    db.prepare(
+        `INSERT INTO projects (id, name, description, style_guide, status, cover_image, tags, word_count, featured, collection_id, created_at, updated_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(id, '默认项目', null, null, 'draft', null, '[]', 0, 0, null, now, now);
     setSetting(db, 'current_project_id', id);
     return { created: true, projects: listProjects(db) };
 }
@@ -193,20 +227,30 @@ export class ProjectsService implements ProjectsServiceContractShape {
         if (!name) throw createIpcError('INVALID_ARGUMENT', 'name is required');
         if (name.length > 120) throw createIpcError('INVALID_ARGUMENT', 'name is too long', { max: 120 });
 
+        // Extended fields (P9-01)
+        const statusRaw = coerceString((request as { status?: unknown }).status);
+        const status = statusRaw === 'published' || statusRaw === 'archived' ? statusRaw : 'draft';
+        const coverImage = coerceString((request as { coverImage?: unknown }).coverImage) || null;
+        const tagsRaw = (request as { tags?: unknown }).tags;
+        const tags = Array.isArray(tagsRaw) ? tagsRaw.filter((t) => typeof t === 'string').slice(0, 20) : [];
+        const featured = (request as { featured?: unknown }).featured === true ? 1 : 0;
+        const collectionId = coerceString((request as { collectionId?: unknown }).collectionId) || null;
+
         const id = randomUUID();
         const now = toIsoNow();
-        db.prepare('INSERT INTO projects (id, name, description, style_guide, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').run(
-            id,
-            name,
-            description,
-            styleGuide,
-            now,
-            now,
-        );
+        db.prepare(
+            `INSERT INTO projects (id, name, description, style_guide, status, cover_image, tags, word_count, featured, collection_id, created_at, updated_at) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).run(id, name, description, styleGuide, status, coverImage, JSON.stringify(tags), 0, featured, collectionId, now, now);
 
         setSetting(db, 'current_project_id', id);
 
-        const row = db.prepare('SELECT id, name, description, style_guide, created_at, updated_at FROM projects WHERE id = ?').get(id);
+        const row = db
+            .prepare(
+                `SELECT id, name, description, style_guide, status, cover_image, tags, word_count, featured, collection_id, created_at, updated_at 
+                 FROM projects WHERE id = ?`,
+            )
+            .get(id);
         return { project: mapProjectRow(row), currentProjectId: id };
     }
 
@@ -222,6 +266,28 @@ export class ProjectsService implements ProjectsServiceContractShape {
 
         if (typeof name === 'string' && !name) throw createIpcError('INVALID_ARGUMENT', 'name cannot be empty');
         if (typeof name === 'string' && name.length > 120) throw createIpcError('INVALID_ARGUMENT', 'name is too long', { max: 120 });
+
+        // Extended fields (P9-01)
+        const reqExt = request as {
+            status?: unknown;
+            coverImage?: unknown;
+            tags?: unknown;
+            wordCount?: unknown;
+            featured?: unknown;
+            collectionId?: unknown;
+        };
+        const statusRaw = typeof reqExt.status === 'string' ? reqExt.status : undefined;
+        const status = statusRaw === 'published' || statusRaw === 'archived' || statusRaw === 'draft' ? statusRaw : undefined;
+        const coverImage = typeof reqExt.coverImage === 'string' ? reqExt.coverImage.trim() : undefined;
+        const tags = Array.isArray(reqExt.tags) ? reqExt.tags.filter((t) => typeof t === 'string').slice(0, 20) : undefined;
+        const wordCount =
+            typeof reqExt.wordCount === 'number' && Number.isFinite(reqExt.wordCount) ? Math.max(0, Math.floor(reqExt.wordCount)) : undefined;
+        const featured = typeof reqExt.featured === 'boolean' ? reqExt.featured : undefined;
+        const collectionId = Object.prototype.hasOwnProperty.call(reqExt, 'collectionId')
+            ? reqExt.collectionId === null
+                ? null
+                : coerceString(reqExt.collectionId) || null
+            : undefined;
 
         const existing = db.prepare('SELECT id FROM projects WHERE id = ?').get(id);
         if (!existing) throw createIpcError('NOT_FOUND', 'Project not found', { id });
@@ -241,6 +307,31 @@ export class ProjectsService implements ProjectsServiceContractShape {
             sets.push('style_guide = @style_guide');
             params.style_guide = styleGuide || null;
         }
+        // Extended fields
+        if (typeof status === 'string') {
+            sets.push('status = @status');
+            params.status = status;
+        }
+        if (typeof coverImage === 'string') {
+            sets.push('cover_image = @cover_image');
+            params.cover_image = coverImage || null;
+        }
+        if (Array.isArray(tags)) {
+            sets.push('tags = @tags');
+            params.tags = JSON.stringify(tags);
+        }
+        if (typeof wordCount === 'number') {
+            sets.push('word_count = @word_count');
+            params.word_count = wordCount;
+        }
+        if (typeof featured === 'boolean') {
+            sets.push('featured = @featured');
+            params.featured = featured ? 1 : 0;
+        }
+        if (collectionId !== undefined) {
+            sets.push('collection_id = @collection_id');
+            params.collection_id = collectionId;
+        }
 
         if (sets.length === 0) throw createIpcError('INVALID_ARGUMENT', 'No fields to update');
 
@@ -249,7 +340,12 @@ export class ProjectsService implements ProjectsServiceContractShape {
 
         db.prepare(`UPDATE projects SET ${sets.join(', ')} WHERE id = @id`).run(params);
 
-        const row = db.prepare('SELECT id, name, description, style_guide, created_at, updated_at FROM projects WHERE id = ?').get(id);
+        const row = db
+            .prepare(
+                `SELECT id, name, description, style_guide, status, cover_image, tags, word_count, featured, collection_id, created_at, updated_at 
+                 FROM projects WHERE id = ?`,
+            )
+            .get(id);
         return { project: mapProjectRow(row) };
     }
 

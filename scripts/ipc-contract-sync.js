@@ -10,6 +10,7 @@ const DOMAIN_ORDER = [
   'file',
   'stats',
   'project',
+  'collection',
   'character',
   'outline',
   'kg',
@@ -26,6 +27,11 @@ const DOMAIN_ORDER = [
   'update',
   'export',
   'clipboard',
+  'settings',
+  'upload',
+  'auth',
+  'share',
+  'localLlm',
 ];
 const domainRank = new Map(DOMAIN_ORDER.map((domain, idx) => [domain, idx]));
 
