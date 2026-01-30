@@ -8,6 +8,7 @@
  */
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import { Folder, Search, Bot, Clock, Settings } from 'lucide-react';
 import { AppShell } from '../../components/layout/AppShell';
 import { IconBar, type IconBarItem } from '../../components/layout/IconBar';
