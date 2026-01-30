@@ -180,10 +180,8 @@ async function main() {
 
   const outPath = path.join(repoRoot, 'src', 'types', 'ipc-generated.ts');
   const theiaOutPath = path.join(repoRoot, 'writenow-theia', 'writenow-core', 'src', 'common', 'ipc-generated.ts');
-  const frontendOutPath = path.join(repoRoot, 'writenow-frontend', 'src', 'types', 'ipc-generated.ts');
   const existing = await fs.readFile(outPath, 'utf8').catch(() => null);
   const theiaExisting = await fs.readFile(theiaOutPath, 'utf8').catch(() => null);
-  const frontendExisting = await fs.readFile(frontendOutPath, 'utf8').catch(() => null);
 
 
   if (checkOnly) {
@@ -192,8 +190,6 @@ async function main() {
     else if (existing !== generatedTs) mismatches.push(`drift detected: ${outPath}`);
     if (theiaExisting === null) mismatches.push(`missing ${theiaOutPath}`);
     else if (theiaExisting !== generatedTs) mismatches.push(`drift detected: ${theiaOutPath}`);
-    if (frontendExisting === null) mismatches.push(`missing ${frontendOutPath}`);
-    else if (frontendExisting !== generatedTs) mismatches.push(`drift detected: ${frontendOutPath}`);
 
     if (mismatches.length === 0) return;
 
@@ -204,10 +200,6 @@ async function main() {
     }
     if (theiaExisting === null || theiaExisting !== generatedTs) {
       const { diff } = await diffTextFiles({ repoRoot, label: 'ipc-generated.theia.ts', expectedPath: theiaOutPath, actualText: generatedTs });
-      if (diff.trim()) diffs.push(diff.trimEnd());
-    }
-    if (frontendExisting === null || frontendExisting !== generatedTs) {
-      const { diff } = await diffTextFiles({ repoRoot, label: 'ipc-generated.frontend.ts', expectedPath: frontendOutPath, actualText: generatedTs });
       if (diff.trim()) diffs.push(diff.trimEnd());
     }
     // eslint-disable-next-line no-console
@@ -227,8 +219,6 @@ async function main() {
   await fs.writeFile(outPath, generatedTs, 'utf8');
   await fs.mkdir(path.dirname(theiaOutPath), { recursive: true });
   await fs.writeFile(theiaOutPath, generatedTs, 'utf8');
-  await fs.mkdir(path.dirname(frontendOutPath), { recursive: true });
-  await fs.writeFile(frontendOutPath, generatedTs, 'utf8');
 }
 
 main().catch((error) => {

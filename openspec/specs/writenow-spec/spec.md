@@ -6,10 +6,10 @@ WriteNow 是创作者的 IDE —— 用 Cursor 对程序员的革命，去革命
 
 - 本规范：Active（持续更新的权威基线）
 - 架构主线：Eclipse Theia（✅ 迁移完成：Phase 0–3，2026-01-24）
-- 前端基线：`writenow-frontend/`（✅ Frontend V2 Phase 0–6 完成：2026-01-26；Electron 34 + Vite 6 + React 18）
-- 代码基线：`writenow-theia/`（production Theia workspace：browser + electron + writenow-core extension）
+- 前端基线：`writenow-ui/`（✅ Variant 设计重构完成：2026-01-30；Vite 6 + React 18 + Tailwind 4）
+- 代码基线：`writenow-theia/`（仅保留后端服务 writenow-core/src/node/）
 - AI Memory：P2-001/P2-002（Full→Compact 压缩 + 设定文件化按需加载）✅（2026-01-28，PR #337）
-- Legacy 清理：`theia-poc/` 已移除；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/`（contract SSOT）+ `skills/`（builtin packages）；前端架构重构后已移除：`writenow-frontend-old/`（旧前端）、`figma参考/`（旧参考代码）、`backup/`（临时备份）
+- Legacy 清理：`writenow-frontend/` 已移除（被 writenow-ui 替代）；`writenow-theia/writenow-core/src/browser/` 已移除（前端 UI）；`src/` 仅保留 `types/` + `locales/`；`electron/` 仅保留 `ipc/` + `skills/`
 - 治理与交付规范：`AGENTS.md`
 - 运行日志：`openspec/_ops/task_runs/ISSUE-<N>.md`
 
@@ -609,9 +609,9 @@ MVP 阶段采用"格式模板导出 + 剪贴板适配"方案。
 
 ### 架构：Theia Backend + 独立前端（Frontend V2）
 
-WriteNow 保留 **Eclipse Theia** 作为后端基线（Theia backend + writenow-core extension），并在 Frontend V2 中引入独立前端 `writenow-frontend/`（Vite + React + Tailwind）作为产品 UI baseline，通过 WebSocket JSON-RPC（`/standalone-rpc`）复用既有后端服务。
+WriteNow 使用 `writenow-ui/`（Vite + React + Tailwind）作为产品 UI baseline，通过 Electron IPC 对接后端服务。
 
-- 前端层：`writenow-frontend/`（Vite + React + Tailwind + shadcn/ui + TipTap + FlexLayout）。
+- 前端层：`writenow-ui/`（Vite + React + Tailwind + Radix UI + TipTap）。
 - 桌面层：Electron（启动 Theia backend，加载独立前端 UI）。
 - 后端层：Theia backend（Node）承载 SQLite/better-sqlite3/sqlite-vec、RAG、Embedding、Skills 等服务。
 - 合约与类型：保留 contract pipeline（`electron/ipc/**` → 生成 `src/types/ipc-generated.ts` 与 `writenow-theia/writenow-core/src/common/ipc-generated.ts`）。
@@ -622,11 +622,11 @@ WriteNow 保留 **Eclipse Theia** 作为后端基线（Theia backend + writenow-
 | 层次 | 技术 | 说明 |
 |------|------|------|
 | 后端基线 | Eclipse Theia 1.67.0 | Theia backend + extension（保留） |
-| 独立前端 | Vite 6 + React 18 + TypeScript | `writenow-frontend/`（严格模式） |
+| 独立前端 | Vite 6 + React 18 + TypeScript | `writenow-ui/`（严格模式） |
 | 样式 | Tailwind CSS 4.x + shadcn/ui + Radix UI | Design Tokens + 多主题 |
 | 编辑器 | TipTap | 富文本默认 + Markdown 序列化 |
 | 布局系统 | FlexLayout | IDE 级拖拽布局 |
-| 通信 | WebSocket JSON-RPC (Theia) | `writenow-frontend` ↔ backend（`/standalone-rpc`） |
+| 通信 | Electron IPC | `writenow-ui` ↔ backend（`electron/ipc/`） |
 | 构建工具 | Yarn (Classic) + Lerna | `writenow-theia/` 工作区 |
 | 本地数据 | SQLite (better-sqlite3) | backend 持久化（含 FTS5） |
 | 向量存储 | sqlite-vec | backend 扩展 |

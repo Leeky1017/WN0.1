@@ -1,2 +1,0 @@
-export { UpdateSection } from './UpdateSection';
-
