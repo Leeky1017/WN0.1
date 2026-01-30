@@ -22,6 +22,7 @@ import { ErrorState } from '../../components/patterns/ErrorState';
 import { useEditorStore } from '../../stores/editorStore';
 import { useProjectStore, type Project } from '../../stores/projectStore';
 import { useLayoutStore } from '../../stores/layoutStore';
+import { AIPanel } from '../ai-panel';
 
 /**
  * Icon Bar 导航项配置
@@ -105,6 +106,8 @@ export function EditorPage() {
     toggleSidebar,
     panelCollapsed,
     togglePanel,
+    panelVariant,
+    setPanelVariant,
   } = useLayoutStore();
   const { 
     setCurrentProject, 
@@ -174,8 +177,38 @@ export function EditorPage() {
    */
   function handleIconBarSelect(itemId: string) {
     setActiveIconBarItem(itemId);
-    // TODO: 根据不同的 icon 显示不同的侧边栏内容
+    
+    // 根据选择的项目切换面板类型
+    if (itemId === 'ai') {
+      // 切换到 AI 面板
+      setPanelVariant('ai');
+      // 如果面板已折叠，自动展开
+      if (panelCollapsed) {
+        togglePanel();
+      }
+    } else {
+      // 其他情况切换回默认面板
+      if (panelVariant === 'ai') {
+        setPanelVariant('default');
+      }
+    }
   }
+
+  /**
+   * 处理应用代码到编辑器
+   */
+  const handleApplyCode = useCallback((code: string) => {
+    // TODO: 将代码应用到编辑器，替换选中内容或插入到光标位置
+    console.log('Apply code:', code);
+  }, []);
+
+  /**
+   * 处理插入代码到编辑器
+   */
+  const handleInsertCode = useCallback((code: string) => {
+    // TODO: 将代码插入到编辑器光标位置
+    console.log('Insert code:', code);
+  }, []);
 
   // 加载状态
   if (isLoading) {
@@ -198,6 +231,31 @@ export function EditorPage() {
     );
   }
 
+  /**
+   * 渲染右侧面板
+   * 根据 panelVariant 显示 AI Panel 或 Details Panel
+   */
+  const renderPanel = () => {
+    if (panelCollapsed) return null;
+
+    if (panelVariant === 'ai') {
+      return (
+        <AIPanel
+          onCollapse={togglePanel}
+          onApplyCode={handleApplyCode}
+          onInsertCode={handleInsertCode}
+        />
+      );
+    }
+
+    return (
+      <EditorDetailsPanel
+        project={currentProject}
+        onCollapse={togglePanel}
+      />
+    );
+  };
+
   return (
     <AppShell
       iconBar={
@@ -215,14 +273,7 @@ export function EditorPage() {
           onCollapse={toggleSidebar}
         />
       }
-      panel={
-        !panelCollapsed && (
-          <EditorDetailsPanel
-            project={currentProject}
-            onCollapse={togglePanel}
-          />
-        )
-      }
+      panel={renderPanel()}
     >
       {/* Toolbar */}
       <EditorToolbar
