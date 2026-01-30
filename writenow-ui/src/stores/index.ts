@@ -25,3 +25,19 @@ export type {
   MessageRole,
   MessageStatus,
 } from './aiStore';
+
+export {
+  useSettingsStore,
+  useWritingSettings,
+  useDataSettings,
+  useAppearanceSettings,
+  useActiveSection,
+} from './settingsStore';
+export type {
+  SettingsState,
+  UserSettings,
+  WritingSettings,
+  DataSettings,
+  AppearanceSettings,
+  SettingsSection,
+} from './settingsStore';
