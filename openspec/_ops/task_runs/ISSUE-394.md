@@ -48,3 +48,9 @@
   - 前端基线: `writenow-frontend/` → `writenow-ui/`
   - 代码基线: 仅保留后端服务 `writenow-core/src/node/`
   - 通信层: WebSocket JSON-RPC → Electron IPC
+
+### 2026-01-30 CI 修复
+
+- Issue: CI 失败 - `scripts/ipc-contract-sync.js` 仍引用已删除的 `writenow-frontend`
+- Command: 移除 `frontendOutPath` 引用
+- Key output: 脚本不再检查/生成 `writenow-frontend/src/types/ipc-generated.ts`
